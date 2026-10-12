@@ -141,6 +141,15 @@ CLASS ProGriddle.Games.Life.LifeInputTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID LifeUsesNoKeysAndShowsNoBanner():
+        Assert:IsFalse(mInput:HandleKey("Left")).
+        Assert:IsFalse(mInput:HandleKey("Space")).
+        mInput:ReleaseKey("Left").
+        mInput:ReleaseKey("").
+        Assert:Equals("", mInput:BannerText).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID BothButtonsTogetherDoNothing():
         mGame:Place(LifePatterns:Block(), 1, 1).
         mInput:TertiaryAction(1, 1).

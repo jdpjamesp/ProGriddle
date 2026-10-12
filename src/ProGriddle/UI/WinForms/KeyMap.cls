@@ -2,7 +2,7 @@
    such as "Space", "S", "Oemplus") so it needs no UI types and the window decides where the
    names come from.
 
-     Space              start, or pause when running
+     Space or P         start, or pause when running
      S or Right         one step
      R or F2            reset (a new game for a turn based game)
      + or Up            faster
@@ -22,7 +22,7 @@ CLASS ProGriddle.UI.WinForms.KeyMap FINAL:
        whether Space starts or pauses. */
     METHOD PUBLIC GameCommand CommandFor(INPUT pcKey AS CHARACTER, INPUT plRunning AS LOGICAL):
         CASE pcKey:
-            WHEN "Space" THEN RETURN (IF plRunning THEN GameCommand:PauseGame ELSE GameCommand:Start).
+            WHEN "Space" OR WHEN "P" THEN RETURN (IF plRunning THEN GameCommand:PauseGame ELSE GameCommand:Start).
             WHEN "S" OR WHEN "Right" THEN RETURN GameCommand:StepOnce.
             WHEN "R" OR WHEN "F2" THEN RETURN GameCommand:Reset.
             WHEN "Oemplus" OR WHEN "Add" OR WHEN "Up" THEN RETURN GameCommand:SpeedUp.

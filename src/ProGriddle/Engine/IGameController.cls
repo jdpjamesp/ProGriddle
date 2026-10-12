@@ -1,9 +1,16 @@
 /* What a window needs from whatever drives a game. GameController drives a steppable game
    with a clock. TurnController drives a turn based game, where only a new game, a redraw and
-   closing make sense, so Steppable is false and the window leaves out Start, Step and speed. */
+   closing make sense, so Steppable and Pausable are false. RealTimeController drives a real
+   time game: Pausable but not Steppable, so the window offers Start or Pause but no Step and
+   no speed. */
 USING ProGriddle.Engine.*.
 
 INTERFACE ProGriddle.Engine.IGameController:
+
+    /* True when Start and PauseGame apply: the game runs on a clock that can be paused. A
+       steppable game and a real time game are both pausable, a turn based game is not. */
+    DEFINE PUBLIC PROPERTY Pausable AS LOGICAL NO-UNDO
+        GET.
 
     /* True when Start, StepOnce, PauseGame and the speed levels apply. */
     DEFINE PUBLIC PROPERTY Steppable AS LOGICAL NO-UNDO

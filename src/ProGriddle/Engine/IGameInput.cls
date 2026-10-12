@@ -31,6 +31,11 @@ INTERFACE ProGriddle.Engine.IGameInput:
     DEFINE PUBLIC PROPERTY CommandNames AS CHARACTER NO-UNDO
         GET.
 
+    /* A line of text shown over the middle of the board for as long as it is not empty, such as
+       "PAUSED" or "GAME OVER". Read after every change. Empty for none. */
+    DEFINE PUBLIC PROPERTY BannerText AS CHARACTER NO-UNDO
+        GET.
+
     /* A few words about what the last action did, for example "Question marks on" or "Ships
        cannot touch", or an empty string when there is nothing to say. The window calls it after
        every click, key and command and shows the words over the board for a moment, because a
@@ -49,6 +54,17 @@ INTERFACE ProGriddle.Engine.IGameInput:
     /* The text for that screen, one line per CHR(10). Read each time the screen is opened. */
     DEFINE PUBLIC PROPERTY InfoText AS CHARACTER NO-UNDO
         GET.
+
+    /* A key went down. pcKey is the .NET name of the key ("Left", "Space", "Z"). Returns true when
+       the game uses the key, which stops the window giving it its usual meaning. Called before
+       the window's own keys, so a real time game can take the arrows and the space bar. A key held
+       down arrives again and again while it is held (key repeat). The game tells that apart
+       with ReleaseKey. Games that use no keys of their own return false. */
+    METHOD PUBLIC LOGICAL HandleKey(INPUT pcKey AS CHARACTER).
+
+    /* A key came up. An empty name means every key is up, which the window says when it loses
+       focus, because the key up for a key held at that moment is never delivered. */
+    METHOD PUBLIC VOID ReleaseKey(INPUT pcKey AS CHARACTER).
 
     /* Runs one of the commands in CommandNames, by name only (no key letter). Throws
        GridException for any other name. */

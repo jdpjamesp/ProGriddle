@@ -20,6 +20,12 @@ CLASS ProGriddle.UI.WinForms.KeyMapTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID PAlsoStartsAndPauses():
+        Assert:IsTrue(mMap:CommandFor("P", FALSE) = GameCommand:Start).
+        Assert:IsTrue(mMap:CommandFor("P", TRUE) = GameCommand:PauseGame).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID SAndRightArrowStepOnce():
         Assert:IsTrue(mMap:CommandFor("S", FALSE) = GameCommand:StepOnce).
         Assert:IsTrue(mMap:CommandFor("Right", TRUE) = GameCommand:StepOnce).

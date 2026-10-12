@@ -247,6 +247,13 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInputTests:
     /* ---- the high scores screen ---- */
 
     @Test.
+    METHOD PUBLIC VOID MinesweeperUsesNoKeysAndShowsNoBanner():
+        Assert:IsFalse(mInput:HandleKey("Left")).
+        mInput:ReleaseKey("").
+        Assert:Equals("", mInput:BannerText).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID TheScoresScreenIsOfferedWithAKey():
         Assert:Equals("Scores:H", mInput:InfoLabel).
     END METHOD.

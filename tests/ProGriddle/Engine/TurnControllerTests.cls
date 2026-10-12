@@ -34,6 +34,7 @@ CLASS ProGriddle.Engine.TurnControllerTests:
     @Test.
     METHOD PUBLIC VOID IsNotSteppableAndNeverRuns():
         Assert:IsFalse(mController:Steppable).
+        Assert:IsFalse(mController:Pausable).
         Assert:IsFalse(mController:IsRunning).
         Assert:Equals(0, mController:SpeedLevel).
     END METHOD.

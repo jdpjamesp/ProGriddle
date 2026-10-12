@@ -39,6 +39,7 @@ CLASS ProGriddle.Engine.GameControllerTests:
     @Test.
     METHOD PUBLIC VOID IsSteppable():
         Assert:IsTrue(mController:Steppable).
+        Assert:IsTrue(mController:Pausable).
     END METHOD.
 
     @Test.

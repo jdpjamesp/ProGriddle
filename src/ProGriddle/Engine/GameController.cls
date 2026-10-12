@@ -34,6 +34,11 @@ CLASS ProGriddle.Engine.GameController FINAL IMPLEMENTS IGameController:
             RETURN TRUE.
         END GET.
 
+    DEFINE PUBLIC PROPERTY Pausable AS LOGICAL NO-UNDO
+        GET():
+            RETURN TRUE.
+        END GET.
+
     CONSTRUCTOR PUBLIC GameController(INPUT poGame AS ISteppableGame, INPUT poRenderer AS IGridRenderer, INPUT poClock AS IClock):
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("A controller needs a game").
         IF NOT VALID-OBJECT(poRenderer) THEN UNDO, THROW NEW GridException("A controller needs a renderer").

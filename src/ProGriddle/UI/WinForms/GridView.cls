@@ -61,6 +61,7 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
     DEFINE PRIVATE VARIABLE mGlyphFontPx AS INTEGER    NO-UNDO.
     DEFINE PRIVATE VARIABLE mGlyphFormat AS StringFormat NO-UNDO.
 
+    DEFINE PRIVATE VARIABLE mBannerText  AS CHARACTER  NO-UNDO.
     /* the notice: its text, when it started (System.Environment:TickCount) and the timer that fades it */
     DEFINE PRIVATE VARIABLE mNoticeText  AS CHARACTER  NO-UNDO.
     DEFINE PRIVATE VARIABLE mNoticeStart AS INTEGER    NO-UNDO.
@@ -80,6 +81,12 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
             GlyphFontName = pcValue.
             FreeFont().
         END SET.
+
+    /* The banner on show now, or an empty string when there is none. */
+    DEFINE PUBLIC PROPERTY BannerText AS CHARACTER NO-UNDO
+        GET():
+            RETURN mBannerText.
+        END GET.
 
     /* The notice on show now, or an empty string when there is none or it has faded. */
     DEFINE PUBLIC PROPERTY NoticeText AS CHARACTER NO-UNDO
@@ -199,6 +206,16 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         THIS-OBJECT:Invalidate().
     END METHOD.
 
+    /* Shows a few words over the middle of the board, solid, for as long as they are set, such as
+       "PAUSED". An empty or unknown text takes it away. A notice is drawn over it. */
+    METHOD PUBLIC VOID SetBanner(INPUT pcText AS CHARACTER):
+        IF mReleased THEN RETURN.
+        IF pcText = ? THEN pcText = "".
+        IF pcText = mBannerText THEN RETURN.
+        mBannerText = pcText.
+        THIS-OBJECT:Invalidate().
+    END METHOD.
+
     METHOD PRIVATE VOID OnNoticeTick(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
         IF mNoticeText <> "" AND NoticeAlphaAt(System.Environment:TickCount - mNoticeStart) <= 0 THEN DO:
             mNoticeText = "".
@@ -207,9 +224,15 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         THIS-OBJECT:Invalidate().
     END METHOD.
 
-    /* Draws the notice centred on a dark panel, both at the current opacity. */
+    /* Draws the notice at its current opacity. */
     METHOD PRIVATE VOID PaintNotice(INPUT poGraphics AS Graphics):
-        DEFINE VARIABLE alpha  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE alpha AS INTEGER NO-UNDO.
+        alpha = NoticeAlphaAt(System.Environment:TickCount - mNoticeStart).
+        IF alpha > 0 THEN PaintBox(poGraphics, mNoticeText, alpha).
+    END METHOD.
+
+    /* Draws text centred on a dark panel, both at the given opacity (1 to 255). */
+    METHOD PRIVATE VOID PaintBox(INPUT poGraphics AS Graphics, INPUT pcText AS CHARACTER, INPUT piAlpha AS INTEGER):
         DEFINE VARIABLE noticeFont AS Font NO-UNDO.
         DEFINE VARIABLE panelBrush AS SolidBrush NO-UNDO.
         DEFINE VARIABLE textBrush AS SolidBrush NO-UNDO.
@@ -218,21 +241,19 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         DEFINE VARIABLE h      AS DECIMAL NO-UNDO.
         DEFINE VARIABLE cx     AS DECIMAL NO-UNDO.
         DEFINE VARIABLE cy     AS DECIMAL NO-UNDO.
-        alpha = NoticeAlphaAt(System.Environment:TickCount - mNoticeStart).
-        IF alpha <= 0 THEN RETURN.
         DO ON ERROR UNDO, THROW:
             noticeFont = NEW Font(GlyphFontName, System.Convert:ToSingle(26), FontStyle:Bold, GraphicsUnit:Pixel).
             poGraphics:TextRenderingHint = TextRenderingHint:AntiAliasGridFit.
-            textSize = poGraphics:MeasureString(mNoticeText, noticeFont).
+            textSize = poGraphics:MeasureString(pcText, noticeFont).
             w = textSize:Width + 56.
             h = textSize:Height + 28.
             cx = THIS-OBJECT:ClientSize:Width / 2.
             cy = THIS-OBJECT:ClientSize:Height / 2.
-            panelBrush = NEW SolidBrush(Color:FromArgb(INTEGER(alpha * 0.8), 10, 12, 16)).
-            textBrush = NEW SolidBrush(Color:FromArgb(alpha, 255, 255, 255)).
+            panelBrush = NEW SolidBrush(Color:FromArgb(INTEGER(piAlpha * 0.8), 10, 12, 16)).
+            textBrush = NEW SolidBrush(Color:FromArgb(piAlpha, 255, 255, 255)).
             poGraphics:FillRectangle(panelBrush, System.Convert:ToSingle(cx - w / 2), System.Convert:ToSingle(cy - h / 2),
                                      System.Convert:ToSingle(w), System.Convert:ToSingle(h)).
-            poGraphics:DrawString(mNoticeText, noticeFont, textBrush, System.Convert:ToSingle(cx), System.Convert:ToSingle(cy), mGlyphFormat).
+            poGraphics:DrawString(pcText, noticeFont, textBrush, System.Convert:ToSingle(cx), System.Convert:ToSingle(cy), mGlyphFormat).
             FINALLY:
                 IF VALID-OBJECT(textBrush) THEN textBrush:Dispose().
                 IF VALID-OBJECT(panelBrush) THEN panelBrush:Dispose().
@@ -374,6 +395,7 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
             END.
             IF mGlyphCount > 0 THEN PaintGlyphs(e:Graphics, ox, oy, cs).
         END.
+        IF mBannerText <> "" THEN PaintBox(e:Graphics, mBannerText, 255).
         IF mNoticeText <> "" THEN PaintNotice(e:Graphics).
         LastPaintMs = ETIME.
         PaintCount = PaintCount + 1.

@@ -1,5 +1,7 @@
 /* A clock driven by a Windows timer, for the GUI. The timer raises its tick on the UI thread,
-   so game code and drawing never race. Dispose stops the timer, stops listening to it and
+   so game code and drawing never race. Each tick reports the milliseconds that really passed
+   since the last one (at most four intervals), not the nominal interval, because a timer
+   that is busy ticks late and a real time game must not run slow. Dispose stops the timer, stops listening to it and
    frees it: call it when the window closes. */
 USING Progress.Lang.*.
 USING System.Windows.Forms.Timer FROM ASSEMBLY.
@@ -13,6 +15,8 @@ CLASS ProGriddle.UI.WinForms.WinFormsClock FINAL IMPLEMENTS IClock:
 
     DEFINE PRIVATE VARIABLE mTimer    AS Timer   NO-UNDO.
     DEFINE PRIVATE VARIABLE mDisposed AS LOGICAL NO-UNDO.
+    /* System.Environment:TickCount at the previous tick, so a tick can report the time that really passed */
+    DEFINE PRIVATE VARIABLE mLast     AS INTEGER NO-UNDO.
 
     DEFINE PUBLIC PROPERTY Interval AS INTEGER NO-UNDO
         GET():
@@ -45,6 +49,7 @@ CLASS ProGriddle.UI.WinForms.WinFormsClock FINAL IMPLEMENTS IClock:
 
     METHOD PUBLIC VOID Start():
         IF mDisposed THEN RETURN.
+        IF NOT mTimer:Enabled THEN mLast = System.Environment:TickCount.
         mTimer:Start().
     END METHOD.
 
@@ -63,7 +68,14 @@ CLASS ProGriddle.UI.WinForms.WinFormsClock FINAL IMPLEMENTS IClock:
     END METHOD.
 
     METHOD PRIVATE VOID OnTimerTick(INPUT poSender AS System.Object, INPUT poArgs AS System.EventArgs):
-        Tick:Publish(mTimer:Interval).
+        DEFINE VARIABLE tickNow     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE elapsed AS INTEGER NO-UNDO.
+        tickNow = System.Environment:TickCount.
+        elapsed = tickNow - mLast.
+        mLast = tickNow.
+        /* a window being dragged can hold the timer up for a long time: report at most four intervals,
+           and at least one millisecond */
+        Tick:Publish(MAXIMUM(1, MINIMUM(elapsed, 4 * mTimer:Interval))).
     END METHOD.
 
 END CLASS.

@@ -66,6 +66,11 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInput FINAL IMPLEMENTS IGameInput:
             ELSE mGame:Configure(MinesweeperLevels:WidthOf(mChoice), MinesweeperLevels:HeightOf(mChoice), MinesweeperLevels:MinesOf(mChoice)).
         END SET.
 
+    DEFINE PUBLIC PROPERTY BannerText AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
+
     DEFINE PUBLIC PROPERTY InfoLabel AS CHARACTER NO-UNDO
         GET():
             RETURN "Scores:H".
@@ -126,6 +131,14 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInput FINAL IMPLEMENTS IGameInput:
         notice = mNotice.
         mNotice = "".
         RETURN notice.
+    END METHOD.
+
+    /* Minesweeper uses no keys of its own. */
+    METHOD PUBLIC LOGICAL HandleKey(INPUT pcKey AS CHARACTER):
+        RETURN FALSE.
+    END METHOD.
+
+    METHOD PUBLIC VOID ReleaseKey(INPUT pcKey AS CHARACTER):
     END METHOD.
 
     METHOD PUBLIC VOID Perform(INPUT pcCommand AS CHARACTER):

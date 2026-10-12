@@ -150,6 +150,8 @@ A turn based game can hold more than one board in its one grid: Battleships keep
 | `StatusText` | The status bar and window title |
 | `ChoiceLabel`, `ChoiceNames`, `Choice` | An optional picker (Life's pattern list). Empty names hide it |
 | `CommandNames` | Extra buttons and keys, written `Name:Letter` such as `Random:G,Clear:C` |
+| `BannerText` | Text kept over the middle of the board while it is not empty, such as `PAUSED` |
+| `HandleKey(key)`, `ReleaseKey(key)` | The game's own keys, offered before the window's, so a real time game can use the arrows. `ReleaseKey("")` means every key is up |
 | `TakeNotice()` | A few words on what the last action did (or why it was refused), shown for a moment over the board and faded out. Returns and clears the pending notice |
 | `InfoLabel`, `InfoText` | An optional text screen such as high scores, written `Name:Letter` like `Scores:H`. Empty hides it |
 | `Perform(name)` | Runs one of those commands |
@@ -244,6 +246,11 @@ CLASS ProGriddle.Games.Scanner.ScannerInput IMPLEMENTS IGameInput:
             RETURN "".
         END GET.
 
+    DEFINE PUBLIC PROPERTY BannerText AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
+
     DEFINE PUBLIC PROPERTY InfoLabel AS CHARACTER NO-UNDO
         GET():
             RETURN "".
@@ -260,6 +267,13 @@ CLASS ProGriddle.Games.Scanner.ScannerInput IMPLEMENTS IGameInput:
 
     METHOD PUBLIC CHARACTER TakeNotice():
         RETURN "".
+    END METHOD.
+
+    METHOD PUBLIC LOGICAL HandleKey(INPUT pcKey AS CHARACTER):
+        RETURN FALSE.
+    END METHOD.
+
+    METHOD PUBLIC VOID ReleaseKey(INPUT pcKey AS CHARACTER):
     END METHOD.
 
     METHOD PUBLIC VOID Perform(INPUT pcCommand AS CHARACTER):

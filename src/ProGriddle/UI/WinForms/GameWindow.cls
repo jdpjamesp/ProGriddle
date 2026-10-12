@@ -1,7 +1,7 @@
 /* The window that hosts any game. It shows the board (GridView), a toolbar with the game's
    own commands and a picker when the game has one, and a status bar. For a steppable game the
-   toolbar also has Start or Pause, Step, Reset and a speed slider. For a turn based game it
-   has just a New game button. It knows nothing about any particular game: the status text,
+   toolbar also has Start or Pause, Step, Reset and a speed slider. A real time game has Start
+   or Pause and New game. A turn based game has just a New game button. It knows nothing about any particular game: the status text,
    picker, extra commands and clicks all come through IGameInput, and whether the game steps
    comes from IGameController.
 
@@ -10,6 +10,10 @@
 
    A game can offer an extra text screen (IGameInput:InfoLabel and InfoText, the high scores for
    Minesweeper): the window adds a button and a key for it and shows the text in an InfoDialog.
+
+   The game's own keys (IGameInput:HandleKey) are offered every key press first, and told when keys
+   come up, so a real time game can use the arrow keys. The game's BannerText, such as PAUSED, is
+   kept over the board while it is not empty.
 
    Keys: see KeyMap. A turn based game only answers to the new game keys (R and F2). The mouse
    is read as a gesture and acted on when the last button is released, on the cell under the
@@ -115,6 +119,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         mView:MouseUp:Subscribe(OnViewMouseUp).
         THIS-OBJECT:Deactivate:Subscribe(OnDeactivate).
         THIS-OBJECT:KeyDown:Subscribe(OnKeyDown).
+        THIS-OBJECT:KeyUp:Subscribe(OnKeyUp).
         THIS-OBJECT:FormClosed:Subscribe(OnFormClosed).
         mClock:Tick:Subscribe(OnClockTick).
 
@@ -147,9 +152,11 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         mToolbar:WrapContents = TRUE.
         mToolbar:Padding = NEW Padding(4, 4, 4, 2).
 
-        IF mController:Steppable THEN DO:
-            mRunButton = NewButton("Start", "Start or pause (Space)").
+        IF mController:Pausable THEN DO:
+            mRunButton = NewButton("Start", "Start or pause (P" + (IF mController:Steppable THEN " or Space" ELSE "") + ")").
             mRunButton:Click:Subscribe(OnRunClick).
+        END.
+        IF mController:Steppable THEN DO:
             mStepButton = NewButton("Step", "One generation (S or Right arrow)").
             mStepButton:Click:Subscribe(OnStepClick).
             mResetButton = NewButton("Reset", "Back to the start (R)").
@@ -296,7 +303,9 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         ELSE DO:
             mStatus:Text = mInput:StatusText.
             THIS-OBJECT:Text = SUBSTITUTE("&1 - &2", mTitle, mInput:StatusText).
+            IF mController:Pausable THEN mRunButton:Text = (IF mController:IsRunning THEN "Pause" ELSE "Start").
         END.
+        mView:SetBanner(mInput:BannerText).
     END METHOD.
 
     /* Moves the slider to the controller's speed without that move being taken as a request. */
@@ -337,9 +346,19 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         /* an open pattern list needs its arrow keys and letters for itself */
         IF VALID-OBJECT(mPicker) AND mPicker:DroppedDown THEN RETURN.
         keyName = STRING(e:KeyCode).
+        /* the game's own keys come first, so a real time game can use the arrows and the space bar */
+        IF mInput:HandleKey(keyName) THEN DO:
+            mController:Refresh().
+            UpdateStatus().
+            ShowNoticeIfAny().
+            e:Handled = TRUE.
+            e:SuppressKeyPress = TRUE.
+            RETURN.
+        END.
         cmd = mKeys:CommandFor(keyName, mController:IsRunning).
-        /* a game that does not step only has a new game command */
-        IF VALID-OBJECT(cmd) AND NOT mController:Steppable AND cmd <> GameCommand:Reset THEN cmd = ?.
+        /* a game that does not step has a new game command, and start and pause when it has a clock */
+        IF VALID-OBJECT(cmd) AND NOT mController:Steppable AND cmd <> GameCommand:Reset
+           AND NOT (mController:Pausable AND (cmd = GameCommand:Start OR cmd = GameCommand:PauseGame)) THEN cmd = ?.
         IF VALID-OBJECT(cmd) THEN DO:
             RunCommand(cmd).
             e:Handled = TRUE.
@@ -358,6 +377,10 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
             e:Handled = TRUE.
             e:SuppressKeyPress = TRUE.
         END.
+    END METHOD.
+
+    METHOD PRIVATE VOID OnKeyUp(INPUT poSender AS System.Object, INPUT e AS KeyEventArgs):
+        mInput:ReleaseKey(STRING(e:KeyCode)).
     END METHOD.
 
     /* 1 for the left button, 2 for the right, 3 for the middle, 0 for any other. */
@@ -420,6 +443,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     /* A button released while another window had the mouse would leave the gesture stuck. */
     METHOD PRIVATE VOID OnDeactivate(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
         ResetGesture().
+        mInput:ReleaseKey("").
     END METHOD.
 
     METHOD PRIVATE VOID OnRunClick(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
@@ -499,6 +523,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         mView:MouseUp:Unsubscribe(OnViewMouseUp).
         THIS-OBJECT:Deactivate:Unsubscribe(OnDeactivate).
         THIS-OBJECT:KeyDown:Unsubscribe(OnKeyDown).
+        THIS-OBJECT:KeyUp:Unsubscribe(OnKeyUp).
         THIS-OBJECT:FormClosed:Unsubscribe(OnFormClosed).
         IF VALID-OBJECT(mRunButton) THEN mRunButton:Click:Unsubscribe(OnRunClick).
         IF VALID-OBJECT(mStepButton) THEN mStepButton:Click:Unsubscribe(OnStepClick).

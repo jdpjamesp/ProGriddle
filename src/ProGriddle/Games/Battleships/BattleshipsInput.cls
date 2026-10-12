@@ -65,6 +65,11 @@ CLASS ProGriddle.Games.Battleships.BattleshipsInput FINAL IMPLEMENTS IGameInput:
             RETURN "Rotate:O,Random:F,Clear:C,Water:W".
         END GET.
 
+    DEFINE PUBLIC PROPERTY BannerText AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
+
     DEFINE PUBLIC PROPERTY InfoLabel AS CHARACTER NO-UNDO
         GET():
             RETURN "Rules:H".
@@ -111,6 +116,14 @@ CLASS ProGriddle.Games.Battleships.BattleshipsInput FINAL IMPLEMENTS IGameInput:
         notice = mNotice.
         mNotice = "".
         RETURN notice.
+    END METHOD.
+
+    /* Battleships uses no keys of its own. */
+    METHOD PUBLIC LOGICAL HandleKey(INPUT pcKey AS CHARACTER):
+        RETURN FALSE.
+    END METHOD.
+
+    METHOD PUBLIC VOID ReleaseKey(INPUT pcKey AS CHARACTER):
     END METHOD.
 
     METHOD PUBLIC VOID Perform(INPUT pcCommand AS CHARACTER):

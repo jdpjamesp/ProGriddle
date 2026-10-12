@@ -279,6 +279,14 @@ CLASS ProGriddle.Games.Battleships.BattleshipsInputTests:
     /* ---- commands ---- */
 
     @Test.
+    METHOD PUBLIC VOID BattleshipsUsesNoKeysAndShowsNoBanner():
+        Build("").
+        Assert:IsFalse(mInput:HandleKey("Left")).
+        mInput:ReleaseKey("").
+        Assert:Equals("", mInput:BannerText).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID TheCommandsHaveKeys():
         Build("").
         Assert:Equals("Rotate:O,Random:F,Clear:C,Water:W", mInput:CommandNames).

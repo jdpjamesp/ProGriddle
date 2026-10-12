@@ -804,6 +804,67 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
         Assert:Equals("", mView:NoticeText).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID ABannerStaysUntilItIsClearedAndAnEmptyOrUnknownTextClearsIt():
+        Assert:Equals("", mView:BannerText).
+        mView:SetBanner("PAUSED").
+        Assert:Equals("PAUSED", mView:BannerText).
+        mView:SetBanner("PAUSED").
+        Assert:Equals("PAUSED", mView:BannerText).
+        mView:SetBanner("").
+        Assert:Equals("", mView:BannerText).
+        mView:SetBanner("again").
+        mView:SetBanner(?).
+        Assert:Equals("", mView:BannerText).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ABannerIsPaintedInTheMiddleAndAfterItIsClearedItIsGone():
+        DEFINE VARIABLE g      AS Grid   NO-UNDO.
+        DEFINE VARIABLE bmp    AS Bitmap NO-UNDO.
+        DEFINE VARIABLE c      AS Color  NO-UNDO.
+        DEFINE VARIABLE px     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE py     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE shown  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE gone   AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = NewGrid(1, 2, 2).
+            mView:ShowGridLines = FALSE.
+            mView:ClientSize = NEW Size(300, 120).
+            mView:Show(g, "state").
+            mView:SetBanner("PAUSED").
+            bmp = NEW Bitmap(300, 120).
+            mView:DrawToBitmap(bmp, NEW Rectangle(0, 0, 300, 120)).
+            DO py = 40 TO 80:
+                DO px = 90 TO 210:
+                    c = bmp:GetPixel(px, py).
+                    IF c:R > 200 AND c:G > 200 AND c:B > 200 THEN shown = shown + 1.
+                END.
+            END.
+            mView:SetBanner("").
+            mView:DrawToBitmap(bmp, NEW Rectangle(0, 0, 300, 120)).
+            DO py = 40 TO 80:
+                DO px = 90 TO 210:
+                    c = bmp:GetPixel(px, py).
+                    IF c:R > 200 AND c:G > 200 AND c:B > 200 THEN gone = gone + 1.
+                END.
+            END.
+            Assert:IsTrue(shown > 30).
+            Assert:Equals(0, gone).
+            FINALLY:
+                IF VALID-OBJECT(bmp) THEN bmp:Dispose().
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AReleasedViewIgnoresBanners():
+        mView:ReleaseResources().
+        mView:SetBanner("late").
+        Assert:Equals("", mView:BannerText).
+    END METHOD.
+
     /* ---- lifetime ---- */
 
     @Test (expected="ProGriddle.Core.GridException").

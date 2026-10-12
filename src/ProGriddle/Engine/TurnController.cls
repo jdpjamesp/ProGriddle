@@ -18,6 +18,11 @@ CLASS ProGriddle.Engine.TurnController FINAL IMPLEMENTS IGameController:
             RETURN FALSE.
         END GET.
 
+    DEFINE PUBLIC PROPERTY Pausable AS LOGICAL NO-UNDO
+        GET():
+            RETURN FALSE.
+        END GET.
+
     DEFINE PUBLIC PROPERTY IsRunning AS LOGICAL NO-UNDO
         GET():
             RETURN FALSE.
