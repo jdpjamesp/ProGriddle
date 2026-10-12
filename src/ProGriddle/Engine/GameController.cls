@@ -11,7 +11,7 @@ USING ProGriddle.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS ProGriddle.Engine.GameController FINAL:
+CLASS ProGriddle.Engine.GameController FINAL IMPLEMENTS IGameController:
 
     DEFINE PRIVATE VARIABLE mGame      AS ISteppableGame NO-UNDO.
     DEFINE PRIVATE VARIABLE mRenderer  AS IGridRenderer  NO-UNDO.
@@ -27,6 +27,11 @@ CLASS ProGriddle.Engine.GameController FINAL:
     DEFINE PUBLIC PROPERTY IsRunning AS LOGICAL NO-UNDO
         GET():
             RETURN mClock:IsRunning.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY Steppable AS LOGICAL NO-UNDO
+        GET():
+            RETURN TRUE.
         END GET.
 
     CONSTRUCTOR PUBLIC GameController(INPUT poGame AS ISteppableGame, INPUT poRenderer AS IGridRenderer, INPUT poClock AS IClock):

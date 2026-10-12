@@ -1,6 +1,6 @@
 /* What a window needs from a game besides drawing it, without knowing which game it is: a
    line of status text, an optional picker (Life: which pattern to place), a few named extra
-   commands (Life: Random, Clear) and what a left or a right click on a cell does. The window
+   commands (Life: Random, Clear) and what a left click, a right click or both buttons together on a cell does. The window
    builds its status bar, picker and buttons from this, so a new game needs no new window.
    Implementations live with the game and use no UI types. */
 USING ProGriddle.Engine.*.
@@ -40,5 +40,9 @@ INTERFACE ProGriddle.Engine.IGameInput:
 
     /* A right click on a cell. A click off the board is ignored. */
     METHOD PUBLIC VOID SecondaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER).
+
+    /* A middle click, or the left and right buttons pressed together, on a cell. A click off
+       the board is ignored. Games with no use for it leave the body empty. */
+    METHOD PUBLIC VOID TertiaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER).
 
 END INTERFACE.

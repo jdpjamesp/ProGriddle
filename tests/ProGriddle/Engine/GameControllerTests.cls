@@ -37,6 +37,11 @@ CLASS ProGriddle.Engine.GameControllerTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID IsSteppable():
+        Assert:IsTrue(mController:Steppable).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID StartsAtSpeedLevelThreeWithA250MillisecondClock():
         Assert:Equals(3, mController:SpeedLevel).
         Assert:Equals(250, mClock:Interval).

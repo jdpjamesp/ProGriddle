@@ -133,6 +133,13 @@ CLASS ProGriddle.Games.Life.LifeInputTests:
         Assert:Equals(0, mGame:AliveCount).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID BothButtonsTogetherDoNothing():
+        mGame:Place(LifePatterns:Block(), 1, 1).
+        mInput:TertiaryAction(1, 1).
+        Assert:Equals(4, mGame:AliveCount).
+    END METHOD.
+
     /* ---- commands ---- */
 
     @Test.

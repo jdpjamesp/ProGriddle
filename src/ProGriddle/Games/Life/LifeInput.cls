@@ -89,4 +89,8 @@ CLASS ProGriddle.Games.Life.LifeInput FINAL IMPLEMENTS IGameInput:
         mGame:Place(pattern, x, y).
     END METHOD.
 
+    /* Life has no use for both buttons together. */
+    METHOD PUBLIC VOID TertiaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+    END METHOD.
+
 END CLASS.

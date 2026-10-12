@@ -1,11 +1,15 @@
-/* The window that hosts any steppable game. It shows the board (GridView), a toolbar with
-   Start or Pause, Step, Reset, the game's own commands, a picker when the game has one and a
-   speed slider, and a status bar. It knows nothing about any particular game: the status
-   text, picker, extra commands and clicks all come through IGameInput.
+/* The window that hosts any game. It shows the board (GridView), a toolbar with the game's
+   own commands and a picker when the game has one, and a status bar. For a steppable game the
+   toolbar also has Start or Pause, Step, Reset and a speed slider. For a turn based game it
+   has just a New game button. It knows nothing about any particular game: the status text,
+   picker, extra commands and clicks all come through IGameInput, and whether the game steps
+   comes from IGameController.
 
-   Keys: see KeyMap. Left click and right click on the board go to the game's PrimaryAction and
-   SecondaryAction. The window title also carries the status text and the speed, so a script
-   can read them from outside.
+   Keys: see KeyMap. A turn based game only answers to the new game keys (R and F2). The mouse
+   is read as a gesture and acted on when the last button is released, on the cell under the
+   pointer: left alone is PrimaryAction, right alone is SecondaryAction, and a middle click or
+   left and right together is TertiaryAction. The window title also carries the status text
+   (and the speed when stepping), so a script can read them from outside.
 
    Settings: the window size, position and maximised state, the speed and the picker choice
    are restored when the window is built and saved when it closes, under the keys
@@ -27,7 +31,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
 
-    DEFINE PRIVATE VARIABLE mController AS GameController NO-UNDO.
+    DEFINE PRIVATE VARIABLE mController AS IGameController NO-UNDO.
     DEFINE PRIVATE VARIABLE mView       AS GridView       NO-UNDO.
     DEFINE PRIVATE VARIABLE mInput      AS IGameInput     NO-UNDO.
     DEFINE PRIVATE VARIABLE mClock      AS IClock         NO-UNDO.
@@ -36,6 +40,9 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     DEFINE PRIVATE VARIABLE mTitle      AS CHARACTER      NO-UNDO.
     DEFINE PRIVATE VARIABLE mKeys       AS KeyMap         NO-UNDO.
     DEFINE PRIVATE VARIABLE mSyncing    AS LOGICAL        NO-UNDO.
+    /* mouse buttons held now, and every button used since the first went down */
+    DEFINE PRIVATE VARIABLE mHeld       AS LOGICAL        NO-UNDO EXTENT 3.
+    DEFINE PRIVATE VARIABLE mGesture    AS LOGICAL        NO-UNDO EXTENT 3.
 
     DEFINE PRIVATE VARIABLE mToolbar    AS FlowLayoutPanel NO-UNDO.
     DEFINE PRIVATE VARIABLE mRunButton  AS Button         NO-UNDO.
@@ -59,7 +66,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
             ELSE mCloseTimer:Stop().
         END SET.
 
-    CONSTRUCTOR PUBLIC GameWindow(INPUT pcTitle AS CHARACTER, INPUT poController AS GameController,
+    CONSTRUCTOR PUBLIC GameWindow(INPUT pcTitle AS CHARACTER, INPUT poController AS IGameController,
                                   INPUT poView AS GridView, INPUT poInput AS IGameInput,
                                   INPUT poClock AS IClock, INPUT poSettings AS ISettings,
                                   INPUT pcPrefix AS CHARACTER):
@@ -95,11 +102,14 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         RestoreSettings().
 
         mView:MouseDown:Subscribe(OnViewMouseDown).
+        mView:MouseUp:Subscribe(OnViewMouseUp).
+        THIS-OBJECT:Deactivate:Subscribe(OnDeactivate).
         THIS-OBJECT:KeyDown:Subscribe(OnKeyDown).
         THIS-OBJECT:FormClosed:Subscribe(OnFormClosed).
         mClock:Tick:Subscribe(OnClockTick).
 
         SyncSpeed().
+        mController:Refresh().
         UpdateStatus().
     END CONSTRUCTOR.
 
@@ -127,11 +137,14 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         mToolbar:WrapContents = TRUE.
         mToolbar:Padding = NEW Padding(4, 4, 4, 2).
 
-        mRunButton = NewButton("Start", "Start or pause (Space)").
-        mRunButton:Click:Subscribe(OnRunClick).
-        mStepButton = NewButton("Step", "One generation (S or Right arrow)").
-        mStepButton:Click:Subscribe(OnStepClick).
-        mResetButton = NewButton("Reset", "Back to the start (R)").
+        IF mController:Steppable THEN DO:
+            mRunButton = NewButton("Start", "Start or pause (Space)").
+            mRunButton:Click:Subscribe(OnRunClick).
+            mStepButton = NewButton("Step", "One generation (S or Right arrow)").
+            mStepButton:Click:Subscribe(OnStepClick).
+            mResetButton = NewButton("Reset", "Back to the start (R)").
+        END.
+        ELSE mResetButton = NewButton("New game", "Start a new game (R or F2)").
         mResetButton:Click:Subscribe(OnResetClick).
 
         commands = mInput:CommandNames.
@@ -165,21 +178,23 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
             mToolbar:Controls:Add(mPicker).
         END.
 
-        caption = NEW Label().
-        caption:Text = "Speed".
-        caption:AutoSize = TRUE.
-        caption:Margin = NEW Padding(12, 8, 2, 0).
-        mToolbar:Controls:Add(caption).
-        mSpeed = NEW TrackBar().
-        mSpeed:Minimum = 1.
-        mSpeed:Maximum = 6.
-        mSpeed:Value = 3.
-        mSpeed:TickStyle = TickStyle:BottomRight.
-        mSpeed:AutoSize = FALSE.
-        mSpeed:Width = 130.
-        mSpeed:Height = 30.
-        mSpeed:ValueChanged:Subscribe(OnSpeedChanged).
-        mToolbar:Controls:Add(mSpeed).
+        IF mController:Steppable THEN DO:
+            caption = NEW Label().
+            caption:Text = "Speed".
+            caption:AutoSize = TRUE.
+            caption:Margin = NEW Padding(12, 8, 2, 0).
+            mToolbar:Controls:Add(caption).
+            mSpeed = NEW TrackBar().
+            mSpeed:Minimum = 1.
+            mSpeed:Maximum = 6.
+            mSpeed:Value = 3.
+            mSpeed:TickStyle = TickStyle:BottomRight.
+            mSpeed:AutoSize = FALSE.
+            mSpeed:Width = 130.
+            mSpeed:Height = 30.
+            mSpeed:ValueChanged:Subscribe(OnSpeedChanged).
+            mToolbar:Controls:Add(mSpeed).
+        END.
 
         THIS-OBJECT:Controls:Add(mToolbar).
     END METHOD.
@@ -224,7 +239,8 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         END.
         IF mSettings:GetLogical("window.maximised", FALSE) THEN THIS-OBJECT:WindowState = FormWindowState:Maximized.
 
-        mController:SetSpeedLevel(mSettings:GetInteger(mPrefix + ".speed", mController:SpeedLevel)).
+        IF mController:Steppable THEN
+            mController:SetSpeedLevel(mSettings:GetInteger(mPrefix + ".speed", mController:SpeedLevel)).
         sel = mSettings:GetString(mPrefix + ".choice", mInput:Choice).
         IF mInput:ChoiceNames <> "" AND LOOKUP(sel, mInput:ChoiceNames) > 0 THEN DO:
             mInput:Choice = sel.
@@ -241,7 +257,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
                 mSettings:SetInteger("window.y", THIS-OBJECT:Location:Y).
             END.
             mSettings:SetLogical("window.maximised", THIS-OBJECT:WindowState = FormWindowState:Maximized).
-            mSettings:SetInteger(mPrefix + ".speed", mController:SpeedLevel).
+            IF mController:Steppable THEN mSettings:SetInteger(mPrefix + ".speed", mController:SpeedLevel).
             IF mInput:ChoiceNames <> "" THEN mSettings:SetString(mPrefix + ".choice", mInput:Choice).
             mSettings:Save().
             /* failing to save settings must never stop a window from closing */
@@ -255,14 +271,21 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
 
     METHOD PRIVATE VOID UpdateStatus():
         DEFINE VARIABLE state AS CHARACTER NO-UNDO.
-        state = (IF mController:IsRunning THEN "Running" ELSE "Paused").
-        mStatus:Text = SUBSTITUTE("&1   Speed &2   &3", mInput:StatusText, mController:SpeedLevel, state).
-        THIS-OBJECT:Text = SUBSTITUTE("&1 - &2   Speed &3", mTitle, mInput:StatusText, mController:SpeedLevel).
-        mRunButton:Text = (IF mController:IsRunning THEN "Pause" ELSE "Start").
+        IF mController:Steppable THEN DO:
+            state = (IF mController:IsRunning THEN "Running" ELSE "Paused").
+            mStatus:Text = SUBSTITUTE("&1   Speed &2   &3", mInput:StatusText, mController:SpeedLevel, state).
+            THIS-OBJECT:Text = SUBSTITUTE("&1 - &2   Speed &3", mTitle, mInput:StatusText, mController:SpeedLevel).
+            mRunButton:Text = (IF mController:IsRunning THEN "Pause" ELSE "Start").
+        END.
+        ELSE DO:
+            mStatus:Text = mInput:StatusText.
+            THIS-OBJECT:Text = SUBSTITUTE("&1 - &2", mTitle, mInput:StatusText).
+        END.
     END METHOD.
 
     /* Moves the slider to the controller's speed without that move being taken as a request. */
     METHOD PRIVATE VOID SyncSpeed():
+        IF NOT mController:Steppable THEN RETURN.
         mSyncing = TRUE.
         mSpeed:Value = mController:SpeedLevel.
         mSyncing = FALSE.
@@ -291,6 +314,8 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         IF VALID-OBJECT(mPicker) AND mPicker:DroppedDown THEN RETURN.
         keyName = STRING(e:KeyCode).
         cmd = mKeys:CommandFor(keyName, mController:IsRunning).
+        /* a game that does not step only has a new game command */
+        IF VALID-OBJECT(cmd) AND NOT mController:Steppable AND cmd <> GameCommand:Reset THEN cmd = ?.
         IF VALID-OBJECT(cmd) THEN DO:
             RunCommand(cmd).
             e:Handled = TRUE.
@@ -305,16 +330,60 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         END.
     END METHOD.
 
+    /* 1 for the left button, 2 for the right, 3 for the middle, 0 for any other. */
+    METHOD PRIVATE INTEGER ButtonNumber(INPUT poArgs AS MouseEventArgs):
+        DEFINE VARIABLE b AS CHARACTER NO-UNDO.
+        b = STRING(poArgs:Button).
+        IF b = "Left" THEN RETURN 1.
+        IF b = "Right" THEN RETURN 2.
+        IF b = "Middle" THEN RETURN 3.
+        RETURN 0.
+    END METHOD.
+
     METHOD PRIVATE VOID OnViewMouseDown(INPUT poSender AS System.Object, INPUT e AS MouseEventArgs):
-        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
+        DEFINE VARIABLE b AS INTEGER NO-UNDO.
         mView:Focus().
-        IF NOT mView:HitTest(e:X, e:Y, OUTPUT cx, OUTPUT cy) THEN RETURN.
-        IF STRING(e:Button) = "Left" THEN mInput:PrimaryAction(cx, cy).
-        ELSE IF STRING(e:Button) = "Right" THEN mInput:SecondaryAction(cx, cy).
-        ELSE RETURN.
-        mController:Refresh().
-        UpdateStatus().
+        b = ButtonNumber(e).
+        IF b = 0 THEN RETURN.
+        mHeld[b] = TRUE.
+        mGesture[b] = TRUE.
+    END METHOD.
+
+    /* Acts once the last button of the gesture is up, on the cell under the pointer. */
+    METHOD PRIVATE VOID OnViewMouseUp(INPUT poSender AS System.Object, INPUT e AS MouseEventArgs):
+        DEFINE VARIABLE b    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cx   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cy   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE acted AS LOGICAL NO-UNDO.
+        b = ButtonNumber(e).
+        IF b = 0 THEN RETURN.
+        mHeld[b] = FALSE.
+        IF mHeld[1] OR mHeld[2] OR mHeld[3] THEN RETURN.
+        IF mView:HitTest(e:X, e:Y, OUTPUT cx, OUTPUT cy) THEN DO:
+            acted = TRUE.
+            IF mGesture[3] OR (mGesture[1] AND mGesture[2]) THEN mInput:TertiaryAction(cx, cy).
+            ELSE IF mGesture[1] THEN mInput:PrimaryAction(cx, cy).
+            ELSE IF mGesture[2] THEN mInput:SecondaryAction(cx, cy).
+            ELSE acted = FALSE.
+            IF acted THEN DO:
+                mController:Refresh().
+                UpdateStatus().
+            END.
+        END.
+        ResetGesture().
+    END METHOD.
+
+    METHOD PRIVATE VOID ResetGesture():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO 3:
+            mHeld[i] = FALSE.
+            mGesture[i] = FALSE.
+        END.
+    END METHOD.
+
+    /* A button released while another window had the mouse would leave the gesture stuck. */
+    METHOD PRIVATE VOID OnDeactivate(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
+        ResetGesture().
     END METHOD.
 
     METHOD PRIVATE VOID OnRunClick(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
@@ -335,6 +404,9 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
 
     METHOD PRIVATE VOID OnPickerChanged(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
         IF mPicker:SelectedIndex >= 0 THEN mInput:Choice = STRING(mPicker:SelectedItem).
+        /* a choice can change the game, for example a new board size */
+        mController:Refresh().
+        UpdateStatus().
     END METHOD.
 
     /* After choosing a pattern, give the keyboard back to the board so Space, S, R and the
@@ -369,10 +441,12 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         mCloseTimer:Dispose().
         mClock:Tick:Unsubscribe(OnClockTick).
         mView:MouseDown:Unsubscribe(OnViewMouseDown).
+        mView:MouseUp:Unsubscribe(OnViewMouseUp).
+        THIS-OBJECT:Deactivate:Unsubscribe(OnDeactivate).
         THIS-OBJECT:KeyDown:Unsubscribe(OnKeyDown).
         THIS-OBJECT:FormClosed:Unsubscribe(OnFormClosed).
-        mRunButton:Click:Unsubscribe(OnRunClick).
-        mStepButton:Click:Unsubscribe(OnStepClick).
+        IF VALID-OBJECT(mRunButton) THEN mRunButton:Click:Unsubscribe(OnRunClick).
+        IF VALID-OBJECT(mStepButton) THEN mStepButton:Click:Unsubscribe(OnStepClick).
         mResetButton:Click:Unsubscribe(OnResetClick).
         IF EXTENT(mExtraButtons) <> ? THEN DO i = 1 TO EXTENT(mExtraButtons):
             mExtraButtons[i]:Click:Unsubscribe(OnExtraClick).
@@ -381,7 +455,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
             mPicker:SelectedIndexChanged:Unsubscribe(OnPickerChanged).
             mPicker:DropDownClosed:Unsubscribe(OnPickerClosed).
         END.
-        mSpeed:ValueChanged:Unsubscribe(OnSpeedChanged).
+        IF VALID-OBJECT(mSpeed) THEN mSpeed:ValueChanged:Unsubscribe(OnSpeedChanged).
         mView:ReleaseResources().
     END METHOD.
 

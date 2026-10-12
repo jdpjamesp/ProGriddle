@@ -4,7 +4,7 @@
 
      Space              start, or pause when running
      S or Right         one step
-     R                  reset
+     R or F2            reset (a new game for a turn based game)
      + or Up            faster
      - or Down          slower
      a letter           an extra command of the game whose key letter it is
@@ -24,7 +24,7 @@ CLASS ProGriddle.UI.WinForms.KeyMap FINAL:
         CASE pcKey:
             WHEN "Space" THEN RETURN (IF plRunning THEN GameCommand:PauseGame ELSE GameCommand:Start).
             WHEN "S" OR WHEN "Right" THEN RETURN GameCommand:StepOnce.
-            WHEN "R" THEN RETURN GameCommand:Reset.
+            WHEN "R" OR WHEN "F2" THEN RETURN GameCommand:Reset.
             WHEN "Oemplus" OR WHEN "Add" OR WHEN "Up" THEN RETURN GameCommand:SpeedUp.
             WHEN "OemMinus" OR WHEN "Subtract" OR WHEN "Down" THEN RETURN GameCommand:SlowDown.
         END CASE.

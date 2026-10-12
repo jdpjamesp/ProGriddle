@@ -32,6 +32,11 @@ CLASS ProGriddle.UI.WinForms.KeyMapTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID F2AlsoResets():
+        Assert:IsTrue(mMap:CommandFor("F2", FALSE) = GameCommand:Reset).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID PlusAndUpGoFasterMinusAndDownGoSlower():
         Assert:IsTrue(mMap:CommandFor("Oemplus", FALSE) = GameCommand:SpeedUp).
         Assert:IsTrue(mMap:CommandFor("Add", FALSE) = GameCommand:SpeedUp).
