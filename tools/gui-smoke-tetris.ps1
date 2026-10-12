@@ -5,7 +5,7 @@
     Launches run/run-tetris.p under prowin with a throwaway settings file and a fixed seed, then
     plays: moving and turning the falling piece, key repeat (held movement keys repeat, a held turn
     or hard drop key fires once), soft and hard drops and the score, gravity, pause, the ghost piece,
-    the Help screen, stacking up to a game over, a new game with F2 and the start level picker, then
+    the Help screen, stacking up to a game over (a new best score), a new game with F2 and the start level picker, then
     the saved settings and a second run. It reads the score from the window title and the board from
     a screenshot: the cells are matched to the palette in src/ProGriddle/Games/Tetris/TetrisLook.cls
     and read as text, one letter per piece, : for the ghost. Screenshots go to build/screenshots.
@@ -273,6 +273,7 @@ try {
     $drops = 0
     while (-not (Has-Text $proc 'Game over') -and $drops -lt 40) { Send-Keys ' '; $drops++ }
     Check 'dropping piece after piece in the middle ends the game' (Has-Text $proc 'Game over') (Get-Title $proc)
+    Check 'the game over score is a new best score' (Has-Text $proc 'New best score') (Get-Title $proc)
     $over = Take-Shot $proc 'smoke-tetris-12-game-over'; $over.Dispose()
     $rowsOver = Read-Board $proc $board
     $scoreOver = Get-Score $proc
@@ -281,6 +282,7 @@ try {
     Check 'after the game is over the keys do nothing' ((Same-Board (Read-Board $proc $board) $rowsOver) -and (Get-Score $proc) -eq $scoreOver) (Get-Title $proc)
     Send-Keys '{F2}'
     Check 'F2 starts a new game after a game over' ((Has-Text $proc 'Score 0') -and -not (Has-Text $proc 'Game over')) (Get-Title $proc)
+    Check 'the status line now shows the best score' ((Get-Title $proc) -match 'Best \d+') (Get-Title $proc)
 
     # the start level picker: click it open, then the keys pick (an open list takes the arrow keys)
     $picker = Find-Picker $proc
@@ -300,6 +302,7 @@ try {
     Write-Host '--- settings'
     $json = Read-Settings
     Check 'the start level was saved' ($json -and $json.values.'tetris.choice' -eq '3') ($json | ConvertTo-Json -Compress)
+    Check 'the high score was saved' ($json -and $json.values.'tetris.scores' -match '^\d+:\d+$') ($json | ConvertTo-Json -Compress)
     Check 'the ghost setting was saved' ($json -and $json.values.'tetris.ghost' -eq $false) ($json | ConvertTo-Json -Compress)
     Check 'the window size was saved' ($json -and $json.values.'window.width' -gt 300)
 
@@ -307,6 +310,7 @@ try {
     Write-Host '--- run 2: the settings come back'
     $proc = Start-Game
     Check 'the saved start level is used' ((Get-Level $proc) -eq 3) (Get-Title $proc)
+    Check 'the saved high score is shown as the best' ((Get-Title $proc) -match 'Best \d+') (Get-Title $proc)
     $board2 = Get-Board $proc 'smoke-tetris-14-second-run'
     $rows = Read-Board $proc $board2
     Check 'the saved ghost setting is used, so there is no ghost piece' ((Count-Of $rows ':') -eq 0 -and (Count-Blocks $rows) -eq 4) (Show-Rows $rows)

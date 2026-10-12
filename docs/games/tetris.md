@@ -31,7 +31,7 @@ All play is on the keyboard.
 | P, or the Pause button | Pause and resume. A PAUSED banner shows over the well |
 | F2 or R, or the New game button | Start a new game |
 | G, or the Ghost button | Show or hide the ghost piece |
-| H, or the Help button | Show the keys and the scoring |
+| H, or the Help button | Show the high scores, the keys and the scoring |
 | Start level box | Choose the level a new game starts at, 1 to 10 |
 
 A held key keeps arriving from the keyboard, and the movement keys use that as key repeat, as every Tetris does. Turning and the hard drop would be a mistake to repeat, so while one of those keys is held its repeats are ignored until it comes up. The window tells the game when a key comes up, and when the window loses the focus every key counts as up, so no key can stay stuck.
@@ -49,6 +49,7 @@ The start level box changes the level at once if nothing has settled yet. In the
 - **Levels.** The level starts at the start level and goes up by one for every 10 lines cleared, to a top of 30.
 - **The ghost** is a dim copy of the piece where it would land if dropped now. It can be turned off, and the choice is remembered.
 - **Game over.** When a new piece has no room at the top the game ends, a GAME OVER banner shows and the keys stop. F2 starts again.
+- **High scores.** The ten best scores are kept, best first, each with the lines cleared in that game. When a game ends its score goes on the list if it is good enough, once, and the status line says "New best score" or "High score, place N". A score ties below an older equal one, and a game that scores nothing is not listed. While a best score exists the status line ends with "Best N". The list is at the top of the Help screen (H).
 
 | Level | Milliseconds between steps |
 |---|---|
@@ -63,11 +64,12 @@ The speed is 800 minus 75 for each level above the first, and never under 50.
 
 ## Settings
 
-The window saves `tetris.choice` (the start level) and its own `window.width`, `window.height`, `window.x`, `window.y` and `window.maximised`, which are shared with the other games. The game itself reads and saves one setting:
+The window saves `tetris.choice` (the start level) and its own `window.width`, `window.height`, `window.x`, `window.y` and `window.maximised`, which are shared with the other games. The game itself reads and saves two settings:
 
 | Setting | Meaning | Default |
 |---|---|---|
 | `tetris.ghost` | `true` to show the ghost piece. The G key and the Ghost button change it and save it | `true` |
+| `tetris.scores` | The high score list as `score:lines` pairs, best first, for example `12400:32,9800:25`. Anything that is not a pair with a score of 1 or more is dropped when it is read | empty |
 
 ## How it uses the framework
 
@@ -91,7 +93,8 @@ Source: `src/ProGriddle/Games/Tetris/`. The composition root is `run/run-tetris.
 | `TetrisGame` | The game and all the rules above. The moves, `Tick`, `GhostY`, `StartWith` (the first pieces, for tests), `LoadLocked` (the settled blocks from text, for tests) and readers for each layer |
 | `PieceBag` | The seven bag, dealing from an `IRandom` |
 | `Tetrominoes` | The seven shapes and their four turns, and the names |
-| `TetrisInput` | The `IGameInput`: the keys and their repeat rules, the picker, the Ghost command, the banner, the status line and the Help text |
+| `TetrisInput` | The `IGameInput`: the keys and their repeat rules, the picker, the Ghost command, the banner, the status line, the Help text and recording a finished game's score |
+| `TetrisHighScores` | The ten best scores in the settings: `Record` returns the place, `Best`, `ScoreAt`, `LinesAt` |
 | `TetrisLook` | The colour for each `view` code, and the symbols used to draw a board as text in tests |
 | `TetrisFactory` | Builds the grid, the playfield and the game, for the usual board or one of another size |
 | `ViewCodes.i` | The meaning of each `view` value: 0 empty, 1 to 7 a piece of I O T S Z J L, 8 ghost, 9 divider, 10 panel |
@@ -116,6 +119,7 @@ All under `tests/ProGriddle/Games/Tetris/`, plus the framework tests next to the
 | `TetrisInputTests` | The key map, key repeat for the movement keys and once per press for turning and the hard drop, `ReleaseKey`, the banner, the picker, the Ghost command and its setting, the status line and the Help text |
 | `PieceBagTests` | Every seven pieces are all seven, the spacing limits, the same seed deals the same pieces, `Preset` |
 | `TetrominoesTests` | The shapes and their turns |
+| `TetrisHighScoresTests` | Ranking, ties, the ten place limit, scores of nothing, a hand edited list, places off the list |
 | `TetrisFactoryTests` | What the factory builds |
 | `TetrisLookTests` | The look lines up with the view codes |
 | `RealTimeControllerTests` (Engine) | The real time controller, driven with a fake clock |
@@ -124,7 +128,7 @@ Run them with `powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tes
 
 ## Checking the window
 
-`tools/gui-smoke-tetris.ps1` launches the real window with a throwaway settings file and a fixed seed and plays: moving left and right, turning with Up, Z and X, held Left and Right repeating to the walls, a soft drop and a held soft drop scoring, gravity with no key pressed, the ghost off and on, P pausing (nothing moves, the PAUSED banner shows) and resuming, F2, a hard drop, a held Space dropping only one piece, the Help screen opening and closing, stacking pieces to a game over (the keys then do nothing), F2 again, the start level picker, and then a second run that reads the saved level and ghost setting back. It reads the score and level from the window title and the well from a screenshot, by matching each cell to the palette. It sends real keystrokes and mouse clicks to the foreground, and holds keys down with `keybd_event` to get real key repeat, so leave the keyboard and mouse alone for the couple of minutes it takes. Screenshots go to `build/screenshots`.
+`tools/gui-smoke-tetris.ps1` launches the real window with a throwaway settings file and a fixed seed and plays: moving left and right, turning with Up, Z and X, held Left and Right repeating to the walls, a soft drop and a held soft drop scoring, gravity with no key pressed, the ghost off and on, P pausing (nothing moves, the PAUSED banner shows) and resuming, F2, a hard drop, a held Space dropping only one piece, the Help screen opening and closing, stacking pieces to a game over (a new best score, and the keys then do nothing), F2 again, the start level picker, and then a second run that reads the saved level, ghost setting and high score back. It reads the score and level from the window title and the well from a screenshot, by matching each cell to the palette. It sends real keystrokes and mouse clicks to the foreground, and holds keys down with `keybd_event` to get real key repeat, so leave the keyboard and mouse alone for the couple of minutes it takes. Screenshots go to `build/screenshots`.
 
 ```
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/gui-smoke-tetris.ps1
@@ -143,4 +147,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/gui-smoke-tetris.ps1
 - `Tick` adds up the time it is given and runs as many gravity steps as are due, so a slow tick makes the pieces fall in a lump rather than slowing the game, and a test with a fake clock is exact.
 - A piece rests on the floor until the next gravity step settles it. There is no lock delay that resets when you slide, so a piece cannot be held in the air for ever.
 - Turning tries a short list of nearby places in a fixed order instead of the full rotation systems of the official game. It is simple, predictable and covers the cases that matter (turning against a wall, or on a stack).
+- A game is put on the list by the input, the first time it is asked about a finished game, because the window asks for the status line after every tick and key and the game itself knows nothing of settings. A new game clears the flag, so every game is recorded once.
 - The key repeat rule lives in the game's input, not in the window, so the window stays generic: it only reports key down, key up and loss of focus.
