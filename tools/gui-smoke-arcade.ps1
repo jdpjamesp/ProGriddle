@@ -80,8 +80,8 @@ try {
     $args = @('-p', 'tools/launch.p', '-param', '"run/run-arcade.p,200"', '-clientlog', 'build/smoke-arcade-client.log')
     $arcade = Start-Process "$Dlc\bin\prowin.exe" -ArgumentList $args -PassThru
     $deadline = (Get-Date).AddSeconds(25)
-    do { Start-Sleep -Milliseconds 300; $arcade.Refresh() } until ($arcade.MainWindowTitle -like 'ProGriddle Arcade*' -or (Get-Date) -gt $deadline -or $arcade.HasExited)
-    if ($arcade.HasExited -or $arcade.MainWindowTitle -notlike 'ProGriddle Arcade*') { throw 'The arcade window did not appear.' }
+    do { Start-Sleep -Milliseconds 300; $arcade.Refresh() } until ($arcade.MainWindowTitle -like 'ProGriddle Cookoff*' -or (Get-Date) -gt $deadline -or $arcade.HasExited)
+    if ($arcade.HasExited -or $arcade.MainWindowTitle -notlike 'ProGriddle Cookoff*') { throw 'The arcade window did not appear.' }
     Start-Sleep -Milliseconds 700
     $script:target = $arcade
     Ensure-Foreground
