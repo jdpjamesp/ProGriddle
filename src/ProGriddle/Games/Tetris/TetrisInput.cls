@@ -15,8 +15,12 @@
    turn and hard drop keys would be a mistake to repeat, so while one is held its repeats are swallowed
    until the key comes up (ReleaseKey).
 
-   Settings it reads, all optional: tetris.ghost, true for the ghost piece (default true). The window
-   saves the chosen start level as tetris.choice. */
+   When a game ends its score goes on the high score list (TetrisHighScores), which keeps the ten best
+   and shows them at the top of the Help screen. The status line says when a game made the list and
+   shows the best score while there is one.
+
+   Settings it reads, all optional: tetris.ghost, true for the ghost piece (default true), and
+   tetris.scores, the high score list. The window saves the chosen start level as tetris.choice. */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
@@ -32,16 +36,29 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
     DEFINE PRIVATE VARIABLE mNotice   AS CHARACTER  NO-UNDO.
     /* keys that are down now, as ",Up,Space," */
     DEFINE PRIVATE VARIABLE mHeld     AS CHARACTER  NO-UNDO INITIAL ",".
+    DEFINE PRIVATE VARIABLE mScores   AS TetrisHighScores NO-UNDO.
+    /* the game that has just ended has been put on the list, and the place it got (0 for none) */
+    DEFINE PRIVATE VARIABLE mRecorded AS LOGICAL    NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPlace    AS INTEGER    NO-UNDO.
 
     DEFINE PUBLIC PROPERTY StatusText AS CHARACTER NO-UNDO
         GET():
-            IF mGame:IsOver THEN
-                RETURN SUBSTITUTE("Game over   Score &1   Lines &2   Level &3", mGame:Score, mGame:LinesCleared, mGame:Level).
-            RETURN SUBSTITUTE("Score &1   Lines &2   Level &3   Next &4", mGame:Score, mGame:LinesCleared, mGame:Level, Tetrominoes:NameOf(mGame:NextPiece)).
+            DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+            NoteEnd().
+            IF mGame:IsOver THEN DO:
+                result = SUBSTITUTE("Game over   Score &1   Lines &2   Level &3", mGame:Score, mGame:LinesCleared, mGame:Level).
+                IF mPlace = 1 THEN result = result + "   New best score".
+                ELSE IF mPlace > 1 THEN result = result + SUBSTITUTE("   High score, place &1", mPlace).
+                RETURN result.
+            END.
+            result = SUBSTITUTE("Score &1   Lines &2   Level &3   Next &4", mGame:Score, mGame:LinesCleared, mGame:Level, Tetrominoes:NameOf(mGame:NextPiece)).
+            IF mScores:Best() > 0 THEN result = result + SUBSTITUTE("   Best &1", mScores:Best()).
+            RETURN result.
         END GET.
 
     DEFINE PUBLIC PROPERTY BannerText AS CHARACTER NO-UNDO
         GET():
+            NoteEnd().
             IF mGame:IsOver THEN RETURN "GAME OVER".
             IF mGame:Paused THEN RETURN "PAUSED".
             RETURN "".
@@ -83,8 +100,18 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
 
     DEFINE PUBLIC PROPERTY InfoText AS CHARACTER NO-UNDO
         GET():
+            DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+            DEFINE VARIABLE place AS INTEGER   NO-UNDO.
+            NoteEnd().
             /* the help window is about 40 characters wide, so keep every line short */
-            RETURN "Keys" + CHR(10)
+            IF mScores:Count() > 0 THEN DO:
+                result = "High scores" + CHR(10).
+                DO place = 1 TO mScores:Count():
+                    result = result + SUBSTITUTE("  &1. &2 (&3 lines)", STRING(place, ">9"), STRING(mScores:ScoreAt(place), ">>>>>>>9"), mScores:LinesAt(place)) + CHR(10).
+                END.
+                result = result + CHR(10).
+            END.
+            RETURN result + "Keys" + CHR(10)
                  + "  Left, Right  move, hold to repeat" + CHR(10)
                  + "  Down         soft drop, repeats" + CHR(10)
                  + "  Up, W, X     turn clockwise" + CHR(10)
@@ -107,6 +134,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
         IF NOT VALID-OBJECT(poSettings) THEN UNDO, THROW NEW GridException("Tetris input needs settings").
         mGame = poGame.
         mSettings = poSettings.
+        mScores = NEW TetrisHighScores(poSettings).
         mGame:ShowGhost = mSettings:GetLogical("tetris.ghost", TRUE).
     END CONSTRUCTOR.
 
@@ -133,6 +161,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
     METHOD PUBLIC LOGICAL HandleKey(INPUT pcKey AS CHARACTER):
         DEFINE VARIABLE repeating AS LOGICAL NO-UNDO.
         IF pcKey = ? THEN RETURN FALSE.
+        NoteEnd().
         CASE pcKey:
             WHEN "Left" OR WHEN "A" THEN mGame:MoveLeft().
             WHEN "Right" OR WHEN "D" THEN mGame:MoveRight().
@@ -150,6 +179,19 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
             OTHERWISE RETURN FALSE.
         END CASE.
         RETURN TRUE.
+    END METHOD.
+
+    /* Puts the game that has just ended on the high score list, once. The window asks for the status
+       line after every tick and key, so this is where the end of a game is noticed. A new game clears it. */
+    METHOD PRIVATE VOID NoteEnd():
+        IF NOT mGame:IsOver THEN DO:
+            mRecorded = FALSE.
+            mPlace = 0.
+        END.
+        ELSE IF NOT mRecorded THEN DO:
+            mRecorded = TRUE.
+            mPlace = mScores:Record(mGame:Score, mGame:LinesCleared).
+        END.
     END METHOD.
 
     /* A key came up, or (with an empty name) every key did. */

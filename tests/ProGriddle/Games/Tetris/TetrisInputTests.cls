@@ -162,6 +162,89 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
         Assert:Equals(0, mGame:PieceY).
     END METHOD.
 
+    /* ---- high scores ---- */
+
+    /* Plays the game out by dropping pieces in the middle. */
+    METHOD PRIVATE VOID PlayToTheEnd():
+        DEFINE VARIABLE drops AS INTEGER NO-UNDO.
+        mGame:StartWith("O,O,O,O,O,O,O,O,O,O,O,O").
+        DO WHILE NOT mGame:IsOver AND drops < 15:
+            mGame:HardDrop().
+            drops = drops + 1.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AGameThatEndsIsPutOnTheHighScoreListOnce():
+        DEFINE VARIABLE scores AS TetrisHighScores NO-UNDO.
+        DEFINE VARIABLE statusLine AS CHARACTER NO-UNDO.
+        PlayToTheEnd().
+        Assert:IsTrue(INDEX(mInput:StatusText, "New best score") > 0).
+        statusLine = mInput:StatusText.
+        statusLine = mInput:BannerText.
+        scores = NEW TetrisHighScores(mSettings).
+        Assert:Equals(1, scores:Count()).
+        Assert:Equals(mGame:Score, scores:Best()).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ALaterGameSaysWhichPlaceItGot():
+        DEFINE VARIABLE scores AS TetrisHighScores NO-UNDO.
+        scores = NEW TetrisHighScores(mSettings).
+        scores:Record(999999, 99).
+        PlayToTheEnd().
+        Assert:IsTrue(INDEX(mInput:StatusText, "High score, place 2") > 0).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AGameThatDoesNotMakeTheListSaysNothingOfIt():
+        DEFINE VARIABLE scores AS TetrisHighScores NO-UNDO.
+        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        scores = NEW TetrisHighScores(mSettings).
+        DO i = 1 TO 10:
+            scores:Record(999000 + i, 99).
+        END.
+        PlayToTheEnd().
+        Assert:IsTrue(INDEX(mInput:StatusText, "Game over   Score ") = 1).
+        Assert:Equals(0, INDEX(mInput:StatusText, "New best")).
+        Assert:Equals(0, INDEX(mInput:StatusText, "High score")).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AnotherGameAfterANewOneIsRecordedAgain():
+        DEFINE VARIABLE scores AS TetrisHighScores NO-UNDO.
+        DEFINE VARIABLE statusLine AS CHARACTER NO-UNDO.
+        PlayToTheEnd().
+        statusLine = mInput:StatusText.
+        mGame:Initialise().
+        Assert:IsTrue(INDEX(mInput:StatusText, "Best ") > 0).
+        PlayToTheEnd().
+        statusLine = mInput:StatusText.
+        scores = NEW TetrisHighScores(mSettings).
+        Assert:Equals(2, scores:Count()).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheStatusLineShowsTheBestScoreWhileThereIsOne():
+        DEFINE VARIABLE scores AS TetrisHighScores NO-UNDO.
+        scores = NEW TetrisHighScores(mSettings).
+        scores:Record(1234, 9).
+        Assert:Equals("Score 0   Lines 0   Level 1   Next O   Best 1234", mInput:StatusText).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheHelpScreenListsTheHighScoresAboveTheKeys():
+        DEFINE VARIABLE scores AS TetrisHighScores NO-UNDO.
+        Assert:Equals(0, INDEX(mInput:InfoText, "High scores")).
+        scores = NEW TetrisHighScores(mSettings).
+        scores:Record(1234, 9).
+        scores:Record(500, 3).
+        Assert:IsTrue(INDEX(mInput:InfoText, "High scores") = 1).
+        Assert:IsTrue(INDEX(mInput:InfoText, "1234 (9 lines)") > 0).
+        Assert:IsTrue(INDEX(mInput:InfoText, "500 (3 lines)") > INDEX(mInput:InfoText, "1234 (9 lines)")).
+        Assert:IsTrue(INDEX(mInput:InfoText, "Keys") > INDEX(mInput:InfoText, "500 (3 lines)")).
+    END METHOD.
+
     /* ---- the status line and the banner ---- */
 
     @Test.
