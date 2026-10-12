@@ -168,7 +168,7 @@ The ProGriddle Cookoff (`run/run-arcade.p`) is one window with a button for ever
 "C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-arcade.p"
 ```
 
-A button starts that game in a prowin of its own, so the Cookoff stays open and several games can be played at once. While a game is running its button reads `(playing)` in green, and goes back to normal when the game's window closes.
+Each game has a chip with its title and a colour (Battleships red, Life orange, Minesweeper blue and Tetris purple, then green, yellow and teal for games added later). Pointing at a chip shows that game's description under the COOKOFF badge. A click starts the game in a prowin of its own, so the Cookoff stays open and several games can be played at once. While a game is running its chip is outlined in its colour and says PLAYING in green, and goes back to normal when the game's window closes.
 
 Nothing is registered anywhere. The Cookoff looks in the `run` folder for files named `run-*.p`, so **a new game appears as soon as its run file exists**. A run file can describe itself with one line in its header comment (and the comment must not close on that line):
 
@@ -178,7 +178,7 @@ Nothing is registered anywhere. The Cookoff looks in the `run` folder for files 
 
 The words before the bar are the button's title and the words after it the line shown beside the button. Without the line the title comes from the file name (`run-battleships.p` is Battleships) and there is no description. A run file that is not a game says `Arcade: hidden` (`run/run-arcade.p` does). Games are listed by title.
 
-It is built from the same pieces as the games: `IGameCatalog` and `DirectoryGameCatalog` (the list of games, in `Engine`), `IGameLauncher` (starts a program, with `ProcessGameLauncher` in `UI.WinForms` starting a real prowin) and `ArcadeWindow` (the window), wired together in `run/run-arcade.p`. A game does not need to know about the Cookoff.
+It is built from the same pieces as the games: `IGameCatalog` and `DirectoryGameCatalog` (the list of games, in `Engine`), `IGameLauncher` (starts a program, with `ProcessGameLauncher` in `UI.WinForms` starting a real prowin) and `ArcadeWindow` (the window), wired together in `run/run-arcade.p`. The look comes from the Cookoff artwork and is drawn in code by `CookoffBackdrop` (the navy backdrop, the wordmark, the badge and the board of mixed games), so it stays sharp and needs no image files. Only the window icon is a file, `assets/progriddle.ico`. A game does not need to know about the Cookoff.
 
 ## Creating a new game
 

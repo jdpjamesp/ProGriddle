@@ -4,7 +4,7 @@
 .DESCRIPTION
     Launches run/run-arcade.p under prowin and checks that it has a button for every game in the
     run folder and none for itself. Then it clicks the Tetris button and checks that a Tetris window
-    of its own opens, that the button shows the game as playing, and that it
+    of its own opens, that the chip shows PLAYING in green, and that it
     goes back to normal once that window is closed. It does the same with Life. Only windows this script
     started are closed, so a game you already have open is left alone.
 
@@ -42,12 +42,25 @@ function Get-Buttons($p) {
             $list += [pscustomobject]@{ Text = $e.Current.Name; Enabled = $e.Current.IsEnabled; Rect = $e.Current.BoundingRectangle }
         }
     }
-    # automation lists them last added first, the window shows them top to bottom
-    return @($list | Sort-Object { $_.Rect.Y })
+    # automation lists them in its own order, the window shows them two to a row, left to right then down
+    return @($list | Sort-Object @{ Expression = { [int]$_.Rect.Y } }, @{ Expression = { [int]$_.Rect.X } })
 }
 
 function Find-Button($p, [string]$startsWith) {
     return @(Get-Buttons $p | Where-Object { $_.Text -like "$startsWith*" })[0]
+}
+
+# True when the chip shows the green PLAYING tag: green pixels inside the chip's box in a screenshot.
+function Test-Playing($p, $b, [string]$shotName = 'smoke-arcade-probe') {
+    $bmp = Take-Shot $p $shotName
+    try {
+        $r = Get-WindowRect $p
+        $x = [int]($b.Rect.X - $r.L); $y = [int]($b.Rect.Y - $r.T)
+        $w = [int]$b.Rect.Width; $h = [int]$b.Rect.Height
+        if ($x -lt 0 -or $y -lt 0 -or $x + $w -gt $bmp.Width -or $y + $h -gt $bmp.Height) { return $false }
+        $crop = $bmp.Clone((New-Object System.Drawing.Rectangle $x, $y, $w, $h), $bmp.PixelFormat)
+        try { return ([Native]::FindColour($crop, 61, 214, 140, 24))[0] -ge 0 } finally { $crop.Dispose() }
+    } finally { $bmp.Dispose() }
 }
 
 function Click-Button($b) { Click-Screen ([int]($b.Rect.X + $b.Rect.Width / 2)) ([int]($b.Rect.Y + $b.Rect.Height / 2)) 'left' 600 }
@@ -63,14 +76,15 @@ function Wait-NewWindow([int[]]$before, [string]$titleStart, [int]$seconds = 25)
     return $null
 }
 
-function Wait-ButtonText($p, [string]$startsWith, [scriptblock]$test, [int]$seconds = 8) {
+# Waits until the chip is (or is not) showing PLAYING. Returns true when it got there in time.
+function Wait-Playing($p, [string]$name, [bool]$want, [int]$seconds = 8) {
     $deadline = (Get-Date).AddSeconds($seconds)
     do {
-        $b = Find-Button $p $startsWith
-        if ($b -and (& $test $b)) { return $b }
-        Start-Sleep -Milliseconds 400
+        $b = Find-Button $p $name
+        if ($b -and ((Test-Playing $p $b) -eq $want)) { return $true }
+        Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
-    return $null
+    return $false
 }
 
 $arcade = $null
@@ -92,7 +106,7 @@ try {
     $titles = @($buttons | ForEach-Object { $_.Text })
     Check 'the buttons are Battleships, Life, Minesweeper and Tetris, in that order' (($titles -join ',') -eq 'Battleships,Life,Minesweeper,Tetris') ($titles -join ',')
     Check 'the arcade does not list itself' (($titles | Where-Object { $_ -like '*Arcade*' }).Count -eq 0)
-    Check 'no game is shown as playing' (@($buttons | Where-Object { $_.Text -like '*playing*' }).Count -eq 0)
+    Check 'no game is shown as playing' (@($buttons | Where-Object { Test-Playing $arcade $_ }).Count -eq 0)
 
     foreach ($game in @(@('Tetris', 'ProGriddle Tetris'), @('Life', 'ProGriddle'))) {
         $name = $game[0]
@@ -102,9 +116,8 @@ try {
         $started = Wait-NewWindow $before $game[1]
         Check "clicking $name opens a $name window of its own" ($null -ne $started) "no new window titled $($game[1])*"
         if ($null -eq $started) { continue }
-        $running = Wait-ButtonText $arcade $name { param($b) $b.Text -like '*(playing)' }
-        Check "the $name button shows it playing" ($null -ne $running -and $running.Text -eq "$name (playing)") "button: $(Find-Button $arcade $name | ConvertTo-Json -Compress)"
-        $others = @(Get-Buttons $arcade | Where-Object { $_.Text -notlike "$name*" -and $_.Text -like '*playing*' })
+        Check "the $name chip shows PLAYING in green" (Wait-Playing $arcade $name $true)
+        $others = @(Get-Buttons $arcade | Where-Object { $_.Text -notlike "$name*" -and (Test-Playing $arcade $_) })
         Check 'no other game is shown as playing' ($others.Count -eq 0)
         $shotRunning = Take-Shot $arcade "smoke-arcade-2-$($name.ToLower())-playing"; $shotRunning.Dispose()
 
@@ -112,8 +125,7 @@ try {
         $exited = $started.WaitForExit(10000)
         if (-not $exited) { $started.Kill() }
         Check "the $name window closes" $exited
-        $back = Wait-ButtonText $arcade $name { param($b) $b.Text -notlike '*playing*' }
-        Check "the $name button goes back to normal after the game closes" ($null -ne $back -and $back.Text -eq $name) "button: $(Find-Button $arcade $name | ConvertTo-Json -Compress)"
+        Check "the $name chip goes back to normal after the game closes" (Wait-Playing $arcade $name $false)
     }
 
     Check 'closing the arcade ends its process' (Close-Window $arcade)
