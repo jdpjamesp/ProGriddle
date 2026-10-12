@@ -8,6 +8,7 @@ OpenEdge ABL OO framework for grid based games. Target: OpenEdge 12.8, Windows, 
 - Program against interfaces. Concrete classes are created only in composition roots (the `run-*.p` files and tests).
 - Prefer `FINAL` on classes not designed for inheritance. Mark abstract methods explicitly.
 - No object allocation inside per cell loops.
+- Every class file has `BLOCK-LEVEL ON ERROR UNDO, THROW.` between the USING statements and the CLASS statement. Without it, `UNDO, THROW` prints the message and execution carries on instead of unwinding. A class also needs a `USING` for its own name before it can use its own type.
 - Throw `Prolif.Core.GridException` (or a subclass) for contract violations, never return magic values silently.
 - All randomness goes through an injectable seeded random source so tests are deterministic.
 - Every public method has a test. Write the test first where practical.

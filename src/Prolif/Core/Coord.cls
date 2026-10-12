@@ -3,6 +3,8 @@
 USING Progress.Lang.*.
 USING Prolif.Core.Coord.
 
+BLOCK-LEVEL ON ERROR UNDO, THROW.
+
 CLASS Prolif.Core.Coord FINAL:
 
     DEFINE PUBLIC PROPERTY X AS INTEGER NO-UNDO

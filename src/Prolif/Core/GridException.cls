@@ -2,6 +2,8 @@
    mismatched sizes, invalid shapes. Never returned as a magic value. */
 USING Progress.Lang.*.
 
+BLOCK-LEVEL ON ERROR UNDO, THROW.
+
 CLASS Prolif.Core.GridException INHERITS AppError:
 
     CONSTRUCTOR PUBLIC GridException(INPUT pcMessage AS CHARACTER):
