@@ -2,11 +2,28 @@
 
 An OpenEdge ABL OO framework for grid based games. First target is Conway's Game of Life, then Minesweeper, Battleships and Tetris to prove the framework.
 
-Status: Phase 1 (core grid) done. Nothing is playable yet.
+Status: Phase 2 (topology and neighbourhood) done. Nothing is playable yet.
 
 ## What exists so far
 
 `Prolif.Core`: `Coord`, `Shape`, `Grid`, `GridException`, the `ICellStore` contract and three interchangeable stores. `ArrayStore` is dense and backed by a MEMPTR, `SparseStore` holds occupied cells only, and `TableStore` is a temp table with one record per cell and a named field per layer. All three pass the same contract tests (`tests/Prolif/Core/CellStoreContractTests.cls`).
+
+Edges and neighbours: `BoundedTopology` (edges are walls) and `ToroidalTopology` (edges wrap), with `MooreNeighbourhood` (8 cells), `VonNeumannNeighbourhood` (4 cells) and `CustomNeighbourhood` (any offsets). `Grid.GetNeighbourIndexes(x, y, array)` fills a caller supplied array and returns the count, without allocating any object. It takes about 12 microseconds a call, so engines that visit every cell of a large board should work from the index step of each offset instead of calling it per cell.
+
+## Neighbours on tiny boards
+
+Each distinct neighbouring cell is listed once, and a cell is never its own neighbour. This only matters on a wrapped board small enough for offsets to land on the same cell:
+
+| Board | Moore neighbours of a cell | Von Neumann neighbours |
+|---|---|---|
+| 1 x 1 toroidal | 0 | 0 |
+| 2 x 2 toroidal | 3 | 2 |
+| 1 x 5 toroidal | 2 (the cells above and below) | 2 |
+| 3 x 3 toroidal | 8 | 4 |
+| 1 x 1 bounded | 0 | 0 |
+| 2 x 2 bounded | 3 | 2 |
+
+Bounded boards never repeat a cell, because each offset reaches a different cell. Cells at least as far from every edge as the neighbourhood reach skip the topology and use precomputed index steps.
 
 ## Requirements
 
