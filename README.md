@@ -129,9 +129,9 @@ A game implements `IGame` and is one of three kinds:
 |---|---|---|
 | Steppable: the whole grid updates at once | `ISteppableGame` (`Step`, `Generation`) | Life |
 | Turn based: a move is validated and applied | `ITurnBasedGame` (`Turn`) | Minesweeper, Battleships |
-| Real time: advanced by a clock | `IRealTimeGame` (planned for Phase 6) | Tetris |
+| Real time: advanced by a clock, whether or not the player acts | `IRealTimeGame` (`Paused`, `Tick`) | Tetris |
 
-`AbstractGame` supplies the name, the grid, the over flag and the counter. `GameController` ties a steppable game to an `IGridRenderer` and an `IClock`: Start, PauseGame, StepOnce, Reset, SpeedUp, SlowDown (`GameCommand`), with six speeds and a redraw after every change. It stops the clock itself when the game is over. `TurnController` does the same for a turn based game, which has no clock and no stepping: only a new game (Reset) and a redraw (Refresh). Both implement `IGameController`, which is all the window needs to know. A turn based game keeps its moves as its own methods (Minesweeper has Reveal, ToggleFlag and Chord) and the window reaches them through `IGameInput`.
+`AbstractGame` supplies the name, the grid, the over flag and the counter. `GameController` ties a steppable game to an `IGridRenderer` and an `IClock`: Start, PauseGame, StepOnce, Reset, SpeedUp, SlowDown (`GameCommand`), with six speeds and a redraw after every change. It stops the clock itself when the game is over. `TurnController` does the same for a turn based game, which has no clock and no stepping: only a new game (Reset) and a redraw (Refresh). `RealTimeController` binds a real time game to a renderer and a clock: each clock tick passes the milliseconds that really went by to the game's `Tick`, and it redraws only when `Tick` says something changed. It is built paused, so call `Start`; `PauseGame` stops the clock and sets the game's `Paused` flag, `Reset` starts a new game and runs it, and the clock stops by itself when the game is over. All three implement `IGameController`, which is all the window needs to know. Its `Steppable` says whether the game has stepping and a speed (Life) and `Pausable` whether it has a clock to start and stop (Life and any real time game, not a turn based one): the window shows the Start and Pause button when the game is pausable, and the stepping and the speed slider only when it is steppable. A turn based or real time game keeps its moves as its own methods (Minesweeper has Reveal, ToggleFlag and Chord, Tetris has MoveLeft, RotateClockwise and HardDrop) and the window reaches them through `IGameInput`.
 
 A turn based game can hold more than one board in its one grid: Battleships keeps the computer's waters, a divider and your own fleet side by side, and works out which board a click is on. A game can also use an opponent of its own (Battleships has `IBattleshipsOpponent`, with a hunt-and-target computer player). A game that needs a timer takes an `IClock` of its own. Minesweeper counts seconds from one, and the same clock tells the window to refresh the status line.
 
@@ -143,21 +143,21 @@ A turn based game can hold more than one board in its one grid: Battleships keep
 
 ### The window
 
-`GameWindow` hosts any game, steppable or turn based, and knows nothing about which one. For a steppable game it gives you a toolbar (Start or Pause, Step, Reset, the game's own commands, an optional picker, a speed slider), for a turn based game just a New game button, the game's own commands and the picker. Either way it has the board, a status bar, keyboard and mouse handling, and saved window size, position and (when stepping) speed. A game describes itself to the window through `IGameInput`:
+`GameWindow` hosts any game, steppable, turn based or real time, and knows nothing about which one. For a steppable game it gives you a toolbar (Start or Pause, Step, Reset, the game's own commands, an optional picker, a speed slider), for a turn based game just a New game button, the game's own commands and the picker, and for a real time game a Pause button, New game, the commands and the picker. Either way it has the board, a status bar, keyboard and mouse handling, and saved window size, position and (when stepping) speed. A game describes itself to the window through `IGameInput`:
 
 | Member | Used for |
 |---|---|
 | `StatusText` | The status bar and window title |
 | `ChoiceLabel`, `ChoiceNames`, `Choice` | An optional picker (Life's pattern list). Empty names hide it |
 | `CommandNames` | Extra buttons and keys, written `Name:Letter` such as `Random:G,Clear:C` |
-| `BannerText` | Text kept over the middle of the board while it is not empty, such as `PAUSED` |
-| `HandleKey(key)`, `ReleaseKey(key)` | The game's own keys, offered before the window's, so a real time game can use the arrows. `ReleaseKey("")` means every key is up |
+| `BannerText` | Text kept over the middle of the board while it is not empty, such as `PAUSED` or `GAME OVER`. Unlike a notice it does not fade, and the window refreshes it after every key, click and tick (`GridView:SetBanner`) |
+| `HandleKey(key)`, `ReleaseKey(key)` | The game's own keys, offered before the window's, so a real time game can use the arrows and the space bar. `key` is the .NET key name (`Left`, `Space`, `Z`). Return true when the game used the key, whether or not the move was possible, so the window never gives it a second meaning. A held key arrives again and again, which is key repeat: a game that must act once per press (a turn, a hard drop) remembers the key as held and ignores its repeats until `ReleaseKey(key)`. `ReleaseKey("")` means every key is up, which the window sends when it loses the focus |
 | `TakeNotice()` | A few words on what the last action did (or why it was refused), shown for a moment over the board and faded out. Returns and clears the pending notice |
 | `InfoLabel`, `InfoText` | An optional text screen such as high scores, written `Name:Letter` like `Scores:H`. Empty hides it |
 | `Perform(name)` | Runs one of those commands |
 | `PrimaryAction(x, y)`, `SecondaryAction(x, y)`, `TertiaryAction(x, y)` | Left click, right click, and a middle click or both buttons together, on a cell |
 
-Mouse buttons are read as a gesture and acted on when the last one is released, on the cell under the pointer, and a double click is a `PrimaryAction` followed by a `TertiaryAction`. A game can offer a text screen (`InfoLabel` and `InfoText`, which Minesweeper uses for its high scores): the window adds a button and a key and shows the text in an `InfoDialog`. The keys every steppable game gets: Space start or pause, S or Right arrow one step, R or F2 reset, + or Up faster, - or Down slower. A turn based game only answers to R and F2 (a new game). `GridView` draws the board as one pixel per cell in a bitmap scaled in a single call, using a palette of hex colours where the colour of a cell is the palette entry at its value. It can also draw text in cells (`SetGlyphs`): a glyph and a colour for chosen cell values, such as the numbers, flag and bomb of Minesweeper. Give anything outside Latin 1 as a code point (`U+1F4A3`), because an ABL string cannot carry it.
+Mouse buttons are read as a gesture and acted on when the last one is released, on the cell under the pointer, and a double click is a `PrimaryAction` followed by a `TertiaryAction`. A game can offer a text screen (`InfoLabel` and `InfoText`, which Minesweeper uses for its high scores): the window adds a button and a key and shows the text in an `InfoDialog`. The keys every steppable game gets: Space start or pause, S or Right arrow one step, R or F2 reset, + or Up faster, - or Down slower. A turn based game only answers to R and F2 (a new game), and a real time game to P or Space (pause and resume, unless the game takes the key itself through `HandleKey`) as well. `GridView` draws the board as one pixel per cell in a bitmap scaled in a single call, using a palette of hex colours where the colour of a cell is the palette entry at its value. It can also draw text in cells (`SetGlyphs`): a glyph and a colour for chosen cell values, such as the numbers, flag and bomb of Minesweeper. Give anything outside Latin 1 as a code point (`U+1F4A3`), because an ABL string cannot carry it.
 
 ## Creating a new game
 
@@ -362,6 +362,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter 
 | `tools/gui-smoke-life.ps1` | Drives the real Life window like a user and checks what happens. Takes over the keyboard and mouse for about a minute |
 | `tools/gui-smoke-battleships.ps1` | The same for Battleships: placing a fleet, firing, marking water, a whole game, the board size picker. Takes over the keyboard and mouse for a couple of minutes |
 | `tools/gui-smoke-minesweeper.ps1` | The same for Minesweeper: flags, chords, a whole game, the level picker, saved settings. Takes over the keyboard and mouse for a couple of minutes |
+| `tools/gui-smoke-tetris.ps1` | The same for Tetris: moving, turning, held key repeat, drops and score, gravity, pause, ghost, a game over, the start level picker, saved settings. Takes over the keyboard and mouse for a couple of minutes |
 
 Results go to `build/test-results/results.xml` (plain) and `build/test-results/gui/results.xml` (WinForms). Screenshots from the smoke test go to `build/screenshots`.
 
@@ -385,5 +386,4 @@ Games built on the framework, each with its own page:
 
 - [Battleships](docs/games/battleships.md): turn based, you against a computer on two boards, ships that may not touch, five board sizes with a fleet to match, placing by hand or at random, marking water, a hunting and targeting opponent. Playable now.
 - [Minesweeper](docs/games/minesweeper.md): turn based, the classic Windows rules, four levels, a high score list and screen per level, question marks, chording (both buttons, middle or double click). Playable now.
-
-Planned: Tetris.
+- [Tetris](docs/games/tetris.md): real time, seven bag pieces falling on a timer, held key repeat, ghost piece, next piece panel, pause, levels and scoring, a start level picker. Playable now.

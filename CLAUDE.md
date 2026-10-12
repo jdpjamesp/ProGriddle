@@ -35,6 +35,7 @@ Core depends on nothing. Engine depends on Core. UI.Text depends on Core and Eng
 - Play Life: `prowin.exe -p tools/launch.p -param "run/run-life.p"` from the repository root
 - Play Battleships: `prowin.exe -p tools/launch.p -param "run/run-battleships.p"`. Its window check is `tools/gui-smoke-battleships.ps1` (takes over the keyboard and mouse for a couple of minutes, so warn the user first). The two smoke tests share `tools/gui-smoke-common.ps1`
 - Play Minesweeper: `prowin.exe -p tools/launch.p -param "run/run-minesweeper.p"`. Its window check is `tools/gui-smoke-minesweeper.ps1` (also takes over the keyboard and mouse, for a couple of minutes, so warn the user first)
+- Play Tetris: `prowin.exe -p tools/launch.p -param "run/run-tetris.p"`. Its window check is `tools/gui-smoke-tetris.ps1` (also takes over the keyboard and mouse, for a couple of minutes, so warn the user first)
 
 ## Environment notes (found in Phase 0 and 3)
 - Under `prowin -b` WinForms objects can be built and drawn (`DrawToBitmap`) but there is no .NET message loop, so timers never tick and `Application:Run` fails. `Application:DoEvents` is forbidden in ABL anyway. Anything that needs real ticks or real input is checked in a windowed run.
