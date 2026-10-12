@@ -9,12 +9,13 @@ USING Prolif.Core.GridException.
 USING Prolif.Core.ICellStore.
 USING Prolif.Core.Shape.
 USING Prolif.Core.SparseStore.
+USING Prolif.Core.TableStore.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS Prolif.Core.CellStoreContractTests:
 
-    DEFINE PRIVATE VARIABLE KindCount AS INTEGER NO-UNDO INITIAL 2.
+    DEFINE PRIVATE VARIABLE KindCount AS INTEGER NO-UNDO INITIAL 3.
 
     /* ---- helpers ---- */
 
@@ -22,6 +23,7 @@ CLASS Prolif.Core.CellStoreContractTests:
         CASE piKind:
             WHEN 1 THEN RETURN NEW ArrayStore(piW, piH, pcLayers).
             WHEN 2 THEN RETURN NEW SparseStore(piW, piH, pcLayers).
+            WHEN 3 THEN RETURN NEW TableStore(piW, piH, pcLayers).
         END CASE.
         UNDO, THROW NEW AppError("Unknown store kind " + STRING(piKind), 0).
     END METHOD.
@@ -30,6 +32,7 @@ CLASS Prolif.Core.CellStoreContractTests:
         CASE piKind:
             WHEN 1 THEN RETURN "ArrayStore".
             WHEN 2 THEN RETURN "SparseStore".
+            WHEN 3 THEN RETURN "TableStore".
         END CASE.
         RETURN "kind " + STRING(piKind).
     END METHOD.
