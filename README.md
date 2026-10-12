@@ -1,6 +1,8 @@
-# ProLific
+# ProGriddle
 
-ProLific is an OpenEdge ABL object oriented framework for games played on a rectangular grid. It gives you the board, the storage, the rules for edges and neighbours, the game loop, a window and saved settings, so a new game is mostly its own rules.
+**Allowing you to cook up new grid based games easily.**
+
+ProGriddle is an OpenEdge ABL object oriented framework for games played on a rectangular grid. Think of it as the griddle: it gives you the hot, flat surface (the board, the storage, the rules for edges and neighbours, the game loop, a window and saved settings), so all you bring is the recipe, the rules of your game.
 
 - Written in OpenEdge ABL (OO), for OpenEdge 12.8 on Windows, with a WinForms window through the ABL .NET bridge.
 - Game logic never touches the screen, so every game runs under plain batch tests with no window at all.
@@ -46,29 +48,29 @@ Project setup for VS Code: `openedge-project.json` defines the PROPATH for the O
 
 ## How it fits together
 
-Source lives under `src/Prolif`, one folder per namespace, one class per file. The layers only depend downwards:
+Source lives under `src/ProGriddle`, one folder per namespace, one class per file. The layers only depend downwards:
 
 ```
  run/*.p                composition roots: the only place concrete classes are wired together
     |
- Prolif.Games.<Game>    a game's rules      depends on Core and Engine only
- Prolif.UI.WinForms     the window          depends on Core, Engine, UI.Text. The only layer that uses .NET
- Prolif.UI.Text         text renderer, fake clock, for tests
+ ProGriddle.Games.<Game>    a game's rules      depends on Core and Engine only
+ ProGriddle.UI.WinForms     the window          depends on Core, Engine, UI.Text. The only layer that uses .NET
+ ProGriddle.UI.Text         text renderer, fake clock, for tests
     |
- Prolif.Engine          game contracts, controller, clock, settings    depends on Core
+ ProGriddle.Engine          game contracts, controller, clock, settings    depends on Core
     |
- Prolif.Core            grid, cell stores, topology, shapes            depends on nothing
+ ProGriddle.Core            grid, cell stores, topology, shapes            depends on nothing
 ```
 
 `tools/check-layering.ps1` enforces this (it also runs in GitHub Actions and needs no OpenEdge install). A game never refers to the window and never to another game, which is what lets it run in tests with no GUI.
 
 | Folder | Holds |
 |---|---|
-| `src/Prolif/Core` | `Coord`, `Shape`, `Grid`, the cell stores, topologies, neighbourhoods, `IRandom` |
-| `src/Prolif/Engine` | `IGame`, `AbstractGame`, `GameController`, `IClock`, `IGridRenderer`, `IGameInput`, settings |
-| `src/Prolif/UI/WinForms` | `GameWindow`, `GridView`, `WinFormsGridRenderer`, `WinFormsClock`, `KeyMap` |
-| `src/Prolif/UI/Text` | `TextGridRenderer`, `FakeClock` |
-| `src/Prolif/Games/<Game>` | One folder per game |
+| `src/ProGriddle/Core` | `Coord`, `Shape`, `Grid`, the cell stores, topologies, neighbourhoods, `IRandom` |
+| `src/ProGriddle/Engine` | `IGame`, `AbstractGame`, `GameController`, `IClock`, `IGridRenderer`, `IGameInput`, settings |
+| `src/ProGriddle/UI/WinForms` | `GameWindow`, `GridView`, `WinFormsGridRenderer`, `WinFormsClock`, `KeyMap` |
+| `src/ProGriddle/UI/Text` | `TextGridRenderer`, `FakeClock` |
+| `src/ProGriddle/Games/<Game>` | One folder per game |
 | `run` | One `run-<game>.p` per game |
 | `tests` | The same folder layout as `src`, `*Tests.cls` |
 | `tools` | Scripts: tests, layering check, compile check, window smoke test |
@@ -135,7 +137,7 @@ A game implements `IGame` and is one of three kinds:
 
 ### Settings
 
-`ISettings` keeps named values that outlive a session (window size, speed, a game's options). Keys are namespaced by game, like `life.speed`. Reading never fails: a missing key, or a key holding another type, returns the default you give. `JsonFileSettings` stores them in a small JSON file (by default `%APPDATA%\ProLific\settings.json`) and a missing or corrupt file just means defaults, with the next save writing a good file. `MemorySettings` is the in-memory version for tests.
+`ISettings` keeps named values that outlive a session (window size, speed, a game's options). Keys are namespaced by game, like `life.speed`. Reading never fails: a missing key, or a key holding another type, returns the default you give. `JsonFileSettings` stores them in a small JSON file (by default `%APPDATA%\ProGriddle\settings.json`) and a missing or corrupt file just means defaults, with the next save writing a good file. `MemorySettings` is the in-memory version for tests.
 
 ### The window
 
@@ -153,7 +155,7 @@ The keys every game gets: Space start or pause, S or Right arrow one step, R res
 
 ## Creating a new game
 
-Here is a complete, working game in three small files. It lights one cell and moves it along the board, so it shows every piece you need. (Run it with `prowin.exe -p tools/launch.p -param "run/run-scanner.p"` once you create the files.) Replace the rules with your own.
+Time to cook up a game on the griddle. Here is a complete, working game in three small files. It lights one cell and moves it along the board, so it shows every piece you need. (Run it with `prowin.exe -p tools/launch.p -param "run/run-scanner.p"` once you create the files.) Replace the rules with your own.
 
 ### 1. Decide what the game is
 
@@ -161,15 +163,15 @@ Pick the kind (steppable, turn based or real time), the board size, the layers i
 
 ### 2. Write the game class
 
-Create `src/Prolif/Games/Scanner/ScannerGame.cls`. It inherits `AbstractGame` and implements `ISteppableGame`. Override `OnInitialise` to set up the starting board; `Initialise` has already put `Generation` back to 0.
+Create `src/ProGriddle/Games/Scanner/ScannerGame.cls`. It inherits `AbstractGame` and implements `ISteppableGame`. Override `OnInitialise` to set up the starting board; `Initialise` has already put `Generation` back to 0.
 
 ```
-USING Prolif.Core.*.
-USING Prolif.Engine.*.
+USING ProGriddle.Core.*.
+USING ProGriddle.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS Prolif.Games.Scanner.ScannerGame INHERITS AbstractGame IMPLEMENTS ISteppableGame:
+CLASS ProGriddle.Games.Scanner.ScannerGame INHERITS AbstractGame IMPLEMENTS ISteppableGame:
 
     DEFINE PRIVATE VARIABLE mPosition AS INTEGER NO-UNDO.
 
@@ -198,16 +200,16 @@ Set `IsOver = TRUE` when the game ends and the controller stops the clock by its
 
 ### 3. Tell the window about the game
 
-Create `src/Prolif/Games/Scanner/ScannerInput.cls` implementing `IGameInput`. This game needs no picker, no extra commands and ignores clicks, so most members are empty. A real game puts its click handling here (Life toggles a cell on a left click and places a pattern on a right click).
+Create `src/ProGriddle/Games/Scanner/ScannerInput.cls` implementing `IGameInput`. This game needs no picker, no extra commands and ignores clicks, so most members are empty. A real game puts its click handling here (Life toggles a cell on a left click and places a pattern on a right click).
 
 ```
-USING Prolif.Core.*.
-USING Prolif.Engine.*.
-USING Prolif.Games.Scanner.*.
+USING ProGriddle.Core.*.
+USING ProGriddle.Engine.*.
+USING ProGriddle.Games.Scanner.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS Prolif.Games.Scanner.ScannerInput IMPLEMENTS IGameInput:
+CLASS ProGriddle.Games.Scanner.ScannerInput IMPLEMENTS IGameInput:
 
     DEFINE PRIVATE VARIABLE mGame AS ScannerGame NO-UNDO.
 
@@ -261,10 +263,10 @@ Create `run/run-scanner.p`. This is the only place that builds concrete classes 
 
 ```
 USING System.Windows.Forms.Application FROM ASSEMBLY.
-USING Prolif.Core.*.
-USING Prolif.Engine.*.
-USING Prolif.Games.Scanner.*.
-USING Prolif.UI.WinForms.*.
+USING ProGriddle.Core.*.
+USING ProGriddle.Engine.*.
+USING ProGriddle.Games.Scanner.*.
+USING ProGriddle.UI.WinForms.*.
 
 DEFINE VARIABLE oSettings   AS ISettings      NO-UNDO.
 DEFINE VARIABLE oGame       AS ScannerGame    NO-UNDO.
@@ -298,7 +300,7 @@ The palette maps cell values to colours in order: value 0 is the first colour, v
 
 ### 5. Test it without a window
 
-Because the game has no UI dependency, test it in plain ABLUnit under `tests/Prolif/Games/Scanner/`. Useful pieces already exist: `TextGridRenderer` turns a grid into text so a test can compare a whole board, `FakeClock` plus `GameController` lets a test script a session ("start, advance 750 ms, expect generation 3"), `SeededRandom` makes random boards repeatable, and `tests/Prolif/Games/Life/` shows the shape of a full suite (game, rules, input, a scripted session).
+Because the game has no UI dependency, test it in plain ABLUnit under `tests/ProGriddle/Games/Scanner/`. Useful pieces already exist: `TextGridRenderer` turns a grid into text so a test can compare a whole board, `FakeClock` plus `GameController` lets a test script a session ("start, advance 750 ms, expect generation 3"), `SeededRandom` makes random boards repeatable, and `tests/ProGriddle/Games/Life/` shows the shape of a full suite (game, rules, input, a scripted session).
 
 ```
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter "Scanner*"

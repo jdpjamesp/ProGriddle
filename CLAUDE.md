@@ -1,10 +1,10 @@
-# ProLific conventions
+# ProGriddle conventions
 
-OpenEdge ABL OO framework for grid based games. Target: OpenEdge 12.8, Windows, prowin GUI via WinForms and the ABL .NET bridge. Namespace and source root: `Prolif` (`src/Prolif/...`). The build brief is `PROLIFIC_PLAN.md` (local only, not in git).
+ProGriddle: allowing you to cook up new grid based games easily. An OpenEdge ABL OO framework for grid based games. Target: OpenEdge 12.8, Windows, prowin GUI via WinForms and the ABL .NET bridge. Namespace and source root: `ProGriddle` (`src/ProGriddle/...`). The build brief is `PROGRIDDLE_PLAN.md` (local only, not in git).
 
 ## Rules
 - OpenEdge ABL OO only. One class per file. Namespace matches folder path.
-- Always use `USING` statements, never fully qualified names inline. ALWAYS use the wildcard form, one line per namespace, for example `USING Prolif.Games.Life.*.`, `USING Prolif.Core.*.`, `USING OpenEdge.Core.*.`, `USING Progress.Lang.*.`. Never write one `USING` per class. This also covers the class's own namespace. Only .NET types stay specific where a wildcard would clash, for example `USING System.Windows.Forms.Timer FROM ASSEMBLY.` (the layering check reads both forms).
+- Always use `USING` statements, never fully qualified names inline. ALWAYS use the wildcard form, one line per namespace, for example `USING ProGriddle.Games.Life.*.`, `USING ProGriddle.Core.*.`, `USING OpenEdge.Core.*.`, `USING Progress.Lang.*.`. Never write one `USING` per class. This also covers the class's own namespace. Only .NET types stay specific where a wildcard would clash, for example `USING System.Windows.Forms.Timer FROM ASSEMBLY.` (the layering check reads both forms).
 - Program against interfaces. Concrete classes are created only in composition roots (the `run-*.p` files and tests).
 - Prefer `FINAL` on classes not designed for inheritance. Mark abstract methods explicitly.
 - No object allocation inside per cell loops.
@@ -12,13 +12,13 @@ OpenEdge ABL OO framework for grid based games. Target: OpenEdge 12.8, Windows, 
 - Every MEMPTR must be reset to size 0 (`SET-SIZE(m) = 0`) as soon as it is finished with, so memory never leaks. A MEMPTR allocated inside a method is freed in that method's `FINALLY` block. A MEMPTR owned by an object is freed in a `Dispose` method, with a destructor as a safety net, and the object's owner calls `Dispose`.
 - Never name a method `Clone`, `Equals` (unless overriding), `ToString` (unless overriding) or any other inherited `Progress.Lang.Object` member by accident. The cell store copy method is `Duplicate`.
 - ABLUnit fixture annotations are the reverse of JUnit: `@Setup` and `@TearDown` run around every test, while `@Before` and `@After` run once per class. ABLUnit also does not run `@Test` methods inherited from a base class.
-- Throw `Prolif.Core.GridException` (or a subclass) for contract violations, never return magic values silently.
+- Throw `ProGriddle.Core.GridException` (or a subclass) for contract violations, never return magic values silently.
 - All randomness goes through an injectable seeded random source so tests are deterministic.
 - Every public method has a test. Write the test first where practical.
 - No em dashes anywhere in code comments, docs, commit messages or console output. Use commas, colons or hyphens instead.
 - Keep commits small, one per sub step, with a clear message.
 - Documentation layout: `README.md` documents the framework and how to create a new game with it. Every implemented game has its own page, `docs/games/<game>.md`, written as part of that game's work. A game phase is not done until its page exists and the README links to it. Game specific material (controls, settings, timings, design notes) belongs on the game page, not in the README.
-- .NET types (`System.Windows.Forms`, `System.Drawing`) are referenced only inside `Prolif.UI.WinForms`. Core, Engine and Games must compile and test without a GUI.
+- .NET types (`System.Windows.Forms`, `System.Drawing`) are referenced only inside `ProGriddle.UI.WinForms`. Core, Engine and Games must compile and test without a GUI.
 - Dispose .NET objects (brushes, pens, bitmaps, timers) deterministically. Unsubscribe from .NET events when the form closes.
 - Never run long computation on the UI thread without yielding. Large Life boards must stay responsive.
 - If the framework needs changing to support a game, change the framework and update its tests. Do not special case a game inside Core.

@@ -31,6 +31,28 @@ public class Native {
   [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
   [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT r);
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
+  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+  [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr h, IntPtr pid);
+  [DllImport("user32.dll")] public static extern bool AttachThreadInput(uint from, uint to, bool attach);
+  [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h, int cmd);
+  [DllImport("user32.dll")] public static extern bool BringWindowToTop(IntPtr h);
+  [DllImport("kernel32.dll")] public static extern uint GetCurrentThreadId();
+  [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+  /* The process that owns a window. An open drop-down list is a separate window of the same process. */
+  public static uint PidOf(IntPtr h) { uint pid; GetWindowThreadProcessId(h, out pid); return pid; }
+  /* Brings a window to the front without sending any keystrokes: Windows only lets the program that
+     owns the foreground window hand it over, so this briefly shares its input queue. */
+  public static bool Force(IntPtr h) {
+    IntPtr fg = GetForegroundWindow();
+    uint fgThread = GetWindowThreadProcessId(fg, IntPtr.Zero);
+    uint me = GetCurrentThreadId();
+    bool attached = (fgThread != 0 && fgThread != me) && AttachThreadInput(me, fgThread, true);
+    ShowWindow(h, 9);
+    BringWindowToTop(h);
+    bool ok = SetForegroundWindow(h);
+    if (attached) AttachThreadInput(me, fgThread, false);
+    return ok;
+  }
   [DllImport("user32.dll")] public static extern bool MoveWindow(IntPtr h, int x, int y, int w, int hgt, bool repaint);
   [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
   [DllImport("user32.dll")] public static extern void mouse_event(uint f, uint dx, uint dy, uint d, UIntPtr e);
@@ -57,6 +79,22 @@ public class Native {
 [Native]::SetProcessDPIAware() | Out-Null
 
 $script:failures = 0
+# The window the script is driving. Input is only ever sent while it is the foreground window,
+# because keystrokes and clicks go to whatever is in front, which could be the editor.
+$script:target = $null
+function Ensure-Foreground {
+    if ($null -eq $script:target) { return }
+    $script:target.Refresh()
+    $handle = $script:target.MainWindowHandle
+    for ($i = 0; $i -lt 8; $i++) {
+        # any window of the Life process will do: an open drop-down list is a window of its own
+        if ([Native]::PidOf([Native]::GetForegroundWindow()) -eq $script:target.Id) { return }
+        [void][Native]::Force($handle)
+        Start-Sleep -Milliseconds 250
+    }
+    throw 'The Life window could not be brought to the front, so no input was sent. Close other windows that are stealing focus and run the test again.'
+}
+
 function Check([string]$name, [bool]$ok, [string]$detail = '') {
     if ($ok) { Write-Host "PASS  $name" } else { Write-Host "FAIL  $name  $detail" -ForegroundColor Red; $script:failures++ }
 }
@@ -65,11 +103,12 @@ function Start-Life([int]$autoClose = 150) {
     $args = @('-p', 'tools/launch.p', '-param', "`"run/run-life.p,$settingsFile,$autoClose`"", '-clientlog', 'build/smoke-client.log')
     $p = Start-Process "$Dlc\bin\prowin.exe" -ArgumentList $args -PassThru
     $deadline = (Get-Date).AddSeconds(25)
-    do { Start-Sleep -Milliseconds 300; $p.Refresh() } until ($p.MainWindowTitle -like 'ProLific Life*' -or (Get-Date) -gt $deadline -or $p.HasExited)
-    if ($p.HasExited -or $p.MainWindowTitle -notlike 'ProLific Life*') { throw 'The Life window did not appear.' }
+    do { Start-Sleep -Milliseconds 300; $p.Refresh() } until ($p.MainWindowTitle -like 'ProGriddle Life*' -or (Get-Date) -gt $deadline -or $p.HasExited)
+    if ($p.HasExited -or $p.MainWindowTitle -notlike 'ProGriddle Life*') { throw 'The Life window did not appear.' }
     Start-Sleep -Milliseconds 800
-    [Native]::SetForegroundWindow($p.MainWindowHandle) | Out-Null
-    Start-Sleep -Milliseconds 400
+    $script:target = $p
+    Ensure-Foreground
+    Start-Sleep -Milliseconds 300
     return $p
 }
 
@@ -78,9 +117,10 @@ function Get-Gen($p)   { if ((Get-Title $p) -match 'Generation (\d+)') { [int]$M
 function Get-Alive($p) { if ((Get-Title $p) -match 'Alive (\d+)') { [int]$Matches[1] } else { -1 } }
 function Get-Speed($p) { if ((Get-Title $p) -match 'Speed (\d+)') { [int]$Matches[1] } else { -1 } }
 
-function Send-Keys([string]$keys) { [System.Windows.Forms.SendKeys]::SendWait($keys); Start-Sleep -Milliseconds 350 }
+function Send-Keys([string]$keys) { Ensure-Foreground; [System.Windows.Forms.SendKeys]::SendWait($keys); Start-Sleep -Milliseconds 350 }
 
 function Click-Screen([int]$x, [int]$y, [string]$button = 'left') {
+    Ensure-Foreground
     [Native]::SetCursorPos($x, $y) | Out-Null; Start-Sleep -Milliseconds 80
     if ($button -eq 'left') { [Native]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero); [Native]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero) }
     else { [Native]::mouse_event(8, 0, 0, 0, [UIntPtr]::Zero); [Native]::mouse_event(16, 0, 0, 0, [UIntPtr]::Zero) }
@@ -91,6 +131,7 @@ function Get-WindowRect($p) { $r = New-Object Native+RECT; [Native]::GetWindowRe
 
 # Screenshot of the window, returned as a Bitmap and saved. The caller disposes the Bitmap.
 function Take-Shot($p, [string]$name) {
+    Ensure-Foreground
     $r = Get-WindowRect $p
     $bmp = New-Object System.Drawing.Bitmap ($r.R - $r.L), ($r.B - $r.T)
     $g = [System.Drawing.Graphics]::FromImage($bmp)

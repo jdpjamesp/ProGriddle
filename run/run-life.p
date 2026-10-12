@@ -4,7 +4,7 @@
    Run it under prowin from the repository root:
      prowin.exe -p tools/launch.p -param "run/run-life.p"
    Optional entries after the program name: the settings file ("default" for
-   %APPDATA%\ProLific\settings.json) and a number of seconds after which the window closes
+   %APPDATA%\ProGriddle\settings.json) and a number of seconds after which the window closes
    by itself (for scripted checks).
 
    Settings it reads (all optional, edit the file while the program is closed):
@@ -18,10 +18,10 @@
    The window also saves its own size, position, speed and chosen pattern. */
 USING Progress.Lang.*.
 USING System.Windows.Forms.Application FROM ASSEMBLY.
-USING Prolif.Core.*.
-USING Prolif.Engine.*.
-USING Prolif.Games.Life.*.
-USING Prolif.UI.WinForms.*.
+USING ProGriddle.Core.*.
+USING ProGriddle.Engine.*.
+USING ProGriddle.Games.Life.*.
+USING ProGriddle.UI.WinForms.*.
 
 DEFINE VARIABLE cSettingsFile AS CHARACTER        NO-UNDO INITIAL "default".
 DEFINE VARIABLE iAutoClose    AS INTEGER          NO-UNDO.
@@ -79,14 +79,14 @@ DO ON ERROR UNDO, THROW:
     END.
     oClock = NEW WinFormsClock().
     oController = NEW GameController(oGame, NEW WinFormsGridRenderer(oView, "state"), oClock).
-    oWindow = NEW GameWindow("ProLific Life", oController, oView,
+    oWindow = NEW GameWindow("ProGriddle Life", oController, oView,
                              NEW LifeInput(oGame, NEW SeededRandom(MTIME)), oClock, oSettings, "life").
     IF iAutoClose > 0 THEN oWindow:AutoCloseSeconds = iAutoClose.
 
     WAIT-FOR Application:Run(oWindow).
 
     CATCH eRun AS Progress.Lang.Error:
-        MESSAGE "ProLific Life could not start:" SKIP eRun:GetMessage(1) VIEW-AS ALERT-BOX ERROR.
+        MESSAGE "ProGriddle Life could not start:" SKIP eRun:GetMessage(1) VIEW-AS ALERT-BOX ERROR.
     END CATCH.
     FINALLY:
         IF VALID-OBJECT(oController) THEN oController:Dispose().

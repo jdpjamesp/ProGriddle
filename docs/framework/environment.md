@@ -1,6 +1,6 @@
 # OpenEdge environment notes
 
-Things found the hard way while building ProLific on OpenEdge 12.8.0.1207, Windows 11. Most are also summarised as rules in `CLAUDE.md`.
+Things found the hard way while building ProGriddle on OpenEdge 12.8.0.1207, Windows 11. Most are also summarised as rules in `CLAUDE.md`.
 
 ## Running things
 
@@ -17,7 +17,7 @@ Things found the hard way while building ProLific on OpenEdge 12.8.0.1207, Windo
 - The ABLUnit output folder must exist before the run, and a custom results file name is ignored, so each suite uses its own folder (`build/test-results/` and `build/test-results/gui/`).
 - ABLUnit does not run `@Test` methods inherited from a base class. Shared contract tests loop over the implementations inside each test instead (see `CellStoreContractTests`).
 - Fixture annotations are the reverse of JUnit: `@Setup` and `@TearDown` run around **every test**, while `@Before` and `@After` run **once per class**.
-- `@Test (expected="Prolif.Core.GridException")` works for tests that should throw.
+- `@Test (expected="ProGriddle.Core.GridException")` works for tests that should throw.
 
 ## Language gotchas
 

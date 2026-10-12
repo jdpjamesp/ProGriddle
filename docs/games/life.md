@@ -12,7 +12,7 @@ From the repository root:
 "C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-life.p"
 ```
 
-`tools/launch.p` sets the PROPATH and then runs the named program, so the `USING` statements resolve. Optional entries after the program name: a settings file (`default` for `%APPDATA%\ProLific\settings.json`) and a number of seconds after which the window closes by itself (used by the automated checks).
+`tools/launch.p` sets the PROPATH and then runs the named program, so the `USING` statements resolve. Optional entries after the program name: a settings file (`default` for `%APPDATA%\ProGriddle\settings.json`) and a number of seconds after which the window closes by itself (used by the automated checks).
 
 ### Controls
 
@@ -37,7 +37,7 @@ Eleven named patterns, listed in the pattern box: Block, Beehive, Blinker, Toad,
 
 ### Settings
 
-Edit `%APPDATA%\ProLific\settings.json` while the program is closed. Every key is optional. The file holds a `schemaVersion` and a `values` object. A missing or damaged file is ignored and rewritten on the next save.
+Edit `%APPDATA%\ProGriddle\settings.json` while the program is closed. Every key is optional. The file holds a `schemaVersion` and a `values` object. A missing or damaged file is ignored and rewritten on the next save.
 
 | Key | Meaning | Default |
 |---|---|---|
@@ -62,7 +62,7 @@ The window also saves `window.width`, `window.height`, `window.x`, `window.y`, `
 | Settings | `JsonFileSettings`, read by `run/run-life.p` and the window. |
 | Randomness | `SeededRandom` through `IRandom`, so the random board is repeatable in tests. |
 
-Source: `src/Prolif/Games/Life/`. The composition root, the only place that builds and wires the concrete classes, is `run/run-life.p`.
+Source: `src/ProGriddle/Games/Life/`. The composition root, the only place that builds and wires the concrete classes, is `run/run-life.p`.
 
 | Class | Job |
 |---|---|
@@ -92,7 +92,7 @@ The dense engine costs the same at any density. The sparse engine costs 8 to 75 
 
 ## Tests
 
-All under `tests/Prolif/Games/Life/`.
+All under `tests/ProGriddle/Games/Life/`.
 
 | Test class | What it proves |
 |---|---|
