@@ -10,6 +10,8 @@ Status: Phase 3 in progress. The Life game logic is complete and tested on both 
 
 Edges and neighbours: `BoundedTopology` (edges are walls) and `ToroidalTopology` (edges wrap), with `MooreNeighbourhood` (8 cells), `VonNeumannNeighbourhood` (4 cells) and `CustomNeighbourhood` (any offsets). `Grid.GetNeighbourIndexes(x, y, array)` fills a caller supplied array and returns the count, without allocating any object. It takes about 12 microseconds a call, so engines that visit every cell of a large board should work from the index step of each offset instead of calling it per cell.
 
+Settings (`Prolif.Engine`): `ISettings` with typed values and defaults, `MemorySettings`, and `JsonFileSettings` which keeps them in a small JSON file (by default `%APPDATA%\ProLific\settings.json`). A missing or corrupt file never fails: the defaults are used and the next save writes a good file.
+
 Life (`Prolif.Games.Life`): `LifeRules` (B/S notation, so Conway's `B3/S23` or HighLife `B36/S23`), `LifePatterns` (eleven named patterns and a plain text loader), `LifeGame`, and two interchangeable engines that give identical generations: `DenseLifeEngine` on an `ArrayStore` and `SparseLifeEngine` on a `SparseStore`. `LifeFactory` picks one.
 
 Engine timings, random start, milliseconds per generation (the engines are checked against each other and against a slow reference in `LifeEngineTests`):
