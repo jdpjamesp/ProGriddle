@@ -15,7 +15,7 @@ This page documents the framework and how to create a new game with it. Each gam
 - [Requirements and quick start](#requirements-and-quick-start)
 - [How it fits together](#how-it-fits-together)
 - [The building blocks](#the-building-blocks)
-- [The arcade](#the-arcade)
+- [The Cookoff](#the-cookoff)
 - [Creating a new game](#creating-a-new-game)
 - [Testing and tools](#testing-and-tools)
 - [More documentation](#more-documentation)
@@ -160,17 +160,17 @@ A turn based game can hold more than one board in its one grid: Battleships keep
 
 Mouse buttons are read as a gesture and acted on when the last one is released, on the cell under the pointer, and a double click is a `PrimaryAction` followed by a `TertiaryAction`. A game can offer a text screen (`InfoLabel` and `InfoText`, which Minesweeper uses for its high scores): the window adds a button and a key and shows the text in an `InfoDialog`. The keys every steppable game gets: Space start or pause, S or Right arrow one step, R or F2 reset, + or Up faster, - or Down slower. A turn based game only answers to R and F2 (a new game), and a real time game to P or Space (pause and resume, unless the game takes the key itself through `HandleKey`) as well. `GridView` draws the board as one pixel per cell in a bitmap scaled in a single call, using a palette of hex colours where the colour of a cell is the palette entry at its value. It can also draw text in cells (`SetGlyphs`): a glyph and a colour for chosen cell values, such as the numbers, flag and bomb of Minesweeper. Give anything outside Latin 1 as a code point (`U+1F4A3`), because an ABL string cannot carry it.
 
-### The arcade
+### The Cookoff
 
-`run/run-arcade.p` is one window with a button for every game, so a single launch command reaches them all:
+The ProGriddle Cookoff (`run/run-arcade.p`) is one window with a button for every game, so a single launch command reaches them all:
 
 ```
 "C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-arcade.p"
 ```
 
-A button starts that game in a prowin of its own, so the arcade stays open and several games can be played at once. While a game is running its button reads `(playing)` in green, and goes back to normal when the game's window closes.
+A button starts that game in a prowin of its own, so the Cookoff stays open and several games can be played at once. While a game is running its button reads `(playing)` in green, and goes back to normal when the game's window closes.
 
-Nothing is registered anywhere. The arcade looks in the `run` folder for files named `run-*.p`, so **a new game appears as soon as its run file exists**. A run file can describe itself with one line in its header comment (and the comment must not close on that line):
+Nothing is registered anywhere. The Cookoff looks in the `run` folder for files named `run-*.p`, so **a new game appears as soon as its run file exists**. A run file can describe itself with one line in its header comment (and the comment must not close on that line):
 
 ```
    Arcade: Tetris | Falling blocks on a timer. Seven bag pieces, ghost piece, levels and a high score list.
@@ -178,7 +178,7 @@ Nothing is registered anywhere. The arcade looks in the `run` folder for files n
 
 The words before the bar are the button's title and the words after it the line shown beside the button. Without the line the title comes from the file name (`run-battleships.p` is Battleships) and there is no description. A run file that is not a game says `Arcade: hidden` (`run/run-arcade.p` does). Games are listed by title.
 
-It is built from the same pieces as the games: `IGameCatalog` and `DirectoryGameCatalog` (the list of games, in `Engine`), `IGameLauncher` (starts a program, with `ProcessGameLauncher` in `UI.WinForms` starting a real prowin) and `ArcadeWindow` (the window), wired together in `run/run-arcade.p`. A game does not need to know about the arcade.
+It is built from the same pieces as the games: `IGameCatalog` and `DirectoryGameCatalog` (the list of games, in `Engine`), `IGameLauncher` (starts a program, with `ProcessGameLauncher` in `UI.WinForms` starting a real prowin) and `ArcadeWindow` (the window), wired together in `run/run-arcade.p`. A game does not need to know about the Cookoff.
 
 ## Creating a new game
 
@@ -315,7 +315,7 @@ END CLASS.
 
 ### 4. Write the composition root
 
-Create `run/run-scanner.p`. This is the only place that builds concrete classes and wires them together: store, grid, game, view, clock, controller, window. Put an `Arcade: Title | one line about the game` line in its header comment and the game gets a button in [the arcade](#the-arcade) with no other change. Reading board size and options from `ISettings` is the usual pattern (see `run/run-life.p`).
+Create `run/run-scanner.p`. This is the only place that builds concrete classes and wires them together: store, grid, game, view, clock, controller, window. Put an `Arcade: Title | one line about the game` line in its header comment and the game gets a button in [the Cookoff](#the-cookoff) with no other change. Reading board size and options from `ISettings` is the usual pattern (see `run/run-life.p`).
 
 ```
 USING System.Windows.Forms.Application FROM ASSEMBLY.
@@ -380,7 +380,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter 
 | `tools/run-tests.ps1 -Filter "Grid*"` | Runs only test classes whose file name matches |
 | `tools/check-layering.ps1` | Checks the layering rules. Needs no OpenEdge install |
 | `tools/compile.ps1` | Compiles every source file in one pass and lists all errors (`-SourceOnly` skips tests) |
-| `tools/gui-smoke-arcade.ps1` | Drives the arcade: a button for every game, starting Tetris and Life from it, the playing state and its return. Takes over the keyboard and mouse for under a minute |
+| `tools/gui-smoke-arcade.ps1` | Drives the Cookoff: a button for every game, starting Tetris and Life from it, the playing state and its return. Takes over the keyboard and mouse for under a minute |
 | `tools/gui-smoke-life.ps1` | Drives the real Life window like a user and checks what happens. Takes over the keyboard and mouse for about a minute |
 | `tools/gui-smoke-battleships.ps1` | The same for Battleships: placing a fleet, firing, marking water, a whole game, the board size picker. Takes over the keyboard and mouse for a couple of minutes |
 | `tools/gui-smoke-minesweeper.ps1` | The same for Minesweeper: flags, chords, a whole game, the level picker, saved settings. Takes over the keyboard and mouse for a couple of minutes |
@@ -402,10 +402,15 @@ MIT, see `LICENSE`.
 
 ## Games
 
-Games built on the framework, each with its own page:
+Start any of them from the **ProGriddle Cookoff**, one window with a button for every game below (and for any game you add, with no list to edit):
+
+```
+"C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-arcade.p"
+```
+
+[How the Cookoff finds games](#the-cookoff) and how to give yours a title and a line of description are covered above. Each game can also be started on its own with `-param "run/run-<game>.p"`, and each has its own page:
 
 - [Conway's Game of Life](docs/games/life.md): steppable, dense and sparse engines, patterns, HighLife and other rule sets, saved settings. Playable now.
-
 - [Battleships](docs/games/battleships.md): turn based, you against a computer on two boards, ships that may not touch, five board sizes with a fleet to match, placing by hand or at random, marking water, a hunting and targeting opponent. Playable now.
 - [Minesweeper](docs/games/minesweeper.md): turn based, the classic Windows rules, four levels, a high score list and screen per level, question marks, chording (both buttons, middle or double click). Playable now.
 - [Tetris](docs/games/tetris.md): real time, seven bag pieces falling on a timer, held key repeat, ghost piece, next piece panel, pause, levels and scoring, a start level picker, a high score list. Playable now.
