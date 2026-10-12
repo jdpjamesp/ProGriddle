@@ -1,6 +1,8 @@
 /* Battleships against the computer, in a window. This is the composition root: the only place that
    builds the concrete classes and wires them together.
 
+   Arcade: Battleships | You against a computer on two boards. Place your fleet and sink theirs.
+
    Run it under prowin from the repository root:
      prowin.exe -p tools/launch.p -param "run/run-battleships.p"
    Optional entries after the program name: the settings file ("default" for

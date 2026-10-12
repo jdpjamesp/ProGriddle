@@ -1,6 +1,8 @@
 /* Tetris in a window. This is the composition root: the only place that builds the concrete classes and
    wires them together.
 
+   Arcade: Tetris | Falling blocks on a timer. Seven bag pieces, ghost piece, levels and a high score list.
+
    Run it under prowin from the repository root:
      prowin.exe -p tools/launch.p -param "run/run-tetris.p"
    Optional entries after the program name: the settings file ("default" for
