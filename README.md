@@ -2,13 +2,28 @@
 
 An OpenEdge ABL OO framework for grid based games. First target is Conway's Game of Life, then Minesweeper, Battleships and Tetris to prove the framework.
 
-Status: Phase 2 (topology and neighbourhood) done. Nothing is playable yet.
+Status: Phase 3 in progress. The Life game logic is complete and tested on both engines. The GUI and settings are still to come, so nothing is playable yet.
 
 ## What exists so far
 
 `Prolif.Core`: `Coord`, `Shape`, `Grid`, `GridException`, the `ICellStore` contract and three interchangeable stores. `ArrayStore` is dense and backed by a MEMPTR, `SparseStore` holds occupied cells only, and `TableStore` is a temp table with one record per cell and a named field per layer. All three pass the same contract tests (`tests/Prolif/Core/CellStoreContractTests.cls`).
 
 Edges and neighbours: `BoundedTopology` (edges are walls) and `ToroidalTopology` (edges wrap), with `MooreNeighbourhood` (8 cells), `VonNeumannNeighbourhood` (4 cells) and `CustomNeighbourhood` (any offsets). `Grid.GetNeighbourIndexes(x, y, array)` fills a caller supplied array and returns the count, without allocating any object. It takes about 12 microseconds a call, so engines that visit every cell of a large board should work from the index step of each offset instead of calling it per cell.
+
+Life (`Prolif.Games.Life`): `LifeRules` (B/S notation, so Conway's `B3/S23` or HighLife `B36/S23`), `LifePatterns` (eleven named patterns and a plain text loader), `LifeGame`, and two interchangeable engines that give identical generations: `DenseLifeEngine` on an `ArrayStore` and `SparseLifeEngine` on a `SparseStore`. `LifeFactory` picks one.
+
+Engine timings, random start, milliseconds per generation (the engines are checked against each other and against a slow reference in `LifeEngineTests`):
+
+| Board | Live at start | Dense | Sparse |
+|---|---|---|---|
+| 100 x 100 | 3% | 46 | 8 |
+| 100 x 100 | 10% | 50 | 47 |
+| 100 x 100 | 30% | 46 | 263 |
+| 300 x 300 | 3% | 314 | 166 |
+| 300 x 300 | 10% | 311 | 680 |
+| 300 x 300 | 30% | 306 | 2638 |
+
+The dense engine costs the same at any density. The sparse engine costs 8 to 75 microseconds per live cell, so it wins only on mostly empty boards. They break even at about 5% live cells, and `LifeFactory` uses sparse below that. The sparse engine cannot run rules with a birth on zero neighbours (`B0`), which the dense engine can.
 
 ## Neighbours on tiny boards
 
@@ -27,7 +42,7 @@ Bounded boards never repeat a cell, because each offset reaches a different cell
 
 ## Requirements
 
-- OpenEdge 12.8 on Windows (r-code is tied to the OpenEdge version, so build from source).
+- OpenEdge 12.8 or higher on Windows (r-code is tied to the OpenEdge version, so build from source).
 - `prowin` for the GUI, `_progres -b` for batch tests.
 - PowerShell for the helper scripts. If scripts are blocked, run them as `powershell -NoProfile -ExecutionPolicy Bypass -File <script>`.
 
