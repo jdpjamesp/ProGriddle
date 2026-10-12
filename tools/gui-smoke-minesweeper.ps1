@@ -404,8 +404,9 @@ try {
     } finally { $shotLost.Dispose() }
     Start-Sleep -Milliseconds 2200
     Check 'the timer stops when the game is lost' ((Get-Time $proc) -eq $lostTime) "was $lostTime now $(Get-Time $proc)"
+    $minesAtEnd = Get-Mines $proc
     Click-Cell $board $safe[0] $safe[1] 'right'
-    Check 'a flag cannot be placed after the game is over' ((Get-Mines $proc) -eq 10) (Get-Title $proc)
+    Check 'a flag cannot be placed after the game is over' ((Get-Mines $proc) -eq $minesAtEnd) (Get-Title $proc)
     Send-Keys 'r'
     Check 'R also starts a new game' ((Has-State $proc 'Ready') -and (Get-Time $proc) -eq 0) (Get-Title $proc)
     Check 'the second window exits cleanly' (Close-Window $proc)
