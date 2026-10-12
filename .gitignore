@@ -42,3 +42,6 @@ Desktop.ini
 procore
 procore.*
 *.procore
+
+# Source artwork (local only)
+ProGriddle Cookoff Artwork.pdf
