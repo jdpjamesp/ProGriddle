@@ -35,7 +35,7 @@ function Get-Allowed([string]$layer) {
         'Engine'      { return @('Prolif.Core', 'Prolif.Engine') }
         'UI.Text'     { return @('Prolif.Core', 'Prolif.Engine', 'Prolif.UI.Text') }
         'UI.WinForms' { return @('Prolif.Core', 'Prolif.Engine', 'Prolif.UI.Text', 'Prolif.UI.WinForms') }
-        'Games.*'     { return @('Prolif.Core', 'Prolif.Engine', 'Prolif.Games.' + $layer.Substring(6)) }
+        'Games.*'     { return @('Prolif.Core', 'Prolif.Engine', ('Prolif.Games.' + $layer.Substring(6))) }
         default       { return @() }
     }
 }
