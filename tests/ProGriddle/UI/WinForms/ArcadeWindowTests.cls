@@ -46,8 +46,11 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
     @Test.
     METHOD PUBLIC VOID AGameThatIsRunningShowsAsPlaying():
         mWindow:Play("run/run-a.p").
-        Assert:Equals("Alpha (playing)", mWindow:ButtonFor("run/run-a.p"):Text).
-        Assert:Equals("Beta", mWindow:ButtonFor("run/run-b.p"):Text).
+        Assert:IsTrue(mWindow:IsPlaying("run/run-a.p")).
+        Assert:IsFalse(mWindow:IsPlaying("run/run-b.p")).
+        Assert:Equals("Alpha (playing)", mWindow:ButtonFor("run/run-a.p"):AccessibleName).
+        Assert:Equals("Beta", mWindow:ButtonFor("run/run-b.p"):AccessibleName).
+        Assert:Equals("Alpha", mWindow:ButtonFor("run/run-a.p"):Text).
     END METHOD.
 
     @Test.
@@ -63,15 +66,15 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
         mWindow:Play("run/run-a.p").
         mLauncher:Finish("run/run-a.p").
         mWindow:Play("run/run-b.p").
-        Assert:Equals("Alpha", mWindow:ButtonFor("run/run-a.p"):Text).
-        Assert:Equals("Beta (playing)", mWindow:ButtonFor("run/run-b.p"):Text).
+        Assert:Equals("Alpha", mWindow:ButtonFor("run/run-a.p"):AccessibleName).
+        Assert:Equals("Beta (playing)", mWindow:ButtonFor("run/run-b.p"):AccessibleName).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID AGameThatIsStartedAtTheLauncherIsShownAsPlayingToo():
         mLauncher:Launch("run/run-b.p").
         mWindow:Play("run/run-a.p").
-        Assert:Equals("Beta (playing)", mWindow:ButtonFor("run/run-b.p"):Text).
+        Assert:Equals("Beta (playing)", mWindow:ButtonFor("run/run-b.p"):AccessibleName).
     END METHOD.
 
     @Test.
@@ -84,12 +87,46 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID TheCaptionNamesEveryGame():
+        Assert:Equals("Alpha and Beta, all cooking on the same grid.", mWindow:Caption).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheCaptionListsThreeOrMoreGamesWithCommasAndAnd():
+        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog("a|Alpha|1;b|Beta|2;c|Gamma|3"), mLauncher).
+            Assert:Equals("Alpha, Beta and Gamma, all cooking on the same grid.", w:Caption).
+            FINALLY:
+                IF VALID-OBJECT(w) THEN DO:
+                    w:ReleaseResources().
+                    w:Dispose().
+                END.
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AnIconFileThatIsNotThereIsIgnored():
+        mWindow:IconFile = "assets/no-such-icon.ico".
+        mWindow:IconFile = "".
+        Assert:Equals("", mWindow:IconFile).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheArtworkIconIsLoaded():
+        mWindow:IconFile = "assets/progriddle.ico".
+        Assert:IsTrue(VALID-OBJECT(mWindow:Icon)).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID AnEmptyCatalogShowsNoButtonsAndSaysSo():
         DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
         DO ON ERROR UNDO, THROW:
             w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(""), mLauncher).
             Assert:Equals(0, w:GameCount).
             Assert:Equals("No games found", w:StatusLine).
+            Assert:IsTrue(INDEX(w:Caption, "No games found") = 1).
             FINALLY:
                 IF VALID-OBJECT(w) THEN DO:
                     w:ReleaseResources().

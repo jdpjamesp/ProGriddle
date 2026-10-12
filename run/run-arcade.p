@@ -30,6 +30,7 @@ DO ON ERROR UNDO, THROW:
     oCatalog = NEW DirectoryGameCatalog(cFolder).
     oLauncher = NEW ProcessGameLauncher().
     oWindow = NEW ArcadeWindow("ProGriddle Cookoff", oCatalog, oLauncher).
+    oWindow:IconFile = "assets/progriddle.ico".
     IF iAutoClose > 0 THEN oWindow:AutoClose(iAutoClose).
 
     WAIT-FOR Application:Run(oWindow).
