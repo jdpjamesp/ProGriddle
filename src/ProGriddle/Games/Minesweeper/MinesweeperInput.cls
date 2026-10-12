@@ -8,8 +8,9 @@
      minesweeper.customWidth    Custom width, 9 to 30 (default 9)
      minesweeper.customHeight   Custom height, 9 to 24 (default 9)
      minesweeper.customMines    Custom mines, 10 to (width - 1) * (height - 1) (default 10)
-   Values outside the range are brought back into it. A win on a standard level that beats
-   the best time is saved through MinesweeperBestTimes. */
+   Values outside the range are brought back into it. A win on a standard level is added to
+   that level's high score list (ten times, kept in the settings) by
+   MinesweeperBestTimes, and the best time is shown in the status line. */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
@@ -124,7 +125,9 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInput FINAL IMPLEMENTS IGameInput:
 
     /* Saves the time when this move just won the game. */
     METHOD PRIVATE VOID NoteWin(INPUT plWasWon AS LOGICAL):
-        IF mGame:IsWon AND NOT plWasWon THEN mBest:Record(mChoice, mGame:Seconds).
+        IF mGame:IsWon AND NOT plWasWon THEN DO:
+            mBest:Record(mChoice, mGame:Seconds).
+        END.
     END METHOD.
 
     /* Three digits, as on the classic counters: 007, or -07 below zero. Capped at 999. */

@@ -23,7 +23,7 @@ Things found the hard way while building ProGriddle on OpenEdge 12.8.0.1207, Win
 
 - Every class needs `BLOCK-LEVEL ON ERROR UNDO, THROW.` between the `USING` statements and the `CLASS` statement. Without it, `UNDO, THROW` prints the message and execution carries on.
 - A class needs a `USING` that covers its own namespace before it can name its own type.
-- ABL keywords that cannot be used as variable names, and some that cannot be called as a statement: `text`, `entry`, `by`, `clear`, `pause`, `undo`, `run`, `count`, `fill`, `index`, `value`, `release`, `row`, `is` (as an index name). Check any new name against the keyword list.
+- ABL keywords that cannot be used as variable names, and some that cannot be called as a statement: `text`, `entry`, `by`, `old`, `line`, `clear`, `pause`, `undo`, `run`, `count`, `fill`, `index`, `value`, `release`, `row`, `is` (as an index name). Check any new name against the keyword list.
 - Do not name a method `Clone`, `Equals` or `ToString` unless overriding the inherited one. The cell store copy method is `Duplicate` for this reason.
 - Hyphens are legal in names, so `a-b-1` is one name. Put spaces round `-` in arithmetic.
 - `MODULO` keeps the sign of its first operand, so a negative number needs a second step to wrap (`((x MODULO n) + n) MODULO n`).
@@ -35,3 +35,6 @@ Things found the hard way while building ProGriddle on OpenEdge 12.8.0.1207, Win
 - Free every `MEMPTR` with `SET-SIZE(m) = 0`. A `MEMPTR` allocated in a method is freed in that method's `FINALLY` block. A `MEMPTR` an object owns is freed in `Dispose`, with a destructor as a safety net. A new `MEMPTR` is zero filled.
 - `COPY-LOB FROM mem FOR n TO other OVERLAY AT 1` copies between two `MEMPTR`s in one step, and the target can be passed into a method as `INPUT` and still receive the bytes.
 - A `System.Drawing.Bitmap` can be built over a `MEMPTR` with `NEW Bitmap(width, height, stride, PixelFormat:Format32bppRgb, NEW System.IntPtr(GET-POINTER-VALUE(m)))`. Dispose the bitmap before freeing the memory.
+- Never write `*/` inside a comment, even in an example string such as `"*/."`: it ends the comment early and the compiler then complains about the next lines, far from the cause.
+- A `CHARACTER` in a `prowin` session is ISO 8859-1, so any other character, such as a flag or a bomb, silently becomes `?` when assigned. To hand a real Unicode string to .NET, build its UTF-8 bytes in a `MEMPTR`, copy them into a `LONGCHAR` with `FIX-CODEPAGE(lc) = "UTF-8"` and `COPY-LOB ... CONVERT SOURCE CODEPAGE "UTF-8"`, and pass the `LONGCHAR` (see `GridView:SetGlyphs`).
+- A dynamic `EXTENT` is limited (the reference says 28000), so a per cell array on a big board is better kept in a `MEMPTR`.

@@ -201,7 +201,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInputTests:
         mInput:PrimaryAction(1, 1).
         mClock:Advance(4000).
         mInput:PrimaryAction(2, 2).
-        Assert:Equals(5, mSettings:GetInteger("minesweeper.best.beginner", 0)).
+        Assert:Equals("5", mSettings:GetString("minesweeper.scores.beginner", "")).
     END METHOD.
 
     @Test.
@@ -212,17 +212,17 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInputTests:
         mClock:Advance(2000).
         mInput:TertiaryAction(1, 1).
         Assert:IsTrue(mGame:IsWon).
-        Assert:Equals(3, mSettings:GetInteger("minesweeper.best.beginner", 0)).
+        Assert:Equals("3", mSettings:GetString("minesweeper.scores.beginner", "")).
     END METHOD.
 
     @Test.
-    METHOD PUBLIC VOID ASlowerWinDoesNotReplaceTheBestTime():
-        mSettings:SetInteger("minesweeper.best.beginner", 4).
+    METHOD PUBLIC VOID ASlowerWinJoinsTheListBelowTheBestTime():
+        mSettings:SetString("minesweeper.scores.beginner", "4").
         mGame:LoadBoard("*../.../...").
         mInput:PrimaryAction(1, 1).
         mClock:Advance(9000).
         mInput:PrimaryAction(2, 2).
-        Assert:Equals(4, mSettings:GetInteger("minesweeper.best.beginner", 0)).
+        Assert:Equals("4,10", mSettings:GetString("minesweeper.scores.beginner", "")).
     END METHOD.
 
     @Test.
@@ -230,7 +230,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInputTests:
         mGame:LoadBoard("*../.../..*").
         mInput:PrimaryAction(1, 1).
         mInput:PrimaryAction(0, 0).
-        Assert:IsFalse(mSettings:Has("minesweeper.best.beginner")).
+        Assert:IsFalse(mSettings:Has("minesweeper.scores.beginner")).
     END METHOD.
 
     @Test.
@@ -240,8 +240,8 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInputTests:
         mInput:PrimaryAction(1, 1).
         mInput:PrimaryAction(2, 2).
         Assert:IsTrue(mGame:IsWon).
-        Assert:IsFalse(mSettings:Has("minesweeper.best.custom")).
-        Assert:IsFalse(mSettings:Has("minesweeper.best.beginner")).
+        Assert:IsFalse(mSettings:Has("minesweeper.scores.custom")).
+        Assert:IsFalse(mSettings:Has("minesweeper.scores.beginner")).
     END METHOD.
 
     /* ---- the Marks command ---- */

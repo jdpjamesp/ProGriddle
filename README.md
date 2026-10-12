@@ -67,7 +67,7 @@ Source lives under `src/ProGriddle`, one folder per namespace, one class per fil
 | Folder | Holds |
 |---|---|
 | `src/ProGriddle/Core` | `Coord`, `Shape`, `Grid`, the cell stores, topologies, neighbourhoods, `IRandom` |
-| `src/ProGriddle/Engine` | `IGame`, `AbstractGame`, `GameController`, `IClock`, `IGridRenderer`, `IGameInput`, settings |
+| `src/ProGriddle/Engine` | `IGame`, `AbstractGame`, `GameController`, `TurnController`, `IClock`, `IGridRenderer`, `IGameInput`, settings |
 | `src/ProGriddle/UI/WinForms` | `GameWindow`, `GridView`, `WinFormsGridRenderer`, `WinFormsClock`, `KeyMap` |
 | `src/ProGriddle/UI/Text` | `TextGridRenderer`, `FakeClock` |
 | `src/ProGriddle/Games/<Game>` | One folder per game |
@@ -128,10 +128,12 @@ A game implements `IGame` and is one of three kinds:
 | Kind | Interface | Example |
 |---|---|---|
 | Steppable: the whole grid updates at once | `ISteppableGame` (`Step`, `Generation`) | Life |
-| Turn based: a move is validated and applied | `ITurnBasedGame` (planned for Phase 4) | Minesweeper, Battleships |
+| Turn based: a move is validated and applied | `ITurnBasedGame` (`Turn`) | Minesweeper, Battleships |
 | Real time: advanced by a clock | `IRealTimeGame` (planned for Phase 6) | Tetris |
 
-`AbstractGame` supplies the name, the grid, the over flag and the counter. `GameController` ties a game to an `IGridRenderer` and an `IClock`: Start, PauseGame, StepOnce, Reset, SpeedUp, SlowDown (`GameCommand`), with six speeds and a redraw after every change. It stops the clock itself when the game is over.
+`AbstractGame` supplies the name, the grid, the over flag and the counter. `GameController` ties a steppable game to an `IGridRenderer` and an `IClock`: Start, PauseGame, StepOnce, Reset, SpeedUp, SlowDown (`GameCommand`), with six speeds and a redraw after every change. It stops the clock itself when the game is over. `TurnController` does the same for a turn based game, which has no clock and no stepping: only a new game (Reset) and a redraw (Refresh). Both implement `IGameController`, which is all the window needs to know. A turn based game keeps its moves as its own methods (Minesweeper has Reveal, ToggleFlag and Chord) and the window reaches them through `IGameInput`.
+
+A game that needs a timer takes an `IClock` of its own. Minesweeper counts seconds from one, and the same clock tells the window to refresh the status line.
 
 `IClock` is a source of ticks. `WinFormsClock` wraps a Windows timer; `FakeClock` is advanced by hand, so games that depend on time are deterministic in tests. `IRandom` is the only source of randomness: pass a `SeededRandom` and a test gets the same board every time.
 
@@ -141,7 +143,7 @@ A game implements `IGame` and is one of three kinds:
 
 ### The window
 
-`GameWindow` hosts any steppable game and knows nothing about which one. It gives you a toolbar (Start or Pause, Step, Reset, the game's own commands, an optional picker, a speed slider), the board, a status bar, keyboard and mouse handling, and saved window size, position and speed. A game describes itself to the window through `IGameInput`:
+`GameWindow` hosts any game, steppable or turn based, and knows nothing about which one. For a steppable game it gives you a toolbar (Start or Pause, Step, Reset, the game's own commands, an optional picker, a speed slider), for a turn based game just a New game button, the game's own commands and the picker. Either way it has the board, a status bar, keyboard and mouse handling, and saved window size, position and (when stepping) speed. A game describes itself to the window through `IGameInput`:
 
 | Member | Used for |
 |---|---|
@@ -149,9 +151,9 @@ A game implements `IGame` and is one of three kinds:
 | `ChoiceLabel`, `ChoiceNames`, `Choice` | An optional picker (Life's pattern list). Empty names hide it |
 | `CommandNames` | Extra buttons and keys, written `Name:Letter` such as `Random:G,Clear:C` |
 | `Perform(name)` | Runs one of those commands |
-| `PrimaryAction(x, y)`, `SecondaryAction(x, y)` | Left click and right click on a cell |
+| `PrimaryAction(x, y)`, `SecondaryAction(x, y)`, `TertiaryAction(x, y)` | Left click, right click, and a middle click or both buttons together, on a cell |
 
-The keys every game gets: Space start or pause, S or Right arrow one step, R reset, + or Up faster, - or Down slower. `GridView` draws the board as one pixel per cell in a bitmap scaled in a single call, using a palette of hex colours where the colour of a cell is the palette entry at its value.
+Mouse buttons are read as a gesture and acted on when the last one is released, on the cell under the pointer. The keys every steppable game gets: Space start or pause, S or Right arrow one step, R or F2 reset, + or Up faster, - or Down slower. A turn based game only answers to R and F2 (a new game). `GridView` draws the board as one pixel per cell in a bitmap scaled in a single call, using a palette of hex colours where the colour of a cell is the palette entry at its value. It can also draw text in cells (`SetGlyphs`): a glyph and a colour for chosen cell values, such as the numbers, flag and bomb of Minesweeper. Give anything outside Latin 1 as a code point (`U+1F4A3`), because an ABL string cannot carry it.
 
 ## Creating a new game
 
@@ -159,7 +161,7 @@ Time to cook up a game on the griddle. Here is a complete, working game in three
 
 ### 1. Decide what the game is
 
-Pick the kind (steppable, turn based or real time), the board size, the layers it needs and which store suits it. Steppable games are supported end to end today. The scanner uses one layer called `state` on an `ArrayStore`.
+Pick the kind (steppable, turn based or real time), the board size, the layers it needs and which store suits it. Steppable and turn based games are supported end to end today (a steppable game uses `GameController` and a clock, a turn based one `TurnController`, see [Minesweeper](docs/games/minesweeper.md) for the turn based shape). The scanner uses one layer called `state` on an `ArrayStore`.
 
 ### 2. Write the game class
 
@@ -254,6 +256,9 @@ CLASS ProGriddle.Games.Scanner.ScannerInput IMPLEMENTS IGameInput:
     METHOD PUBLIC VOID SecondaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
     END METHOD.
 
+    METHOD PUBLIC VOID TertiaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+    END METHOD.
+
 END CLASS.
 ```
 
@@ -325,6 +330,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter 
 | `tools/check-layering.ps1` | Checks the layering rules. Needs no OpenEdge install |
 | `tools/compile.ps1` | Compiles every source file in one pass and lists all errors (`-SourceOnly` skips tests) |
 | `tools/gui-smoke-life.ps1` | Drives the real Life window like a user and checks what happens. Takes over the keyboard and mouse for about a minute |
+| `tools/gui-smoke-minesweeper.ps1` | The same for Minesweeper: flags, chords, a whole game, the level picker, saved settings. Takes over the keyboard and mouse for a couple of minutes |
 
 Results go to `build/test-results/results.xml` (plain) and `build/test-results/gui/results.xml` (WinForms). Screenshots from the smoke test go to `build/screenshots`.
 
@@ -346,4 +352,6 @@ Games built on the framework, each with its own page:
 
 - [Conway's Game of Life](docs/games/life.md): steppable, dense and sparse engines, patterns, HighLife and other rule sets, saved settings. Playable now.
 
-Planned: Minesweeper, Battleships and Tetris.
+- [Minesweeper](docs/games/minesweeper.md): turn based, the classic Windows rules, four levels, a high score list per level, question marks, chording. Playable now.
+
+Planned: Battleships and Tetris.
