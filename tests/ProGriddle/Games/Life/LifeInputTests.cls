@@ -134,6 +134,12 @@ CLASS ProGriddle.Games.Life.LifeInputTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID LifeHasNoInfoScreen():
+        Assert:Equals("", mInput:InfoLabel).
+        Assert:Equals("", mInput:InfoText).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID BothButtonsTogetherDoNothing():
         mGame:Place(LifePatterns:Block(), 1, 1).
         mInput:TertiaryAction(1, 1).

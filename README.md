@@ -150,10 +150,11 @@ A game that needs a timer takes an `IClock` of its own. Minesweeper counts secon
 | `StatusText` | The status bar and window title |
 | `ChoiceLabel`, `ChoiceNames`, `Choice` | An optional picker (Life's pattern list). Empty names hide it |
 | `CommandNames` | Extra buttons and keys, written `Name:Letter` such as `Random:G,Clear:C` |
+| `InfoLabel`, `InfoText` | An optional text screen such as high scores, written `Name:Letter` like `Scores:H`. Empty hides it |
 | `Perform(name)` | Runs one of those commands |
 | `PrimaryAction(x, y)`, `SecondaryAction(x, y)`, `TertiaryAction(x, y)` | Left click, right click, and a middle click or both buttons together, on a cell |
 
-Mouse buttons are read as a gesture and acted on when the last one is released, on the cell under the pointer. The keys every steppable game gets: Space start or pause, S or Right arrow one step, R or F2 reset, + or Up faster, - or Down slower. A turn based game only answers to R and F2 (a new game). `GridView` draws the board as one pixel per cell in a bitmap scaled in a single call, using a palette of hex colours where the colour of a cell is the palette entry at its value. It can also draw text in cells (`SetGlyphs`): a glyph and a colour for chosen cell values, such as the numbers, flag and bomb of Minesweeper. Give anything outside Latin 1 as a code point (`U+1F4A3`), because an ABL string cannot carry it.
+Mouse buttons are read as a gesture and acted on when the last one is released, on the cell under the pointer, and a double click is a `PrimaryAction` followed by a `TertiaryAction`. A game can offer a text screen (`InfoLabel` and `InfoText`, which Minesweeper uses for its high scores): the window adds a button and a key and shows the text in an `InfoDialog`. The keys every steppable game gets: Space start or pause, S or Right arrow one step, R or F2 reset, + or Up faster, - or Down slower. A turn based game only answers to R and F2 (a new game). `GridView` draws the board as one pixel per cell in a bitmap scaled in a single call, using a palette of hex colours where the colour of a cell is the palette entry at its value. It can also draw text in cells (`SetGlyphs`): a glyph and a colour for chosen cell values, such as the numbers, flag and bomb of Minesweeper. Give anything outside Latin 1 as a code point (`U+1F4A3`), because an ABL string cannot carry it.
 
 ## Creating a new game
 
@@ -238,6 +239,16 @@ CLASS ProGriddle.Games.Scanner.ScannerInput IMPLEMENTS IGameInput:
         END SET.
 
     DEFINE PUBLIC PROPERTY CommandNames AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
+
+    DEFINE PUBLIC PROPERTY InfoLabel AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
+
+    DEFINE PUBLIC PROPERTY InfoText AS CHARACTER NO-UNDO
         GET():
             RETURN "".
         END GET.
@@ -352,6 +363,6 @@ Games built on the framework, each with its own page:
 
 - [Conway's Game of Life](docs/games/life.md): steppable, dense and sparse engines, patterns, HighLife and other rule sets, saved settings. Playable now.
 
-- [Minesweeper](docs/games/minesweeper.md): turn based, the classic Windows rules, four levels, a high score list per level, question marks, chording. Playable now.
+- [Minesweeper](docs/games/minesweeper.md): turn based, the classic Windows rules, four levels, a high score list and screen per level, question marks, chording (both buttons, middle or double click). Playable now.
 
 Planned: Battleships and Tetris.

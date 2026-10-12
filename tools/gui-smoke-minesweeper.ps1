@@ -126,6 +126,11 @@ function Click-Screen([int]$x, [int]$y, [string]$button = 'left', [int]$pause = 
         'left'  { [Native]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero); [Native]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero) }
         'right' { [Native]::mouse_event(8, 0, 0, 0, [UIntPtr]::Zero); [Native]::mouse_event(16, 0, 0, 0, [UIntPtr]::Zero) }
         'middle' { [Native]::mouse_event(32, 0, 0, 0, [UIntPtr]::Zero); [Native]::mouse_event(64, 0, 0, 0, [UIntPtr]::Zero) }
+        # two quick left clicks on the same spot
+        'double' {
+            [Native]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero); [Native]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero); Start-Sleep -Milliseconds 90
+            [Native]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero); [Native]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero)
+        }
         # both buttons held together, then released: the classic chord
         'both'  {
             [Native]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero); Start-Sleep -Milliseconds 60
@@ -219,6 +224,37 @@ function Adjacent($layout, [int]$x, [int]$y) {
     return $n
 }
 
+# Picks a number cell with a closed safe neighbour, flags its mines, opens it, chords it the way
+# $mode says ('both' buttons or a 'double' click) and checks the neighbour opened.
+function Test-Chord($p, $layout, $board, [string]$mode, [string]$label, [int]$shotNo) {
+    $shot = Take-Shot $p "smoke-ms-$shotNo-before-chord-$mode"
+    $chord = $null
+    try {
+        for ($y = 0; $y -lt 9 -and -not $chord; $y++) { for ($x = 0; $x -lt 9 -and -not $chord; $x++) {
+            if ($layout[$y][$x] -or (Adjacent $layout $x $y) -eq 0) { continue }
+            foreach ($nb in (Neighbours $layout $x $y)) {
+                if (-not $layout[$nb[1]][$nb[0]] -and (Cell-IsHidden $shot $p $board $nb[0] $nb[1])) { $chord = @($x, $y, $nb[0], $nb[1]); break }
+            }
+        } }
+    } finally { $shot.Dispose() }
+    Check "there is a number cell with a closed safe neighbour to chord ($label)" ($null -ne $chord)
+    if (-not $chord) { return }
+    $script:flagged = @()
+    foreach ($nb in (Neighbours $layout $chord[0] $chord[1])) { if ($layout[$nb[1]][$nb[0]]) { Click-Cell $board $nb[0] $nb[1] 'right'; $script:flagged += "$($nb[0]),$($nb[1])" } }
+    $shot = Take-Shot $p "smoke-ms-$shotNo-chord-cell-$mode"
+    $needsOpen = Cell-IsHidden $shot $p $board $chord[0] $chord[1]
+    $shot.Dispose()
+    if ($needsOpen) { Click-Cell $board $chord[0] $chord[1] 'left' }
+    $shot = Take-Shot $p "smoke-ms-$shotNo-chord-ready-$mode"
+    try { Check "the neighbour is still closed before the chord ($label)" (Cell-IsHidden $shot $p $board $chord[2] $chord[3]) "neighbour ($($chord[2]),$($chord[3]))" } finally { $shot.Dispose() }
+    Click-Cell $board $chord[0] $chord[1] $mode 500
+    $shot = Take-Shot $p "smoke-ms-$shotNo-after-chord-$mode"
+    try {
+        Check "$label on a number with enough flags opens the closed neighbours" (Cell-IsOpen $shot $p $board $chord[2] $chord[3]) "neighbour ($($chord[2]),$($chord[3]))"
+        Check "and the game goes on ($label)" (-not (Has-State $p 'Game over')) (Get-Title $p)
+    } finally { $shot.Dispose() }
+}
+
 function Close-Window($p) {
     [void]$p.CloseMainWindow()
     $exited = $p.WaitForExit(10000)
@@ -287,31 +323,7 @@ try {
     Start-Sleep -Milliseconds 2200
     Check 'the timer counts seconds' ((Get-Time $proc) -ge 3) (Get-Title $proc)
 
-    # chord: pick a number cell with a closed safe neighbour, flag its mines, open it, then use both buttons
-    $shot = Take-Shot $proc 'smoke-ms-5-before-chord'
-    $chord = $null
-    try {
-        for ($y = 0; $y -lt 9 -and -not $chord; $y++) { for ($x = 0; $x -lt 9 -and -not $chord; $x++) {
-            if ($layout[$y][$x] -or (Adjacent $layout $x $y) -eq 0) { continue }
-            foreach ($nb in (Neighbours $layout $x $y)) {
-                if (-not $layout[$nb[1]][$nb[0]] -and (Cell-IsHidden $shot $proc $board $nb[0] $nb[1])) { $chord = @($x, $y, $nb[0], $nb[1]); break }
-            }
-        } }
-    } finally { $shot.Dispose() }
-    Check 'there is a number cell with a closed safe neighbour to chord' ($null -ne $chord)
-    if ($chord) {
-        foreach ($nb in (Neighbours $layout $chord[0] $chord[1])) { if ($layout[$nb[1]][$nb[0]]) { Click-Cell $board $nb[0] $nb[1] 'right' } }
-        $shot = Take-Shot $proc 'smoke-ms-5b-chord-cell'
-        $needsOpen = Cell-IsHidden $shot $proc $board $chord[0] $chord[1]
-        $shot.Dispose()
-        if ($needsOpen) { Click-Cell $board $chord[0] $chord[1] 'left' }
-        Click-Cell $board $chord[0] $chord[1] 'both' 500
-        $shot = Take-Shot $proc 'smoke-ms-6-after-chord'
-        try {
-            Check 'both buttons on a number with enough flags open the closed neighbours' (Cell-IsOpen $shot $proc $board $chord[2] $chord[3]) "neighbour ($($chord[2]),$($chord[3]))"
-            Check 'and the game goes on' (-not (Has-State $proc 'Game over')) (Get-Title $proc)
-        } finally { $shot.Dispose() }
-    }
+    Test-Chord $proc $layout $board 'both' 'both buttons' 5
 
     # win: open every safe cell. Flags on the mines are fine.
     for ($y = 0; $y -lt 9; $y++) { for ($x = 0; $x -lt 9; $x++) { if (-not $layout[$y][$x]) { Click-Cell $board $x $y 'left' 110 } } }
@@ -358,8 +370,28 @@ try {
         if ($layout[$y][$x]) { if (-not $mine) { $mine = @($x, $y) } }
         elseif (-not $safe -and (Adjacent $layout $x $y) -gt 0) { $safe = @($x, $y) }
     } }
+    # the high scores screen: H opens it, it blocks the board while it is open, Escape closes it
+    Send-Keys 'h'
+    $shotScores = Take-Shot $proc 'smoke-ms-10b-scores'; $shotScores.Dispose()
+    Click-Cell $board $mine[0] $mine[1] 'right'
+    Check 'while the scores screen is open the board does not react' ((Get-Mines $proc) -eq 10) (Get-Title $proc)
+    Send-Keys '{ESC}'
+    Click-Cell $board $mine[0] $mine[1] 'right'
+    Check 'Escape closes the scores screen and the board answers again' ((Get-Mines $proc) -eq 9) (Get-Title $proc)
+    Click-Cell $board $mine[0] $mine[1] 'right'
+    Click-Cell $board $mine[0] $mine[1] 'right'
+    Check 'the flag cycle is back to nothing' ((Get-Mines $proc) -eq 10) (Get-Title $proc)
+
     Click-Cell $board $safe[0] $safe[1] 'left'
     Check 'a safe first click starts the game' (Has-State $proc 'Playing') (Get-Title $proc)
+
+    # a double click on a number with all its mines flagged opens everything round it
+    Test-Chord $proc $layout $board 'double' 'double click' 10
+
+    # open a mine that the chord test did not flag
+    for ($y = 0; $y -lt 9; $y++) { for ($x = 0; $x -lt 9; $x++) {
+        if ($layout[$y][$x] -and ($script:flagged -notcontains "$x,$y")) { $mine = @($x, $y) }
+    } }
     Click-Cell $board $mine[0] $mine[1] 'left'
     Check 'opening a mine ends the game' (Has-State $proc 'Game over') (Get-Title $proc)
     $lostTime = Get-Time $proc

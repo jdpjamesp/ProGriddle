@@ -50,6 +50,16 @@ CLASS ProGriddle.Games.Life.LifeInput FINAL IMPLEMENTS IGameInput:
             RETURN "Random:G,Clear:C".
         END GET.
 
+    DEFINE PUBLIC PROPERTY InfoLabel AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
+
+    DEFINE PUBLIC PROPERTY InfoText AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
+
     /* poRandom decides what Random draws, so a seeded one gives a repeatable board. */
     CONSTRUCTOR PUBLIC LifeInput(INPUT poGame AS LifeGame, INPUT poRandom AS IRandom):
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("Life input needs a game").

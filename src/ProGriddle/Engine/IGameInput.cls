@@ -31,6 +31,17 @@ INTERFACE ProGriddle.Engine.IGameInput:
     DEFINE PUBLIC PROPERTY CommandNames AS CHARACTER NO-UNDO
         GET.
 
+    /* An optional extra screen of text, such as the high scores. The same form as one entry of
+       CommandNames: a name, optionally followed by a colon and a key letter, as in "Scores:H".
+       The window adds a button and the key, and shows InfoText in a dialog titled with the
+       name. Empty for none. */
+    DEFINE PUBLIC PROPERTY InfoLabel AS CHARACTER NO-UNDO
+        GET.
+
+    /* The text for that screen, one line per CHR(10). Read each time the screen is opened. */
+    DEFINE PUBLIC PROPERTY InfoText AS CHARACTER NO-UNDO
+        GET.
+
     /* Runs one of the commands in CommandNames, by name only (no key letter). Throws
        GridException for any other name. */
     METHOD PUBLIC VOID Perform(INPUT pcCommand AS CHARACTER).

@@ -20,12 +20,17 @@ From the repository root:
 |---|---|
 | Left click on a closed cell | Open it. A flagged cell cannot be opened. A question marked cell can |
 | Right click on a closed cell | Cycle: nothing, flag, question mark (when Marks is on), nothing |
-| Both buttons together on an open number, or a middle click | Chord (see below) |
+| Both buttons together on an open number, a middle click, or a double click | Chord (see below) |
+| Scores button or H | Show the high scores. Enter, Escape or OK closes the screen |
 | F2 or R, or the New game button | Start a new game at the same level |
 | Level box | Choose Beginner, Intermediate, Expert or Custom. Choosing starts a new game. Tab reaches it from the board and the arrow keys change it |
 | Marks button or M | Switch the question mark step of the right click on or off. Remembered |
 
-Mouse buttons are read as a gesture and acted on when the last one is released, on the cell under the pointer, so a chord with both buttons never flags or opens anything on the way.
+Mouse buttons are read as a gesture and acted on when the last one is released, on the cell under the pointer, so a chord with both buttons never flags or opens anything on the way. A double click on a number is a chord too, which saves reaching for the second button: when the number already has that many flags round it, everything else around it opens. (On a closed cell, a double click is just two opens, and the second does nothing.)
+
+### The high scores screen
+
+The Scores button, or H, opens a window with the three standard levels, each with its board size and a ranked list of its ten fastest winning times, or "No wins yet". It shows what is in the settings file, so a new win is on it straight away.
 
 The status bar and the window title show the level, the board size, the mine counter, the timer, the state (Ready, Playing, You win!, Game over), the best time for the level and whether Marks is on. The mine counter and the timer are three digits as in Windows.
 
@@ -51,7 +56,7 @@ These are the rules of Windows Minesweeper, one by one.
 - **Winning.** The game is won when every cell that is not a mine is open. Flags are not needed. All the mines are then flagged for you, so the counter reads 000, and the timer stops.
 - **The mine counter** is the number of mines minus the number of flags, and goes negative (shown `-01`) if you flag too many. Question marks are not flags and do not count.
 - **The timer** starts on the first cell you open (flagging first does not start it), shows 001 straight away, counts a second at a time and stops at 999.
-- **Chording.** On an open number, if the number of flags around it equals the number, every closed, unflagged neighbour is opened at once. If a flag is wrong, that opens a mine and loses. With too few or too many flags a chord does nothing. Question marks do not count as flags.
+- **Chording** (both buttons, middle click or double click). On an open number, if the number of flags around it equals the number, every closed, unflagged neighbour is opened at once. If a flag is wrong, that opens a mine and loses. With too few or too many flags a chord does nothing. Question marks do not count as flags.
 - **Best times.** Each of the three standard levels keeps a high score list of the ten fastest winning times (Custom games keep none). See the settings below.
 
 ## Settings
@@ -105,6 +110,8 @@ Minesweeper was the first game that did not fit the framework as it stood, so th
 - **Glyphs.** `GridView` only drew one coloured pixel per cell. `SetGlyphs` now draws text in cells by value, in a colour per value, with a cached font and brushes so a repaint allocates nothing per cell. Anything outside Latin 1 is given as a code point (`U+1F4A3`), because an ABL `CHARACTER` here is ISO 8859-1 and silently turns a bomb into a question mark. Code points are built as UTF-8 in a `LONGCHAR`, which the .NET bridge hands over as a real string.
 - **Both buttons.** `IGameInput` gained `TertiaryAction` (a middle click or both buttons), and `GameWindow` now reads mouse input as a gesture acted on at release. Life ignores it.
 - **New game keys.** F2 resets, as in Windows.
+- **An extra text screen.** `IGameInput` gained `InfoLabel` (a name and a key such as `Scores:H`) and `InfoText`. The window adds a button and the key, and shows the text in the new `InfoDialog`. Any game can use it for scores, help or rules.
+- **Double click.** The window turns a double click into a `PrimaryAction` followed by a `TertiaryAction`, so Minesweeper chords and Life, which toggles on every click, still sees both clicks.
 - **A game can change its own board size.** `Configure` replaces the game's grid, and `GridView` already resized to follow.
 
 ## Tests
@@ -114,19 +121,20 @@ All under `tests/ProGriddle/Games/Minesweeper/`, plus the framework tests next t
 | Test class | What it proves |
 |---|---|
 | `MinesweeperGameTests` | Every rule above on boards set up with `LoadBoard`: counts, flood and flags, the first click on many seeded boards of every level, win and loss display, flag cycle, chording, the timer, a whole game, a flood over a 30 x 24 board |
-| `MinesweeperInputTests` | The level picker, custom limits, clicks, the status line, high scores through a win, the Marks command |
+| `MinesweeperInputTests` | The level picker, custom limits, clicks, the status line, high scores through a win, the scores screen text, the Marks command |
 | `MinesweeperBestTimesTests` | Ranking, ties, the ten place limit, hand edited settings |
 | `MinesweeperLevelsTests` | The classic levels and the custom limits |
 | `MinesweeperLookTests` | The look lists line up with the view codes |
 | `MinesweeperFactoryTests` | What the factory builds |
 | `TurnControllerTests` (Engine) | The turn based controller |
 | `GridViewTests` (WinForms) | Glyphs: by store kind, code points, painting |
+| `InfoDialogTests` (WinForms) | The text screen: title, text, Enter and Escape close it |
 
 Run them with `powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter "Minesweeper*"`.
 
 ## Checking the window
 
-`tools/gui-smoke-minesweeper.ps1` launches the real window with a throwaway settings file and a fixed seed, asks `tools/minesweeper-layout.p` where the mines are, and plays: flags and question marks, a left click on a flag, the timer, a chord with both mouse buttons, a whole winning game, the high score saved, F2, the level picker, a loss with the red mine, and starting again with Expert and Custom from the settings. It reads state from the window title and from cell colours in screenshots. It sends real keystrokes and mouse clicks to the foreground, so leave the keyboard and mouse alone for the couple of minutes it takes. Screenshots go to `build/screenshots`.
+`tools/gui-smoke-minesweeper.ps1` launches the real window with a throwaway settings file and a fixed seed, asks `tools/minesweeper-layout.p` where the mines are, and plays: flags and question marks, a left click on a flag, the timer, a chord with both mouse buttons and another with a double click, the scores screen blocking the board and closing on Escape, a whole winning game, the high score saved, F2, the level picker, a loss with the red mine, and starting again with Expert and Custom from the settings. It reads state from the window title and from cell colours in screenshots. It sends real keystrokes and mouse clicks to the foreground, so leave the keyboard and mouse alone for the couple of minutes it takes. Screenshots go to `build/screenshots`.
 
 ```
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/gui-smoke-minesweeper.ps1
@@ -144,5 +152,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/gui-smoke-minesweeper.
 - A cell on an edge or in a corner next to a mine can have only numbers around it, so a flood can never reach it. It has to be clicked. That is true of Windows Minesweeper too, and a test that expects a whole board to open from one click has to start from a mine in the middle.
 - The `view` layer exists so drawing needs no rules: the game keeps one number per cell up to date and the window turns it into a colour and a glyph. The text renderer in the tests reads the same layer, which is what lets a test compare a whole board as a string.
 - Mines are placed when the game starts and the first click only moves one if it lands on it. That keeps the board a pure function of the seed, so the same seed gives the same game.
-- The best time is the head of the high score list. There is no name entry, because the classic names were only a label. A list that shows all ten times is not built into the window yet: the times are in the settings file.
+- The best time is the head of the high score list. There is no name entry, because the classic names were only a label.
 - A turn based game has no clock of its own. The timer is the game listening to a one second `IClock`, and the same clock tells the window to refresh the status line.

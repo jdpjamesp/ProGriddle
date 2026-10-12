@@ -5,10 +5,15 @@
    picker, extra commands and clicks all come through IGameInput, and whether the game steps
    comes from IGameController.
 
+   A game can offer an extra text screen (IGameInput:InfoLabel and InfoText, the high scores for
+   Minesweeper): the window adds a button and a key for it and shows the text in an InfoDialog.
+
    Keys: see KeyMap. A turn based game only answers to the new game keys (R and F2). The mouse
    is read as a gesture and acted on when the last button is released, on the cell under the
    pointer: left alone is PrimaryAction, right alone is SecondaryAction, and a middle click or
-   left and right together is TertiaryAction. The window title also carries the status text
+   left and right together is TertiaryAction. A double click is a PrimaryAction followed by a
+   TertiaryAction, so a game that treats a double click on a number as a chord gets it while a
+   game that toggles on every click (Life) still sees both clicks. The window title also carries the status text
    (and the speed when stepping), so a script can read them from outside.
 
    Settings: the window size, position and maximised state, the speed and the picker choice
@@ -43,6 +48,8 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     /* mouse buttons held now, and every button used since the first went down */
     DEFINE PRIVATE VARIABLE mHeld       AS LOGICAL        NO-UNDO EXTENT 3.
     DEFINE PRIVATE VARIABLE mGesture    AS LOGICAL        NO-UNDO EXTENT 3.
+    DEFINE PRIVATE VARIABLE mDouble     AS LOGICAL        NO-UNDO.
+    DEFINE PRIVATE VARIABLE mInfoButton AS Button         NO-UNDO.
 
     DEFINE PRIVATE VARIABLE mToolbar    AS FlowLayoutPanel NO-UNDO.
     DEFINE PRIVATE VARIABLE mRunButton  AS Button         NO-UNDO.
@@ -156,6 +163,12 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
                 mExtraButtons[i]:Name = mKeys:NameOf(ENTRY(i, commands)).
                 mExtraButtons[i]:Click:Subscribe(OnExtraClick).
             END.
+        END.
+
+        IF mInput:InfoLabel <> "" THEN DO:
+            mInfoButton = NewButton(mKeys:NameOf(mInput:InfoLabel),
+                SUBSTITUTE("&1 (&2)", mKeys:NameOf(mInput:InfoLabel), mKeys:KeyOf(mInput:InfoLabel))).
+            mInfoButton:Click:Subscribe(OnInfoClick).
         END.
 
         names = mInput:ChoiceNames.
@@ -322,6 +335,12 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
             e:SuppressKeyPress = TRUE.
             RETURN.
         END.
+        IF mInput:InfoLabel <> "" AND mKeys:ExtraFor(keyName, mInput:InfoLabel) <> "" THEN DO:
+            ShowInfo().
+            e:Handled = TRUE.
+            e:SuppressKeyPress = TRUE.
+            RETURN.
+        END.
         extra = mKeys:ExtraFor(keyName, mInput:CommandNames).
         IF extra <> "" THEN DO:
             RunExtra(extra).
@@ -347,6 +366,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         IF b = 0 THEN RETURN.
         mHeld[b] = TRUE.
         mGesture[b] = TRUE.
+        IF b = 1 AND e:Clicks >= 2 THEN mDouble = TRUE.
     END METHOD.
 
     /* Acts once the last button of the gesture is up, on the cell under the pointer. */
@@ -362,7 +382,10 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         IF mView:HitTest(e:X, e:Y, OUTPUT cx, OUTPUT cy) THEN DO:
             acted = TRUE.
             IF mGesture[3] OR (mGesture[1] AND mGesture[2]) THEN mInput:TertiaryAction(cx, cy).
-            ELSE IF mGesture[1] THEN mInput:PrimaryAction(cx, cy).
+            ELSE IF mGesture[1] THEN DO:
+                mInput:PrimaryAction(cx, cy).
+                IF mDouble THEN mInput:TertiaryAction(cx, cy).
+            END.
             ELSE IF mGesture[2] THEN mInput:SecondaryAction(cx, cy).
             ELSE acted = FALSE.
             IF acted THEN DO:
@@ -379,6 +402,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
             mHeld[i] = FALSE.
             mGesture[i] = FALSE.
         END.
+        mDouble = FALSE.
     END METHOD.
 
     /* A button released while another window had the mouse would leave the gesture stuck. */
@@ -388,6 +412,23 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
 
     METHOD PRIVATE VOID OnRunClick(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
         RunCommand(IF mController:IsRunning THEN GameCommand:PauseGame ELSE GameCommand:Start).
+    END METHOD.
+
+    /* Shows the game's extra text screen and gives the keyboard back to the board. */
+    METHOD PRIVATE VOID ShowInfo():
+        DEFINE VARIABLE dialog AS InfoDialog NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            dialog = NEW InfoDialog(SUBSTITUTE("&1 - &2", mTitle, mKeys:NameOf(mInput:InfoLabel)), mInput:InfoText).
+            dialog:ShowDialog(THIS-OBJECT).
+            FINALLY:
+                IF VALID-OBJECT(dialog) THEN dialog:Dispose().
+                mView:Focus().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    METHOD PRIVATE VOID OnInfoClick(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
+        ShowInfo().
     END METHOD.
 
     METHOD PRIVATE VOID OnStepClick(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
@@ -448,6 +489,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         IF VALID-OBJECT(mRunButton) THEN mRunButton:Click:Unsubscribe(OnRunClick).
         IF VALID-OBJECT(mStepButton) THEN mStepButton:Click:Unsubscribe(OnStepClick).
         mResetButton:Click:Unsubscribe(OnResetClick).
+        IF VALID-OBJECT(mInfoButton) THEN mInfoButton:Click:Unsubscribe(OnInfoClick).
         IF EXTENT(mExtraButtons) <> ? THEN DO i = 1 TO EXTENT(mExtraButtons):
             mExtraButtons[i]:Click:Unsubscribe(OnExtraClick).
         END.

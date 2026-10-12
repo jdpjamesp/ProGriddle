@@ -101,6 +101,7 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         SUPER().
         THIS-OBJECT:DoubleBuffered = TRUE.
         THIS-OBJECT:SetStyle(ControlStyles:Selectable, TRUE).
+        THIS-OBJECT:SetStyle(ControlStyles:StandardDoubleClick, TRUE).
         THIS-OBJECT:TabStop = FALSE.
         THIS-OBJECT:BackColor = Color:FromArgb(24, 28, 32).
         mLinePen = NEW Pen(Color:FromArgb(44, 50, 58)).

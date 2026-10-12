@@ -244,6 +244,45 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInputTests:
         Assert:IsFalse(mSettings:Has("minesweeper.scores.beginner")).
     END METHOD.
 
+    /* ---- the high scores screen ---- */
+
+    @Test.
+    METHOD PUBLIC VOID TheScoresScreenIsOfferedWithAKey():
+        Assert:Equals("Scores:H", mInput:InfoLabel).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheScoresScreenSaysSoWhenThereAreNoWins():
+        Assert:Equals("Beginner  (9 x 9, 10 mines)" + CHR(10) + "   No wins yet" + CHR(10) + CHR(10)
+                    + "Intermediate  (16 x 16, 40 mines)" + CHR(10) + "   No wins yet" + CHR(10) + CHR(10)
+                    + "Expert  (30 x 16, 99 mines)" + CHR(10) + "   No wins yet", mInput:InfoText).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheScoresScreenListsEachLevelsTimesInRankOrder():
+        mSettings:SetString("minesweeper.scores.beginner", "22,18").
+        mSettings:SetString("minesweeper.scores.expert", "150").
+        Assert:Equals("Beginner  (9 x 9, 10 mines)" + CHR(10) + "   1.   18 s" + CHR(10) + "   2.   22 s" + CHR(10) + CHR(10)
+                    + "Intermediate  (16 x 16, 40 mines)" + CHR(10) + "   No wins yet" + CHR(10) + CHR(10)
+                    + "Expert  (30 x 16, 99 mines)" + CHR(10) + "   1.  150 s", mInput:InfoText).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ANewWinShowsUpOnTheScoresScreen():
+        mGame:LoadBoard("*../.../...").
+        mInput:PrimaryAction(1, 1).
+        mClock:Advance(6000).
+        mInput:PrimaryAction(2, 2).
+        Assert:IsTrue(INDEX(mInput:InfoText, "   1.    7 s") > 0).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TenTimesFillTheListAndTheScreenShowsAllTen():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        mSettings:SetString("minesweeper.scores.beginner", "1,2,3,4,5,6,7,8,9,10").
+        Assert:IsTrue(INDEX(mInput:InfoText, "  10.   10 s") > 0).
+    END METHOD.
+
     /* ---- the Marks command ---- */
 
     @Test.

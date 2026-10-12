@@ -65,6 +65,33 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInput FINAL IMPLEMENTS IGameInput:
             ELSE mGame:Configure(MinesweeperLevels:WidthOf(mChoice), MinesweeperLevels:HeightOf(mChoice), MinesweeperLevels:MinesOf(mChoice)).
         END SET.
 
+    DEFINE PUBLIC PROPERTY InfoLabel AS CHARACTER NO-UNDO
+        GET():
+            RETURN "Scores:H".
+        END GET.
+
+    /* The high scores of the three standard levels, each a ranked list of winning times. */
+    DEFINE PUBLIC PROPERTY InfoText AS CHARACTER NO-UNDO
+        GET():
+            DEFINE VARIABLE level  AS INTEGER   NO-UNDO.
+            DEFINE VARIABLE rank   AS INTEGER   NO-UNDO.
+            DEFINE VARIABLE name   AS CHARACTER NO-UNDO.
+            DEFINE VARIABLE scores AS CHARACTER NO-UNDO.
+            DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+            DO level = 1 TO 3:
+                name = ENTRY(level, MinesweeperLevels:Names()).
+                scores = mBest:Scores(name).
+                result = result + (IF level > 1 THEN CHR(10) + CHR(10) ELSE "")
+                       + SUBSTITUTE("&1  (&2 x &3, &4 mines)", name, MinesweeperLevels:WidthOf(name),
+                                    MinesweeperLevels:HeightOf(name), MinesweeperLevels:MinesOf(name)).
+                IF scores = "" THEN result = result + CHR(10) + "   No wins yet".
+                ELSE DO rank = 1 TO NUM-ENTRIES(scores):
+                    result = result + CHR(10) + SUBSTITUTE("  &1.  &2 s", STRING(rank, ">9"), STRING(INTEGER(ENTRY(rank, scores)), ">>9")).
+                END.
+            END.
+            RETURN result.
+        END GET.
+
     DEFINE PUBLIC PROPERTY CommandNames AS CHARACTER NO-UNDO
         GET():
             RETURN "Marks:M".
