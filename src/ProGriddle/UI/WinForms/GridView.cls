@@ -9,12 +9,18 @@
    copy of a blank board plus the live cells for a SparseStore, one cell at a time for any
    other store. A cell's colour is the palette entry at its value, so 0 is the first colour.
 
+   Glyphs: SetGlyphs gives some cell values a piece of text drawn centred in the cell, in a
+   colour of its own, over the cell's palette colour. Minesweeper uses it for the counts, the
+   flag and the mine. Text is drawn at paint time, so it stays sharp at any cell size, and only
+   for the cells whose value has a glyph.
+
    Call ReleaseResources when the control is finished with. It frees the Bitmap first and
    then the MEMPTRs. (ABL does not allow overriding the .NET Dispose, so the owner of the view
    must call ReleaseResources. The destructor does it as a last resort.) */
 USING Progress.Lang.*.
 USING System.Drawing.Drawing2D.* FROM ASSEMBLY.
 USING System.Drawing.Imaging.* FROM ASSEMBLY.
+USING System.Drawing.Text.* FROM ASSEMBLY.
 USING System.Drawing.* FROM ASSEMBLY.
 USING System.Windows.Forms.* FROM ASSEMBLY.
 USING ProGriddle.Core.*.
@@ -40,10 +46,29 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
     DEFINE PRIVATE VARIABLE mBlankColor AS INTEGER NO-UNDO.
     DEFINE PRIVATE VARIABLE mReleased AS LOGICAL NO-UNDO.
 
+    /* glyphs: text and colour per cell value, a brush per glyph, and the value of every cell */
+    DEFINE PRIVATE VARIABLE mGlyphText   AS CHARACTER  NO-UNDO EXTENT.
+    DEFINE PRIVATE VARIABLE mGlyphBrush  AS SolidBrush NO-UNDO EXTENT.
+    DEFINE PRIVATE VARIABLE mGlyphCount  AS INTEGER    NO-UNDO.
+    DEFINE PRIVATE VARIABLE mCellValues  AS MEMPTR     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mGlyphFont   AS Font       NO-UNDO.
+    DEFINE PRIVATE VARIABLE mGlyphFontPx AS INTEGER    NO-UNDO.
+    DEFINE PRIVATE VARIABLE mGlyphFormat AS StringFormat NO-UNDO.
+
     /* Draw thin lines between cells when each cell is at least 8 pixels wide. */
     DEFINE PUBLIC PROPERTY ShowGridLines AS LOGICAL NO-UNDO INITIAL TRUE
         GET.
         SET.
+
+    /* The font family of the glyphs. Bold, sized to the cell. */
+    DEFINE PUBLIC PROPERTY GlyphFontName AS CHARACTER NO-UNDO INITIAL "Segoe UI Symbol"
+        GET.
+        SET(INPUT pcValue AS CHARACTER):
+            IF pcValue = ? OR pcValue = "" THEN
+                UNDO, THROW NEW GridException("A glyph font needs a name").
+            GlyphFontName = pcValue.
+            FreeFont().
+        END SET.
 
     /* Number of columns and rows currently shown, 0 before the first Show. */
     DEFINE PUBLIC PROPERTY Columns AS INTEGER NO-UNDO
@@ -77,6 +102,9 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         THIS-OBJECT:TabStop = FALSE.
         THIS-OBJECT:BackColor = Color:FromArgb(24, 28, 32).
         mLinePen = NEW Pen(Color:FromArgb(44, 50, 58)).
+        mGlyphFormat = NEW StringFormat().
+        mGlyphFormat:Alignment = StringAlignment:Center.
+        mGlyphFormat:LineAlignment = StringAlignment:Center.
         SetPalette("1B1F24,F2C14E").
     END CONSTRUCTOR.
 
@@ -97,6 +125,47 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         END.
     END METHOD.
 
+    /* Text drawn in the middle of each cell, by cell value: the first entry is for value 0, the
+       next for value 1, and so on. An entry is plain text, "U+" and hex digits for a character
+       by code point (U+2691 is a flag), or empty for no glyph. pcColors lists the six digit
+       hex colour of each glyph in the same order; a missing colour is white. Values with no
+       entry get no glyph. Entries are separated by commas, so a comma cannot be a glyph.
+       Takes effect on the next Show. */
+    METHOD PUBLIC VOID SetGlyphs(INPUT pcGlyphs AS CHARACTER, INPUT pcColors AS CHARACTER):
+        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE n     AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE item  AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE rgb   AS INTEGER   NO-UNDO.
+        IF pcGlyphs = ? THEN UNDO, THROW NEW GridException("Glyphs cannot be the unknown value").
+        IF pcColors = ? THEN pcColors = "".
+        FreeGlyphs().
+        n = NUM-ENTRIES(pcGlyphs).
+        EXTENT(mGlyphText) = n.
+        EXTENT(mGlyphBrush) = n.
+        DO i = 1 TO n:
+            item = TRIM(ENTRY(i, pcGlyphs)).
+            IF item BEGINS "U+" THEN item = System.Char:ConvertFromUtf32(HexToInt(SUBSTRING(item, 3), 1)).
+            mGlyphText[i] = item.
+            rgb = 16777215.
+            IF i <= NUM-ENTRIES(pcColors) AND TRIM(ENTRY(i, pcColors)) <> "" THEN rgb = HexToInt(TRIM(ENTRY(i, pcColors)), 6).
+            mGlyphBrush[i] = NEW SolidBrush(Color:FromArgb(INTEGER(TRUNCATE(rgb / 65536, 0)),
+                                                         INTEGER(TRUNCATE(rgb / 256, 0)) MODULO 256,
+                                                         rgb MODULO 256)).
+        END.
+        mGlyphCount = n.
+    END METHOD.
+
+    /* The glyph text for a cell's current value, an empty string when it has none. For tests. */
+    METHOD PUBLIC CHARACTER GlyphAt(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+        DEFINE VARIABLE v AS INTEGER NO-UNDO.
+        IF piX < 0 OR piX >= mCols OR piY < 0 OR piY >= mRows THEN
+            UNDO, THROW NEW GridException(SUBSTITUTE("Cell (&1,&2) is outside the &3 x &4 view", piX, piY, mCols, mRows)).
+        IF mGlyphCount = 0 OR GET-SIZE(mCellValues) <> mCols * mRows * 4 THEN RETURN "".
+        v = GET-LONG(mCellValues, (piY * mCols + piX) * 4 + 1).
+        IF v < 0 OR v >= mGlyphCount THEN RETURN "".
+        RETURN mGlyphText[v + 1].
+    END METHOD.
+
     /* Shows one layer of the grid. Rebuilds the pixel buffer when the grid size changes. */
     METHOD PUBLIC VOID Show(INPUT poGrid AS Grid, INPUT pcLayer AS CHARACTER):
         DEFINE VARIABLE layer AS INTEGER NO-UNDO.
@@ -105,6 +174,10 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         IF mReleased THEN UNDO, THROW NEW GridException("The view has been released").
         IF NOT VALID-OBJECT(mBitmap) OR poGrid:Width <> mCols OR poGrid:Height <> mRows THEN
             Resize(poGrid:Width, poGrid:Height).
+        IF mGlyphCount > 0 AND GET-SIZE(mCellValues) <> mCols * mRows * 4 THEN DO:
+            SET-SIZE(mCellValues) = 0.
+            SET-SIZE(mCellValues) = mCols * mRows * 4.
+        END.
         ETIME(TRUE).
         FillPixels(poGrid:Store, layer).
         LastFillMs = ETIME.
@@ -176,10 +249,39 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
                     e:Graphics:DrawLine(mLinePen, ox, oy + i * cs, ox + mCols * cs, oy + i * cs).
                 END.
             END.
+            IF mGlyphCount > 0 THEN PaintGlyphs(e:Graphics, ox, oy, cs).
         END.
         LastPaintMs = ETIME.
         PaintCount = PaintCount + 1.
         SUPER:OnPaint(e).
+    END METHOD.
+
+    /* Draws the glyph of every cell whose value has one. The font and the brushes are made
+       once, outside the loop, so a repaint allocates nothing per cell. */
+    METHOD PRIVATE VOID PaintGlyphs(INPUT poGraphics AS Graphics, INPUT piOx AS INTEGER, INPUT piOy AS INTEGER, INPUT piCs AS INTEGER):
+        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE v  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE px AS DECIMAL NO-UNDO.
+        DEFINE VARIABLE py AS DECIMAL NO-UNDO.
+        DEFINE VARIABLE half AS DECIMAL NO-UNDO.
+        n = mCols * mRows.
+        IF GET-SIZE(mCellValues) <> n * 4 THEN RETURN.
+        IF NOT VALID-OBJECT(mGlyphFont) OR mGlyphFontPx <> piCs THEN DO:
+            FreeFont().
+            mGlyphFont = NEW Font(GlyphFontName, System.Convert:ToSingle(piCs * 0.6), FontStyle:Bold, GraphicsUnit:Pixel).
+            mGlyphFontPx = piCs.
+        END.
+        poGraphics:TextRenderingHint = TextRenderingHint:AntiAliasGridFit.
+        half = piCs / 2.
+        DO i = 0 TO n - 1:
+            v = GET-LONG(mCellValues, i * 4 + 1).
+            IF v < 0 OR v >= mGlyphCount THEN NEXT.
+            IF mGlyphText[v + 1] = "" THEN NEXT.
+            px = piOx + (i MODULO mCols) * piCs + half.
+            py = piOy + TRUNCATE(i / mCols, 0) * piCs + half.
+            poGraphics:DrawString(mGlyphText[v + 1], mGlyphFont, mGlyphBrush[v + 1], System.Convert:ToSingle(px), System.Convert:ToSingle(py), mGlyphFormat).
+        END.
     END METHOD.
 
     /* The board is smaller than the control, so a resize needs a full repaint, not just the
@@ -197,6 +299,24 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         FreeMemory().
         IF VALID-OBJECT(mLinePen) THEN mLinePen:Dispose().
         mLinePen = ?.
+        FreeGlyphs().
+        FreeFont().
+        IF VALID-OBJECT(mGlyphFormat) THEN mGlyphFormat:Dispose().
+        mGlyphFormat = ?.
+    END METHOD.
+
+    METHOD PRIVATE VOID FreeFont():
+        IF VALID-OBJECT(mGlyphFont) THEN mGlyphFont:Dispose().
+        mGlyphFont = ?.
+        mGlyphFontPx = 0.
+    END METHOD.
+
+    METHOD PRIVATE VOID FreeGlyphs():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO mGlyphCount:
+            IF VALID-OBJECT(mGlyphBrush[i]) THEN mGlyphBrush[i]:Dispose().
+        END.
+        mGlyphCount = 0.
     END METHOD.
 
     /* The Bitmap must go before the memory it points at. */
@@ -206,6 +326,7 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         SET-SIZE(mPixels) = 0.
         SET-SIZE(mBlank) = 0.
         SET-SIZE(mWork) = 0.
+        SET-SIZE(mCellValues) = 0.
     END METHOD.
 
     METHOD PRIVATE VOID Resize(INPUT piCols AS INTEGER, INPUT piRows AS INTEGER):
@@ -235,6 +356,7 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
             base = (piLayer - 1) * n.
             DO i = 0 TO n - 1:
                 v = GET-LONG(mWork, (base + i) * 4 + 1).
+                IF mGlyphCount > 0 THEN PUT-LONG(mCellValues, i * 4 + 1) = v.
                 PUT-LONG(mPixels, i * 4 + 1) = (IF v >= 0 AND v < mPaletteCount THEN mPalette[v + 1] ELSE mUnknown).
             END.
         END.
@@ -247,27 +369,38 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
                 mBlankColor = mPalette[1].
             END.
             COPY-LOB FROM mBlank FOR n * 4 TO mPixels OVERLAY AT 1.
+            IF mGlyphCount > 0 THEN DO i = 0 TO n - 1:
+                PUT-LONG(mCellValues, i * 4 + 1) = 0.
+            END.
             CAST(poStore, SparseStore):ExportCells(OUTPUT TABLE ttCells).
             FOR EACH ttCells WHERE ttCells.layerNo = piLayer:
                 v = ttCells.cellVal.
+                IF mGlyphCount > 0 THEN PUT-LONG(mCellValues, ttCells.cellIdx * 4 + 1) = v.
                 PUT-LONG(mPixels, ttCells.cellIdx * 4 + 1) = (IF v >= 0 AND v < mPaletteCount THEN mPalette[v + 1] ELSE mUnknown).
             END.
         END.
         ELSE DO:
             DO i = 0 TO n - 1:
                 v = poStore:GetCellAt(piLayer, i).
+                IF mGlyphCount > 0 THEN PUT-LONG(mCellValues, i * 4 + 1) = v.
                 PUT-LONG(mPixels, i * 4 + 1) = (IF v >= 0 AND v < mPaletteCount THEN mPalette[v + 1] ELSE mUnknown).
             END.
         END.
     END METHOD.
 
     METHOD PRIVATE INTEGER HexToInt(INPUT pcHex AS CHARACTER):
+        RETURN HexToInt(pcHex, 6).
+    END METHOD.
+
+    /* A hex number of exactly piDigits digits, or any length from 1 to 6 when piDigits is 1
+       (used for code points). */
+    METHOD PRIVATE INTEGER HexToInt(INPUT pcHex AS CHARACTER, INPUT piDigits AS INTEGER):
         DEFINE VARIABLE i      AS INTEGER NO-UNDO.
         DEFINE VARIABLE d      AS INTEGER NO-UNDO.
         DEFINE VARIABLE result AS INTEGER NO-UNDO.
-        IF LENGTH(pcHex) <> 6 THEN
-            UNDO, THROW NEW GridException("A colour is six hex digits, not " + pcHex).
-        DO i = 1 TO 6:
+        IF (piDigits = 1 AND (LENGTH(pcHex) < 1 OR LENGTH(pcHex) > 6)) OR (piDigits <> 1 AND LENGTH(pcHex) <> piDigits) THEN
+            UNDO, THROW NEW GridException("Not a hex value of the right length: " + pcHex).
+        DO i = 1 TO LENGTH(pcHex):
             d = INDEX("0123456789ABCDEF", CAPS(SUBSTRING(pcHex, i, 1))) - 1.
             IF d < 0 THEN UNDO, THROW NEW GridException("Not a hex colour: " + pcHex).
             result = result * 16 + d.

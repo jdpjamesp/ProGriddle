@@ -506,6 +506,168 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
         END.
     END METHOD.
 
+    /* ---- glyphs ---- */
+
+    @Test.
+    METHOD PUBLIC VOID NoGlyphsMeansAnEmptyGlyphForEveryCell():
+        DEFINE VARIABLE g AS Grid NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = NewGrid(1, 3, 3).
+            g:Store:SetCell(1, 1, 1, 1).
+            mView:Show(g, "state").
+            Assert:Equals("", mView:GlyphAt(1, 1)).
+            FINALLY:
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID EveryStoreKindGivesTheSameGlyphs():
+        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        DEFINE VARIABLE g AS Grid NO-UNDO.
+        DEFINE VARIABLE v AS GridView NO-UNDO.
+        DO k = 1 TO 3 ON ERROR UNDO, THROW:
+            g = NewGrid(k, 4, 3).
+            g:Store:SetCell(1, 1, 0, 1).
+            g:Store:SetCell(1, 3, 2, 2).
+            v = NEW GridView().
+            v:SetPalette("000000,FF8000,0000FF").
+            v:SetGlyphs(",A,B", "FFFFFF,00FF00,FF0000").
+            v:Show(g, "state").
+            Assert:Equals("", v:GlyphAt(0, 0)).
+            Assert:Equals("A", v:GlyphAt(1, 0)).
+            Assert:Equals("B", v:GlyphAt(3, 2)).
+            Assert:Equals("", v:GlyphAt(2, 1)).
+            CATCH e AS Progress.Lang.Error:
+                UNDO, THROW NEW AppError(SUBSTITUTE("[store kind &1] &2", k, e:GetMessage(1)), 0).
+            END CATCH.
+            FINALLY:
+                IF VALID-OBJECT(v) THEN v:ReleaseResources().
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AGlyphEntryCanBeACodePoint():
+        DEFINE VARIABLE g AS Grid NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = NewGrid(1, 2, 1).
+            g:Store:SetCell(1, 1, 0, 1).
+            mView:SetGlyphs(",U+2691", "FFFFFF,FF0000").
+            mView:Show(g, "state").
+            Assert:Equals(System.Char:ConvertFromUtf32(9873), mView:GlyphAt(1, 0)).
+            FINALLY:
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AValueBeyondTheGlyphListHasNoGlyph():
+        DEFINE VARIABLE g AS Grid NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = NewGrid(1, 2, 1).
+            g:Store:SetCell(1, 1, 0, 2).
+            mView:SetGlyphs(",A", "FFFFFF,00FF00").
+            mView:Show(g, "state").
+            Assert:Equals("", mView:GlyphAt(1, 0)).
+            FINALLY:
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID GlyphsFollowTheBoardAsItChanges():
+        DEFINE VARIABLE g AS Grid NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = NewGrid(3, 2, 1).
+            mView:SetGlyphs(",A", "FFFFFF,00FF00").
+            mView:Show(g, "state").
+            Assert:Equals("", mView:GlyphAt(0, 0)).
+            g:Store:SetCell(1, 0, 0, 1).
+            mView:Show(g, "state").
+            Assert:Equals("A", mView:GlyphAt(0, 0)).
+            g:Store:SetCell(1, 0, 0, 0).
+            mView:Show(g, "state").
+            Assert:Equals("", mView:GlyphAt(0, 0)).
+            FINALLY:
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test (expected="ProGriddle.Core.GridException").
+    METHOD PUBLIC VOID GlyphAtOffTheBoardThrows():
+        DEFINE VARIABLE g AS Grid NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = NewGrid(1, 2, 2).
+            mView:Show(g, "state").
+            mView:GlyphAt(2, 0).
+            FINALLY:
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test (expected="ProGriddle.Core.GridException").
+    METHOD PUBLIC VOID ABadGlyphColourThrows():
+        mView:SetGlyphs("A", "GREEN!").
+    END METHOD.
+
+    @Test (expected="ProGriddle.Core.GridException").
+    METHOD PUBLIC VOID ABadCodePointThrows():
+        mView:SetGlyphs("U+ZZ", "FFFFFF").
+    END METHOD.
+
+    @Test (expected="ProGriddle.Core.GridException").
+    METHOD PUBLIC VOID AnUnknownGlyphListThrows():
+        mView:SetGlyphs(?, "FFFFFF").
+    END METHOD.
+
+    @Test (expected="ProGriddle.Core.GridException").
+    METHOD PUBLIC VOID ABlankGlyphFontThrows():
+        mView:GlyphFontName = "".
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID PaintingDrawsTheGlyphOnlyInCellsWhoseValueHasOne():
+        /* two 20 pixel cells: value 0 is black with no glyph, value 1 is orange with a green X */
+        DEFINE VARIABLE g     AS Grid   NO-UNDO.
+        DEFINE VARIABLE bmp   AS Bitmap NO-UNDO.
+        DEFINE VARIABLE c     AS Color  NO-UNDO.
+        DEFINE VARIABLE px    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE py    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE green AS INTEGER NO-UNDO.
+        DEFINE VARIABLE stray AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = NewGrid(1, 2, 1).
+            g:Store:SetCell(1, 1, 0, 1).
+            mView:ShowGridLines = FALSE.
+            mView:SetGlyphs(",X", "FFFFFF,00FF00").
+            mView:ClientSize = NEW Size(40, 20).
+            mView:Show(g, "state").
+            bmp = NEW Bitmap(40, 20).
+            mView:DrawToBitmap(bmp, NEW Rectangle(0, 0, 40, 20)).
+            DO py = 0 TO 19:
+                DO px = 0 TO 19:
+                    c = bmp:GetPixel(px, py).
+                    IF c:G > 0 THEN stray = stray + 1.
+                    c = bmp:GetPixel(px + 20, py).
+                    IF c:G > 200 AND c:R < 100 THEN green = green + 1.
+                END.
+            END.
+            Assert:Equals(0, stray).
+            Assert:IsTrue(green > 5).
+            FINALLY:
+                IF VALID-OBJECT(bmp) THEN bmp:Dispose().
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
     /* ---- lifetime ---- */
 
     @Test (expected="ProGriddle.Core.GridException").
