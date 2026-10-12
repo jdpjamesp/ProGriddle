@@ -2,7 +2,11 @@
 
 An OpenEdge ABL OO framework for grid based games. First target is Conway's Game of Life, then Minesweeper, Battleships and Tetris to prove the framework.
 
-Status: Phase 0 (environment spike). Nothing is playable yet.
+Status: Phase 1 (core grid) done. Nothing is playable yet.
+
+## What exists so far
+
+`Prolif.Core`: `Coord`, `Shape`, `Grid`, `GridException`, the `ICellStore` contract and three interchangeable stores. `ArrayStore` is dense and backed by a MEMPTR, `SparseStore` holds occupied cells only, and `TableStore` is a temp table with one record per cell and a named field per layer. All three pass the same contract tests (`tests/Prolif/Core/CellStoreContractTests.cls`).
 
 ## Requirements
 
