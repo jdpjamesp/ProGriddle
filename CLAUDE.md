@@ -11,6 +11,7 @@ OpenEdge ABL OO framework for grid based games. Target: OpenEdge 12.8, Windows, 
 - Every class file has `BLOCK-LEVEL ON ERROR UNDO, THROW.` between the USING statements and the CLASS statement. Without it, `UNDO, THROW` prints the message and execution carries on instead of unwinding. A class also needs a `USING` for its own name before it can use its own type.
 - Every MEMPTR must be reset to size 0 (`SET-SIZE(m) = 0`) as soon as it is finished with, so memory never leaks. A MEMPTR allocated inside a method is freed in that method's `FINALLY` block. A MEMPTR owned by an object is freed in a `Dispose` method, with a destructor as a safety net, and the object's owner calls `Dispose`.
 - Never name a method `Clone`, `Equals` (unless overriding), `ToString` (unless overriding) or any other inherited `Progress.Lang.Object` member by accident. The cell store copy method is `Duplicate`.
+- ABLUnit fixture annotations are the reverse of JUnit: `@Setup` and `@TearDown` run around every test, while `@Before` and `@After` run once per class. ABLUnit also does not run `@Test` methods inherited from a base class.
 - Throw `Prolif.Core.GridException` (or a subclass) for contract violations, never return magic values silently.
 - All randomness goes through an injectable seeded random source so tests are deterministic.
 - Every public method has a test. Write the test first where practical.

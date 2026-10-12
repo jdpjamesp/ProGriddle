@@ -1,0 +1,11 @@
+/* Draws a game's grid. The seam between game logic and presentation: the WinForms renderer
+   paints it, the text renderer turns it into a string for tests. */
+USING Prolif.Core.Grid.
+USING Prolif.Engine.IGame.
+USING Prolif.Engine.IGridRenderer.
+
+INTERFACE Prolif.Engine.IGridRenderer:
+
+    METHOD PUBLIC VOID Render(INPUT poGrid AS Grid, INPUT poGame AS IGame).
+
+END INTERFACE.
