@@ -17,6 +17,7 @@ OpenEdge ABL OO framework for grid based games. Target: OpenEdge 12.8, Windows, 
 - Every public method has a test. Write the test first where practical.
 - No em dashes anywhere in code comments, docs, commit messages or console output. Use commas, colons or hyphens instead.
 - Keep commits small, one per sub step, with a clear message.
+- Documentation layout: `README.md` documents the framework and how to create a new game with it. Every implemented game has its own page, `docs/games/<game>.md`, written as part of that game's work. A game phase is not done until its page exists and the README links to it. Game specific material (controls, settings, timings, design notes) belongs on the game page, not in the README.
 - .NET types (`System.Windows.Forms`, `System.Drawing`) are referenced only inside `Prolif.UI.WinForms`. Core, Engine and Games must compile and test without a GUI.
 - Dispose .NET objects (brushes, pens, bitmaps, timers) deterministically. Unsubscribe from .NET events when the form closes.
 - Never run long computation on the UI thread without yielding. Large Life boards must stay responsive.
