@@ -2,7 +2,7 @@
 
 An OpenEdge ABL OO framework for grid based games. First target is Conway's Game of Life, then Minesweeper, Battleships and Tetris to prove the framework.
 
-Status: Phase 3 in progress. The Life game logic is complete and tested on both engines. The GUI and settings are still to come, so nothing is playable yet.
+Status: Phase 3 in progress. Conway's Game of Life is playable in a window (see "Playing Life" below). Minesweeper, Battleships and Tetris are still to come.
 
 ## What exists so far
 
@@ -26,6 +26,8 @@ Engine timings, random start, milliseconds per generation (the engines are check
 | 300 x 300 | 30% | 306 | 2638 |
 
 The dense engine costs the same at any density. The sparse engine costs 8 to 75 microseconds per live cell, so it wins only on mostly empty boards. They break even at about 5% live cells, and `LifeFactory` uses sparse below that. The sparse engine cannot run rules with a birth on zero neighbours (`B0`), which the dense engine can.
+
+The window (`Prolif.UI.WinForms`): `GameWindow` hosts any steppable game and knows nothing about Life. It is built from `GridView` (draws the board as one pixel per cell in a Bitmap scaled in a single call, centred in the window), `WinFormsGridRenderer`, `WinFormsClock` (a Windows timer) and `KeyMap`. A game describes itself to the window through `IGameInput` (status text, a picker, extra commands, what clicks do), implemented for Life by `LifeInput`. `run/run-life.p` is the one place that builds and wires everything together.
 
 ## Neighbours on tiny boards
 
@@ -81,25 +83,61 @@ Things worth knowing about this environment:
 }
 ```
 
-## Running the GUI spike
+## Playing Life
+
+From the repository root:
 
 ```
-"C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-spike.p,build/gui-spike.log,0"
+"C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-life.p"
 ```
 
-`tools/launch.p` sets PROPATH and then runs the named program, so `USING` statements resolve at compile time. The last argument is an auto exit time in seconds (0 keeps the window open). Run from the repository root.
+`tools/launch.p` sets PROPATH and then runs the named program, so `USING` statements resolve at compile time. Optional entries after the program name: a settings file (`default` for `%APPDATA%\ProLific\settings.json`) and a number of seconds after which the window closes by itself.
+
+| Input | What it does |
+|---|---|
+| Left click on the board | Toggle a cell |
+| Right click on the board | Place the chosen pattern with its corner at that cell (moved back if it would hang off the edge) |
+| Space | Start, or pause when running |
+| S or Right arrow | One generation |
+| R | Reset to the board as it was at the first step |
+| G | Random board (about a quarter alive), back to generation 0 |
+| C | Clear the board |
+| + or Up arrow, - or Down arrow | Faster, slower (six speeds, 1000 ms down to 30 ms a step) |
+| Pattern box, Speed slider, buttons | Same things with the mouse |
+
+The status bar and the window title show the generation, the number of live cells, the rules, the board size and the speed. Resizing the window rescales the cells. The window size, position, speed and chosen pattern are remembered between runs.
+
+Settings you can edit in `%APPDATA%\ProLific\settings.json` while the program is closed (all optional; the file holds `schemaVersion` and a `values` object):
+
+| Key | Meaning | Default |
+|---|---|---|
+| `life.width`, `life.height` | Board size in cells, 5 to 400 | 100, 70 |
+| `life.wrap` | `true` makes the edges wrap | `false` |
+| `life.rules` | Rules in B/S notation, for example `B36/S23` for HighLife | `B3/S23` |
+| `life.expectedLive` | Expected share of live cells, 0 to 1. Below 0.05 the sparse engine is used (good for big, mostly empty boards) | 0.1 |
+| `life.palette` | Dead and alive colours as hex | `1B1F24,F2C14E` |
+| `life.startPattern` | Pattern placed on a new board, or `None` | `GosperGliderGun` |
+
+## Checking the window
+
+`tools/gui-smoke-life.ps1` launches the real window with a throwaway settings file and drives it like a user: it finds the board from a screenshot, clicks and types, reads the state back from the window title, resizes it, closes it, checks that the process exits and the settings were saved, then starts it again to see them restored. It sends real keystrokes and mouse clicks to the foreground, so leave the keyboard and mouse alone for the 40 seconds or so it takes. Screenshots go to `build/screenshots`.
+
+```
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/gui-smoke-life.ps1
+```
+
+`tools/compile.ps1` compiles every source file under `prowin -b` in one pass and lists all errors (add `-SourceOnly` to skip the tests).
 
 ## Manual GUI checklist
 
-Run by hand, because Claude Code cannot see the screen. For the spike:
+The smoke test covers behaviour. These are the things only your eyes can judge. Run the game and look for:
 
-- [ ] A window titled "ProLific GUI spike" opens with a 20 x 20 checkerboard.
-- [ ] The status bar tick counter goes up once a second.
-- [ ] Click a cell: the status bar shows `click cell x,y`.
-- [ ] Press 2: the board becomes 100 x 100. Press 1 to return to 20 x 20.
-- [ ] Press R: repaints run 10 times a second. Look for flicker or tearing at 100 x 100.
-- [ ] Resize the window: the board rescales.
-- [ ] Close the window: `build/gui-spike.log` ends with "closed cleanly" and the process exits.
+- [ ] No flicker or tearing while it runs at the fastest speed on a full board (press G, then Space, then + until Speed 6).
+- [ ] The grid lines and cells look crisp and the cells stay square when you resize the window.
+- [ ] The board is centred, with the same margin on both sides.
+- [ ] The toolbar is readable and wraps sensibly when the window is made narrow.
+- [ ] Window title, status bar and board all agree on the generation and live cell count.
+- [ ] After closing, the window process is gone from Task Manager (watch for a leftover prowin.exe).
 
 ## Phase 0 findings
 
@@ -107,9 +145,9 @@ Environment (OpenEdge 12.8.0.1207, Windows 11):
 
 - `_progres -b` runs batch programs and ABLUnit. `prowin -b` also compiles .NET GUI classes. The .NET bridge targets .NET Framework 4.x (CLR v4.0.30319), not modern .NET. `USING System.Windows.Forms.* FROM ASSEMBLY.` and `System.Drawing` work in the standard way.
 - GUI pattern that works: a form class inheriting `System.Windows.Forms.Form`, a control class inheriting `Panel` with `DoubleBuffered = TRUE` and an overridden `OnPaint`, events wired with `Subscribe` and removed with `Unsubscribe` in `FormClosed`, and `WAIT-FOR Application:Run(form)` followed by `QUIT`. Without the `QUIT`, prowin stays running after the window closes.
-- Timer ticks, mouse clicks (with pixel to cell hit testing) and key presses were all confirmed through the spike log, driven by simulated input.
+- Timer ticks, mouse clicks (with pixel to cell hit testing) and key presses were all confirmed in a real window driven by simulated input. The Phase 0 spike has since been replaced by the real window, and `tools/gui-smoke-life.ps1` repeats those checks.
 - **Dynamic extent limit: 28,000 elements, not 1,000,000.** A 1000 x 1000 board cannot be an INTEGER extent. A `MEMPTR` layer has no such limit and was as fast or faster (see below), so it is the planned backing for `ArrayStore`.
-- Per cell `FillRectangle` through the bridge costs about 5 ms per paint at 20 x 20 and **about 95 to 100 ms at 100 x 100**, so 100 x 100 saturates at roughly 9 to 10 paints a second. The renderer will need a cheaper strategy (draw only live cells, or build a Bitmap and scale it). Flicker itself must be judged by eye using the checklist.
+- Per cell `FillRectangle` through the bridge costs about 5 ms per paint at 20 x 20 and **about 95 to 100 ms at 100 x 100**, so 100 x 100 saturates at roughly 9 to 10 paints a second. That was solved in Phase 3: `GridView` builds a Bitmap with one pixel per cell directly over a MEMPTR and draws it scaled in one call, which costs a few milliseconds at 100 x 100 (the WinForms tests assert under 50 ms). Flicker itself is judged by eye using the checklist.
 
 ### Storage benchmark
 

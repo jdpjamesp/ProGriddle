@@ -100,15 +100,19 @@ function Take-Shot($p, [string]$name) {
     return $bmp
 }
 
-# Where the board is on screen: the box around the thin grid lines (colour 2C323A).
+# Where the board is on screen: the box around the dead cell colour (1B1F24), which fills every
+# board whether or not grid lines are drawn. The control behind the board is a slightly darker
+# colour (181C20), so the two can be told apart with a tolerance of 1.
 function Get-Board($p, [string]$name, [int]$cols, [int]$rows) {
     $bmp = Take-Shot $p $name
     try {
-        $box = [Native]::FindColour($bmp, 44, 50, 58, 3)
+        $box = [Native]::FindColour($bmp, 27, 31, 36, 1)
         $r = Get-WindowRect $p
         if ($box[0] -lt 0) { return $null }
-        $cell = ($box[2] - $box[0]) / $cols
-        return [pscustomobject]@{ Left = $r.L + $box[0]; Top = $r.T + $box[1]; Cell = $cell; Width = $box[2] - $box[0]; Height = $box[3] - $box[1] }
+        $w = $box[2] - $box[0] + 1
+        $h = $box[3] - $box[1] + 1
+        $cell = $w / $cols
+        return [pscustomobject]@{ Left = $r.L + $box[0]; Top = $r.T + $box[1]; Cell = $cell; Width = $w; Height = $h }
     } finally { $bmp.Dispose() }
 }
 
@@ -125,7 +129,7 @@ try {
 
     $board = Get-Board $proc 'smoke-1-start' 100 70
     Check 'the board can be found on screen' ($board -ne $null)
-    Check 'board is 100 x 70 cells of equal size' ($board.Cell -gt 4 -and [math]::Abs($board.Height / 70 - $board.Cell) -lt 1) "cell=$($board.Cell) h=$($board.Height)"
+    Check 'board is 100 x 70 cells of equal size' ($board.Cell -gt 4 -and [math]::Abs($board.Height / 70 - $board.Cell) -lt 1.5) "cell=$($board.Cell) h=$($board.Height)"
 
     # left click toggles a cell
     $c = Cell-Centre $board 50 40

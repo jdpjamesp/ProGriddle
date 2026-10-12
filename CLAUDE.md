@@ -29,6 +29,9 @@ Core depends on nothing. Engine depends on Core. UI.Text depends on Core and Eng
 ## Commands
 - Tests: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 [-Filter "Grid*"] [-Gui] [-All]`. The default runs everything except `tests/**/UI/WinForms`, under `_progres -b`. `-Gui` runs only the WinForms tests, under `prowin -b` (results in `build/test-results/gui/results.xml`). `-All` runs both.
 - Layering: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/check-layering.ps1`
+- Compile everything and list every error at once: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/compile.ps1 [-SourceOnly]`
+- Run the real window and check it: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/gui-smoke-life.ps1` (it takes over the keyboard and mouse for about 40 seconds, so warn the user first)
+- Play Life: `prowin.exe -p tools/launch.p -param "run/run-life.p"` from the repository root
 
 ## Environment notes (found in Phase 0 and 3)
 - Under `prowin -b` WinForms objects can be built and drawn (`DrawToBitmap`) but there is no .NET message loop, so timers never tick and `Application:Run` fails. `Application:DoEvents` is forbidden in ABL anyway. Anything that needs real ticks or real input is checked in a windowed run.
