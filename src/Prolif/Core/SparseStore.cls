@@ -13,12 +13,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS Prolif.Core.SparseStore FINAL INHERITS AbstractCellStore:
 
-    DEFINE PROTECTED TEMP-TABLE ttCell NO-UNDO
-        FIELD layerNo  AS INTEGER
-        FIELD cellIdx  AS INTEGER
-        FIELD cellVal  AS INTEGER
-        INDEX ixCell IS PRIMARY UNIQUE layerNo cellIdx
-        INDEX ixVal layerNo cellVal.
+    {Prolif/Core/SparseCells.i &NAME=ttCell &ACCESS=PROTECTED}
 
     CONSTRUCTOR PUBLIC SparseStore(INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER, INPUT pcLayers AS CHARACTER):
         SUPER(piWidth, piHeight, pcLayers).
@@ -128,8 +123,26 @@ CLASS Prolif.Core.SparseStore FINAL INHERITS AbstractCellStore:
         END.
     END METHOD.
 
-    /* Internal: hands the table to the caller. Used by CopyFrom. */
+    /* Hands a copy of every stored cell to the caller as a table with the layout in
+       SparseCells.i. Used by CopyFrom and by engines that work on the live cells. */
     METHOD PUBLIC VOID ExportCells(OUTPUT TABLE ttCell):
+    END METHOD.
+
+    /* Replaces everything in the store with the cells of the caller's table. The layers must
+       be in range, the indexes on the board and no cell may be 0 (a 0 cell is not stored).
+       When a cell is invalid the store is emptied, because the table has already replaced its
+       contents, and GridException is thrown. */
+    METHOD PUBLIC VOID ImportCells(INPUT TABLE ttCell):
+        DEFINE VARIABLE bad AS CHARACTER NO-UNDO.
+        FOR EACH ttCell:
+            IF ttCell.layerNo < 1 OR ttCell.layerNo > mLayerCount
+               OR ttCell.cellIdx < 0 OR ttCell.cellIdx >= mCells OR ttCell.cellVal = 0 THEN DO:
+                bad = SUBSTITUTE("Cannot import cell (layer &1, index &2, value &3)",
+                    ttCell.layerNo, ttCell.cellIdx, ttCell.cellVal).
+                EMPTY TEMP-TABLE ttCell.
+                UNDO, THROW NEW GridException(bad).
+            END.
+        END.
     END METHOD.
 
     /* Empties the table. Safe to call more than once. */

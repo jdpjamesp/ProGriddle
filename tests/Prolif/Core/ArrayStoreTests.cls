@@ -94,6 +94,42 @@ CLASS Prolif.Core.ArrayStoreTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID CopyBytesFromReplacesTheStoreContents():
+        DEFINE VARIABLE s AS ArrayStore NO-UNDO.
+        DEFINE VARIABLE m AS MEMPTR     NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            s = NEW ArrayStore(2, 2, "a").
+            s:SetCell(1, 0, 0, 5).
+            SET-SIZE(m) = 16.
+            PUT-LONG(m, 5) = 77.
+            s:CopyBytesFrom(m).
+            Assert:Equals(0, s:GetCell(1, 0, 0)).
+            Assert:Equals(77, s:GetCell(1, 1, 0)).
+            /* the source memory is left as it was */
+            Assert:Equals(77, GET-LONG(m, 5)).
+            FINALLY:
+                SET-SIZE(m) = 0.
+                IF VALID-OBJECT(s) THEN s:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test (expected="Prolif.Core.GridException").
+    METHOD PUBLIC VOID CopyBytesFromRejectsASourceOfTheWrongSize():
+        DEFINE VARIABLE s AS ArrayStore NO-UNDO.
+        DEFINE VARIABLE m AS MEMPTR     NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            s = NEW ArrayStore(2, 2, "a").
+            SET-SIZE(m) = 8.
+            s:CopyBytesFrom(m).
+            FINALLY:
+                SET-SIZE(m) = 0.
+                IF VALID-OBJECT(s) THEN s:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID CopyingAStoreOntoItselfChangesNothing():
         DEFINE VARIABLE s AS ArrayStore NO-UNDO.
         DO ON ERROR UNDO, THROW:

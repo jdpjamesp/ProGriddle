@@ -114,6 +114,14 @@ CLASS Prolif.Core.ArrayStore FINAL INHERITS AbstractCellStore:
         COPY-LOB FROM mMem FOR GET-SIZE(mMem) TO pmTarget OVERLAY AT 1.
     END METHOD.
 
+    /* Internal: replaces this store's raw bytes from a MEMPTR of the same size, the reverse of
+       CopyBytesTo. The MEMPTR is read in place and left unchanged. */
+    METHOD PUBLIC VOID CopyBytesFrom(INPUT pmSource AS MEMPTR):
+        IF GET-SIZE(pmSource) <> GET-SIZE(mMem) THEN
+            UNDO, THROW NEW GridException("Source memory size differs").
+        COPY-LOB FROM pmSource FOR GET-SIZE(pmSource) TO mMem OVERLAY AT 1.
+    END METHOD.
+
     /* Frees the memory. Safe to call more than once. */
     METHOD PUBLIC OVERRIDE VOID Dispose():
         SET-SIZE(mMem) = 0.
