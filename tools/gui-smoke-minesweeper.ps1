@@ -232,7 +232,8 @@ $proc = $null
 try {
     # ------------------------------------------------------------------------------------------
     Write-Host '--- run 1: playing a whole game'
-    $layout = Get-Layout 0
+    # the window always starts the game once more when it applies the saved (or default) level
+    $layout = Get-Layout 1
     $cols = $layout[0].Count; $rows = $layout.Count
     $mineCount = ($layout | ForEach-Object { $_ } | Where-Object { $_ }).Count
     Check 'the layout helper found 10 mines on a 9 x 9 board' ($cols -eq 9 -and $rows -eq 9 -and $mineCount -eq 10) "cols=$cols rows=$rows mines=$mineCount"
@@ -297,7 +298,7 @@ try {
             }
         } }
     } finally { $shot.Dispose() }
-    Check 'there is a number cell with a closed safe neighbour to chord' ($chord -ne $null)
+    Check 'there is a number cell with a closed safe neighbour to chord' ($null -ne $chord)
     if ($chord) {
         foreach ($nb in (Neighbours $layout $chord[0] $chord[1])) { if ($layout[$nb[1]][$nb[0]]) { Click-Cell $board $nb[0] $nb[1] 'right' } }
         $shot = Take-Shot $proc 'smoke-ms-5b-chord-cell'
