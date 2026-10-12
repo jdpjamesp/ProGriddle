@@ -5,8 +5,8 @@
    picker, extra commands and clicks all come through IGameInput, and whether the game steps
    comes from IGameController.
 
-   After a command (the buttons and keys from CommandNames) the game's CommandNotice, such as
-   "Question marks on", is shown over the middle of the board and fades away.
+   After every click, key and command the game's TakeNotice, such as "Question marks on", is
+   shown over the middle of the board and fades away.
 
    A game can offer an extra text screen (IGameInput:InfoLabel and InfoText, the high scores for
    Minesweeper): the window adds a button and a key for it and shows the text in an InfoDialog.
@@ -313,11 +313,18 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         UpdateStatus().
     END METHOD.
 
+    /* Shows what the game has to say about the last action, if anything. */
+    METHOD PRIVATE VOID ShowNoticeIfAny():
+        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        notice = mInput:TakeNotice().
+        IF notice <> "" THEN mView:ShowNotice(notice).
+    END METHOD.
+
     METHOD PRIVATE VOID RunExtra(INPUT pcName AS CHARACTER):
         mInput:Perform(pcName).
         mController:Refresh().
         UpdateStatus().
-        IF mInput:CommandNotice <> "" THEN mView:ShowNotice(mInput:CommandNotice).
+        ShowNoticeIfAny().
     END METHOD.
 
     /* ---- events ---- */
@@ -395,6 +402,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
             IF acted THEN DO:
                 mController:Refresh().
                 UpdateStatus().
+                ShowNoticeIfAny().
             END.
         END.
         ResetGesture().

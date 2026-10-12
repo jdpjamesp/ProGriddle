@@ -150,7 +150,7 @@ A game that needs a timer takes an `IClock` of its own. Minesweeper counts secon
 | `StatusText` | The status bar and window title |
 | `ChoiceLabel`, `ChoiceNames`, `Choice` | An optional picker (Life's pattern list). Empty names hide it |
 | `CommandNames` | Extra buttons and keys, written `Name:Letter` such as `Random:G,Clear:C` |
-| `CommandNotice` | A few words on what the last command did, shown for a moment over the board and faded out |
+| `TakeNotice()` | A few words on what the last action did (or why it was refused), shown for a moment over the board and faded out. Returns and clears the pending notice |
 | `InfoLabel`, `InfoText` | An optional text screen such as high scores, written `Name:Letter` like `Scores:H`. Empty hides it |
 | `Perform(name)` | Runs one of those commands |
 | `PrimaryAction(x, y)`, `SecondaryAction(x, y)`, `TertiaryAction(x, y)` | Left click, right click, and a middle click or both buttons together, on a cell |
@@ -244,11 +244,6 @@ CLASS ProGriddle.Games.Scanner.ScannerInput IMPLEMENTS IGameInput:
             RETURN "".
         END GET.
 
-    DEFINE PUBLIC PROPERTY CommandNotice AS CHARACTER NO-UNDO
-        GET():
-            RETURN "".
-        END GET.
-
     DEFINE PUBLIC PROPERTY InfoLabel AS CHARACTER NO-UNDO
         GET():
             RETURN "".
@@ -262,6 +257,10 @@ CLASS ProGriddle.Games.Scanner.ScannerInput IMPLEMENTS IGameInput:
     CONSTRUCTOR PUBLIC ScannerInput(INPUT poGame AS ScannerGame):
         mGame = poGame.
     END CONSTRUCTOR.
+
+    METHOD PUBLIC CHARACTER TakeNotice():
+        RETURN "".
+    END METHOD.
 
     METHOD PUBLIC VOID Perform(INPUT pcCommand AS CHARACTER):
         UNDO, THROW NEW GridException("Unknown command: " + pcCommand).

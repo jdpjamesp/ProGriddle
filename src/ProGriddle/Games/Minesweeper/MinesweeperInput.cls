@@ -66,12 +66,6 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInput FINAL IMPLEMENTS IGameInput:
             ELSE mGame:Configure(MinesweeperLevels:WidthOf(mChoice), MinesweeperLevels:HeightOf(mChoice), MinesweeperLevels:MinesOf(mChoice)).
         END SET.
 
-    /* What the Marks command just did, "Question marks on" or "Question marks off". */
-    DEFINE PUBLIC PROPERTY CommandNotice AS CHARACTER NO-UNDO
-        GET():
-            RETURN mNotice.
-        END GET.
-
     DEFINE PUBLIC PROPERTY InfoLabel AS CHARACTER NO-UNDO
         GET():
             RETURN "Scores:H".
@@ -125,6 +119,14 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInput FINAL IMPLEMENTS IGameInput:
                AND mGame:MineCount = MinesweeperLevels:MinesOf(levelName) THEN mChoice = levelName.
         END.
     END CONSTRUCTOR.
+
+    /* What the Marks command just did, "Question marks on" or "Question marks off". */
+    METHOD PUBLIC CHARACTER TakeNotice():
+        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        notice = mNotice.
+        mNotice = "".
+        RETURN notice.
+    END METHOD.
 
     METHOD PUBLIC VOID Perform(INPUT pcCommand AS CHARACTER):
         CASE pcCommand:

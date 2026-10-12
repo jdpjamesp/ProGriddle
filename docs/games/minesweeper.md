@@ -111,7 +111,7 @@ Minesweeper was the first game that did not fit the framework as it stood, so th
 - **Both buttons.** `IGameInput` gained `TertiaryAction` (a middle click or both buttons), and `GameWindow` now reads mouse input as a gesture acted on at release. Life ignores it.
 - **New game keys.** F2 resets, as in Windows.
 - **An extra text screen.** `IGameInput` gained `InfoLabel` (a name and a key such as `Scores:H`) and `InfoText`. The window adds a button and the key, and shows the text in the new `InfoDialog`. Any game can use it for scores, help or rules.
-- **A notice over the board.** `IGameInput` gained `CommandNotice`: after a command the window shows it in the middle of the board for about a second and fades it out (`GridView:ShowNotice`). A button that only changes a setting otherwise gives no sign that it did anything.
+- **A notice over the board.** `IGameInput` gained `TakeNotice()`: after every action the window shows what it returns in the middle of the board for about a second and fades it out (`GridView:ShowNotice`). A button that only changes a setting otherwise gives no sign that it did anything.
 - **Double click.** The window turns a double click into a `PrimaryAction` followed by a `TertiaryAction`, so Minesweeper chords and Life, which toggles on every click, still sees both clicks.
 - **A game can change its own board size.** `Configure` replaces the game's grid, and `GridView` already resized to follow.
 

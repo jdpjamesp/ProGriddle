@@ -304,11 +304,12 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInputTests:
 
     @Test.
     METHOD PUBLIC VOID MarksLeavesANoticeSayingWhatItDid():
-        Assert:Equals("", mInput:CommandNotice).
+        Assert:Equals("", mInput:TakeNotice()).
         mInput:Perform("Marks").
-        Assert:Equals("Question marks off", mInput:CommandNotice).
+        Assert:Equals("Question marks off", mInput:TakeNotice()).
+        Assert:Equals("", mInput:TakeNotice()).
         mInput:Perform("Marks").
-        Assert:Equals("Question marks on", mInput:CommandNotice).
+        Assert:Equals("Question marks on", mInput:TakeNotice()).
     END METHOD.
 
     @Test.

@@ -31,11 +31,13 @@ INTERFACE ProGriddle.Engine.IGameInput:
     DEFINE PUBLIC PROPERTY CommandNames AS CHARACTER NO-UNDO
         GET.
 
-    /* A few words saying what the last command did, for example "Question marks on". The window
-       shows it over the board for a moment after running a command, because a button that
-       switches a setting otherwise gives no sign that anything happened. Empty for none. */
-    DEFINE PUBLIC PROPERTY CommandNotice AS CHARACTER NO-UNDO
-        GET.
+    /* A few words about what the last action did, for example "Question marks on" or "Ships
+       cannot touch", or an empty string when there is nothing to say. The window calls it after
+       every click, key and command and shows the words over the board for a moment, because a
+       button that switches a setting, or a click that is refused, otherwise gives no sign that
+       anything happened. Calling it takes the notice, so the next call returns an empty string
+       until there is a new one. */
+    METHOD PUBLIC CHARACTER TakeNotice().
 
     /* An optional extra screen of text, such as the high scores. The same form as one entry of
        CommandNames: a name, optionally followed by a colon and a key letter, as in "Scores:H".
