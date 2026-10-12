@@ -1,79 +1,40 @@
 # ProLific
 
-An OpenEdge ABL OO framework for grid based games. First target is Conway's Game of Life, then Minesweeper, Battleships and Tetris to prove the framework.
+ProLific is an OpenEdge ABL object oriented framework for games played on a rectangular grid. It gives you the board, the storage, the rules for edges and neighbours, the game loop, a window and saved settings, so a new game is mostly its own rules.
 
-Status: Phase 3 in progress. Conway's Game of Life is playable in a window (see "Playing Life" below). Minesweeper, Battleships and Tetris are still to come.
+- Written in OpenEdge ABL (OO), for OpenEdge 12.8 on Windows, with a WinForms window through the ABL .NET bridge.
+- Game logic never touches the screen, so every game runs under plain batch tests with no window at all.
+- Every piece is unit tested with ABLUnit. The window is checked by a script that drives the real thing.
 
-## What exists so far
+This page documents the framework and how to create a new game with it. Each game that has been built has its own page, linked at the [end](#games).
 
-`Prolif.Core`: `Coord`, `Shape`, `Grid`, `GridException`, the `ICellStore` contract and three interchangeable stores. `ArrayStore` is dense and backed by a MEMPTR, `SparseStore` holds occupied cells only, and `TableStore` is a temp table with one record per cell and a named field per layer. All three pass the same contract tests (`tests/Prolif/Core/CellStoreContractTests.cls`).
+## Contents
 
-Edges and neighbours: `BoundedTopology` (edges are walls) and `ToroidalTopology` (edges wrap), with `MooreNeighbourhood` (8 cells), `VonNeumannNeighbourhood` (4 cells) and `CustomNeighbourhood` (any offsets). `Grid.GetNeighbourIndexes(x, y, array)` fills a caller supplied array and returns the count, without allocating any object. It takes about 12 microseconds a call, so engines that visit every cell of a large board should work from the index step of each offset instead of calling it per cell.
+- [Requirements and quick start](#requirements-and-quick-start)
+- [How it fits together](#how-it-fits-together)
+- [The building blocks](#the-building-blocks)
+- [Creating a new game](#creating-a-new-game)
+- [Testing and tools](#testing-and-tools)
+- [More documentation](#more-documentation)
+- [Licence](#licence)
+- [Games](#games)
 
-Settings (`Prolif.Engine`): `ISettings` with typed values and defaults, `MemorySettings`, and `JsonFileSettings` which keeps them in a small JSON file (by default `%APPDATA%\ProLific\settings.json`). A missing or corrupt file never fails: the defaults are used and the next save writes a good file.
+## Requirements and quick start
 
-Life (`Prolif.Games.Life`): `LifeRules` (B/S notation, so Conway's `B3/S23` or HighLife `B36/S23`), `LifePatterns` (eleven named patterns and a plain text loader), `LifeGame`, and two interchangeable engines that give identical generations: `DenseLifeEngine` on an `ArrayStore` and `SparseLifeEngine` on a `SparseStore`. `LifeFactory` picks one.
-
-Engine timings, random start, milliseconds per generation (the engines are checked against each other and against a slow reference in `LifeEngineTests`):
-
-| Board | Live at start | Dense | Sparse |
-|---|---|---|---|
-| 100 x 100 | 3% | 46 | 8 |
-| 100 x 100 | 10% | 50 | 47 |
-| 100 x 100 | 30% | 46 | 263 |
-| 300 x 300 | 3% | 314 | 166 |
-| 300 x 300 | 10% | 311 | 680 |
-| 300 x 300 | 30% | 306 | 2638 |
-
-The dense engine costs the same at any density. The sparse engine costs 8 to 75 microseconds per live cell, so it wins only on mostly empty boards. They break even at about 5% live cells, and `LifeFactory` uses sparse below that. The sparse engine cannot run rules with a birth on zero neighbours (`B0`), which the dense engine can.
-
-The window (`Prolif.UI.WinForms`): `GameWindow` hosts any steppable game and knows nothing about Life. It is built from `GridView` (draws the board as one pixel per cell in a Bitmap scaled in a single call, centred in the window), `WinFormsGridRenderer`, `WinFormsClock` (a Windows timer) and `KeyMap`. A game describes itself to the window through `IGameInput` (status text, a picker, extra commands, what clicks do), implemented for Life by `LifeInput`. `run/run-life.p` is the one place that builds and wires everything together.
-
-## Neighbours on tiny boards
-
-Each distinct neighbouring cell is listed once, and a cell is never its own neighbour. This only matters on a wrapped board small enough for offsets to land on the same cell:
-
-| Board | Moore neighbours of a cell | Von Neumann neighbours |
-|---|---|---|
-| 1 x 1 toroidal | 0 | 0 |
-| 2 x 2 toroidal | 3 | 2 |
-| 1 x 5 toroidal | 2 (the cells above and below) | 2 |
-| 3 x 3 toroidal | 8 | 4 |
-| 1 x 1 bounded | 0 | 0 |
-| 2 x 2 bounded | 3 | 2 |
-
-Bounded boards never repeat a cell, because each offset reaches a different cell. Cells at least as far from every edge as the neighbourhood reach skip the topology and use precomputed index steps.
-
-## Requirements
-
-- OpenEdge 12.8 or higher on Windows (r-code is tied to the OpenEdge version, so build from source).
-- `prowin` for the GUI, `_progres -b` for batch tests.
+- OpenEdge 12.8 or higher on Windows. R-code is tied to the OpenEdge version, so build from source.
+- `prowin` for the window and `_progres -b` for batch tests. The install location comes from `$env:DLC`, defaulting to `C:\Progress\OpenEdge`.
 - PowerShell for the helper scripts. If scripts are blocked, run them as `powershell -NoProfile -ExecutionPolicy Bypass -File <script>`.
 
-## How to build and test
-
-There is no separate build step. ABL source is compiled on the fly by the test runner.
+There is no build step: ABL source is compiled when it is run. From the repository root:
 
 ```
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter "Grid*"
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/check-layering.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -All
+"C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-life.p"
 ```
 
-- `run-tests.ps1` finds every `tests/**/*Tests.cls`, runs them through ABLUnit in batch mode and writes `build/test-results/results.xml`. It exits non-zero on any failure or error.
-- The install location comes from `$env:DLC`, defaulting to `C:\Progress\OpenEdge`.
-- `run-tests.ps1 -Gui` runs the WinForms tests (they need the .NET bridge) under `prowin -b`, and `-All` runs both sets. Batch mode has no .NET message loop, so timer ticks and real input are checked in a windowed run instead.
-- `check-layering.ps1` enforces the layering rules (see `CLAUDE.md`). It needs no OpenEdge install and runs in GitHub Actions.
+The first runs every test (plain and WinForms). The second opens the Life game. `tools/launch.p` sets the PROPATH and then runs the program you name, which is how every window program is started.
 
-Things worth knowing about this environment:
-
-- `_progres` ignores the PROPATH environment variable, so `tools/run-tests.p` sets `PROPATH` in code.
-- ABLUnit returns exit code 0 even when tests fail, so the script judges success from the results XML.
-- The ABLUnit output folder must exist before the run. The script creates it.
-
-## Project setup
-
-`openedge-project.json` defines the PROPATH for the VS Code OpenEdge extension: `src`, `tests` and `run`. The extension also reads the OpenEdge install path from `.vscode/settings.json`, which is not committed because it is machine specific. Create it with:
+Project setup for VS Code: `openedge-project.json` defines the PROPATH for the OpenEdge extension (`src`, `tests` and `run`). The extension also reads your OpenEdge install path from `.vscode/settings.json`, which is not committed because it is machine specific. Create it with:
 
 ```json
 {
@@ -83,94 +44,304 @@ Things worth knowing about this environment:
 }
 ```
 
-## Playing Life
+## How it fits together
 
-From the repository root:
+Source lives under `src/Prolif`, one folder per namespace, one class per file. The layers only depend downwards:
 
 ```
-"C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-life.p"
+ run/*.p                composition roots: the only place concrete classes are wired together
+    |
+ Prolif.Games.<Game>    a game's rules      depends on Core and Engine only
+ Prolif.UI.WinForms     the window          depends on Core, Engine, UI.Text. The only layer that uses .NET
+ Prolif.UI.Text         text renderer, fake clock, for tests
+    |
+ Prolif.Engine          game contracts, controller, clock, settings    depends on Core
+    |
+ Prolif.Core            grid, cell stores, topology, shapes            depends on nothing
 ```
 
-`tools/launch.p` sets PROPATH and then runs the named program, so `USING` statements resolve at compile time. Optional entries after the program name: a settings file (`default` for `%APPDATA%\ProLific\settings.json`) and a number of seconds after which the window closes by itself.
+`tools/check-layering.ps1` enforces this (it also runs in GitHub Actions and needs no OpenEdge install). A game never refers to the window and never to another game, which is what lets it run in tests with no GUI.
 
-| Input | What it does |
+| Folder | Holds |
 |---|---|
-| Left click on the board | Toggle a cell |
-| Right click on the board | Place the chosen pattern with its corner at that cell (moved back if it would hang off the edge) |
-| Space | Start, or pause when running |
-| S or Right arrow | One generation |
-| R | Reset to the board as it was at the first step |
-| G | Random board (about a quarter alive), back to generation 0 |
-| C | Clear the board |
-| + or Up arrow, - or Down arrow | Faster, slower (six speeds, 1000 ms down to 30 ms a step) |
-| Pattern box | Choose which pattern a right click places (the label says so). The keyboard goes back to the board once you have chosen |
-| Speed slider, buttons | Same things with the mouse |
+| `src/Prolif/Core` | `Coord`, `Shape`, `Grid`, the cell stores, topologies, neighbourhoods, `IRandom` |
+| `src/Prolif/Engine` | `IGame`, `AbstractGame`, `GameController`, `IClock`, `IGridRenderer`, `IGameInput`, settings |
+| `src/Prolif/UI/WinForms` | `GameWindow`, `GridView`, `WinFormsGridRenderer`, `WinFormsClock`, `KeyMap` |
+| `src/Prolif/UI/Text` | `TextGridRenderer`, `FakeClock` |
+| `src/Prolif/Games/<Game>` | One folder per game |
+| `run` | One `run-<game>.p` per game |
+| `tests` | The same folder layout as `src`, `*Tests.cls` |
+| `tools` | Scripts: tests, layering check, compile check, window smoke test |
+| `docs` | Deeper notes and the game pages |
 
-The status bar and the window title show the generation, the number of live cells, the rules, the board size and the speed. Resizing the window rescales the cells. The window size, position, speed and chosen pattern are remembered between runs.
+## The building blocks
 
-Settings you can edit in `%APPDATA%\ProLific\settings.json` while the program is closed (all optional; the file holds `schemaVersion` and a `values` object):
+### Grid and cells
 
-| Key | Meaning | Default |
+A `Grid` has a width, a height, a **cell store**, a **topology** and a **neighbourhood**. Cells are plain integers, never objects, so the framework stays fast.
+
+- `x` and `y` start at 0 and the cell index is `(y * width) + x`.
+- A store holds one or more named **layers** of integers, for example Minesweeper's `mine`, `revealed`, `flag` and `adjacent`. Layer names are letters, digits and underscores, start with a letter, and must not be `x` or `y`. Resolve a name once with `LayerIndex` and use the number in loops.
+- Every layer starts at 0, and 0 means empty. What the numbers mean is up to the game.
+- Anything out of range throws `GridException`. The framework never returns a magic value.
+
+### Cell stores
+
+Three interchangeable stores implement `ICellStore`, and the same contract tests run against all of them. A game picks the one that suits it.
+
+| Store | Holds | Use it for |
 |---|---|---|
-| `life.width`, `life.height` | Board size in cells, 5 to 400 | 100, 70 |
-| `life.wrap` | `true` makes the edges wrap | `false` |
-| `life.rules` | Rules in B/S notation, for example `B36/S23` for HighLife | `B3/S23` |
-| `life.expectedLive` | Expected share of live cells, 0 to 1. Below 0.05 the sparse engine is used (good for big, mostly empty boards) | 0.1 |
-| `life.palette` | Dead and alive colours as hex | `1B1F24,F2C14E` |
-| `life.startPattern` | Pattern placed on a new board, or `None` | `GosperGliderGun` |
+| `ArrayStore` | All layers in one `MEMPTR`, 4 bytes a cell | Crowded boards, large boards, anything fast |
+| `SparseStore` | Only the non zero cells, in a temp table | Big boards that are mostly empty |
+| `TableStore` | One temp table record per cell with a named field per layer, up to 100,000 cells | Small boards that want readable, queryable fields: Minesweeper, Battleships, Tetris |
 
-## Checking the window
+All three offer the same operations: read and write by x, y or index, fill a layer, count cells with a value, `Duplicate` and `CopyFrom` (including between different store types), shape stamping and collision tests (`CanPlace`, `Stamp`, `Erase`), and the row operations a Tetris style game needs (`IsRowFull`, `ClearRow`, `ShiftRowsDown`). Call `Dispose` when you have finished with a store; stores backed by memory free it there. See [Performance notes](docs/framework/performance.md) for how the choice was made.
 
-`tools/gui-smoke-life.ps1` launches the real window with a throwaway settings file and drives it like a user: it finds the board from a screenshot, clicks and types, reads the state back from the window title, resizes it, closes it, checks that the process exits and the settings were saved, then starts it again to see them restored. It sends real keystrokes and mouse clicks to the foreground, so leave the keyboard and mouse alone for the 40 seconds or so it takes. Screenshots go to `build/screenshots`.
+### Shapes
+
+`Shape` is an immutable set of cell offsets, with `Rotate` (90 degrees clockwise), `Flip`, a bounding box and a text form (`"XX/.X"`). It is shared by patterns, ships and pieces. Shapes are always normalised so their top left corner is (0, 0).
+
+### Edges and neighbours
+
+A topology says what happens at the edge of the board and a neighbourhood says which cells are neighbours:
+
+- `BoundedTopology` (edges are walls) and `ToroidalTopology` (edges wrap round).
+- `MooreNeighbourhood` (8 cells), `VonNeumannNeighbourhood` (4 cells) and `CustomNeighbourhood` (any list of offsets).
+- `Grid:GetNeighbourIndexes(x, y, array)` fills an array you supply, returns how many neighbours there are, and allocates nothing.
+
+Each distinct neighbouring cell is listed once, and a cell is never its own neighbour. That only matters on a wrapped board small enough for offsets to land on the same cell:
+
+| Board | Moore neighbours of a cell | Von Neumann neighbours |
+|---|---|---|
+| 1 x 1 wrapped | 0 | 0 |
+| 2 x 2 wrapped | 3 | 2 |
+| 1 x 5 wrapped | 2 (the cells above and below) | 2 |
+| 3 x 3 wrapped | 8 | 4 |
+| 1 x 1 or 2 x 2 bounded | 0 or 3 | 0 or 2 |
+
+### Games, the controller and the clock
+
+A game implements `IGame` and is one of three kinds:
+
+| Kind | Interface | Example |
+|---|---|---|
+| Steppable: the whole grid updates at once | `ISteppableGame` (`Step`, `Generation`) | Life |
+| Turn based: a move is validated and applied | `ITurnBasedGame` (planned for Phase 4) | Minesweeper, Battleships |
+| Real time: advanced by a clock | `IRealTimeGame` (planned for Phase 6) | Tetris |
+
+`AbstractGame` supplies the name, the grid, the over flag and the counter. `GameController` ties a game to an `IGridRenderer` and an `IClock`: Start, PauseGame, StepOnce, Reset, SpeedUp, SlowDown (`GameCommand`), with six speeds and a redraw after every change. It stops the clock itself when the game is over.
+
+`IClock` is a source of ticks. `WinFormsClock` wraps a Windows timer; `FakeClock` is advanced by hand, so games that depend on time are deterministic in tests. `IRandom` is the only source of randomness: pass a `SeededRandom` and a test gets the same board every time.
+
+### Settings
+
+`ISettings` keeps named values that outlive a session (window size, speed, a game's options). Keys are namespaced by game, like `life.speed`. Reading never fails: a missing key, or a key holding another type, returns the default you give. `JsonFileSettings` stores them in a small JSON file (by default `%APPDATA%\ProLific\settings.json`) and a missing or corrupt file just means defaults, with the next save writing a good file. `MemorySettings` is the in-memory version for tests.
+
+### The window
+
+`GameWindow` hosts any steppable game and knows nothing about which one. It gives you a toolbar (Start or Pause, Step, Reset, the game's own commands, an optional picker, a speed slider), the board, a status bar, keyboard and mouse handling, and saved window size, position and speed. A game describes itself to the window through `IGameInput`:
+
+| Member | Used for |
+|---|---|
+| `StatusText` | The status bar and window title |
+| `ChoiceLabel`, `ChoiceNames`, `Choice` | An optional picker (Life's pattern list). Empty names hide it |
+| `CommandNames` | Extra buttons and keys, written `Name:Letter` such as `Random:G,Clear:C` |
+| `Perform(name)` | Runs one of those commands |
+| `PrimaryAction(x, y)`, `SecondaryAction(x, y)` | Left click and right click on a cell |
+
+The keys every game gets: Space start or pause, S or Right arrow one step, R reset, + or Up faster, - or Down slower. `GridView` draws the board as one pixel per cell in a bitmap scaled in a single call, using a palette of hex colours where the colour of a cell is the palette entry at its value.
+
+## Creating a new game
+
+Here is a complete, working game in three small files. It lights one cell and moves it along the board, so it shows every piece you need. (Run it with `prowin.exe -p tools/launch.p -param "run/run-scanner.p"` once you create the files.) Replace the rules with your own.
+
+### 1. Decide what the game is
+
+Pick the kind (steppable, turn based or real time), the board size, the layers it needs and which store suits it. Steppable games are supported end to end today. The scanner uses one layer called `state` on an `ArrayStore`.
+
+### 2. Write the game class
+
+Create `src/Prolif/Games/Scanner/ScannerGame.cls`. It inherits `AbstractGame` and implements `ISteppableGame`. Override `OnInitialise` to set up the starting board; `Initialise` has already put `Generation` back to 0.
 
 ```
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/gui-smoke-life.ps1
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
+
+BLOCK-LEVEL ON ERROR UNDO, THROW.
+
+CLASS Prolif.Games.Scanner.ScannerGame INHERITS AbstractGame IMPLEMENTS ISteppableGame:
+
+    DEFINE PRIVATE VARIABLE mPosition AS INTEGER NO-UNDO.
+
+    CONSTRUCTOR PUBLIC ScannerGame(INPUT poGrid AS Grid):
+        SUPER("Scanner", poGrid).
+    END CONSTRUCTOR.
+
+    /* One lit cell moves along the board, a row at a time, and wraps round at the end. */
+    METHOD PUBLIC VOID Step():
+        Grid:Store:SetCellAt(1, mPosition, 0).
+        mPosition = (mPosition + 1) MODULO Grid:CellCount.
+        Grid:Store:SetCellAt(1, mPosition, 1).
+        Generation = Generation + 1.
+    END METHOD.
+
+    METHOD PROTECTED OVERRIDE VOID OnInitialise():
+        Grid:Store:FillLayer(1, 0).
+        mPosition = 0.
+        Grid:Store:SetCellAt(1, 0, 1).
+    END METHOD.
+
+END CLASS.
 ```
 
-`tools/compile.ps1` compiles every source file under `prowin -b` in one pass and lists all errors (add `-SourceOnly` to skip the tests).
+Set `IsOver = TRUE` when the game ends and the controller stops the clock by itself. The game never refers to a window, a timer or any .NET type.
 
-## Manual GUI checklist
+### 3. Tell the window about the game
 
-The smoke test covers behaviour. These are the things only your eyes can judge. Run the game and look for:
+Create `src/Prolif/Games/Scanner/ScannerInput.cls` implementing `IGameInput`. This game needs no picker, no extra commands and ignores clicks, so most members are empty. A real game puts its click handling here (Life toggles a cell on a left click and places a pattern on a right click).
 
-- [ ] No flicker or tearing while it runs at the fastest speed on a full board (press G, then Space, then + until Speed 6).
-- [ ] The grid lines and cells look crisp and the cells stay square when you resize the window.
-- [ ] The board is centred, with the same margin on both sides.
-- [ ] The toolbar is readable and wraps sensibly when the window is made narrow.
-- [ ] Window title, status bar and board all agree on the generation and live cell count.
-- [ ] After closing, the window process is gone from Task Manager (watch for a leftover prowin.exe).
+```
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
+USING Prolif.Games.Scanner.*.
 
-## Phase 0 findings
+BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-Environment (OpenEdge 12.8.0.1207, Windows 11):
+CLASS Prolif.Games.Scanner.ScannerInput IMPLEMENTS IGameInput:
 
-- `_progres -b` runs batch programs and ABLUnit. `prowin -b` also compiles .NET GUI classes. The .NET bridge targets .NET Framework 4.x (CLR v4.0.30319), not modern .NET. `USING System.Windows.Forms.* FROM ASSEMBLY.` and `System.Drawing` work in the standard way.
-- GUI pattern that works: a form class inheriting `System.Windows.Forms.Form`, a control class inheriting `Panel` with `DoubleBuffered = TRUE` and an overridden `OnPaint`, events wired with `Subscribe` and removed with `Unsubscribe` in `FormClosed`, and `WAIT-FOR Application:Run(form)` followed by `QUIT`. Without the `QUIT`, prowin stays running after the window closes.
-- Timer ticks, mouse clicks (with pixel to cell hit testing) and key presses were all confirmed in a real window driven by simulated input. The Phase 0 spike has since been replaced by the real window, and `tools/gui-smoke-life.ps1` repeats those checks.
-- **Dynamic extent limit: 28,000 elements, not 1,000,000.** A 1000 x 1000 board cannot be an INTEGER extent. A `MEMPTR` layer has no such limit and was as fast or faster (see below), so it is the planned backing for `ArrayStore`.
-- Per cell `FillRectangle` through the bridge costs about 5 ms per paint at 20 x 20 and **about 95 to 100 ms at 100 x 100**, so 100 x 100 saturates at roughly 9 to 10 paints a second. That was solved in Phase 3: `GridView` builds a Bitmap with one pixel per cell directly over a MEMPTR and draws it scaled in one call, which costs a few milliseconds at 100 x 100 (the WinForms tests assert under 50 ms). Flicker itself is judged by eye using the checklist.
+    DEFINE PRIVATE VARIABLE mGame AS ScannerGame NO-UNDO.
 
-### Storage benchmark
+    DEFINE PUBLIC PROPERTY StatusText AS CHARACTER NO-UNDO
+        GET():
+            RETURN SUBSTITUTE("Generation &1", mGame:Generation).
+        END GET.
 
-Interpreted ABL costs roughly 1 microsecond per simple operation, so work done matters more than the storage type. Bounded edges, B3/S23, seeded random start. `ext` is a dynamic extent, `mem` is a MEMPTR, a trailing `f` adds an interior fast path (no bounds checks, unrolled neighbours), `tt` is a temp table with one record per cell, `sparse` is a temp table of live cells only. All modes gave identical live counts. Milliseconds per generation, 100 x 100, averaged over 20 generations:
+    DEFINE PUBLIC PROPERTY ChoiceLabel AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
 
-| Start density | ext | extf | mem | memf | tt | sparse |
-|---|---|---|---|---|---|---|
-| 1% | 113 | 43 | 106 | 41 | 28 | 0.4 (board dies out) |
-| 10% | 114 | 49 | 105 | 37 | 48 | 27 |
-| 30% | 118 | 54 | 104 | 39 | 137 | 144 |
+    DEFINE PUBLIC PROPERTY ChoiceNames AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
 
-1000 x 1000: `mem` 10,347 ms per generation, `memf` 3,646 ms, `sparse` at 10% 6,392 ms, `sparse` at 30% 24,276 ms, `tt` at 10% 17,544 ms (and 17 s just to build 1,000,000 records). Tetris row clear and shift on a 10 x 20 temp table: about 2 ms for a four line clear. Memory: a MEMPTR layer is 4 bytes per cell (4 MB at 1000 x 1000). Process working set was not informative for temp tables, because ABL pages them to its temp file.
+    DEFINE PUBLIC PROPERTY Choice AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
+        SET(INPUT pcValue AS CHARACTER):
+        END SET.
 
-Caveats: random 1% and 10% starts decay within a few generations, so the sparse averages favour sparse at low density. The temp table and sparse engines touch only live cells, while the dense ones scan every cell.
+    DEFINE PUBLIC PROPERTY CommandNames AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
 
-Conclusions:
+    CONSTRUCTOR PUBLIC ScannerInput(INPUT poGame AS ScannerGame):
+        mGame = poGame.
+    END CONSTRUCTOR.
 
-- Dense (`MEMPTR` with the interior fast path) is about 40 ms per generation at 100 x 100 whatever the density, so it is the safe default for boards up to a few hundred cells wide.
-- Sparse wins below roughly 10 to 15% live density and loses badly above about 20%. The crossover at 100 x 100 is near 15%.
-- 1000 x 1000 is not interactive in any mode (several seconds per generation at best). 500 x 500 for 100 generations will take minutes.
-- Temp table per cell (`TableStore`) is fine for small boards (Minesweeper, Battleships, Tetris) and too slow for large Life boards.
+    METHOD PUBLIC VOID Perform(INPUT pcCommand AS CHARACTER):
+        UNDO, THROW NEW GridException("Unknown command: " + pcCommand).
+    END METHOD.
+
+    METHOD PUBLIC VOID PrimaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+    END METHOD.
+
+    METHOD PUBLIC VOID SecondaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+    END METHOD.
+
+END CLASS.
+```
+
+### 4. Write the composition root
+
+Create `run/run-scanner.p`. This is the only place that builds concrete classes and wires them together: store, grid, game, view, clock, controller, window. Reading board size and options from `ISettings` is the usual pattern (see `run/run-life.p`).
+
+```
+USING System.Windows.Forms.Application FROM ASSEMBLY.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
+USING Prolif.Games.Scanner.*.
+USING Prolif.UI.WinForms.*.
+
+DEFINE VARIABLE oSettings   AS ISettings      NO-UNDO.
+DEFINE VARIABLE oGame       AS ScannerGame    NO-UNDO.
+DEFINE VARIABLE oView       AS GridView       NO-UNDO.
+DEFINE VARIABLE oClock      AS WinFormsClock  NO-UNDO.
+DEFINE VARIABLE oController AS GameController NO-UNDO.
+DEFINE VARIABLE oWindow     AS GameWindow     NO-UNDO.
+
+Application:EnableVisualStyles().
+oSettings = NEW JsonFileSettings(JsonFileSettings:DefaultPath()).
+
+/* the grid: a store with one layer called state, wrapped in a Grid */
+oGame = NEW ScannerGame(NEW Grid(NEW ArrayStore(30, 20, "state"))).
+oGame:Initialise().
+
+oView = NEW GridView().
+oView:SetPalette("1B1F24,F2C14E").
+oClock = NEW WinFormsClock().
+oController = NEW GameController(oGame, NEW WinFormsGridRenderer(oView, "state"), oClock).
+oWindow = NEW GameWindow("Scanner", oController, oView, NEW ScannerInput(oGame), oClock, oSettings, "scanner").
+
+WAIT-FOR Application:Run(oWindow).
+
+oController:Dispose().
+oClock:Dispose().
+oGame:Dispose().
+QUIT.
+```
+
+The palette maps cell values to colours in order: value 0 is the first colour, value 1 the second, and so on. The last argument to `GameWindow` ("scanner") is the settings prefix, so the window saves `scanner.speed` and friends.
+
+### 5. Test it without a window
+
+Because the game has no UI dependency, test it in plain ABLUnit under `tests/Prolif/Games/Scanner/`. Useful pieces already exist: `TextGridRenderer` turns a grid into text so a test can compare a whole board, `FakeClock` plus `GameController` lets a test script a session ("start, advance 750 ms, expect generation 3"), `SeededRandom` makes random boards repeatable, and `tests/Prolif/Games/Life/` shows the shape of a full suite (game, rules, input, a scripted session).
+
+```
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter "Scanner*"
+```
+
+### 6. Finish properly
+
+- Run `tools/check-layering.ps1` (a game must not use the window or another game) and `tools/compile.ps1`.
+- Follow the conventions in `CLAUDE.md`: wildcard `USING` per namespace, `BLOCK-LEVEL ON ERROR UNDO, THROW.` in every class, no objects created inside per-cell loops, every `MEMPTR` freed, no em dashes.
+- If the game needs a change to the framework, change the framework and its tests. Do not special case a game inside `Core` or `Engine`.
+- Add a page `docs/games/<game>.md` (how to play, settings, how it uses the framework, tests, performance) and add it to the [Games](#games) list below. A game is not finished until both exist.
+- A window smoke test in the style of `tools/gui-smoke-life.ps1` is worth adding for any game with real interaction.
+
+## Testing and tools
+
+| Command | What it does |
+|---|---|
+| `tools/run-tests.ps1` | Runs every `tests/**/*Tests.cls` under `_progres -b`, except the WinForms ones. Exits non-zero on any failure or error |
+| `tools/run-tests.ps1 -Gui` | Runs only the WinForms tests, under `prowin -b` |
+| `tools/run-tests.ps1 -All` | Runs both sets |
+| `tools/run-tests.ps1 -Filter "Grid*"` | Runs only test classes whose file name matches |
+| `tools/check-layering.ps1` | Checks the layering rules. Needs no OpenEdge install |
+| `tools/compile.ps1` | Compiles every source file in one pass and lists all errors (`-SourceOnly` skips tests) |
+| `tools/gui-smoke-life.ps1` | Drives the real Life window like a user and checks what happens. Takes over the keyboard and mouse for about a minute |
+
+Results go to `build/test-results/results.xml` (plain) and `build/test-results/gui/results.xml` (WinForms). Screenshots from the smoke test go to `build/screenshots`.
+
+Under `prowin -b` WinForms objects can be built and drawn to a bitmap, but there is no .NET message loop, so timers never tick and real input is only checked in a windowed run. Other things worth knowing about testing on OpenEdge (ABLUnit fixtures, inherited tests, exit codes) are in [OpenEdge environment notes](docs/framework/environment.md).
+
+## More documentation
+
+- [OpenEdge environment notes](docs/framework/environment.md): running and testing, language gotchas, the ABL keywords to avoid.
+- [Performance notes](docs/framework/performance.md): the measurements behind the storage and rendering design.
+- `CLAUDE.md`: the coding conventions every change follows.
 
 ## Licence
 
 MIT, see `LICENSE`.
+
+## Games
+
+Games built on the framework, each with its own page:
+
+- [Conway's Game of Life](docs/games/life.md): steppable, dense and sparse engines, patterns, HighLife and other rule sets, saved settings. Playable now.
+
+Planned: Minesweeper, Battleships and Tetris.
