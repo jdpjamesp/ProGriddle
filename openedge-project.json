@@ -1,0 +1,14 @@
+{
+  "name": "ProLific",
+  "version": "0.1.0",
+  "oeversion": "12.8",
+  "graphicalMode": true,
+  "charset": "utf-8",
+  "buildPath": [
+    { "type": "source", "path": "src" },
+    { "type": "source", "path": "tests" },
+    { "type": "source", "path": "run" }
+  ],
+  "buildDirectory": "build",
+  "dbConnections": []
+}

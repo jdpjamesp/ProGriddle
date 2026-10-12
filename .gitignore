@@ -1,0 +1,39 @@
+# Planning notes
+PROLIFIC_PLAN.md
+
+# OpenEdge VS Code extension working files
+.builder/
+.vscode/
+
+# Build output and compiled code
+build/
+*.r
+*.pl
+
+# Logs and temp files
+*.log
+*.lg
+*.tmp
+*.lck
+*.lbi
+*.bi
+*.pf.local
+*.xref
+*.listing
+*.preprocess
+*.debuglist
+*.dbg
+
+# ABLUnit and test output
+results.xml
+**/TEST-*.xml
+
+# OS and editor
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*~
+
+# Claude Code local settings
+.claude/settings.local.json
