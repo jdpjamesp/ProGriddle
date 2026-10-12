@@ -1,7 +1,7 @@
 /* What is particular to JsonFileSettings: the file itself. The shared behaviour is in
    SettingsContractTests. Test files live in build/test-settings, which git ignores. */
-USING OpenEdge.Core.Assert.
-USING Prolif.Engine.JsonFileSettings.
+USING OpenEdge.Core.*.
+USING Prolif.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

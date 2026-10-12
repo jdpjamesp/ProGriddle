@@ -1,14 +1,9 @@
 /* GridView needs the .NET bridge, so these run under prowin -b (tools/run-tests.ps1 -Gui). */
-USING OpenEdge.Core.Assert.
+USING OpenEdge.Core.*.
 USING Progress.Lang.*.
 USING System.Drawing.* FROM ASSEMBLY.
-USING Prolif.Core.ArrayStore.
-USING Prolif.Core.Grid.
-USING Prolif.Core.ICellStore.
-USING Prolif.Core.SeededRandom.
-USING Prolif.Core.SparseStore.
-USING Prolif.Core.TableStore.
-USING Prolif.UI.WinForms.GridView.
+USING Prolif.Core.*.
+USING Prolif.UI.WinForms.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
@@ -345,23 +340,82 @@ CLASS Prolif.UI.WinForms.GridViewTests:
             g = NewGrid(1, 10, 10).
             mView:Show(g, "state").
             mView:ClientSize = NEW Size(300, 200).
-            /* 20 pixel cells, so the board is 200 x 200 and the margin is on the right */
-            Assert:IsTrue(mView:HitTest(0, 0, OUTPUT cx, OUTPUT cy)).
+            /* 20 pixel cells, so the board is 200 x 200, centred: a 50 pixel margin each side */
+            Assert:Equals(50, mView:OffsetX()).
+            Assert:Equals(0, mView:OffsetY()).
+            Assert:IsTrue(mView:HitTest(50, 0, OUTPUT cx, OUTPUT cy)).
             Assert:Equals(0, cx).
             Assert:Equals(0, cy).
-            Assert:IsTrue(mView:HitTest(19, 19, OUTPUT cx, OUTPUT cy)).
+            Assert:IsTrue(mView:HitTest(69, 19, OUTPUT cx, OUTPUT cy)).
             Assert:Equals(0, cx).
-            Assert:IsTrue(mView:HitTest(20, 0, OUTPUT cx, OUTPUT cy)).
+            Assert:IsTrue(mView:HitTest(70, 0, OUTPUT cx, OUTPUT cy)).
             Assert:Equals(1, cx).
-            Assert:IsTrue(mView:HitTest(199, 199, OUTPUT cx, OUTPUT cy)).
+            Assert:IsTrue(mView:HitTest(249, 199, OUTPUT cx, OUTPUT cy)).
             Assert:Equals(9, cx).
             Assert:Equals(9, cy).
-            Assert:IsFalse(mView:HitTest(200, 0, OUTPUT cx, OUTPUT cy)).
+            Assert:IsFalse(mView:HitTest(250, 0, OUTPUT cx, OUTPUT cy)).
             Assert:Equals(-1, cx).
             Assert:Equals(-1, cy).
-            Assert:IsFalse(mView:HitTest(0, 200, OUTPUT cx, OUTPUT cy)).
+            Assert:IsFalse(mView:HitTest(49, 5, OUTPUT cx, OUTPUT cy)).
+            Assert:IsFalse(mView:HitTest(100, 200, OUTPUT cx, OUTPUT cy)).
             Assert:IsFalse(mView:HitTest(-1, 5, OUTPUT cx, OUTPUT cy)).
             FINALLY:
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheBoardIsCentredInBothDirections():
+        DEFINE VARIABLE g AS Grid NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = NewGrid(1, 10, 10).
+            mView:Show(g, "state").
+            mView:ClientSize = NEW Size(300, 250).
+            Assert:Equals(25, mView:CellSize()).
+            Assert:Equals(25, mView:OffsetX()).
+            Assert:Equals(0, mView:OffsetY()).
+            mView:ClientSize = NEW Size(300, 300).
+            Assert:Equals(30, mView:CellSize()).
+            Assert:Equals(0, mView:OffsetX()).
+            mView:ClientSize = NEW Size(320, 300).
+            Assert:Equals(10, mView:OffsetX()).
+            FINALLY:
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheOffsetsAreZeroBeforeTheFirstShow():
+        Assert:Equals(0, mView:OffsetX()).
+        Assert:Equals(0, mView:OffsetY()).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID PaintingDrawsTheBoardInTheCentreAndTheBackgroundAroundIt():
+        DEFINE VARIABLE g   AS Grid   NO-UNDO.
+        DEFINE VARIABLE bmp AS Bitmap NO-UNDO.
+        DEFINE VARIABLE c   AS Color  NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = NewGrid(1, 2, 2).
+            g:Store:SetCell(1, 0, 0, 1).
+            mView:ShowGridLines = FALSE.
+            mView:ClientSize = NEW Size(60, 20).
+            mView:Show(g, "state").
+            bmp = NEW Bitmap(60, 20).
+            mView:DrawToBitmap(bmp, NEW Rectangle(0, 0, 60, 20)).
+            /* cells are 10 pixels, the board is 20 wide, so it starts at x 20 */
+            c = bmp:GetPixel(5, 5).
+            Assert:Equals(24, c:R).
+            c = bmp:GetPixel(25, 5).
+            Assert:Equals(255, c:R).
+            c = bmp:GetPixel(35, 5).
+            Assert:Equals(0, c:R).
+            c = bmp:GetPixel(45, 5).
+            Assert:Equals(24, c:R).
+            FINALLY:
+                IF VALID-OBJECT(bmp) THEN bmp:Dispose().
                 IF VALID-OBJECT(g) THEN g:Dispose().
             END FINALLY.
         END.

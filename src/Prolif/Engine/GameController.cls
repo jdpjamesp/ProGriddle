@@ -6,12 +6,8 @@
    stops the clock itself when it is over. Dispose unsubscribes from the clock. The
    controller does not dispose the game, the renderer or the clock: its owner does. */
 USING Progress.Lang.*.
-USING Prolif.Core.GridException.
-USING Prolif.Engine.GameCommand.
-USING Prolif.Engine.GameController.
-USING Prolif.Engine.IClock.
-USING Prolif.Engine.IGridRenderer.
-USING Prolif.Engine.ISteppableGame.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

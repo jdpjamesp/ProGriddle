@@ -1,14 +1,8 @@
-USING OpenEdge.Core.Assert.
+USING OpenEdge.Core.*.
 USING Progress.Lang.*.
-USING Prolif.Core.IRandom.
-USING Prolif.Core.SeededRandom.
-USING Prolif.Engine.IGameInput.
-USING Prolif.Games.Life.LifeFactory.
-USING Prolif.Games.Life.LifeGame.
-USING Prolif.Games.Life.LifeInput.
-USING Prolif.Games.Life.LifePatterns.
-USING Prolif.Games.Life.LifeRules.
-USING Prolif.Games.Life.LifeTestKit.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
+USING Prolif.Games.Life.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

@@ -1,10 +1,6 @@
-USING OpenEdge.Core.Assert.
-USING Prolif.Core.ArrayStore.
-USING Prolif.Core.SparseStore.
-USING Prolif.Games.Life.LifeFactory.
-USING Prolif.Games.Life.LifeGame.
-USING Prolif.Games.Life.LifePatterns.
-USING Prolif.Games.Life.LifeRules.
+USING OpenEdge.Core.*.
+USING Prolif.Core.*.
+USING Prolif.Games.Life.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

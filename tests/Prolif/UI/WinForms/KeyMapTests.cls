@@ -1,6 +1,6 @@
-USING OpenEdge.Core.Assert.
-USING Prolif.Engine.GameCommand.
-USING Prolif.UI.WinForms.KeyMap.
+USING OpenEdge.Core.*.
+USING Prolif.Engine.*.
+USING Prolif.UI.WinForms.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

@@ -1,18 +1,9 @@
 /* The LifeGame API: editing cells, placing patterns, randomising, reset, validation.
    The Life rules themselves are in LifeEngineTests. Each test runs once per engine kind. */
-USING OpenEdge.Core.Assert.
+USING OpenEdge.Core.*.
 USING Progress.Lang.*.
-USING Prolif.Core.ArrayStore.
-USING Prolif.Core.Grid.
-USING Prolif.Core.IRandom.
-USING Prolif.Core.SeededRandom.
-USING Prolif.Core.SparseStore.
-USING Prolif.Games.Life.DenseLifeEngine.
-USING Prolif.Games.Life.LifeGame.
-USING Prolif.Games.Life.LifePatterns.
-USING Prolif.Games.Life.LifeRules.
-USING Prolif.Games.Life.LifeTestKit.
-USING Prolif.Games.Life.SparseLifeEngine.
+USING Prolif.Core.*.
+USING Prolif.Games.Life.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

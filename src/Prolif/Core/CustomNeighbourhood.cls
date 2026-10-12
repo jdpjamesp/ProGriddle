@@ -3,9 +3,7 @@
    empty, the arrays differ in length, an offset is (0, 0), or an offset repeats. The
    arrays are copied. */
 USING Progress.Lang.*.
-USING Prolif.Core.CustomNeighbourhood.
-USING Prolif.Core.GridException.
-USING Prolif.Core.INeighbourhood.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

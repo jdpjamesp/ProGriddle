@@ -1,6 +1,6 @@
 /* The only source of randomness in the framework. Games take one as a constructor or method
    argument, so tests can pass a seeded one and get the same board every time. */
-USING Prolif.Core.IRandom.
+USING Prolif.Core.*.
 
 INTERFACE Prolif.Core.IRandom:
 

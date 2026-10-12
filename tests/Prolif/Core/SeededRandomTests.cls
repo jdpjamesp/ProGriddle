@@ -1,6 +1,5 @@
-USING OpenEdge.Core.Assert.
-USING Prolif.Core.IRandom.
-USING Prolif.Core.SeededRandom.
+USING OpenEdge.Core.*.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

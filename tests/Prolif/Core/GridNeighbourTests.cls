@@ -1,14 +1,6 @@
-USING OpenEdge.Core.Assert.
+USING OpenEdge.Core.*.
 USING Progress.Lang.*.
-USING Prolif.Core.ArrayStore.
-USING Prolif.Core.BoundedTopology.
-USING Prolif.Core.CustomNeighbourhood.
-USING Prolif.Core.Grid.
-USING Prolif.Core.INeighbourhood.
-USING Prolif.Core.ITopology.
-USING Prolif.Core.MooreNeighbourhood.
-USING Prolif.Core.ToroidalTopology.
-USING Prolif.Core.VonNeumannNeighbourhood.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

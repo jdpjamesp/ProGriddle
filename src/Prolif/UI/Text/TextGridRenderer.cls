@@ -3,11 +3,9 @@
    1 as "#". A value with no symbol draws as "?". Rows are separated by a line feed, with no
    trailing one. The last result is kept in LastOutput. */
 USING Progress.Lang.*.
-USING Prolif.Core.Grid.
-USING Prolif.Core.GridException.
-USING Prolif.Engine.IGame.
-USING Prolif.Engine.IGridRenderer.
-USING Prolif.UI.Text.TextGridRenderer.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
+USING Prolif.UI.Text.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

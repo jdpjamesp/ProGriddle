@@ -1,7 +1,5 @@
-USING OpenEdge.Core.Assert.
-USING Prolif.Core.BoundedTopology.
-USING Prolif.Core.ITopology.
-USING Prolif.Core.ToroidalTopology.
+USING OpenEdge.Core.*.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

@@ -2,9 +2,9 @@
    Tick for every full Interval that has passed while the clock is running. Time that passes
    while the clock is stopped is ignored. A part interval is carried over to the next call. */
 USING Progress.Lang.*.
-USING Prolif.Core.GridException.
-USING Prolif.Engine.IClock.
-USING Prolif.UI.Text.FakeClock.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
+USING Prolif.UI.Text.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

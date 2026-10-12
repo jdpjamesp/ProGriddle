@@ -2,7 +2,7 @@
    one rule set. Two exist, with identical results: DenseLifeEngine scans every cell and
    suits crowded boards, SparseLifeEngine visits only live cells and suits mostly empty
    ones. The grid's single layer holds 0 for dead and 1 for alive. */
-USING Prolif.Games.Life.ILifeEngine.
+USING Prolif.Games.Life.*.
 
 INTERFACE Prolif.Games.Life.ILifeEngine:
 

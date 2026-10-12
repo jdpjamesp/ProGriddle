@@ -8,16 +8,9 @@
 
    The game owns its grid and its engine: Dispose releases both. */
 USING Progress.Lang.*.
-USING Prolif.Core.Grid.
-USING Prolif.Core.GridException.
-USING Prolif.Core.ICellStore.
-USING Prolif.Core.IRandom.
-USING Prolif.Core.Shape.
-USING Prolif.Engine.AbstractGame.
-USING Prolif.Engine.ISteppableGame.
-USING Prolif.Games.Life.ILifeEngine.
-USING Prolif.Games.Life.LifeGame.
-USING Prolif.Games.Life.LifeRules.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
+USING Prolif.Games.Life.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

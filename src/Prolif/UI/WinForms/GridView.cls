@@ -17,12 +17,8 @@ USING System.Drawing.Drawing2D.* FROM ASSEMBLY.
 USING System.Drawing.Imaging.* FROM ASSEMBLY.
 USING System.Drawing.* FROM ASSEMBLY.
 USING System.Windows.Forms.* FROM ASSEMBLY.
-USING Prolif.Core.ArrayStore.
-USING Prolif.Core.Grid.
-USING Prolif.Core.GridException.
-USING Prolif.Core.ICellStore.
-USING Prolif.Core.SparseStore.
-USING Prolif.UI.WinForms.GridView.
+USING Prolif.Core.*.
+USING Prolif.UI.WinForms.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
@@ -126,36 +122,56 @@ CLASS Prolif.UI.WinForms.GridView INHERITS Panel:
         RETURN INTEGER(MAXIMUM(1, TRUNCATE(MINIMUM(THIS-OBJECT:ClientSize:Width / mCols, THIS-OBJECT:ClientSize:Height / mRows), 0))).
     END METHOD.
 
+    /* Pixels between the left edge of the control and the board, which is centred. */
+    METHOD PUBLIC INTEGER OffsetX():
+        IF mCols < 1 THEN RETURN 0.
+        RETURN INTEGER(MAXIMUM(0, TRUNCATE((THIS-OBJECT:ClientSize:Width - CellSize() * mCols) / 2, 0))).
+    END METHOD.
+
+    /* Pixels between the top edge of the control and the board. */
+    METHOD PUBLIC INTEGER OffsetY():
+        IF mRows < 1 THEN RETURN 0.
+        RETURN INTEGER(MAXIMUM(0, TRUNCATE((THIS-OBJECT:ClientSize:Height - CellSize() * mRows) / 2, 0))).
+    END METHOD.
+
     /* Converts a pixel position to a cell. Returns false, and sets both outputs to -1, when
-       the position is outside the board (including the margin beside or below it). */
+       the position is outside the board (including the margin around it). */
     METHOD PUBLIC LOGICAL HitTest(INPUT piX AS INTEGER, INPUT piY AS INTEGER,
                                   OUTPUT piCellX AS INTEGER, OUTPUT piCellY AS INTEGER):
         DEFINE VARIABLE cs AS INTEGER NO-UNDO.
+        DEFINE VARIABLE relX AS INTEGER NO-UNDO.
+        DEFINE VARIABLE relY AS INTEGER NO-UNDO.
         piCellX = -1.
         piCellY = -1.
-        IF mCols < 1 OR mRows < 1 OR piX < 0 OR piY < 0 THEN RETURN FALSE.
+        IF mCols < 1 OR mRows < 1 THEN RETURN FALSE.
         cs = CellSize().
-        IF piX >= cs * mCols OR piY >= cs * mRows THEN RETURN FALSE.
-        piCellX = INTEGER(TRUNCATE(piX / cs, 0)).
-        piCellY = INTEGER(TRUNCATE(piY / cs, 0)).
+        relX = piX - OffsetX().
+        relY = piY - OffsetY().
+        IF relX < 0 OR relY < 0 OR relX >= cs * mCols OR relY >= cs * mRows THEN RETURN FALSE.
+        piCellX = INTEGER(TRUNCATE(relX / cs, 0)).
+        piCellY = INTEGER(TRUNCATE(relY / cs, 0)).
         RETURN TRUE.
     END METHOD.
 
     METHOD PROTECTED OVERRIDE VOID OnPaint(INPUT e AS PaintEventArgs):
         DEFINE VARIABLE cs AS INTEGER NO-UNDO.
         DEFINE VARIABLE i  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ox AS INTEGER NO-UNDO.
+        DEFINE VARIABLE oy AS INTEGER NO-UNDO.
         ETIME(TRUE).
         IF VALID-OBJECT(mBitmap) THEN DO:
             cs = CellSize().
+            ox = OffsetX().
+            oy = OffsetY().
             e:Graphics:InterpolationMode = InterpolationMode:NearestNeighbor.
             e:Graphics:PixelOffsetMode = PixelOffsetMode:Half.
-            e:Graphics:DrawImage(mBitmap, 0, 0, cs * mCols, cs * mRows).
+            e:Graphics:DrawImage(mBitmap, ox, oy, cs * mCols, cs * mRows).
             IF ShowGridLines AND cs >= 8 THEN DO:
                 DO i = 0 TO mCols:
-                    e:Graphics:DrawLine(mLinePen, i * cs, 0, i * cs, mRows * cs).
+                    e:Graphics:DrawLine(mLinePen, ox + i * cs, oy, ox + i * cs, oy + mRows * cs).
                 END.
                 DO i = 0 TO mRows:
-                    e:Graphics:DrawLine(mLinePen, 0, i * cs, mCols * cs, i * cs).
+                    e:Graphics:DrawLine(mLinePen, ox, oy + i * cs, ox + mCols * cs, oy + i * cs).
                 END.
             END.
         END.

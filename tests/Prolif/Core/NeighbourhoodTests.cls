@@ -1,8 +1,5 @@
-USING OpenEdge.Core.Assert.
-USING Prolif.Core.CustomNeighbourhood.
-USING Prolif.Core.INeighbourhood.
-USING Prolif.Core.MooreNeighbourhood.
-USING Prolif.Core.VonNeumannNeighbourhood.
+USING OpenEdge.Core.*.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

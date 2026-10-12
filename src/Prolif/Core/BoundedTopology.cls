@@ -1,6 +1,5 @@
 /* Edges are walls: a coordinate off the board refers to no cell. */
-USING Prolif.Core.BoundedTopology.
-USING Prolif.Core.ITopology.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

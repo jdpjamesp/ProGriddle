@@ -1,6 +1,6 @@
 /* The set of offsets that count as a cell's neighbours. Offsets are numbered from 1.
    An offset is never (0, 0) and never repeats. */
-USING Prolif.Core.INeighbourhood.
+USING Prolif.Core.*.
 
 INTERFACE Prolif.Core.INeighbourhood:
 

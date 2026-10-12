@@ -9,8 +9,7 @@
    Text form (Parse and ToString): rows separated by "/", "X" is a cell and
    any other character is empty. For example "XX/.X". */
 USING Progress.Lang.*.
-USING Prolif.Core.GridException.
-USING Prolif.Core.Shape.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

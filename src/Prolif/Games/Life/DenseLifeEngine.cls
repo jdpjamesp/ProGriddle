@@ -8,13 +8,8 @@
    The grid must have an ArrayStore with exactly one layer holding only 0 and 1. The two
    working buffers are MEMPTRs, freed by Dispose and by the destructor. */
 USING Progress.Lang.*.
-USING Prolif.Core.ArrayStore.
-USING Prolif.Core.Grid.
-USING Prolif.Core.GridException.
-USING Prolif.Core.INeighbourhood.
-USING Prolif.Games.Life.DenseLifeEngine.
-USING Prolif.Games.Life.ILifeEngine.
-USING Prolif.Games.Life.LifeRules.
+USING Prolif.Core.*.
+USING Prolif.Games.Life.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

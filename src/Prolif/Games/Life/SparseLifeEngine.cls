@@ -9,12 +9,8 @@
    whole empty board and a sparse engine cannot represent that. Needs no memory beyond
    temp tables. */
 USING Progress.Lang.*.
-USING Prolif.Core.Grid.
-USING Prolif.Core.GridException.
-USING Prolif.Core.SparseStore.
-USING Prolif.Games.Life.ILifeEngine.
-USING Prolif.Games.Life.LifeRules.
-USING Prolif.Games.Life.SparseLifeEngine.
+USING Prolif.Core.*.
+USING Prolif.Games.Life.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

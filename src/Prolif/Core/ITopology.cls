@@ -1,7 +1,7 @@
 /* What happens at the edges of a grid. A topology holds no state: the grid size is passed
    in on every call, so one topology object works for any grid. x and y start at 0 and the
    cell index is (y * width) + x. */
-USING Prolif.Core.ITopology.
+USING Prolif.Core.*.
 
 INTERFACE Prolif.Core.ITopology:
 

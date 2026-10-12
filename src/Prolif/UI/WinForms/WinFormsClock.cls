@@ -3,9 +3,9 @@
    frees it: call it when the window closes. */
 USING Progress.Lang.*.
 USING System.Windows.Forms.Timer FROM ASSEMBLY.
-USING Prolif.Core.GridException.
-USING Prolif.Engine.IClock.
-USING Prolif.UI.WinForms.WinFormsClock.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
+USING Prolif.UI.WinForms.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

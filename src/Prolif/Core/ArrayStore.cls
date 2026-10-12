@@ -6,10 +6,7 @@
    The MEMPTR is freed by Dispose, and by the destructor as a safety net. Do not use a
    store after Dispose. */
 USING Progress.Lang.*.
-USING Prolif.Core.AbstractCellStore.
-USING Prolif.Core.ArrayStore.
-USING Prolif.Core.GridException.
-USING Prolif.Core.ICellStore.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

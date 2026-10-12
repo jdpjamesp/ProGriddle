@@ -1,8 +1,6 @@
 /* Tests for what is particular to SparseStore. The shared contract is in CellStoreContractTests. */
-USING OpenEdge.Core.Assert.
-USING Prolif.Core.ArrayStore.
-USING Prolif.Core.ICellStore.
-USING Prolif.Core.SparseStore.
+USING OpenEdge.Core.*.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

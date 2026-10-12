@@ -1,7 +1,6 @@
-USING OpenEdge.Core.Assert.
-USING Prolif.Core.ArrayStore.
-USING Prolif.Core.Grid.
-USING Prolif.Engine.CountingGame.
+USING OpenEdge.Core.*.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

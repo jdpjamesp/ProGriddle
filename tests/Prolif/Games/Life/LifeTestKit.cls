@@ -2,21 +2,9 @@
    Engine kinds: 1 is the dense engine on an ArrayStore, 2 is the sparse engine on a
    SparseStore. */
 USING Progress.Lang.*.
-USING Prolif.Core.ArrayStore.
-USING Prolif.Core.BoundedTopology.
-USING Prolif.Core.Grid.
-USING Prolif.Core.ICellStore.
-USING Prolif.Core.ITopology.
-USING Prolif.Core.MooreNeighbourhood.
-USING Prolif.Core.SparseStore.
-USING Prolif.Core.ToroidalTopology.
-USING Prolif.Games.Life.DenseLifeEngine.
-USING Prolif.Games.Life.ILifeEngine.
-USING Prolif.Games.Life.LifeGame.
-USING Prolif.Games.Life.LifeRules.
-USING Prolif.Games.Life.LifeTestKit.
-USING Prolif.Games.Life.SparseLifeEngine.
-USING Prolif.UI.Text.TextGridRenderer.
+USING Prolif.Core.*.
+USING Prolif.Games.Life.*.
+USING Prolif.UI.Text.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

@@ -1,11 +1,8 @@
 /* Draws a game by handing one layer of its grid to a GridView. The view does the painting. */
 USING Progress.Lang.*.
-USING Prolif.Core.Grid.
-USING Prolif.Core.GridException.
-USING Prolif.Engine.IGame.
-USING Prolif.Engine.IGridRenderer.
-USING Prolif.UI.WinForms.GridView.
-USING Prolif.UI.WinForms.WinFormsGridRenderer.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
+USING Prolif.UI.WinForms.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

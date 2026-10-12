@@ -4,10 +4,7 @@
    Concrete stores implement the four cell accessors, Duplicate and Dispose.
    (Not called Clone, because every ABL object already inherits a Clone method.) */
 USING Progress.Lang.*.
-USING Prolif.Core.AbstractCellStore.
-USING Prolif.Core.GridException.
-USING Prolif.Core.ICellStore.
-USING Prolif.Core.Shape.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

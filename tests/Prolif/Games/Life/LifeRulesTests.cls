@@ -1,5 +1,5 @@
-USING OpenEdge.Core.Assert.
-USING Prolif.Games.Life.LifeRules.
+USING OpenEdge.Core.*.
+USING Prolif.Games.Life.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

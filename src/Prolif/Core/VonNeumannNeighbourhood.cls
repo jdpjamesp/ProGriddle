@@ -1,6 +1,5 @@
 /* The four orthogonal cells, no diagonals, in reading order: up, left, right, down. */
-USING Prolif.Core.CustomNeighbourhood.
-USING Prolif.Core.VonNeumannNeighbourhood.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

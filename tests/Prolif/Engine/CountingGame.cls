@@ -1,9 +1,7 @@
 /* Test double: a steppable game that only counts. It is over after piLimit steps, or never
    when piLimit is 0. Not a test class itself (the name does not end in Tests). */
-USING Prolif.Core.Grid.
-USING Prolif.Engine.AbstractGame.
-USING Prolif.Engine.CountingGame.
-USING Prolif.Engine.ISteppableGame.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

@@ -1,8 +1,6 @@
 /* Tests for what is particular to ArrayStore. The shared contract is in CellStoreContractTests. */
-USING OpenEdge.Core.Assert.
-USING Prolif.Core.ArrayStore.
-USING Prolif.Core.GridException.
-USING Prolif.Core.ICellStore.
+USING OpenEdge.Core.*.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

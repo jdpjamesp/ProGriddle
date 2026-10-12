@@ -7,8 +7,8 @@
    or a survival. The notation is checked, upper cased and sorted, so "b63/s32" is stored
    as "B36/S23". */
 USING Progress.Lang.*.
-USING Prolif.Core.GridException.
-USING Prolif.Games.Life.LifeRules.
+USING Prolif.Core.*.
+USING Prolif.Games.Life.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

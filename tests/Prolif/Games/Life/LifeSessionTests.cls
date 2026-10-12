@@ -1,16 +1,11 @@
 /* Scripted sessions: a real LifeGame driven by GameController, a FakeClock and a
    TextGridRenderer, the way a person would drive it from the keyboard. This is the
    no-GUI proof that the whole stack works together. */
-USING OpenEdge.Core.Assert.
+USING OpenEdge.Core.*.
 USING Progress.Lang.*.
-USING Prolif.Engine.GameCommand.
-USING Prolif.Engine.GameController.
-USING Prolif.Games.Life.LifeFactory.
-USING Prolif.Games.Life.LifeGame.
-USING Prolif.Games.Life.LifePatterns.
-USING Prolif.Games.Life.LifeRules.
-USING Prolif.UI.Text.FakeClock.
-USING Prolif.UI.Text.TextGridRenderer.
+USING Prolif.Engine.*.
+USING Prolif.Games.Life.*.
+USING Prolif.UI.Text.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

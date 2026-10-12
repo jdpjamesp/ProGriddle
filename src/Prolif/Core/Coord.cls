@@ -1,7 +1,7 @@
 /* Immutable x, y pair. Used at the edges of the API (moves, UI, tests) only.
    Hot paths use integer x, y and integer cell indexes, never this class. */
 USING Progress.Lang.*.
-USING Prolif.Core.Coord.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

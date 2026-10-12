@@ -1,10 +1,7 @@
 /* Test double: remembers how often it was asked to draw and the generation it last saw.
    Not a test class itself (the name does not end in Tests). */
-USING Prolif.Core.Grid.
-USING Prolif.Engine.IGame.
-USING Prolif.Engine.IGridRenderer.
-USING Prolif.Engine.ISteppableGame.
-USING Prolif.Engine.RecordingRenderer.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

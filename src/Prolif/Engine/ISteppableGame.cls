@@ -1,6 +1,5 @@
 /* A game whose whole grid updates at once on each step, such as Conway's Life. */
-USING Prolif.Engine.IGame.
-USING Prolif.Engine.ISteppableGame.
+USING Prolif.Engine.*.
 
 INTERFACE Prolif.Engine.ISteppableGame INHERITS IGame:
 

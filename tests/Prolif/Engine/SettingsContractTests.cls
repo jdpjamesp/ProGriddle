@@ -1,11 +1,9 @@
 /* What every ISettings must do. Each test runs once per implementation (memory and JSON
    file) and a failure names which. */
-USING OpenEdge.Core.Assert.
+USING OpenEdge.Core.*.
 USING Progress.Lang.*.
-USING Prolif.Core.GridException.
-USING Prolif.Engine.ISettings.
-USING Prolif.Engine.JsonFileSettings.
-USING Prolif.Engine.MemorySettings.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

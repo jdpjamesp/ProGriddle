@@ -2,9 +2,7 @@
    every machine. It is fast and good enough for games and tests, not for security.
    x(next) = (x * 1103515245 + 12345) modulo 2^31. */
 USING Progress.Lang.*.
-USING Prolif.Core.GridException.
-USING Prolif.Core.IRandom.
-USING Prolif.Core.SeededRandom.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

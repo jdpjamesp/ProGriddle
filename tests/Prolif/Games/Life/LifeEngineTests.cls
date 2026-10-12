@@ -1,15 +1,10 @@
 /* The Life rules proved against both engines. Every test runs once per engine kind (dense
    and sparse) and the engines are also compared with each other and with a slow, obvious
    reference. A failure names the engine. */
-USING OpenEdge.Core.Assert.
+USING OpenEdge.Core.*.
 USING Progress.Lang.*.
-USING Prolif.Core.IRandom.
-USING Prolif.Core.SeededRandom.
-USING Prolif.Core.Shape.
-USING Prolif.Games.Life.LifeGame.
-USING Prolif.Games.Life.LifePatterns.
-USING Prolif.Games.Life.LifeRules.
-USING Prolif.Games.Life.LifeTestKit.
+USING Prolif.Core.*.
+USING Prolif.Games.Life.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

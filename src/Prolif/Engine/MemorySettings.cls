@@ -1,7 +1,6 @@
 /* Settings held in memory only: a test double, and a stand-in when nothing should be saved.
    Save does nothing. */
-USING Prolif.Engine.AbstractSettings.
-USING Prolif.Engine.MemorySettings.
+USING Prolif.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

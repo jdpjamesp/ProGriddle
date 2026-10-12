@@ -3,7 +3,7 @@
    commands (Life: Random, Clear) and what a left or a right click on a cell does. The window
    builds its status bar, picker and buttons from this, so a new game needs no new window.
    Implementations live with the game and use no UI types. */
-USING Prolif.Engine.IGameInput.
+USING Prolif.Engine.*.
 
 INTERFACE Prolif.Engine.IGameInput:
 

@@ -1,6 +1,6 @@
-USING OpenEdge.Core.Assert.
-USING Prolif.Core.Shape.
-USING Prolif.Games.Life.LifePatterns.
+USING OpenEdge.Core.*.
+USING Prolif.Core.*.
+USING Prolif.Games.Life.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

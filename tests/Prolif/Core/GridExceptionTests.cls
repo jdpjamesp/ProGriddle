@@ -1,6 +1,6 @@
-USING OpenEdge.Core.Assert.
-USING Progress.Lang.AppError.
-USING Prolif.Core.GridException.
+USING OpenEdge.Core.*.
+USING Progress.Lang.*.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

@@ -4,9 +4,8 @@
    Plain text format (as used by .cells files): lines starting with "!" are comments, "." is a
    dead cell, and "O" (also "X", "#" and "*") is a live one. Rows may have different lengths. */
 USING Progress.Lang.*.
-USING Prolif.Core.GridException.
-USING Prolif.Core.Shape.
-USING Prolif.Games.Life.LifePatterns.
+USING Prolif.Core.*.
+USING Prolif.Games.Life.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

@@ -1,7 +1,6 @@
 /* The eight surrounding cells, including diagonals, in reading order:
    up left, up, up right, left, right, down left, down, down right. */
-USING Prolif.Core.CustomNeighbourhood.
-USING Prolif.Core.MooreNeighbourhood.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

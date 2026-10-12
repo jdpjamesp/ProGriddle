@@ -5,13 +5,9 @@
    A pattern that would hang off the board is moved back so it fits; a pattern bigger than
    the board is ignored. */
 USING Progress.Lang.*.
-USING Prolif.Core.GridException.
-USING Prolif.Core.IRandom.
-USING Prolif.Core.Shape.
-USING Prolif.Engine.IGameInput.
-USING Prolif.Games.Life.LifeGame.
-USING Prolif.Games.Life.LifeInput.
-USING Prolif.Games.Life.LifePatterns.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
+USING Prolif.Games.Life.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

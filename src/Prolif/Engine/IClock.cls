@@ -1,6 +1,6 @@
 /* A source of regular ticks. The WinForms clock wraps a Windows timer. The test clock is
    advanced by hand, so games that depend on time are deterministic under test. */
-USING Prolif.Engine.IClock.
+USING Prolif.Engine.*.
 
 INTERFACE Prolif.Engine.IClock:
 

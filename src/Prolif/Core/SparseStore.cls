@@ -4,10 +4,7 @@
    proportion to them, not to the board size. Best when under about 10 to 15 percent of
    the cells are occupied (see the Phase 0 benchmark in the README). */
 USING Progress.Lang.*.
-USING Prolif.Core.AbstractCellStore.
-USING Prolif.Core.GridException.
-USING Prolif.Core.ICellStore.
-USING Prolif.Core.SparseStore.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

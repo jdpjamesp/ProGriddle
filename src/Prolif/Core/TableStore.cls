@@ -10,10 +10,7 @@
 
    The temp table and the MEMPTR are freed by Dispose, and by the destructor as a safety net. */
 USING Progress.Lang.*.
-USING Prolif.Core.AbstractCellStore.
-USING Prolif.Core.GridException.
-USING Prolif.Core.ICellStore.
-USING Prolif.Core.TableStore.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

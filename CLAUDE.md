@@ -4,7 +4,7 @@ OpenEdge ABL OO framework for grid based games. Target: OpenEdge 12.8, Windows, 
 
 ## Rules
 - OpenEdge ABL OO only. One class per file. Namespace matches folder path.
-- Always use `USING` statements, never fully qualified names inline.
+- Always use `USING` statements, never fully qualified names inline. ALWAYS use the wildcard form, one line per namespace, for example `USING Prolif.Games.Life.*.`, `USING Prolif.Core.*.`, `USING OpenEdge.Core.*.`, `USING Progress.Lang.*.`. Never write one `USING` per class. This also covers the class's own namespace. Only .NET types stay specific where a wildcard would clash, for example `USING System.Windows.Forms.Timer FROM ASSEMBLY.` (the layering check reads both forms).
 - Program against interfaces. Concrete classes are created only in composition roots (the `run-*.p` files and tests).
 - Prefer `FINAL` on classes not designed for inheritance. Mark abstract methods explicitly.
 - No object allocation inside per cell loops.

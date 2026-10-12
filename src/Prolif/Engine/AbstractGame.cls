@@ -3,10 +3,8 @@
    A subclass overrides OnInitialise to set up its starting position and sets IsOver and
    Generation as play proceeds. */
 USING Progress.Lang.*.
-USING Prolif.Core.Grid.
-USING Prolif.Core.GridException.
-USING Prolif.Engine.AbstractGame.
-USING Prolif.Engine.IGame.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

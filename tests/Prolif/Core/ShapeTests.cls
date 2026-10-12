@@ -1,5 +1,5 @@
-USING OpenEdge.Core.Assert.
-USING Prolif.Core.Shape.
+USING OpenEdge.Core.*.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

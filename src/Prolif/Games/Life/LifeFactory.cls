@@ -4,21 +4,8 @@
    engine costs about 8 to 75 microseconds per live cell. They break even at about 5 percent
    of the cells alive, so sparse is used below that and dense from there upward. */
 USING Progress.Lang.*.
-USING Prolif.Core.ArrayStore.
-USING Prolif.Core.BoundedTopology.
-USING Prolif.Core.Grid.
-USING Prolif.Core.GridException.
-USING Prolif.Core.ICellStore.
-USING Prolif.Core.ITopology.
-USING Prolif.Core.MooreNeighbourhood.
-USING Prolif.Core.SparseStore.
-USING Prolif.Core.ToroidalTopology.
-USING Prolif.Games.Life.DenseLifeEngine.
-USING Prolif.Games.Life.ILifeEngine.
-USING Prolif.Games.Life.LifeFactory.
-USING Prolif.Games.Life.LifeGame.
-USING Prolif.Games.Life.LifeRules.
-USING Prolif.Games.Life.SparseLifeEngine.
+USING Prolif.Core.*.
+USING Prolif.Games.Life.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

@@ -1,7 +1,6 @@
 /* Tests for what is particular to TableStore. The shared contract is in CellStoreContractTests. */
-USING OpenEdge.Core.Assert.
-USING Prolif.Core.ICellStore.
-USING Prolif.Core.TableStore.
+USING OpenEdge.Core.*.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

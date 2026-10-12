@@ -1,14 +1,7 @@
-USING OpenEdge.Core.Assert.
-USING Prolif.Core.ArrayStore.
-USING Prolif.Core.Grid.
-USING Prolif.Engine.CountingGame.
-USING Prolif.Engine.GameCommand.
-USING Prolif.Engine.GameController.
-USING Prolif.Engine.IClock.
-USING Prolif.Engine.IGridRenderer.
-USING Prolif.Engine.ISteppableGame.
-USING Prolif.Engine.RecordingRenderer.
-USING Prolif.UI.Text.FakeClock.
+USING OpenEdge.Core.*.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
+USING Prolif.UI.Text.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

@@ -5,13 +5,7 @@
 
    The grid owns its store: Dispose on the grid disposes the store. */
 USING Progress.Lang.*.
-USING Prolif.Core.BoundedTopology.
-USING Prolif.Core.Grid.
-USING Prolif.Core.GridException.
-USING Prolif.Core.ICellStore.
-USING Prolif.Core.INeighbourhood.
-USING Prolif.Core.ITopology.
-USING Prolif.Core.MooreNeighbourhood.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

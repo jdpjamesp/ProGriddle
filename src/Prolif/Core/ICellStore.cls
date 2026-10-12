@@ -10,8 +10,7 @@
    - Every layer starts at 0 and 0 means empty. Cell meaning is defined by the game.
    - Any x, y, index or layer outside its range throws GridException.
    - Dispose releases memory or tables. Call it when the store is no longer needed. */
-USING Prolif.Core.ICellStore.
-USING Prolif.Core.Shape.
+USING Prolif.Core.*.
 
 INTERFACE Prolif.Core.ICellStore:
 

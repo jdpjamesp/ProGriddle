@@ -2,9 +2,9 @@
    says "You can only use the .NET event loop in a GUI application"), so the timer can never
    tick in these tests and they only cover the clock's own state. Real ticks are checked in
    the windowed end to end run of run-life.p (see the manual checklist in README.md). */
-USING OpenEdge.Core.Assert.
+USING OpenEdge.Core.*.
 USING Progress.Lang.*.
-USING Prolif.UI.WinForms.WinFormsClock.
+USING Prolif.UI.WinForms.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

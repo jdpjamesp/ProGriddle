@@ -11,8 +11,8 @@
 
    Extra commands come from IGameInput:CommandNames ("Random:G,Clear:C"). */
 USING Progress.Lang.*.
-USING Prolif.Engine.GameCommand.
-USING Prolif.UI.WinForms.KeyMap.
+USING Prolif.Engine.*.
+USING Prolif.UI.WinForms.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

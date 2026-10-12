@@ -1,5 +1,5 @@
-USING OpenEdge.Core.Assert.
-USING Prolif.UI.Text.FakeClock.
+USING OpenEdge.Core.*.
+USING Prolif.UI.Text.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

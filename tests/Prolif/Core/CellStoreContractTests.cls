@@ -2,14 +2,9 @@
    from a base class, so instead of subclassing, each test here loops over every store
    kind and names the failing store in its error message. A new store only needs a new
    branch in Make and StoreName, and a higher KindCount. */
-USING OpenEdge.Core.Assert.
+USING OpenEdge.Core.*.
 USING Progress.Lang.*.
-USING Prolif.Core.ArrayStore.
-USING Prolif.Core.GridException.
-USING Prolif.Core.ICellStore.
-USING Prolif.Core.Shape.
-USING Prolif.Core.SparseStore.
-USING Prolif.Core.TableStore.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

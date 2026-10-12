@@ -1,7 +1,7 @@
 /* What every game offers its controller and renderer. A game owns its grid. Game logic
    never touches rendering, input or .NET, so it runs the same in the GUI or under test. */
-USING Prolif.Core.Grid.
-USING Prolif.Engine.IGame.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
 
 INTERFACE Prolif.Engine.IGame:
 

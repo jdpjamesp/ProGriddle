@@ -9,9 +9,8 @@
    crash part way cannot leave a half written settings file. */
 USING Progress.Json.ObjectModel.*.
 USING Progress.Lang.*.
-USING Prolif.Core.GridException.
-USING Prolif.Engine.AbstractSettings.
-USING Prolif.Engine.JsonFileSettings.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

@@ -3,7 +3,7 @@
    default the caller supplies. Keys are namespaced by game with a dot, for example
    "life.speed", and may use letters, digits, dot, underscore and hyphen. A bad key throws
    GridException. */
-USING Prolif.Engine.ISettings.
+USING Prolif.Engine.*.
 
 INTERFACE Prolif.Engine.ISettings:
 

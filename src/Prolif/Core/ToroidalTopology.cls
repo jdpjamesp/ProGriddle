@@ -1,7 +1,6 @@
 /* Edges wrap: leaving one side brings you back in on the opposite side, so the board
    behaves like the surface of a doughnut. Every coordinate refers to a cell. */
-USING Prolif.Core.ITopology.
-USING Prolif.Core.ToroidalTopology.
+USING Prolif.Core.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 

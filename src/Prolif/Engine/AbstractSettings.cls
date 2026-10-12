@@ -3,9 +3,8 @@
    native Progress.Json classes are used, so nothing here needs .NET. */
 USING Progress.Json.ObjectModel.*.
 USING Progress.Lang.*.
-USING Prolif.Core.GridException.
-USING Prolif.Engine.AbstractSettings.
-USING Prolif.Engine.ISettings.
+USING Prolif.Core.*.
+USING Prolif.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
