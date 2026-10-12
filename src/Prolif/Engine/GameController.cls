@@ -71,6 +71,12 @@ CLASS Prolif.Engine.GameController FINAL:
         Redraw().
     END METHOD.
 
+    /* Draws the game again without changing it. Call it after the game was changed from
+       outside, for example by a click on a cell. */
+    METHOD PUBLIC VOID Refresh():
+        Redraw().
+    END METHOD.
+
     METHOD PUBLIC VOID SpeedUp():
         SetSpeed(SpeedLevel + 1).
     END METHOD.

@@ -110,6 +110,14 @@ CLASS Prolif.Engine.GameControllerTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID RefreshDrawsAgainWithoutChangingTheGame():
+        mController:Refresh().
+        Assert:Equals(2, mRenderer:RenderCount).
+        Assert:Equals(0, mGame:Generation).
+        Assert:IsFalse(mController:IsRunning).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID SpeedUpAndSlowDownMoveThroughTheSixLevels():
         mController:SpeedUp().
         Assert:Equals(4, mController:SpeedLevel).
