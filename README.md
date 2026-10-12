@@ -42,13 +42,56 @@ Things worth knowing about this environment:
 }
 ```
 
+## Running the GUI spike
+
+```
+"C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-spike.p,build/gui-spike.log,0"
+```
+
+`tools/launch.p` sets PROPATH and then runs the named program, so `USING` statements resolve at compile time. The last argument is an auto exit time in seconds (0 keeps the window open). Run from the repository root.
+
 ## Manual GUI checklist
 
-To be written once the GUI spike is done.
+Run by hand, because Claude Code cannot see the screen. For the spike:
 
-## Benchmarks
+- [ ] A window titled "ProLific GUI spike" opens with a 20 x 20 checkerboard.
+- [ ] The status bar tick counter goes up once a second.
+- [ ] Click a cell: the status bar shows `click cell x,y`.
+- [ ] Press 2: the board becomes 100 x 100. Press 1 to return to 20 x 20.
+- [ ] Press R: repaints run 10 times a second. Look for flicker or tearing at 100 x 100.
+- [ ] Resize the window: the board rescales.
+- [ ] Close the window: `build/gui-spike.log` ends with "closed cleanly" and the process exits.
 
-To be recorded from the Phase 0 storage benchmark.
+## Phase 0 findings
+
+Environment (OpenEdge 12.8.0.1207, Windows 11):
+
+- `_progres -b` runs batch programs and ABLUnit. `prowin -b` also compiles .NET GUI classes. The .NET bridge targets .NET Framework 4.x (CLR v4.0.30319), not modern .NET. `USING System.Windows.Forms.* FROM ASSEMBLY.` and `System.Drawing` work in the standard way.
+- GUI pattern that works: a form class inheriting `System.Windows.Forms.Form`, a control class inheriting `Panel` with `DoubleBuffered = TRUE` and an overridden `OnPaint`, events wired with `Subscribe` and removed with `Unsubscribe` in `FormClosed`, and `WAIT-FOR Application:Run(form)` followed by `QUIT`. Without the `QUIT`, prowin stays running after the window closes.
+- Timer ticks, mouse clicks (with pixel to cell hit testing) and key presses were all confirmed through the spike log, driven by simulated input.
+- **Dynamic extent limit: 28,000 elements, not 1,000,000.** A 1000 x 1000 board cannot be an INTEGER extent. A `MEMPTR` layer has no such limit and was as fast or faster (see below), so it is the planned backing for `ArrayStore`.
+- Per cell `FillRectangle` through the bridge costs about 5 ms per paint at 20 x 20 and **about 95 to 100 ms at 100 x 100**, so 100 x 100 saturates at roughly 9 to 10 paints a second. The renderer will need a cheaper strategy (draw only live cells, or build a Bitmap and scale it). Flicker itself must be judged by eye using the checklist.
+
+### Storage benchmark
+
+Interpreted ABL costs roughly 1 microsecond per simple operation, so work done matters more than the storage type. Bounded edges, B3/S23, seeded random start. `ext` is a dynamic extent, `mem` is a MEMPTR, a trailing `f` adds an interior fast path (no bounds checks, unrolled neighbours), `tt` is a temp table with one record per cell, `sparse` is a temp table of live cells only. All modes gave identical live counts. Milliseconds per generation, 100 x 100, averaged over 20 generations:
+
+| Start density | ext | extf | mem | memf | tt | sparse |
+|---|---|---|---|---|---|---|
+| 1% | 113 | 43 | 106 | 41 | 28 | 0.4 (board dies out) |
+| 10% | 114 | 49 | 105 | 37 | 48 | 27 |
+| 30% | 118 | 54 | 104 | 39 | 137 | 144 |
+
+1000 x 1000: `mem` 10,347 ms per generation, `memf` 3,646 ms, `sparse` at 10% 6,392 ms, `sparse` at 30% 24,276 ms, `tt` at 10% 17,544 ms (and 17 s just to build 1,000,000 records). Tetris row clear and shift on a 10 x 20 temp table: about 2 ms for a four line clear. Memory: a MEMPTR layer is 4 bytes per cell (4 MB at 1000 x 1000). Process working set was not informative for temp tables, because ABL pages them to its temp file.
+
+Caveats: random 1% and 10% starts decay within a few generations, so the sparse averages favour sparse at low density. The temp table and sparse engines touch only live cells, while the dense ones scan every cell.
+
+Conclusions:
+
+- Dense (`MEMPTR` with the interior fast path) is about 40 ms per generation at 100 x 100 whatever the density, so it is the safe default for boards up to a few hundred cells wide.
+- Sparse wins below roughly 10 to 15% live density and loses badly above about 20%. The crossover at 100 x 100 is near 15%.
+- 1000 x 1000 is not interactive in any mode (several seconds per generation at best). 500 x 500 for 100 generations will take minutes.
+- Temp table per cell (`TableStore`) is fine for small boards (Minesweeper, Battleships, Tetris) and too slow for large Life boards.
 
 ## Licence
 

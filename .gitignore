@@ -37,3 +37,8 @@ Desktop.ini
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Progress stack trace dumps
+procore
+procore.*
+*.procore
