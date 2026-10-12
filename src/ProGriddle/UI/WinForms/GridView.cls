@@ -47,7 +47,9 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
     DEFINE PRIVATE VARIABLE mReleased AS LOGICAL NO-UNDO.
 
     /* glyphs: text and colour per cell value, a brush per glyph, and the value of every cell */
-    DEFINE PRIVATE VARIABLE mGlyphText   AS CHARACTER  NO-UNDO EXTENT.
+    DEFINE PRIVATE VARIABLE mGlyphSpec   AS CHARACTER  NO-UNDO EXTENT.
+    /* the text to draw as UTF-8, because a CHARACTER here is ISO 8859-1 and cannot hold a flag */
+    DEFINE PRIVATE VARIABLE mGlyphText   AS LONGCHAR   NO-UNDO EXTENT.
     DEFINE PRIVATE VARIABLE mGlyphBrush  AS SolidBrush NO-UNDO EXTENT.
     DEFINE PRIVATE VARIABLE mGlyphCount  AS INTEGER    NO-UNDO.
     DEFINE PRIVATE VARIABLE mCellValues  AS MEMPTR     NO-UNDO.
@@ -127,7 +129,8 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
 
     /* Text drawn in the middle of each cell, by cell value: the first entry is for value 0, the
        next for value 1, and so on. An entry is plain text, "U+" and hex digits for a character
-       by code point (U+2691 is a flag), or empty for no glyph. pcColors lists the six digit
+       by code point (U+1F6A9 is a flag on a post), or empty for no glyph. Code points are
+       needed for anything outside Latin 1, which an ABL string cannot carry. pcColors lists the six digit
        hex colour of each glyph in the same order; a missing colour is white. Values with no
        entry get no glyph. Entries are separated by commas, so a comma cannot be a glyph.
        Takes effect on the next Show. */
@@ -140,12 +143,14 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         IF pcColors = ? THEN pcColors = "".
         FreeGlyphs().
         n = NUM-ENTRIES(pcGlyphs).
+        EXTENT(mGlyphSpec) = n.
         EXTENT(mGlyphText) = n.
         EXTENT(mGlyphBrush) = n.
         DO i = 1 TO n:
             item = TRIM(ENTRY(i, pcGlyphs)).
-            IF item BEGINS "U+" THEN item = System.Char:ConvertFromUtf32(HexToInt(SUBSTRING(item, 3), 1)).
-            mGlyphText[i] = item.
+            mGlyphSpec[i] = item.
+            IF item BEGINS "U+" THEN SetCodePoint(i, HexToInt(SUBSTRING(item, 3), 1)).
+            ELSE mGlyphText[i] = item.
             rgb = 16777215.
             IF i <= NUM-ENTRIES(pcColors) AND TRIM(ENTRY(i, pcColors)) <> "" THEN rgb = HexToInt(TRIM(ENTRY(i, pcColors)), 6).
             mGlyphBrush[i] = NEW SolidBrush(Color:FromArgb(INTEGER(TRUNCATE(rgb / 65536, 0)),
@@ -155,7 +160,44 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         mGlyphCount = n.
     END METHOD.
 
-    /* The glyph text for a cell's current value, an empty string when it has none. For tests. */
+    /* Puts one character, given as a Unicode code point, into glyph i. It is built as UTF-8
+       bytes and kept in a LONGCHAR with a fixed UTF-8 codepage, which the .NET bridge hands
+       over as a proper string. */
+    METHOD PRIVATE VOID SetCodePoint(INPUT piIndex AS INTEGER, INPUT piCodePoint AS INTEGER):
+        DEFINE VARIABLE bytes AS MEMPTR NO-UNDO.
+        IF piCodePoint < 1 OR piCodePoint > 1114111 OR (piCodePoint >= 55296 AND piCodePoint <= 57343) THEN
+            UNDO, THROW NEW GridException("Not a Unicode character: U+" + STRING(piCodePoint)).
+        IF piCodePoint < 128 THEN DO:
+            SET-SIZE(bytes) = 1.
+            PUT-BYTE(bytes, 1) = piCodePoint.
+        END.
+        ELSE IF piCodePoint < 2048 THEN DO:
+            SET-SIZE(bytes) = 2.
+            PUT-BYTE(bytes, 1) = 192 + INTEGER(TRUNCATE(piCodePoint / 64, 0)).
+            PUT-BYTE(bytes, 2) = 128 + (piCodePoint MODULO 64).
+        END.
+        ELSE IF piCodePoint < 65536 THEN DO:
+            SET-SIZE(bytes) = 3.
+            PUT-BYTE(bytes, 1) = 224 + INTEGER(TRUNCATE(piCodePoint / 4096, 0)).
+            PUT-BYTE(bytes, 2) = 128 + (INTEGER(TRUNCATE(piCodePoint / 64, 0)) MODULO 64).
+            PUT-BYTE(bytes, 3) = 128 + (piCodePoint MODULO 64).
+        END.
+        ELSE DO:
+            SET-SIZE(bytes) = 4.
+            PUT-BYTE(bytes, 1) = 240 + INTEGER(TRUNCATE(piCodePoint / 262144, 0)).
+            PUT-BYTE(bytes, 2) = 128 + (INTEGER(TRUNCATE(piCodePoint / 4096, 0)) MODULO 64).
+            PUT-BYTE(bytes, 3) = 128 + (INTEGER(TRUNCATE(piCodePoint / 64, 0)) MODULO 64).
+            PUT-BYTE(bytes, 4) = 128 + (piCodePoint MODULO 64).
+        END.
+        FIX-CODEPAGE(mGlyphText[piIndex]) = "UTF-8".
+        COPY-LOB FROM bytes TO mGlyphText[piIndex] CONVERT SOURCE CODEPAGE "UTF-8".
+        FINALLY:
+            SET-SIZE(bytes) = 0.
+        END FINALLY.
+    END METHOD.
+
+    /* The glyph of a cell's current value as it was given to SetGlyphs ("A", or "U+2691" for
+       a code point), an empty string when it has none. For tests. */
     METHOD PUBLIC CHARACTER GlyphAt(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
         DEFINE VARIABLE v AS INTEGER NO-UNDO.
         IF piX < 0 OR piX >= mCols OR piY < 0 OR piY >= mRows THEN
@@ -163,7 +205,7 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         IF mGlyphCount = 0 OR GET-SIZE(mCellValues) <> mCols * mRows * 4 THEN RETURN "".
         v = GET-LONG(mCellValues, (piY * mCols + piX) * 4 + 1).
         IF v < 0 OR v >= mGlyphCount THEN RETURN "".
-        RETURN mGlyphText[v + 1].
+        RETURN mGlyphSpec[v + 1].
     END METHOD.
 
     /* Shows one layer of the grid. Rebuilds the pixel buffer when the grid size changes. */
@@ -277,7 +319,7 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         DO i = 0 TO n - 1:
             v = GET-LONG(mCellValues, i * 4 + 1).
             IF v < 0 OR v >= mGlyphCount THEN NEXT.
-            IF mGlyphText[v + 1] = "" THEN NEXT.
+            IF mGlyphSpec[v + 1] = "" THEN NEXT.
             px = piOx + (i MODULO mCols) * piCs + half.
             py = piOy + TRUNCATE(i / mCols, 0) * piCs + half.
             poGraphics:DrawString(mGlyphText[v + 1], mGlyphFont, mGlyphBrush[v + 1], System.Convert:ToSingle(px), System.Convert:ToSingle(py), mGlyphFormat).

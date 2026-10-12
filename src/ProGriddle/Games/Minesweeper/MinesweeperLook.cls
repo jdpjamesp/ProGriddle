@@ -16,10 +16,11 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperLook FINAL:
         RETURN "3E4C61,3E4C61,3E4C61,161A20,161A20,161A20,161A20,161A20,161A20,161A20,161A20,161A20,4A2328,B3261E,4A2328".
     END METHOD.
 
-    /* Glyphs: a flag, a question mark, the digits 1 to 8, and a mine for a revealed or
-       exploded mine, a cross for a wrong flag. U+2691 is a flag, U+2739 a burst and U+2716 a cross. */
+    /* Glyphs: a flag, a question mark, the digits 1 to 8, and a bomb for a revealed or
+       exploded mine, a cross for a wrong flag. U+1F6A9 is a flag on a post, U+1F4A3 a bomb
+       and U+2716 a cross. They are code points because a string here cannot hold them. */
     METHOD PUBLIC STATIC CHARACTER Glyphs():
-        RETURN ",U+2691,?,,1,2,3,4,5,6,7,8,U+2739,U+2739,U+2716".
+        RETURN ",U+1F6A9,?,,1,2,3,4,5,6,7,8,U+1F4A3,U+1F4A3,U+2716".
     END METHOD.
 
     METHOD PUBLIC STATIC CHARACTER GlyphColors():

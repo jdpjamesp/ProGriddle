@@ -557,7 +557,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
             g:Store:SetCell(1, 1, 0, 1).
             mView:SetGlyphs(",U+2691", "FFFFFF,FF0000").
             mView:Show(g, "state").
-            Assert:Equals(System.Char:ConvertFromUtf32(9873), mView:GlyphAt(1, 0)).
+            Assert:Equals("U+2691", mView:GlyphAt(1, 0)).
             FINALLY:
                 IF VALID-OBJECT(g) THEN g:Dispose().
             END FINALLY.
@@ -630,6 +630,44 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ABlankGlyphFontThrows():
         mView:GlyphFontName = "".
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ACodePointOutsideLatin1IsDrawnAsThatCharacterNotAQuestionMark():
+        /* U+2588 is a full block, so a cell shows far more glyph pixels than a question mark would */
+        DEFINE VARIABLE g     AS Grid   NO-UNDO.
+        DEFINE VARIABLE bmp   AS Bitmap NO-UNDO.
+        DEFINE VARIABLE c     AS Color  NO-UNDO.
+        DEFINE VARIABLE px    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE py    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE green AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = NewGrid(1, 1, 1).
+            g:Store:SetCell(1, 0, 0, 1).
+            mView:ShowGridLines = FALSE.
+            mView:GlyphFontName = "Segoe UI Symbol".
+            mView:SetGlyphs(",U+2588", "FFFFFF,00FF00").
+            mView:ClientSize = NEW Size(40, 40).
+            mView:Show(g, "state").
+            bmp = NEW Bitmap(40, 40).
+            mView:DrawToBitmap(bmp, NEW Rectangle(0, 0, 40, 40)).
+            DO py = 0 TO 39:
+                DO px = 0 TO 39:
+                    c = bmp:GetPixel(px, py).
+                    IF c:G > 200 AND c:R < 100 THEN green = green + 1.
+                END.
+            END.
+            Assert:IsTrue(green > 200).
+            FINALLY:
+                IF VALID-OBJECT(bmp) THEN bmp:Dispose().
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test (expected="ProGriddle.Core.GridException").
+    METHOD PUBLIC VOID ACodePointThatIsNotACharacterThrows():
+        mView:SetGlyphs("U+D800", "FFFFFF").
     END METHOD.
 
     @Test.
