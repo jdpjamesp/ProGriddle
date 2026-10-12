@@ -137,6 +137,18 @@ CLASS Prolif.Engine.GameControllerTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID SetSpeedLevelJumpsStraightToALevelAndClampsOutOfRangeValues():
+        mController:SetSpeedLevel(5).
+        Assert:Equals(5, mController:SpeedLevel).
+        Assert:Equals(60, mClock:Interval).
+        mController:SetSpeedLevel(99).
+        Assert:Equals(6, mController:SpeedLevel).
+        mController:SetSpeedLevel(-3).
+        Assert:Equals(1, mController:SpeedLevel).
+        Assert:Equals(1000, mClock:Interval).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID SpeedStaysWithinTheLimits():
         DEFINE VARIABLE i AS INTEGER NO-UNDO.
         DO i = 1 TO 10:

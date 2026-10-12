@@ -60,6 +60,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/check-layering.ps1
 
 - `run-tests.ps1` finds every `tests/**/*Tests.cls`, runs them through ABLUnit in batch mode and writes `build/test-results/results.xml`. It exits non-zero on any failure or error.
 - The install location comes from `$env:DLC`, defaulting to `C:\Progress\OpenEdge`.
+- `run-tests.ps1 -Gui` runs the WinForms tests (they need the .NET bridge) under `prowin -b`, and `-All` runs both sets. Batch mode has no .NET message loop, so timer ticks and real input are checked in a windowed run instead.
 - `check-layering.ps1` enforces the layering rules (see `CLAUDE.md`). It needs no OpenEdge install and runs in GitHub Actions.
 
 Things worth knowing about this environment:

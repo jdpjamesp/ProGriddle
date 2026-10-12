@@ -141,8 +141,8 @@ CLASS Prolif.Games.Life.LifeInputTests:
     /* ---- commands ---- */
 
     @Test.
-    METHOD PUBLIC VOID TheExtraCommandsAreRandomAndClear():
-        Assert:Equals("Random,Clear", mInput:CommandNames).
+    METHOD PUBLIC VOID TheExtraCommandsAreRandomAndClearWithKeyLetters():
+        Assert:Equals("Random:G,Clear:C", mInput:CommandNames).
     END METHOD.
 
     @Test.

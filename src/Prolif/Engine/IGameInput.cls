@@ -25,11 +25,14 @@ INTERFACE Prolif.Engine.IGameInput:
         GET.
         SET.
 
-    /* Comma separated names of extra commands, shown as buttons. Empty for none. */
+    /* Comma separated extra commands, shown as buttons. Each entry is a name, optionally
+       followed by a colon and a single letter that triggers it from the keyboard, as in
+       "Random:G,Clear:C". Empty for none. */
     DEFINE PUBLIC PROPERTY CommandNames AS CHARACTER NO-UNDO
         GET.
 
-    /* Runs one of CommandNames. Throws GridException for any other name. */
+    /* Runs one of the commands in CommandNames, by name only (no key letter). Throws
+       GridException for any other name. */
     METHOD PUBLIC VOID Perform(INPUT pcCommand AS CHARACTER).
 
     /* A left click on a cell. A click off the board is ignored. */

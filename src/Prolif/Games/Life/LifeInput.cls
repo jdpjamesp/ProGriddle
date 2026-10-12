@@ -51,7 +51,7 @@ CLASS Prolif.Games.Life.LifeInput FINAL IMPLEMENTS IGameInput:
 
     DEFINE PUBLIC PROPERTY CommandNames AS CHARACTER NO-UNDO
         GET():
-            RETURN "Random,Clear".
+            RETURN "Random:G,Clear:C".
         END GET.
 
     /* poRandom decides what Random draws, so a seeded one gives a repeatable board. */

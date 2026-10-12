@@ -81,6 +81,12 @@ CLASS Prolif.Engine.GameController FINAL:
         SetSpeed(SpeedLevel + 1).
     END METHOD.
 
+    /* Sets the speed level directly, for a slider or a saved setting. Values outside 1 to 6
+       are brought back to the nearest end. */
+    METHOD PUBLIC VOID SetSpeedLevel(INPUT piLevel AS INTEGER):
+        SetSpeed(piLevel).
+    END METHOD.
+
     METHOD PUBLIC VOID SlowDown():
         SetSpeed(SpeedLevel - 1).
     END METHOD.

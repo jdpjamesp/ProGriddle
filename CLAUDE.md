@@ -27,10 +27,13 @@ OpenEdge ABL OO framework for grid based games. Target: OpenEdge 12.8, Windows, 
 Core depends on nothing. Engine depends on Core. UI.Text depends on Core and Engine. UI.WinForms depends on Core, Engine and UI.Text and is the only layer that may use .NET. Games depend on Core and Engine only and never on another game or on UI.WinForms.
 
 ## Commands
-- Tests: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 [-Filter "Grid*"]`
+- Tests: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 [-Filter "Grid*"] [-Gui] [-All]`. The default runs everything except `tests/**/UI/WinForms`, under `_progres -b`. `-Gui` runs only the WinForms tests, under `prowin -b` (results in `build/test-results/gui/results.xml`). `-All` runs both.
 - Layering: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/check-layering.ps1`
 
-## Environment notes (found in Phase 0)
+## Environment notes (found in Phase 0 and 3)
+- Under `prowin -b` WinForms objects can be built and drawn (`DrawToBitmap`) but there is no .NET message loop, so timers never tick and `Application:Run` fails. `Application:DoEvents` is forbidden in ABL anyway. Anything that needs real ticks or real input is checked in a windowed run.
+- ABL cannot override the .NET `Dispose`, so a control that owns memory exposes `ReleaseResources` and its owner calls it.
+- Names that look harmless but are ABL keywords and cannot be variable or statement-style method names: `text`, `entry`, `clear` (call it `ClearBoard`), `pause`, `undo`, `run`.
 - The PROPATH environment variable is ignored by `_progres`. `tools/run-tests.p` sets PROPATH in code.
 - ABLUnit exits 0 even when tests fail. `tools/run-tests.ps1` reads `build/test-results/results.xml` and sets the exit code itself.
 - The ABLUnit output folder must exist before the run (the script creates it).
