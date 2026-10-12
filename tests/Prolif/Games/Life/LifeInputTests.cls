@@ -49,7 +49,8 @@ CLASS Prolif.Games.Life.LifeInputTests:
 
     @Test.
     METHOD PUBLIC VOID ThePickerOffersEveryLifePatternAndStartsOnGlider():
-        Assert:Equals("Pattern", mInput:ChoiceLabel).
+        Assert:IsTrue(mInput:ChoiceLabel BEGINS "Pattern").
+        Assert:IsTrue(INDEX(mInput:ChoiceLabel, "right click") > 0).
         Assert:Equals(LifePatterns:Names(), mInput:ChoiceNames).
         Assert:Equals("Glider", mInput:Choice).
     END METHOD.

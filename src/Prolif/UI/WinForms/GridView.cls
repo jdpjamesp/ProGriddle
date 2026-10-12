@@ -73,6 +73,8 @@ CLASS Prolif.UI.WinForms.GridView INHERITS Panel:
     CONSTRUCTOR PUBLIC GridView():
         SUPER().
         THIS-OBJECT:DoubleBuffered = TRUE.
+        THIS-OBJECT:SetStyle(ControlStyles:Selectable, TRUE).
+        THIS-OBJECT:TabStop = FALSE.
         THIS-OBJECT:BackColor = Color:FromArgb(24, 28, 32).
         mLinePen = NEW Pen(Color:FromArgb(44, 50, 58)).
         SetPalette("1B1F24,F2C14E").

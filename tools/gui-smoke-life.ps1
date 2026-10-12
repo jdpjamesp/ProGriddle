@@ -176,6 +176,25 @@ try {
     Send-Keys 's'
     Check 'the glider survives four steps' ((Get-Alive $proc) -eq 5 -and (Get-Gen $proc) -eq 4) (Get-Title $proc)
 
+    # the pattern list: open it, choose Blinker, and the next right click places a Blinker (3 cells,
+    # not the default Glider's 5). The offsets are where the list sits in the toolbar at the default
+    # window size, so a change to the toolbar layout will show up here.
+    $win = Get-WindowRect $proc
+    Send-Keys 'c'
+    Click-Screen ($win.L + 898) ($win.T + 63)
+    Click-Screen ($win.L + 816) ($win.T + 118)
+    $c = Cell-Centre $board 60 20
+    Click-Screen $c[0] $c[1] 'right'
+    Check 'choosing Blinker in the list makes the next right click place a Blinker' ((Get-Alive $proc) -eq 3) (Get-Title $proc)
+    Send-Keys 'c'
+    Check 'keys work again straight after using the list' ((Get-Alive $proc) -eq 0) (Get-Title $proc)
+    # back to the glider for the rest of the run
+    Click-Screen ($win.L + 898) ($win.T + 63)
+    Click-Screen ($win.L + 816) ($win.T + 166)
+    $c = Cell-Centre $board 30 30
+    Click-Screen $c[0] $c[1] 'right'
+    Check 'choosing Glider again places a glider' ((Get-Alive $proc) -eq 5) (Get-Title $proc)
+
     # speed keys
     Send-Keys '{ADD}'
     Send-Keys '{ADD}'

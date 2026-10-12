@@ -103,7 +103,8 @@ From the repository root:
 | G | Random board (about a quarter alive), back to generation 0 |
 | C | Clear the board |
 | + or Up arrow, - or Down arrow | Faster, slower (six speeds, 1000 ms down to 30 ms a step) |
-| Pattern box, Speed slider, buttons | Same things with the mouse |
+| Pattern box | Choose which pattern a right click places (the label says so). The keyboard goes back to the board once you have chosen |
+| Speed slider, buttons | Same things with the mouse |
 
 The status bar and the window title show the generation, the number of live cells, the rules, the board size and the speed. Resizing the window rescales the cells. The window size, position, speed and chosen pattern are remembered between runs.
 

@@ -27,7 +27,7 @@ CLASS Prolif.Games.Life.LifeInput FINAL IMPLEMENTS IGameInput:
 
     DEFINE PUBLIC PROPERTY ChoiceLabel AS CHARACTER NO-UNDO
         GET():
-            RETURN "Pattern".
+            RETURN "Pattern (right click the board to place it)".
         END GET.
 
     DEFINE PUBLIC PROPERTY ChoiceNames AS CHARACTER NO-UNDO

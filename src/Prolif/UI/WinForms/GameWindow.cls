@@ -161,6 +161,7 @@ CLASS Prolif.UI.WinForms.GameWindow INHERITS Form:
             END.
             mPicker:SelectedIndex = MAXIMUM(0, LOOKUP(mInput:Choice, names) - 1).
             mPicker:SelectedIndexChanged:Subscribe(OnPickerChanged).
+            mPicker:DropDownClosed:Subscribe(OnPickerClosed).
             mToolbar:Controls:Add(mPicker).
         END.
 
@@ -286,6 +287,8 @@ CLASS Prolif.UI.WinForms.GameWindow INHERITS Form:
         DEFINE VARIABLE cmd     AS GameCommand NO-UNDO.
         DEFINE VARIABLE extra   AS CHARACTER NO-UNDO.
         IF e:Control OR e:Alt THEN RETURN.
+        /* an open pattern list needs its arrow keys and letters for itself */
+        IF VALID-OBJECT(mPicker) AND mPicker:DroppedDown THEN RETURN.
         keyName = STRING(e:KeyCode).
         cmd = mKeys:CommandFor(keyName, mController:IsRunning).
         IF VALID-OBJECT(cmd) THEN DO:
@@ -305,6 +308,7 @@ CLASS Prolif.UI.WinForms.GameWindow INHERITS Form:
     METHOD PRIVATE VOID OnViewMouseDown(INPUT poSender AS System.Object, INPUT e AS MouseEventArgs):
         DEFINE VARIABLE cx AS INTEGER NO-UNDO.
         DEFINE VARIABLE cy AS INTEGER NO-UNDO.
+        mView:Focus().
         IF NOT mView:HitTest(e:X, e:Y, OUTPUT cx, OUTPUT cy) THEN RETURN.
         IF STRING(e:Button) = "Left" THEN mInput:PrimaryAction(cx, cy).
         ELSE IF STRING(e:Button) = "Right" THEN mInput:SecondaryAction(cx, cy).
@@ -331,6 +335,12 @@ CLASS Prolif.UI.WinForms.GameWindow INHERITS Form:
 
     METHOD PRIVATE VOID OnPickerChanged(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
         IF mPicker:SelectedIndex >= 0 THEN mInput:Choice = STRING(mPicker:SelectedItem).
+    END METHOD.
+
+    /* After choosing a pattern, give the keyboard back to the board so Space, S, R and the
+       other keys act on the game and not on the list. */
+    METHOD PRIVATE VOID OnPickerClosed(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
+        mView:Focus().
     END METHOD.
 
     METHOD PRIVATE VOID OnSpeedChanged(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
@@ -367,7 +377,10 @@ CLASS Prolif.UI.WinForms.GameWindow INHERITS Form:
         IF EXTENT(mExtraButtons) <> ? THEN DO i = 1 TO EXTENT(mExtraButtons):
             mExtraButtons[i]:Click:Unsubscribe(OnExtraClick).
         END.
-        IF VALID-OBJECT(mPicker) THEN mPicker:SelectedIndexChanged:Unsubscribe(OnPickerChanged).
+        IF VALID-OBJECT(mPicker) THEN DO:
+            mPicker:SelectedIndexChanged:Unsubscribe(OnPickerChanged).
+            mPicker:DropDownClosed:Unsubscribe(OnPickerClosed).
+        END.
         mSpeed:ValueChanged:Unsubscribe(OnSpeedChanged).
         mView:ReleaseResources().
     END METHOD.
