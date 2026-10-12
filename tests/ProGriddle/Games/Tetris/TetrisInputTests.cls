@@ -258,7 +258,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
         Assert:Equals("Help:H", mInput:InfoLabel).
         Assert:IsTrue(INDEX(mInput:InfoText, "hard drop") > 0).
         Assert:IsTrue(INDEX(mInput:InfoText, "turn anticlockwise") > 0).
-        Assert:IsTrue(INDEX(mInput:InfoText, "4 lines 800") > 0).
+        Assert:IsTrue(INDEX(mInput:InfoText, "100 300 500 800") > 0).
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").

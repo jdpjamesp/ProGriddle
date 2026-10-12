@@ -83,21 +83,23 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
 
     DEFINE PUBLIC PROPERTY InfoText AS CHARACTER NO-UNDO
         GET():
+            /* the help window is about 40 characters wide, so keep every line short */
             RETURN "Keys" + CHR(10)
-                 + "  Left, Right, Down (or A, D, S)   move, held keys repeat" + CHR(10)
-                 + "  Up, W or X                      turn clockwise" + CHR(10)
-                 + "  Z                               turn anticlockwise" + CHR(10)
-                 + "  Space                           hard drop" + CHR(10)
-                 + "  P                               pause" + CHR(10)
-                 + "  F2 or R                         new game" + CHR(10)
-                 + "  G                               ghost piece on or off"
+                 + "  Left, Right  move, hold to repeat" + CHR(10)
+                 + "  Down         soft drop, repeats" + CHR(10)
+                 + "  Up, W, X     turn clockwise" + CHR(10)
+                 + "  Z            turn anticlockwise" + CHR(10)
+                 + "  Space        hard drop" + CHR(10)
+                 + "  P            pause" + CHR(10)
+                 + "  F2, R        new game" + CHR(10)
+                 + "  G            ghost on or off"
                  + CHR(10) + CHR(10)
                  + "Scoring" + CHR(10)
-                 + "  Soft drop 1 point a row, hard drop 2 points a row" + CHR(10)
-                 + "  1 line 100, 2 lines 300, 3 lines 500, 4 lines 800, each times the level" + CHR(10)
-                 + "  Every 10 lines the level goes up and the pieces fall faster"
-                 + CHR(10) + CHR(10)
-                 + "The game ends when a new piece has no room to appear.".
+                 + "  Soft drop    1 point a row" + CHR(10)
+                 + "  Hard drop    2 points a row" + CHR(10)
+                 + "  Lines        100 300 500 800" + CHR(10)
+                 + "               for 1 to 4, times level" + CHR(10)
+                 + "  Every 10 lines the level rises".
         END GET.
 
     CONSTRUCTOR PUBLIC TetrisInput(INPUT poGame AS TetrisGame, INPUT poSettings AS ISettings):
