@@ -14,6 +14,9 @@
    flag and the mine. Text is drawn at paint time, so it stays sharp at any cell size, and only
    for the cells whose value has a glyph.
 
+   Notice: ShowNotice draws a few words in the middle of the control, on a dark panel, for
+   about a second and then fades them out. A timer drives the fade and stops when it is done.
+
    Call ReleaseResources when the control is finished with. It frees the Bitmap first and
    then the MEMPTRs. (ABL does not allow overriding the .NET Dispose, so the owner of the view
    must call ReleaseResources. The destructor does it as a last resort.) */
@@ -22,6 +25,7 @@ USING System.Drawing.Drawing2D.* FROM ASSEMBLY.
 USING System.Drawing.Imaging.* FROM ASSEMBLY.
 USING System.Drawing.Text.* FROM ASSEMBLY.
 USING System.Drawing.* FROM ASSEMBLY.
+USING System.Windows.Forms.Timer FROM ASSEMBLY.
 USING System.Windows.Forms.* FROM ASSEMBLY.
 USING ProGriddle.Core.*.
 USING ProGriddle.UI.WinForms.*.
@@ -57,6 +61,11 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
     DEFINE PRIVATE VARIABLE mGlyphFontPx AS INTEGER    NO-UNDO.
     DEFINE PRIVATE VARIABLE mGlyphFormat AS StringFormat NO-UNDO.
 
+    /* the notice: its text, when it started (System.Environment:TickCount) and the timer that fades it */
+    DEFINE PRIVATE VARIABLE mNoticeText  AS CHARACTER  NO-UNDO.
+    DEFINE PRIVATE VARIABLE mNoticeStart AS INTEGER    NO-UNDO.
+    DEFINE PRIVATE VARIABLE mNoticeTimer AS Timer      NO-UNDO.
+
     /* Draw thin lines between cells when each cell is at least 8 pixels wide. */
     DEFINE PUBLIC PROPERTY ShowGridLines AS LOGICAL NO-UNDO INITIAL TRUE
         GET.
@@ -71,6 +80,12 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
             GlyphFontName = pcValue.
             FreeFont().
         END SET.
+
+    /* The notice on show now, or an empty string when there is none or it has faded. */
+    DEFINE PUBLIC PROPERTY NoticeText AS CHARACTER NO-UNDO
+        GET():
+            RETURN mNoticeText.
+        END GET.
 
     /* Number of columns and rows currently shown, 0 before the first Show. */
     DEFINE PUBLIC PROPERTY Columns AS INTEGER NO-UNDO
@@ -108,6 +123,9 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         mGlyphFormat = NEW StringFormat().
         mGlyphFormat:Alignment = StringAlignment:Center.
         mGlyphFormat:LineAlignment = StringAlignment:Center.
+        mNoticeTimer = NEW Timer().
+        mNoticeTimer:Interval = 40.
+        mNoticeTimer:Tick:Subscribe(OnNoticeTick).
         SetPalette("1B1F24,F2C14E").
     END CONSTRUCTOR.
 
@@ -159,6 +177,68 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
                                                          rgb MODULO 256)).
         END.
         mGlyphCount = n.
+    END METHOD.
+
+    /* How opaque the notice is, 255 to 0, this many milliseconds after it appeared: fully
+       solid for 900 ms, then fading out evenly over the next 700 ms. */
+    METHOD PUBLIC STATIC INTEGER NoticeAlphaAt(INPUT piElapsedMs AS INTEGER):
+        IF piElapsedMs <= 900 THEN RETURN 255.
+        IF piElapsedMs >= 1600 THEN RETURN 0.
+        RETURN INTEGER(255 - TRUNCATE((piElapsedMs - 900) * 255 / 700, 0)).
+    END METHOD.
+
+    /* Shows a few words over the middle of the board and fades them out. Showing another
+       notice replaces the first and starts again. An empty text clears it. */
+    METHOD PUBLIC VOID ShowNotice(INPUT pcText AS CHARACTER):
+        IF mReleased THEN RETURN.
+        IF pcText = ? THEN pcText = "".
+        mNoticeText = pcText.
+        mNoticeStart = System.Environment:TickCount.
+        IF pcText = "" THEN mNoticeTimer:Stop().
+        ELSE mNoticeTimer:Start().
+        THIS-OBJECT:Invalidate().
+    END METHOD.
+
+    METHOD PRIVATE VOID OnNoticeTick(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
+        IF mNoticeText <> "" AND NoticeAlphaAt(System.Environment:TickCount - mNoticeStart) <= 0 THEN DO:
+            mNoticeText = "".
+            mNoticeTimer:Stop().
+        END.
+        THIS-OBJECT:Invalidate().
+    END METHOD.
+
+    /* Draws the notice centred on a dark panel, both at the current opacity. */
+    METHOD PRIVATE VOID PaintNotice(INPUT poGraphics AS Graphics):
+        DEFINE VARIABLE alpha  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE noticeFont AS Font NO-UNDO.
+        DEFINE VARIABLE panelBrush AS SolidBrush NO-UNDO.
+        DEFINE VARIABLE textBrush AS SolidBrush NO-UNDO.
+        DEFINE VARIABLE textSize AS SizeF NO-UNDO.
+        DEFINE VARIABLE w      AS DECIMAL NO-UNDO.
+        DEFINE VARIABLE h      AS DECIMAL NO-UNDO.
+        DEFINE VARIABLE cx     AS DECIMAL NO-UNDO.
+        DEFINE VARIABLE cy     AS DECIMAL NO-UNDO.
+        alpha = NoticeAlphaAt(System.Environment:TickCount - mNoticeStart).
+        IF alpha <= 0 THEN RETURN.
+        DO ON ERROR UNDO, THROW:
+            noticeFont = NEW Font(GlyphFontName, System.Convert:ToSingle(26), FontStyle:Bold, GraphicsUnit:Pixel).
+            poGraphics:TextRenderingHint = TextRenderingHint:AntiAliasGridFit.
+            textSize = poGraphics:MeasureString(mNoticeText, noticeFont).
+            w = textSize:Width + 56.
+            h = textSize:Height + 28.
+            cx = THIS-OBJECT:ClientSize:Width / 2.
+            cy = THIS-OBJECT:ClientSize:Height / 2.
+            panelBrush = NEW SolidBrush(Color:FromArgb(INTEGER(alpha * 0.8), 10, 12, 16)).
+            textBrush = NEW SolidBrush(Color:FromArgb(alpha, 255, 255, 255)).
+            poGraphics:FillRectangle(panelBrush, System.Convert:ToSingle(cx - w / 2), System.Convert:ToSingle(cy - h / 2),
+                                     System.Convert:ToSingle(w), System.Convert:ToSingle(h)).
+            poGraphics:DrawString(mNoticeText, noticeFont, textBrush, System.Convert:ToSingle(cx), System.Convert:ToSingle(cy), mGlyphFormat).
+            FINALLY:
+                IF VALID-OBJECT(textBrush) THEN textBrush:Dispose().
+                IF VALID-OBJECT(panelBrush) THEN panelBrush:Dispose().
+                IF VALID-OBJECT(noticeFont) THEN noticeFont:Dispose().
+            END FINALLY.
+        END.
     END METHOD.
 
     /* Puts one character, given as a Unicode code point, into glyph i. It is built as UTF-8
@@ -294,6 +374,7 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
             END.
             IF mGlyphCount > 0 THEN PaintGlyphs(e:Graphics, ox, oy, cs).
         END.
+        IF mNoticeText <> "" THEN PaintNotice(e:Graphics).
         LastPaintMs = ETIME.
         PaintCount = PaintCount + 1.
         SUPER:OnPaint(e).
@@ -346,6 +427,13 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         FreeFont().
         IF VALID-OBJECT(mGlyphFormat) THEN mGlyphFormat:Dispose().
         mGlyphFormat = ?.
+        IF VALID-OBJECT(mNoticeTimer) THEN DO:
+            mNoticeTimer:Stop().
+            mNoticeTimer:Tick:Unsubscribe(OnNoticeTick).
+            mNoticeTimer:Dispose().
+        END.
+        mNoticeTimer = ?.
+        mNoticeText = "".
     END METHOD.
 
     METHOD PRIVATE VOID FreeFont():

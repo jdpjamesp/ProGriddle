@@ -303,6 +303,15 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInputTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID MarksLeavesANoticeSayingWhatItDid():
+        Assert:Equals("", mInput:CommandNotice).
+        mInput:Perform("Marks").
+        Assert:Equals("Question marks off", mInput:CommandNotice).
+        mInput:Perform("Marks").
+        Assert:Equals("Question marks on", mInput:CommandNotice).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID TheSavedMarksSettingIsReadWhenTheInputIsBuilt():
         mSettings:SetLogical("minesweeper.marks", FALSE).
         mInput = NEW MinesweeperInput(mGame, mSettings).

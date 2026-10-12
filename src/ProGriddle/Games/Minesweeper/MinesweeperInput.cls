@@ -27,6 +27,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInput FINAL IMPLEMENTS IGameInput:
     DEFINE PRIVATE VARIABLE mCustomW  AS INTEGER              NO-UNDO.
     DEFINE PRIVATE VARIABLE mCustomH  AS INTEGER              NO-UNDO.
     DEFINE PRIVATE VARIABLE mCustomM  AS INTEGER              NO-UNDO.
+    DEFINE PRIVATE VARIABLE mNotice   AS CHARACTER            NO-UNDO.
 
     DEFINE PUBLIC PROPERTY StatusText AS CHARACTER NO-UNDO
         GET():
@@ -64,6 +65,12 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInput FINAL IMPLEMENTS IGameInput:
             IF mChoice = "Custom" THEN mGame:Configure(mCustomW, mCustomH, mCustomM).
             ELSE mGame:Configure(MinesweeperLevels:WidthOf(mChoice), MinesweeperLevels:HeightOf(mChoice), MinesweeperLevels:MinesOf(mChoice)).
         END SET.
+
+    /* What the Marks command just did, "Question marks on" or "Question marks off". */
+    DEFINE PUBLIC PROPERTY CommandNotice AS CHARACTER NO-UNDO
+        GET():
+            RETURN mNotice.
+        END GET.
 
     DEFINE PUBLIC PROPERTY InfoLabel AS CHARACTER NO-UNDO
         GET():
@@ -124,6 +131,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInput FINAL IMPLEMENTS IGameInput:
             WHEN "Marks" THEN DO:
                 mGame:UseMarks = NOT mGame:UseMarks.
                 mSettings:SetLogical("minesweeper.marks", mGame:UseMarks).
+                mNotice = "Question marks " + (IF mGame:UseMarks THEN "on" ELSE "off").
             END.
             OTHERWISE UNDO, THROW NEW GridException("Unknown Minesweeper command: " + STRING(pcCommand)).
         END CASE.

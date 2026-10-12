@@ -137,6 +137,7 @@ CLASS ProGriddle.Games.Life.LifeInputTests:
     METHOD PUBLIC VOID LifeHasNoInfoScreen():
         Assert:Equals("", mInput:InfoLabel).
         Assert:Equals("", mInput:InfoText).
+        Assert:Equals("", mInput:CommandNotice).
     END METHOD.
 
     @Test.

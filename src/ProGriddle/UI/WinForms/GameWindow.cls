@@ -5,6 +5,9 @@
    picker, extra commands and clicks all come through IGameInput, and whether the game steps
    comes from IGameController.
 
+   After a command (the buttons and keys from CommandNames) the game's CommandNotice, such as
+   "Question marks on", is shown over the middle of the board and fades away.
+
    A game can offer an extra text screen (IGameInput:InfoLabel and InfoText, the high scores for
    Minesweeper): the window adds a button and a key for it and shows the text in an InfoDialog.
 
@@ -314,6 +317,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         mInput:Perform(pcName).
         mController:Refresh().
         UpdateStatus().
+        IF mInput:CommandNotice <> "" THEN mView:ShowNotice(mInput:CommandNotice).
     END METHOD.
 
     /* ---- events ---- */
@@ -419,7 +423,9 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         DEFINE VARIABLE dialog AS InfoDialog NO-UNDO.
         DO ON ERROR UNDO, THROW:
             dialog = NEW InfoDialog(SUBSTITUTE("&1 - &2", mTitle, mKeys:NameOf(mInput:InfoLabel)), mInput:InfoText).
-            dialog:ShowDialog(THIS-OBJECT).
+            /* ABL only allows a dialog as the target of a WAIT-FOR */
+            WAIT-FOR dialog:ShowDialog(THIS-OBJECT).
+
             FINALLY:
                 IF VALID-OBJECT(dialog) THEN dialog:Dispose().
                 mView:Focus().

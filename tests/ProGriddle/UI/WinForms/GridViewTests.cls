@@ -706,6 +706,104 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
         END.
     END METHOD.
 
+    /* ---- the notice ---- */
+
+    @Test.
+    METHOD PUBLIC VOID TheNoticeIsSolidForNineHundredMillisecondsThenFadesOverSevenHundred():
+        Assert:Equals(255, GridView:NoticeAlphaAt(0)).
+        Assert:Equals(255, GridView:NoticeAlphaAt(900)).
+        Assert:Equals(0, GridView:NoticeAlphaAt(1600)).
+        Assert:Equals(0, GridView:NoticeAlphaAt(5000)).
+        Assert:Equals(128, GridView:NoticeAlphaAt(1250)).
+        Assert:IsTrue(GridView:NoticeAlphaAt(1000) > GridView:NoticeAlphaAt(1300)).
+        Assert:IsTrue(GridView:NoticeAlphaAt(1300) > GridView:NoticeAlphaAt(1500)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ShowNoticeSetsTheTextAndAnEmptyOrUnknownTextClearsIt():
+        Assert:Equals("", mView:NoticeText).
+        mView:ShowNotice("Question marks on").
+        Assert:Equals("Question marks on", mView:NoticeText).
+        mView:ShowNotice("Question marks off").
+        Assert:Equals("Question marks off", mView:NoticeText).
+        mView:ShowNotice("").
+        Assert:Equals("", mView:NoticeText).
+        mView:ShowNotice("again").
+        mView:ShowNotice(?).
+        Assert:Equals("", mView:NoticeText).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ANoticeIsPaintedInTheMiddleOfTheControl():
+        DEFINE VARIABLE g     AS Grid   NO-UNDO.
+        DEFINE VARIABLE bmp   AS Bitmap NO-UNDO.
+        DEFINE VARIABLE c     AS Color  NO-UNDO.
+        DEFINE VARIABLE px    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE py    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE white AS INTEGER NO-UNDO.
+        DEFINE VARIABLE edge  AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = NewGrid(1, 2, 2).
+            mView:ShowGridLines = FALSE.
+            mView:ClientSize = NEW Size(300, 120).
+            mView:Show(g, "state").
+            mView:ShowNotice("Marks on").
+            bmp = NEW Bitmap(300, 120).
+            mView:DrawToBitmap(bmp, NEW Rectangle(0, 0, 300, 120)).
+            DO py = 40 TO 80:
+                DO px = 90 TO 210:
+                    c = bmp:GetPixel(px, py).
+                    IF c:R > 200 AND c:G > 200 AND c:B > 200 THEN white = white + 1.
+                END.
+            END.
+            /* the corner is nowhere near the notice, so it is still the control background */
+            c = bmp:GetPixel(2, 2).
+            edge = c:R.
+            Assert:IsTrue(white > 30).
+            Assert:Equals(24, edge).
+            FINALLY:
+                IF VALID-OBJECT(bmp) THEN bmp:Dispose().
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID WithNoNoticeNothingIsDrawnOverTheBoard():
+        DEFINE VARIABLE g     AS Grid   NO-UNDO.
+        DEFINE VARIABLE bmp   AS Bitmap NO-UNDO.
+        DEFINE VARIABLE c     AS Color  NO-UNDO.
+        DEFINE VARIABLE px    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE py    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE white AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = NewGrid(1, 2, 2).
+            mView:ShowGridLines = FALSE.
+            mView:ClientSize = NEW Size(300, 120).
+            mView:Show(g, "state").
+            bmp = NEW Bitmap(300, 120).
+            mView:DrawToBitmap(bmp, NEW Rectangle(0, 0, 300, 120)).
+            DO py = 40 TO 80:
+                DO px = 90 TO 210:
+                    c = bmp:GetPixel(px, py).
+                    IF c:R > 200 AND c:G > 200 AND c:B > 200 THEN white = white + 1.
+                END.
+            END.
+            Assert:Equals(0, white).
+            FINALLY:
+                IF VALID-OBJECT(bmp) THEN bmp:Dispose().
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AReleasedViewIgnoresNotices():
+        mView:ReleaseResources().
+        mView:ShowNotice("late").
+        Assert:Equals("", mView:NoticeText).
+    END METHOD.
+
     /* ---- lifetime ---- */
 
     @Test (expected="ProGriddle.Core.GridException").

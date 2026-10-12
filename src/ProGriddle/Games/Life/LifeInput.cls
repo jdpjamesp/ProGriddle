@@ -50,6 +50,11 @@ CLASS ProGriddle.Games.Life.LifeInput FINAL IMPLEMENTS IGameInput:
             RETURN "Random:G,Clear:C".
         END GET.
 
+    DEFINE PUBLIC PROPERTY CommandNotice AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
+
     DEFINE PUBLIC PROPERTY InfoLabel AS CHARACTER NO-UNDO
         GET():
             RETURN "".

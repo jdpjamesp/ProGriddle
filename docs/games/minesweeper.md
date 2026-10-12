@@ -24,7 +24,7 @@ From the repository root:
 | Scores button or H | Show the high scores. Enter, Escape or OK closes the screen |
 | F2 or R, or the New game button | Start a new game at the same level |
 | Level box | Choose Beginner, Intermediate, Expert or Custom. Choosing starts a new game. Tab reaches it from the board and the arrow keys change it |
-| Marks button or M | Switch the question mark step of the right click on or off. Remembered |
+| Marks button or M | Switch the question mark step of the right click on or off. Remembered. A notice ("Question marks on" or "off") appears over the middle of the board and fades away |
 
 Mouse buttons are read as a gesture and acted on when the last one is released, on the cell under the pointer, so a chord with both buttons never flags or opens anything on the way. A double click on a number is a chord too, which saves reaching for the second button: when the number already has that many flags round it, everything else around it opens. (On a closed cell, a double click is just two opens, and the second does nothing.)
 
@@ -111,6 +111,7 @@ Minesweeper was the first game that did not fit the framework as it stood, so th
 - **Both buttons.** `IGameInput` gained `TertiaryAction` (a middle click or both buttons), and `GameWindow` now reads mouse input as a gesture acted on at release. Life ignores it.
 - **New game keys.** F2 resets, as in Windows.
 - **An extra text screen.** `IGameInput` gained `InfoLabel` (a name and a key such as `Scores:H`) and `InfoText`. The window adds a button and the key, and shows the text in the new `InfoDialog`. Any game can use it for scores, help or rules.
+- **A notice over the board.** `IGameInput` gained `CommandNotice`: after a command the window shows it in the middle of the board for about a second and fades it out (`GridView:ShowNotice`). A button that only changes a setting otherwise gives no sign that it did anything.
 - **Double click.** The window turns a double click into a `PrimaryAction` followed by a `TertiaryAction`, so Minesweeper chords and Life, which toggles on every click, still sees both clicks.
 - **A game can change its own board size.** `Configure` replaces the game's grid, and `GridView` already resized to follow.
 
