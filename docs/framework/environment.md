@@ -37,5 +37,7 @@ Things found the hard way while building ProGriddle on OpenEdge 12.8.0.1207, Win
 - A `System.Drawing.Bitmap` can be built over a `MEMPTR` with `NEW Bitmap(width, height, stride, PixelFormat:Format32bppRgb, NEW System.IntPtr(GET-POINTER-VALUE(m)))`. Dispose the bitmap before freeing the memory.
 - Never write `*/` inside a comment, even in an example string such as `"*/."`: it ends the comment early and the compiler then complains about the next lines, far from the cause.
 - A `CHARACTER` in a `prowin` session is ISO 8859-1, so any other character, such as a flag or a bomb, silently becomes `?` when assigned. To hand a real Unicode string to .NET, build its UTF-8 bytes in a `MEMPTR`, copy them into a `LONGCHAR` with `FIX-CODEPAGE(lc) = "UTF-8"` and `COPY-LOB ... CONVERT SOURCE CODEPAGE "UTF-8"`, and pass the `LONGCHAR` (see `GridView:SetGlyphs`).
+- In a string literal `~` is the ABL escape character: `"#~o"` is `"#o"`, silently one character shorter. Write `~~` for a literal tilde, or avoid it.
+- Comparing strings ignores case, so symbols that differ only by case (`"X"` and `"x"`) compare equal. Use different letters or characters when each must be distinct.
 - A .NET dialog must be shown as `WAIT-FOR dialog:ShowDialog(owner)`. A bare `dialog:ShowDialog(owner)` fails with "You can only call ShowDialog as part of a WAIT-FOR statement".
 - A dynamic `EXTENT` is limited (the reference says 28000), so a per cell array on a big board is better kept in a `MEMPTR`.

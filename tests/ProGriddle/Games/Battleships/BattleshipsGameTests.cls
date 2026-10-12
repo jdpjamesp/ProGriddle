@@ -941,7 +941,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGameTests:
     END METHOD.
 
     @Test.
-    METHOD PUBLIC VOID TheRealOpponentFindsAWholeFleetInWellUnderAHundredShots():
+    METHOD PUBLIC VOID TheRealOpponentFindsAWholeFleetInAboutFortyFiveShots():
         /* the player only ever fires at water, so only the computer can end the game: it must sink
            every ship, with no shot repeated, and do it in a sensible number of shots */
         DEFINE VARIABLE seed   AS INTEGER NO-UNDO.
@@ -970,8 +970,8 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGameTests:
             END FINALLY.
         END.
         Assert:Equals(0, notLost).
-        Assert:IsTrue(total / 20 < 72).
-        Assert:IsTrue(worst < 100).
+        Assert:IsTrue(total / 20 < 52).
+        Assert:IsTrue(worst < 75).
     END METHOD.
 
 END CLASS.

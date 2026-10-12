@@ -33,13 +33,14 @@ Core depends on nothing. Engine depends on Core. UI.Text depends on Core and Eng
 - Compile everything and list every error at once: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/compile.ps1 [-SourceOnly]`
 - Run the real window and check it: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/gui-smoke-life.ps1` (it takes over the keyboard and mouse for about 40 seconds, so warn the user first)
 - Play Life: `prowin.exe -p tools/launch.p -param "run/run-life.p"` from the repository root
+- Play Battleships: `prowin.exe -p tools/launch.p -param "run/run-battleships.p"`. Its window check is `tools/gui-smoke-battleships.ps1` (takes over the keyboard and mouse for a couple of minutes, so warn the user first). The two smoke tests share `tools/gui-smoke-common.ps1`
 - Play Minesweeper: `prowin.exe -p tools/launch.p -param "run/run-minesweeper.p"`. Its window check is `tools/gui-smoke-minesweeper.ps1` (also takes over the keyboard and mouse, for a couple of minutes, so warn the user first)
 
 ## Environment notes (found in Phase 0 and 3)
 - Under `prowin -b` WinForms objects can be built and drawn (`DrawToBitmap`) but there is no .NET message loop, so timers never tick and `Application:Run` fails. `Application:DoEvents` is forbidden in ABL anyway. Anything that needs real ticks or real input is checked in a windowed run.
 - ABL cannot override the .NET `Dispose`, so a control that owns memory exposes `ReleaseResources` and its owner calls it.
 - Names that look harmless but are ABL keywords and cannot be variable or statement-style method names: `text`, `entry`, `by`, `old`, `line`, `clear` (call it `ClearBoard`), `pause`, `undo`, `run`.
-- An ABL `CHARACTER` under `prowin` is ISO 8859-1, so a flag or a bomb becomes `?`. Pass such text to .NET as a UTF-8 `LONGCHAR` (see `GridView:SetGlyphs`). Never write `*/` inside a comment, even in an example string.
+- An ABL `CHARACTER` under `prowin` is ISO 8859-1, so a flag or a bomb becomes `?`. Pass such text to .NET as a UTF-8 `LONGCHAR` (see `GridView:SetGlyphs`). Never write `*/` inside a comment, even in an example string. In a string literal `~` is the escape character (`"~o"` is just `"o"`), and string comparison ignores case, so `"X"` equals `"x"`: do not use letters that differ only by case as distinct symbols.
 - The PROPATH environment variable is ignored by `_progres`. `tools/run-tests.p` sets PROPATH in code.
 - ABLUnit exits 0 even when tests fail. `tools/run-tests.ps1` reads `build/test-results/results.xml` and sets the exit code itself.
 - The ABLUnit output folder must exist before the run (the script creates it).

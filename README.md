@@ -73,7 +73,7 @@ Source lives under `src/ProGriddle`, one folder per namespace, one class per fil
 | `src/ProGriddle/Games/<Game>` | One folder per game |
 | `run` | One `run-<game>.p` per game |
 | `tests` | The same folder layout as `src`, `*Tests.cls` |
-| `tools` | Scripts: tests, layering check, compile check, window smoke test |
+| `tools` | Scripts: tests, layering check, compile check, window smoke tests |
 | `docs` | Deeper notes and the game pages |
 
 ## The building blocks
@@ -133,7 +133,7 @@ A game implements `IGame` and is one of three kinds:
 
 `AbstractGame` supplies the name, the grid, the over flag and the counter. `GameController` ties a steppable game to an `IGridRenderer` and an `IClock`: Start, PauseGame, StepOnce, Reset, SpeedUp, SlowDown (`GameCommand`), with six speeds and a redraw after every change. It stops the clock itself when the game is over. `TurnController` does the same for a turn based game, which has no clock and no stepping: only a new game (Reset) and a redraw (Refresh). Both implement `IGameController`, which is all the window needs to know. A turn based game keeps its moves as its own methods (Minesweeper has Reveal, ToggleFlag and Chord) and the window reaches them through `IGameInput`.
 
-A game that needs a timer takes an `IClock` of its own. Minesweeper counts seconds from one, and the same clock tells the window to refresh the status line.
+A turn based game can hold more than one board in its one grid: Battleships keeps the computer's waters, a divider and your own fleet side by side, and works out which board a click is on. A game can also use an opponent of its own (Battleships has `IBattleshipsOpponent`, with a hunt-and-target computer player). A game that needs a timer takes an `IClock` of its own. Minesweeper counts seconds from one, and the same clock tells the window to refresh the status line.
 
 `IClock` is a source of ticks. `WinFormsClock` wraps a Windows timer; `FakeClock` is advanced by hand, so games that depend on time are deterministic in tests. `IRandom` is the only source of randomness: pass a `SeededRandom` and a test gets the same board every time.
 
@@ -346,6 +346,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter 
 | `tools/check-layering.ps1` | Checks the layering rules. Needs no OpenEdge install |
 | `tools/compile.ps1` | Compiles every source file in one pass and lists all errors (`-SourceOnly` skips tests) |
 | `tools/gui-smoke-life.ps1` | Drives the real Life window like a user and checks what happens. Takes over the keyboard and mouse for about a minute |
+| `tools/gui-smoke-battleships.ps1` | The same for Battleships: placing a fleet, firing, marking water, a whole game, the board size picker. Takes over the keyboard and mouse for a couple of minutes |
 | `tools/gui-smoke-minesweeper.ps1` | The same for Minesweeper: flags, chords, a whole game, the level picker, saved settings. Takes over the keyboard and mouse for a couple of minutes |
 
 Results go to `build/test-results/results.xml` (plain) and `build/test-results/gui/results.xml` (WinForms). Screenshots from the smoke test go to `build/screenshots`.
@@ -368,6 +369,7 @@ Games built on the framework, each with its own page:
 
 - [Conway's Game of Life](docs/games/life.md): steppable, dense and sparse engines, patterns, HighLife and other rule sets, saved settings. Playable now.
 
+- [Battleships](docs/games/battleships.md): turn based, you against a computer on two boards, ships that may not touch, five board sizes with a fleet to match, placing by hand or at random, marking water, a hunting and targeting opponent. Playable now.
 - [Minesweeper](docs/games/minesweeper.md): turn based, the classic Windows rules, four levels, a high score list and screen per level, question marks, chording (both buttons, middle or double click). Playable now.
 
-Planned: Battleships and Tetris.
+Planned: Tetris.
