@@ -215,7 +215,7 @@ try {
     $shotSunk = Take-Shot $proc 'smoke-bs-7-sunk'; $shotSunk.Dispose()
 
     # win: sink the rest
-    for ($k = 1; $k -lt $shipIds.Count; $k++) { foreach ($c in (Cells-Of $layout $shipIds[$k])) { if (-not (Has-Text $proc 'You win')) { Click-Cell $board $c[0] $c[1] 'left' 150 } } }
+    for ($k = 1; $k -lt $shipIds.Count; $k++) { foreach ($c in (Cells-Of $layout $shipIds[$k])) { if (-not (Has-Text $proc 'You win')) { Click-Cell $board $c[0] $c[1] 'left' $false 150 } } }
     Start-Sleep -Milliseconds 400
     Check 'sinking every ship wins the game' (Has-Text $proc 'You win in') (Get-Title $proc)
     $shotWin = Take-Shot $proc 'smoke-bs-8-won'; $shotWin.Dispose()
