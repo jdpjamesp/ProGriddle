@@ -11,6 +11,10 @@
    A game can offer an extra text screen (IGameInput:InfoLabel and InfoText, the high scores for
    Minesweeper): the window adds a button and a key for it and shows the text in an InfoDialog.
 
+   A game can offer extra drop down lists by also implementing IGameOptions (Life: the rules and the
+   board size). The window adds a captioned list for each after the picker, applies a choice with
+   SetOption, then redraws, since a choice may replace the game's grid, and shows the game's notice.
+
    The game's own keys (IGameInput:HandleKey) are offered every key press first, and told when keys
    come up, so a real time game can use the arrow keys. The game's BannerText, such as PAUSED, is
    kept over the board while it is not empty.
@@ -26,7 +30,7 @@
    Settings: the window size, position and maximised state, the speed and the picker choice
    are restored when the window is built and saved when it closes, under the keys
    "window.width", "window.height", "window.x", "window.y", "window.maximised",
-   "<prefix>.speed" and "<prefix>.choice".
+   "<prefix>.speed" and "<prefix>.choice", and one "<prefix>.<OptionKey>" for each option.
 
    The window owns the GridView it is given and releases it on close. It does not own or
    dispose the controller, clock or settings: whoever built them does, after Application:Run
@@ -52,6 +56,9 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     DEFINE PRIVATE VARIABLE mTitle      AS CHARACTER      NO-UNDO.
     DEFINE PRIVATE VARIABLE mKeys       AS KeyMap         NO-UNDO.
     DEFINE PRIVATE VARIABLE mSyncing    AS LOGICAL        NO-UNDO.
+    /* the game's extra drop down lists, when it implements IGameOptions, one box for each option */
+    DEFINE PRIVATE VARIABLE mOptions    AS IGameOptions   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mOptionBoxes AS ComboBox      NO-UNDO EXTENT.
     /* mouse buttons held now, and every button used since the first went down */
     DEFINE PRIVATE VARIABLE mHeld       AS LOGICAL        NO-UNDO EXTENT 3.
     DEFINE PRIVATE VARIABLE mGesture    AS LOGICAL        NO-UNDO EXTENT 3.
@@ -97,6 +104,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         mController = poController.
         mView = poView.
         mInput = poInput.
+        IF TYPE-OF(poInput, IGameOptions) THEN mOptions = CAST(poInput, IGameOptions).
         mClock = poClock.
         mSettings = poSettings.
         mPrefix = pcPrefix.
@@ -143,8 +151,9 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     METHOD PRIVATE VOID BuildToolbar():
         DEFINE VARIABLE commands AS CHARACTER NO-UNDO.
         DEFINE VARIABLE i        AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE j        AS INTEGER   NO-UNDO.
         DEFINE VARIABLE names    AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE caption  AS Label     NO-UNDO.
+        DEFINE VARIABLE captioned    AS FlowLayoutPanel NO-UNDO.
 
         mToolbar = NEW FlowLayoutPanel().
         mToolbar:Dock = DockStyle:Top.
@@ -183,14 +192,10 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
 
         names = mInput:ChoiceNames.
         IF names <> "" THEN DO:
-            caption = NEW Label().
-            caption:Text = mInput:ChoiceLabel.
-            caption:AutoSize = TRUE.
-            caption:Margin = NEW Padding(12, 8, 2, 0).
-            mToolbar:Controls:Add(caption).
+            captioned = NewCaptioned(mInput:ChoiceLabel).
             mPicker = NEW ComboBox().
             mPicker:DropDownStyle = ComboBoxStyle:DropDownList.
-            mPicker:Width = 170.
+            mPicker:Width = 150.
             mPicker:Margin = NEW Padding(2, 5, 2, 0).
             DO i = 1 TO NUM-ENTRIES(names):
                 mPicker:Items:Add(ENTRY(i, names)).
@@ -198,15 +203,31 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
             mPicker:SelectedIndex = MAXIMUM(0, LOOKUP(mInput:Choice, names) - 1).
             mPicker:SelectedIndexChanged:Subscribe(OnPickerChanged).
             mPicker:DropDownClosed:Subscribe(OnPickerClosed).
-            mToolbar:Controls:Add(mPicker).
+            captioned:Controls:Add(mPicker).
+        END.
+
+        IF VALID-OBJECT(mOptions) AND mOptions:OptionCount > 0 THEN DO:
+            EXTENT(mOptionBoxes) = mOptions:OptionCount.
+            DO i = 1 TO mOptions:OptionCount:
+                names = mOptions:OptionNames(i).
+                captioned = NewCaptioned(mOptions:OptionLabel(i)).
+                mOptionBoxes[i] = NEW ComboBox().
+                mOptionBoxes[i]:Name = STRING(i).
+                mOptionBoxes[i]:DropDownStyle = ComboBoxStyle:DropDownList.
+                mOptionBoxes[i]:Width = 120.
+                mOptionBoxes[i]:Margin = NEW Padding(2, 5, 2, 0).
+                DO j = 1 TO NUM-ENTRIES(names):
+                    mOptionBoxes[i]:Items:Add(ENTRY(j, names)).
+                END.
+                mOptionBoxes[i]:SelectedIndex = MAXIMUM(0, LOOKUP(mOptions:OptionValue(i), names) - 1).
+                mOptionBoxes[i]:SelectedIndexChanged:Subscribe(OnOptionChanged).
+                mOptionBoxes[i]:DropDownClosed:Subscribe(OnPickerClosed).
+                captioned:Controls:Add(mOptionBoxes[i]).
+            END.
         END.
 
         IF mController:Steppable THEN DO:
-            caption = NEW Label().
-            caption:Text = "Speed".
-            caption:AutoSize = TRUE.
-            caption:Margin = NEW Padding(12, 8, 2, 0).
-            mToolbar:Controls:Add(caption).
+            captioned = NewCaptioned("Speed").
             mSpeed = NEW TrackBar().
             mSpeed:Minimum = 1.
             mSpeed:Maximum = 6.
@@ -216,10 +237,31 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
             mSpeed:Width = 130.
             mSpeed:Height = 30.
             mSpeed:ValueChanged:Subscribe(OnSpeedChanged).
-            mToolbar:Controls:Add(mSpeed).
+            captioned:Controls:Add(mSpeed).
         END.
 
         THIS-OBJECT:Controls:Add(mToolbar).
+    END METHOD.
+
+    /* A captioned part of the toolbar: the caption and the control that follows it are added to the
+       panel, which is added to the toolbar, so when the toolbar wraps they move to the next row
+       together and a caption is never left behind. */
+    METHOD PRIVATE FlowLayoutPanel NewCaptioned(INPUT pcCaption AS CHARACTER):
+        DEFINE VARIABLE captioned   AS FlowLayoutPanel NO-UNDO.
+        DEFINE VARIABLE caption AS Label           NO-UNDO.
+        captioned = NEW FlowLayoutPanel().
+        captioned:AutoSize = TRUE.
+        captioned:WrapContents = FALSE.
+        captioned:FlowDirection = FlowDirection:LeftToRight.
+        captioned:Margin = NEW Padding(8, 0, 0, 0).
+        captioned:Padding = NEW Padding(0).
+        caption = NEW Label().
+        caption:Text = pcCaption.
+        caption:AutoSize = TRUE.
+        caption:Margin = NEW Padding(4, 8, 2, 0).
+        captioned:Controls:Add(caption).
+        mToolbar:Controls:Add(captioned).
+        RETURN captioned.
     END METHOD.
 
     METHOD PRIVATE Button NewButton(INPUT pcText AS CHARACTER, INPUT pcTip AS CHARACTER):
@@ -269,9 +311,49 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
             mInput:Choice = sel.
             mPicker:SelectedIndex = LOOKUP(mInput:Choice, mInput:ChoiceNames) - 1.
         END.
+        RestoreOptions().
+    END METHOD.
+
+    /* Puts back each saved option that is still one of the names on offer. A value the game now
+       refuses is ignored: a stale settings file must not stop the window from opening. */
+    METHOD PRIVATE VOID RestoreOptions():
+        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE saved AS CHARACTER NO-UNDO.
+        IF NOT VALID-OBJECT(mOptions) THEN RETURN.
+        DO i = 1 TO mOptions:OptionCount:
+            saved = mSettings:GetString(mPrefix + "." + mOptions:OptionKey(i), "").
+            IF saved = "" OR saved = mOptions:OptionValue(i) THEN NEXT.
+            IF LOOKUP(saved, mOptions:OptionNames(i)) = 0 THEN NEXT.
+            DO ON ERROR UNDO, THROW:
+                mOptions:SetOption(i, saved).
+                CATCH e AS Progress.Lang.Error:
+                    /* keep what the game started with */
+                END CATCH.
+            END.
+            ShowOption(i).
+        END.
+    END METHOD.
+
+    /* True while one of the game's option lists is dropped down, when it needs the arrow keys and
+       the letters for itself. */
+    METHOD PRIVATE LOGICAL OptionListOpen():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        IF EXTENT(mOptionBoxes) = ? THEN RETURN FALSE.
+        DO i = 1 TO EXTENT(mOptionBoxes):
+            IF mOptionBoxes[i]:DroppedDown THEN RETURN TRUE.
+        END.
+        RETURN FALSE.
+    END METHOD.
+
+    /* Makes box i show the option's value now, without that being taken as a choice. */
+    METHOD PRIVATE VOID ShowOption(INPUT piOption AS INTEGER):
+        mSyncing = TRUE.
+        mOptionBoxes[piOption]:SelectedIndex = MAXIMUM(0, LOOKUP(mOptions:OptionValue(piOption), mOptions:OptionNames(piOption)) - 1).
+        mSyncing = FALSE.
     END METHOD.
 
     METHOD PRIVATE VOID SaveSettings():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
         DO ON ERROR UNDO, THROW:
             IF THIS-OBJECT:WindowState = FormWindowState:Normal THEN DO:
                 mSettings:SetInteger("window.width", THIS-OBJECT:ClientSize:Width).
@@ -282,6 +364,9 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
             mSettings:SetLogical("window.maximised", THIS-OBJECT:WindowState = FormWindowState:Maximized).
             IF mController:Steppable THEN mSettings:SetInteger(mPrefix + ".speed", mController:SpeedLevel).
             IF mInput:ChoiceNames <> "" THEN mSettings:SetString(mPrefix + ".choice", mInput:Choice).
+            IF VALID-OBJECT(mOptions) THEN DO i = 1 TO mOptions:OptionCount:
+                mSettings:SetString(mPrefix + "." + mOptions:OptionKey(i), mOptions:OptionValue(i)).
+            END.
             mSettings:Save().
             /* failing to save settings must never stop a window from closing */
             CATCH e AS Progress.Lang.Error:
@@ -344,7 +429,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         DEFINE VARIABLE extra   AS CHARACTER NO-UNDO.
         IF e:Control OR e:Alt THEN RETURN.
         /* an open pattern list needs its arrow keys and letters for itself */
-        IF VALID-OBJECT(mPicker) AND mPicker:DroppedDown THEN RETURN.
+        IF (VALID-OBJECT(mPicker) AND mPicker:DroppedDown) OR OptionListOpen() THEN RETURN.
         keyName = STRING(e:KeyCode).
         /* the game's own keys come first, so a real time game can use the arrows and the space bar */
         IF mInput:HandleKey(keyName) THEN DO:
@@ -488,6 +573,28 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         UpdateStatus().
     END METHOD.
 
+    /* A choice in one of the game's option lists. The game may refuse it, in which case the notice says
+       so and the list goes back to what the game has. */
+    METHOD PRIVATE VOID OnOptionChanged(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
+        DEFINE VARIABLE box AS ComboBox NO-UNDO.
+        DEFINE VARIABLE i   AS INTEGER  NO-UNDO.
+        IF mSyncing THEN RETURN.
+        box = CAST(poSender, ComboBox).
+        IF box:SelectedIndex < 0 THEN RETURN.
+        i = INTEGER(box:Name).
+        DO ON ERROR UNDO, THROW:
+            mOptions:SetOption(i, STRING(box:SelectedItem)).
+            CATCH err AS Progress.Lang.Error:
+                mView:ShowNotice(err:GetMessage(1)).
+                ShowOption(i).
+            END CATCH.
+        END.
+        /* an option can change the game, for example a new board size */
+        mController:Refresh().
+        UpdateStatus().
+        ShowNoticeIfAny().
+    END METHOD.
+
     /* After choosing a pattern, give the keyboard back to the board so Space, S, R and the
        other keys act on the game and not on the list. */
     METHOD PRIVATE VOID OnPickerClosed(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
@@ -537,6 +644,10 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
             mPicker:DropDownClosed:Unsubscribe(OnPickerClosed).
         END.
         IF VALID-OBJECT(mSpeed) THEN mSpeed:ValueChanged:Unsubscribe(OnSpeedChanged).
+        IF EXTENT(mOptionBoxes) <> ? THEN DO i = 1 TO EXTENT(mOptionBoxes):
+            mOptionBoxes[i]:SelectedIndexChanged:Unsubscribe(OnOptionChanged).
+            mOptionBoxes[i]:DropDownClosed:Unsubscribe(OnPickerClosed).
+        END.
         mView:ReleaseResources().
     END METHOD.
 
