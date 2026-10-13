@@ -39,6 +39,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -All
 
 The first runs every test (plain and WinForms). The second opens the Life game. `tools/launch.p` sets the PROPATH and then runs the program you name, which is how every window program is started.
 
+**The quickest way to play is `cookoff.bat`.** Double click it in the repository root (or run it from any folder) and the Cookoff opens: one window with a button for every game. It finds your OpenEdge install from the `DLC` environment variable (or uses `C:\Progress\OpenEdge`), keeps OpenEdge's temp files out of the repository, and needs no other setup. If it cannot find `prowin.exe` it says so and tells you to set `DLC`. [The Cookoff](#the-cookoff) describes the window.
+
 Project setup for VS Code: `openedge-project.json` defines the PROPATH for the OpenEdge extension (`src`, `tests` and `run`). The extension also reads your OpenEdge install path from `.vscode/settings.json`, which is not committed because it is machine specific. Create it with:
 
 ```json
