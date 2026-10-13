@@ -62,9 +62,9 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
     DEFINE PRIVATE VARIABLE mGlyphFormat AS StringFormat NO-UNDO.
 
     DEFINE PRIVATE VARIABLE mBannerText  AS CHARACTER  NO-UNDO.
-    /* the notice: its text, when it started (System.Environment:TickCount) and the timer that fades it */
+    /* the notice: its text, when it started (Ticks:Now) and the timer that fades it */
     DEFINE PRIVATE VARIABLE mNoticeText  AS CHARACTER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNoticeStart AS INTEGER    NO-UNDO.
+    DEFINE PRIVATE VARIABLE mNoticeStart AS INT64      NO-UNDO.
     DEFINE PRIVATE VARIABLE mNoticeTimer AS Timer      NO-UNDO.
 
     /* Draw thin lines between cells when each cell is at least 8 pixels wide. */
@@ -200,7 +200,7 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         IF mReleased THEN RETURN.
         IF pcText = ? THEN pcText = "".
         mNoticeText = pcText.
-        mNoticeStart = System.Environment:TickCount.
+        mNoticeStart = Ticks:Now().
         IF pcText = "" THEN mNoticeTimer:Stop().
         ELSE mNoticeTimer:Start().
         THIS-OBJECT:Invalidate().
@@ -216,8 +216,13 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         THIS-OBJECT:Invalidate().
     END METHOD.
 
+    /* Milliseconds since the notice appeared, held to an hour so it always fits an INTEGER. */
+    METHOD PRIVATE INTEGER NoticeAge():
+        RETURN INTEGER(MINIMUM(3600000, MAXIMUM(0, Ticks:Now() - mNoticeStart))).
+    END METHOD.
+
     METHOD PRIVATE VOID OnNoticeTick(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
-        IF mNoticeText <> "" AND NoticeAlphaAt(System.Environment:TickCount - mNoticeStart) <= 0 THEN DO:
+        IF mNoticeText <> "" AND NoticeAlphaAt(NoticeAge()) <= 0 THEN DO:
             mNoticeText = "".
             mNoticeTimer:Stop().
         END.
@@ -227,7 +232,7 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
     /* Draws the notice at its current opacity. */
     METHOD PRIVATE VOID PaintNotice(INPUT poGraphics AS Graphics):
         DEFINE VARIABLE alpha AS INTEGER NO-UNDO.
-        alpha = NoticeAlphaAt(System.Environment:TickCount - mNoticeStart).
+        alpha = NoticeAlphaAt(NoticeAge()).
         IF alpha > 0 THEN PaintBox(poGraphics, mNoticeText, alpha).
     END METHOD.
 
