@@ -28,8 +28,13 @@
    (and the speed when stepping), so a script can read them from outside.
 
    Settings: the window size, position and maximised state, the speed and the picker choice
-   are restored when the window is built and saved when it closes, under the keys
-   "window.width", "window.height", "window.x", "window.y", "window.maximised",
+   are restored when the window is built and saved when it closes. The window keys come in two
+   sets: "<prefix>.window.width", "<prefix>.window.height", "<prefix>.window.x",
+   "<prefix>.window.y" and "<prefix>.window.maximised" belong to this game, so each game keeps
+   the shape of its own window (a tall board such as Space Invaders needs a different window to
+   a wide one), and "window.width" and the others of the same names without the prefix hold the
+   last window to close. A game that has no window of its own saved yet opens at the last window
+   to close, and so does a settings file from before the keys were split. The rest are
    "<prefix>.speed" and "<prefix>.choice", and one "<prefix>.<OptionKey>" for each option.
 
    The window owns the GridView it is given and releases it on close. It does not own or
@@ -287,14 +292,22 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         DEFINE VARIABLE wa  AS Rectangle NO-UNDO.
         DEFINE VARIABLE sel AS CHARACTER NO-UNDO.
 
-        w = MAXIMUM(400, MINIMUM(4000, mSettings:GetInteger("window.width", 1000))).
-        h = MAXIMUM(300, MINIMUM(3000, mSettings:GetInteger("window.height", 760))).
+        w = MAXIMUM(400, MINIMUM(4000, mSettings:GetInteger(mPrefix + ".window.width", mSettings:GetInteger("window.width", 1000)))).
+        h = MAXIMUM(300, MINIMUM(3000, mSettings:GetInteger(mPrefix + ".window.height", mSettings:GetInteger("window.height", 760)))).
         THIS-OBJECT:ClientSize = NEW Size(w, h).
 
         THIS-OBJECT:StartPosition = FormStartPosition:CenterScreen.
-        IF mSettings:Has("window.x") AND mSettings:Has("window.y") THEN DO:
+        /* the position of this game's own window when it has one, else the last window's */
+        IF mSettings:Has(mPrefix + ".window.x") AND mSettings:Has(mPrefix + ".window.y") THEN DO:
+            x = mSettings:GetInteger(mPrefix + ".window.x", 0).
+            y = mSettings:GetInteger(mPrefix + ".window.y", 0).
+        END.
+        ELSE IF mSettings:Has("window.x") AND mSettings:Has("window.y") THEN DO:
             x = mSettings:GetInteger("window.x", 0).
             y = mSettings:GetInteger("window.y", 0).
+        END.
+        ELSE x = ?.
+        IF x <> ? THEN DO:
             /* only use the saved position when the title bar would still be on a screen */
             pt = NEW Point(x + 60, y + 12).
             wa = Screen:GetWorkingArea(pt).
@@ -303,7 +316,8 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
                 THIS-OBJECT:Location = NEW Point(x, y).
             END.
         END.
-        IF mSettings:GetLogical("window.maximised", FALSE) THEN THIS-OBJECT:WindowState = FormWindowState:Maximized.
+        IF mSettings:GetLogical(mPrefix + ".window.maximised", mSettings:GetLogical("window.maximised", FALSE)) THEN
+            THIS-OBJECT:WindowState = FormWindowState:Maximized.
 
         IF mController:Steppable THEN
             mController:SetSpeedLevel(mSettings:GetInteger(mPrefix + ".speed", mController:SpeedLevel)).
@@ -361,8 +375,13 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
                 mSettings:SetInteger("window.height", THIS-OBJECT:ClientSize:Height).
                 mSettings:SetInteger("window.x", THIS-OBJECT:Location:X).
                 mSettings:SetInteger("window.y", THIS-OBJECT:Location:Y).
+                mSettings:SetInteger(mPrefix + ".window.width", THIS-OBJECT:ClientSize:Width).
+                mSettings:SetInteger(mPrefix + ".window.height", THIS-OBJECT:ClientSize:Height).
+                mSettings:SetInteger(mPrefix + ".window.x", THIS-OBJECT:Location:X).
+                mSettings:SetInteger(mPrefix + ".window.y", THIS-OBJECT:Location:Y).
             END.
             mSettings:SetLogical("window.maximised", THIS-OBJECT:WindowState = FormWindowState:Maximized).
+            mSettings:SetLogical(mPrefix + ".window.maximised", THIS-OBJECT:WindowState = FormWindowState:Maximized).
             IF mController:Steppable THEN mSettings:SetInteger(mPrefix + ".speed", mController:SpeedLevel).
             IF mInput:ChoiceNames <> "" THEN mSettings:SetString(mPrefix + ".choice", mInput:Choice).
             IF VALID-OBJECT(mOptions) THEN DO i = 1 TO mOptions:OptionCount:

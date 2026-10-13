@@ -148,7 +148,7 @@ A turn based game can hold more than one board in its one grid: Battleships keep
 
 ### The window
 
-`GameWindow` hosts any game, steppable, turn based or real time, and knows nothing about which one. For a steppable game it gives you a toolbar (Start or Pause, Step, Reset, the game's own commands, an optional picker, a speed slider), for a turn based game just a New game button, the game's own commands and the picker, and for a real time game a Pause button, New game, the commands and the picker. Either way it has the board, a status bar, keyboard and mouse handling, and saved window size, position and (when stepping) speed. A game describes itself to the window through `IGameInput`:
+`GameWindow` hosts any game, steppable, turn based or real time, and knows nothing about which one. For a steppable game it gives you a toolbar (Start or Pause, Step, Reset, the game's own commands, an optional picker, a speed slider), for a turn based game just a New game button, the game's own commands and the picker, and for a real time game a Pause button, New game, the commands and the picker. Either way it has the board, a status bar, keyboard and mouse handling, and saved window size, position and (when stepping) speed. A game describes itself to the window through `IGameInput`: Each game keeps the size and position of its own window (`<game>.window.width` and the like, so a tall board such as Space Invaders and a wide one such as Life do not fight over one shape), and a game that has none yet opens at the last window to close (`window.width` and the like).
 
 | Member | Used for |
 |---|---|

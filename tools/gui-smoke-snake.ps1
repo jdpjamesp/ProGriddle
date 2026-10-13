@@ -224,6 +224,7 @@ try {
     Write-Host '--- settings'
     $json = Read-Settings
     Check 'the window size was saved' ($json -and $json.values.'window.width' -gt 200) ($json | ConvertTo-Json -Compress)
+    Check 'the window size was saved for this game too' ($json -and $json.values.'snake.window.width' -gt 200) ($json | ConvertTo-Json -Compress)
     Check 'the chosen board size was saved' ($json -and $json.values.'snake.size' -eq '10 x 10') ($json | ConvertTo-Json -Compress)
 
     # ------------------------------------------------------------------------------------------
