@@ -6,31 +6,31 @@ You need the repository running first: see [Getting running](../CONTRIBUTING.md#
 
 ## 1. Start from the template
 
-Pick a name: a capital letter, then letters and digits, such as `Snake`. It becomes the namespace `ProGriddle.Games.Snake`. Then, from the repository root:
+Pick a name: a capital letter, then letters and digits, such as `Pong`. It becomes the namespace `ProGriddle.Games.Pong`. Then, from the repository root:
 
 ```
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/new-game.ps1 -Name Snake -Title "Snake" -Blurb "Eat, grow, and do not bite yourself."
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/new-game.ps1 -Name Pong -Title "Pong" -Blurb "A bat, a ball and the first to eleven."
 ```
 
 It writes six files and changes nothing that exists (if any of the six is there already it writes nothing and says which):
 
 | File | What it is |
 |---|---|
-| `src/ProGriddle/Games/Snake/SnakeGame.cls` | The rules. The template game lights one cell and moves it along the board, so there is something to see |
-| `src/ProGriddle/Games/Snake/SnakeInput.cls` | What the window needs from the game: the status line, and the clicks, keys, picker and commands the game adds |
-| `tests/ProGriddle/Games/Snake/SnakeGameTests.cls` | Tests of the rules |
-| `tests/ProGriddle/Games/Snake/SnakeInputTests.cls` | Tests of the input |
-| `run/run-snake.p` | The composition root: the one place that builds the real objects and starts the window |
-| `docs/games/snake.md` | The game's page |
+| `src/ProGriddle/Games/Pong/PongGame.cls` | The rules. The template game lights one cell and moves it along the board, so there is something to see |
+| `src/ProGriddle/Games/Pong/PongInput.cls` | What the window needs from the game: the status line, and the clicks, keys, picker and commands the game adds |
+| `tests/ProGriddle/Games/Pong/PongGameTests.cls` | Tests of the rules |
+| `tests/ProGriddle/Games/Pong/PongInputTests.cls` | Tests of the input |
+| `run/run-pong.p` | The composition root: the one place that builds the real objects and starts the window |
+| `docs/games/pong.md` | The game's page |
 
 Check that you start from something that works:
 
 ```
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter "Snake*"
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter "Pong*"
 cookoff.bat
 ```
 
-The tests pass, and the Cookoff has a Snake button (the `Arcade:` line in the header of `run/run-snake.p` is where its title and blurb come from). Click it and press Space: a lit cell crawls along the board. Space starts and pauses, S steps, R resets.
+The tests pass, and the Cookoff has a Pong button (the `Arcade:` line in the header of `run/run-pong.p` is where its title and blurb come from). Click it and press Space: a lit cell crawls along the board. Space starts and pauses, S steps, R resets.
 
 ## 2. Choose the kind of game
 
@@ -42,7 +42,7 @@ The template is **steppable**: every tick of a clock changes the whole grid, as 
 | Turn based | `ITurnBasedGame` (`Turn`) | `TurnController`, no clock | A click or a command on the game's own methods | [Minesweeper](games/minesweeper.md), [Battleships](games/battleships.md) |
 | Real time | `IRealTimeGame` (`Paused`, `Tick`) | `RealTimeController` and a clock | A key, and the clock's `Tick` | [Tetris](games/tetris.md) |
 
-To change kind, change the interface the game implements, the controller in `run/run-snake.p`, and what `SnakeInput` does with clicks and keys. The pages above show each shape in full. Whatever the kind, the game inherits `AbstractGame`, which supplies the name, the grid, `IsOver` and the counter.
+To change kind, change the interface the game implements, the controller in `run/run-pong.p`, and what `PongInput` does with clicks and keys. The pages above show each shape in full. Whatever the kind, the game inherits `AbstractGame`, which supplies the name, the grid, `IsOver` and the counter.
 
 ## 3. Make the rules yours
 
@@ -68,7 +68,7 @@ Then change `Step`, `OnInitialise` and what the grid holds. A few things to know
 
 ## 4. Tell the window about the game
 
-`SnakeInput` implements `IGameInput`, and the generic `GameWindow` builds everything from it. Each member you fill in gives the window something:
+`PongInput` implements `IGameInput`, and the generic `GameWindow` builds everything from it. Each member you fill in gives the window something:
 
 | Member | The window gets |
 |---|---|
@@ -81,11 +81,11 @@ Then change `Step`, `OnInitialise` and what the grid holds. A few things to know
 | `TakeNotice` | A few words that fade, saying what the last action did, or why it was refused |
 | `InfoLabel`, `InfoText` | An extra screen of text, such as high scores or help |
 
-More drop down lists, for example a rule set or a board size, come from also implementing `IGameOptions` (Life does). Test each of these in `SnakeInputTests`.
+More drop down lists, for example a rule set or a board size, come from also implementing `IGameOptions` (Life does). Test each of these in `PongInputTests`.
 
 ## 5. Settings
 
-A game reads and saves values through `ISettings`, namespaced by the game: `snake.width`, `snake.highScore`. Reading never fails (a missing or wrong typed key gives the default you pass). The run file reads the starting options, and the window saves its own size, position and speed. Several games share the one file, and a save puts in only the keys that program set, so games do not undo each other.
+A game reads and saves values through `ISettings`, namespaced by the game: `pong.width`, `pong.highScore`. Reading never fails (a missing or wrong typed key gives the default you pass). The run file reads the starting options, and the window saves its own size, position and speed. Several games share the one file, and a save puts in only the keys that program set, so games do not undo each other.
 
 ## 6. Check the window
 
@@ -98,9 +98,9 @@ Any game with real interaction deserves a smoke test in the style of `tools/gui-
 - **Tests.** Every public method has one. `tools/run-tests.ps1 -All` is green.
 - **Layering.** `tools/check-layering.ps1` passes: your game uses only `Core` and `Engine`, never another game and never the window.
 - **Compile.** `tools/compile.ps1` lists no problems.
-- **The page.** Edit `docs/games/snake.md` so it describes your game: how to play, controls, settings, how it uses the framework, tests, design notes.
+- **The page.** Edit `docs/games/pong.md` so it describes your game: how to play, controls, settings, how it uses the framework, tests, design notes.
 - **The README.** Add a line to the Games list in `README.md` that links the page. A game is not finished until the page exists and is linked.
-- **The Cookoff.** Make sure the `Arcade:` line in `run/run-snake.p` says what you want on the button: `Arcade: Title | one line about it | colour`. The colour is optional (red, orange, blue, purple, green, yellow or teal), and a game that names none gets one worked out from its title, which stays the same whatever else is added. `Arcade: hidden` keeps a run file out of the Cookoff, and a run file with no such line gets a button titled from its file name.
+- **The Cookoff.** Make sure the `Arcade:` line in `run/run-pong.p` says what you want on the button: `Arcade: Title | one line about it | colour`. The colour is optional (red, orange, blue, purple, green, yellow or teal), and a game that names none gets one worked out from its title, which stays the same whatever else is added. `Arcade: hidden` keeps a run file out of the Cookoff, and a run file with no such line gets a button titled from its file name.
 - **The framework.** If the game needed the framework to change, it changed in `Core` or `Engine` with its own tests, not as a special case for your game.
 - **Commits.** Small, one per sub step, with messages that say what and why.
 

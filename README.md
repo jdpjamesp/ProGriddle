@@ -192,7 +192,7 @@ It is built from the same pieces as the games: `IGameCatalog` and `DirectoryGame
 Time to cook up a game on the griddle. The quick way is one command, which writes a working game with its tests, run file and docs page, and gives it a button in the Cookoff:
 
 ```
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/new-game.ps1 -Name Snake -Title "Snake" -Blurb "Eat, grow, and do not bite yourself."
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/new-game.ps1 -Name Pong -Title "Pong" -Blurb "A bat, a ball and the first to eleven."
 ```
 
 [Adding a game](docs/adding-a-game.md) is the walk through from there, and [CONTRIBUTING.md](CONTRIBUTING.md) is how a change goes. What follows is the same game written out by hand, so you can see every piece: a complete, working game in three small files. It lights one cell and moves it along the board, so it shows every piece you need. (Run it with `prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-scanner.p"` once you create the files.) Replace the rules with your own.
@@ -393,7 +393,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter 
 | `tools/run-tests.ps1 -Filter "Grid*"` | Runs only test classes whose file name matches |
 | `tools/check-layering.ps1` | Checks the layering rules. Needs no OpenEdge install |
 | `tools/audit-conventions.ps1` | Checks the rules of `CLAUDE.md` that a script can: header comments, `BLOCK-LEVEL`, wildcard `USING`, no dashes, `MEMPTR` freed, every public member named in a test. Needs no OpenEdge |
-| `tools/new-game.ps1 -Name Snake` | Starts a new game from `templates/game`: its classes, tests, run file and page. See [Adding a game](docs/adding-a-game.md) |
+| `tools/new-game.ps1 -Name Pong` | Starts a new game from `templates/game`: its classes, tests, run file and page. See [Adding a game](docs/adding-a-game.md) |
 | `tools/check-template.ps1` | Makes a game from the template, runs its tests and removes it, to prove the template still works |
 | `bench/run-life-bench.ps1` | Times the real Life engines on a 500 x 500 board for 100 generations. Takes several minutes |
 | `tools/compile.ps1` | Compiles every source file in one pass and lists all errors (`-SourceOnly` skips tests) |

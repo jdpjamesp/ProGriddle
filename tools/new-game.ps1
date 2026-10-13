@@ -16,7 +16,7 @@
     away. Nothing existing is overwritten: if any of those files is there already, nothing is
     written. See docs/adding-a-game.md for what to do next.
 .PARAMETER Name
-    The class name of the game: a letter, then letters and digits, no spaces. For example Snake.
+    The class name of the game: a letter, then letters and digits, no spaces. For example Pong.
     It becomes the namespace ProGriddle.Games.<Name>, so it must not be an ABL reserved word.
 .PARAMETER Title
     What the game is called on screen and on its Cookoff button. Defaults to the name.
@@ -34,7 +34,7 @@ $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
 if ($Name -notmatch '^[A-Z][A-Za-z0-9]*$') {
-    throw "The name '$Name' must start with a capital letter and use only letters and digits, for example Snake."
+    throw "The name '$Name' must start with a capital letter and use only letters and digits, for example Pong."
 }
 if ($Blurb -match '\|') { throw 'The blurb cannot contain a bar, because the Cookoff line is Title | blurb.' }
 if (-not $Title) { $Title = $Name }

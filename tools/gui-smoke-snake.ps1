@@ -79,6 +79,16 @@ function Get-Box($bmp, $rgb, [int]$tol = 4) {
     return $b
 }
 
+# The box round the empty cells of the board, from a screenshot cropped to the board area, so the edge of
+# the window and whatever shows through behind it are not mistaken for board.
+function Get-BoardBox($bmp) {
+    $rect = New-Object System.Drawing.Rectangle 20, 95, ($bmp.Width - 40), ($bmp.Height - 140)
+    $crop = $bmp.Clone($rect, $bmp.PixelFormat)
+    $b = Get-Box $crop $EMPTY
+    $crop.Dispose()
+    return $b
+}
+
 # Where the head is: the centre of its box, and the size of a cell (the head is exactly one cell).
 function Get-Head($p, [string]$name) {
     $bmp = Take-Shot $p $name
@@ -115,7 +125,7 @@ try {
 
     # a new game waits for the first arrow key
     $bmp = Take-Shot $proc 'smoke-snake-1-waiting'
-    $boardBox = Get-Box $bmp $EMPTY
+    $boardBox = Get-BoardBox $bmp
     $ratio = ($boardBox[2] - $boardBox[0]) / [Math]::Max(1, ($boardBox[3] - $boardBox[1]))
     Check 'a 40 x 40 board is square on the screen' ($ratio -gt 0.95 -and $ratio -lt 1.05) "ratio $ratio"
     $bmp.Dispose()
@@ -135,15 +145,6 @@ try {
     $head1 = Get-Head $proc 'smoke-snake-3-running'
     $cell = $head0.Cell
     Check 'the arrow key starts the snake and it crawls to the right' ($head1 -and $head1.X -gt $head0.X + $cell -and [Math]::Abs($head1.Y - $head0.Y) -lt 2) "from $($head0.X),$($head0.Y) to $($head1.X),$($head1.Y)"
-
-    # P pauses: the picture freezes, and P runs it again
-    Send-Keys 'p'
-    $paused1 = Get-Picture $proc 'smoke-snake-3b-paused'
-    Start-Sleep -Milliseconds 900
-    Check 'P pauses: while paused nothing moves' ((Get-Picture $proc 'smoke-snake-3c-paused') -eq $paused1)
-    Send-Keys 'p'
-    Start-Sleep -Milliseconds 500
-    Check 'and P runs it again' ((Get-Picture $proc 'smoke-snake-3d-running') -ne $paused1)
 
     # steering: up
     Send-Keys '{UP}'
@@ -169,6 +170,15 @@ try {
     Start-Sleep -Milliseconds 600
     $c = Get-Head $proc 'smoke-snake-6c-after-two-turns'
     Check 'two quick key presses (up, then right) are both made' ($c -and $c.Y -lt $a.Y - $cell / 2 -and $c.X -gt $b.X) "start $($a.X),$($a.Y) now $($c.X),$($c.Y)"
+
+    # P pauses: the picture freezes, and P runs it again (done now, with the snake well away from the walls)
+    Send-Keys 'p'
+    $paused1 = Get-Picture $proc 'smoke-snake-6d-paused'
+    Start-Sleep -Milliseconds 900
+    Check 'P pauses: while paused nothing moves' ((Get-Picture $proc 'smoke-snake-6e-paused') -eq $paused1)
+    Send-Keys 'p'
+    Start-Sleep -Milliseconds 500
+    Check 'and P runs it again' ((Get-Picture $proc 'smoke-snake-6f-running') -ne $paused1)
 
     # the snake is heading right: it runs into the right wall in the end
     $waited = 0
@@ -201,7 +211,7 @@ try {
         Click-Screen ([int]($r.X + $r.Width / 2)) ([int]($r.Y + $r.Height / 2))
         Send-Keys '{HOME}{ENTER}'
         $small = Take-Shot $proc 'smoke-snake-9-ten-by-ten'
-        $boardBox = Get-Box $small $EMPTY
+        $boardBox = Get-BoardBox $small
         $ratio = if ($boardBox) { ($boardBox[2] - $boardBox[0]) / [Math]::Max(1, ($boardBox[3] - $boardBox[1])) } else { 0 }
         $small.Dispose()
         $cell10 = Get-FoodCell $proc 'smoke-snake-9b-food'
@@ -221,7 +231,7 @@ try {
     Write-Settings 12 8
     $proc = Start-Game
     $bmp = Take-Shot $proc 'smoke-snake-10-small-board'
-    $boardBox = Get-Box $bmp $EMPTY
+    $boardBox = Get-BoardBox $bmp
     $ratio = if ($boardBox) { ($boardBox[2] - $boardBox[0]) / [Math]::Max(1, ($boardBox[3] - $boardBox[1])) } else { 0 }
     $bmp.Dispose()
     Check 'the board size from the settings is used: 12 x 8 is one and a half times as wide as high' ($ratio -gt 1.4 -and $ratio -lt 1.6) "ratio $ratio"

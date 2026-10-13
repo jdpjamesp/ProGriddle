@@ -12,7 +12,11 @@ From the repository root, or from the Cookoff (`cookoff.bat`), where it has a gr
 
 `tools/launch.p` sets the PROPATH and then runs the named program. Optional entries after the program name: a settings file (`default` for `%APPDATA%\ProGriddle\settings.json`), a number of seconds after which the window closes by itself, and a seed for the food. The automated checks use all three.
 
-The snake sets off to the right as soon as the window opens.
+A new game waits: the board shows PRESS AN ARROW KEY and nothing moves until you press one. The key for the way the snake is facing (right) just sets it off, and any other turn key sets it off and turns it. A key that would send it back along its own body does not start it.
+
+### The Board list
+
+The toolbar has a **Board** drop down list with seven sizes, 10 x 10 to 40 x 40 (`15 x 15`, `20 x 20`, `30 x 20`, `30 x 30`, `40 x 30`). Choosing one starts a new game on a board of that size, waiting for a key, and the window remembers the choice for next time. The cells get bigger on a smaller board, so the board always fills the window.
 
 ### Controls
 
@@ -39,7 +43,8 @@ The status line (and the window title) reads `Score 30   Length 6   Level 4   Be
 
 | Key | Meaning | Default |
 |---|---|---|
-| `snake.width`, `snake.height` | Board size in cells, 5 to 40 (read when the game starts) | 20, 20 |
+| `snake.width`, `snake.height` | Board size in cells, 5 to 40, for a first run or by hand. The size chosen in the window (below) wins over these once there is one | 20, 20 |
+| `snake.size` | The size chosen in the Board list, such as `30 x 20`, saved when the window closes. A value that is not a size is ignored | none |
 | `snake.best` | The best score, kept by the game: it is updated when a game ends with a better one | 0 |
 
 The window also saves `window.width`, `window.height`, `window.x`, `window.y` and `window.maximised` by itself. The best score is one number for every board size.
@@ -51,7 +56,7 @@ The window also saves `window.width`, `window.height`, `window.x`, `window.y` an
 | Archetype | Real time: `SnakeGame` implements `IRealTimeGame` on `AbstractGame`, like Tetris |
 | Grid | One layer called `view` on an `ArrayStore`, bounded: 0 empty, 1 body, 2 head, 3 food |
 | Controller | `RealTimeController` with a `WinFormsClock` ticking every 20 ms. Each tick passes the real elapsed time to the game's `Tick`, and the controller redraws only when a step was made |
-| Window | The generic `GameWindow`, told about the game through `SnakeInput` (the arrow keys come in through `HandleKey`) |
+| Window | The generic `GameWindow`, told about the game through `SnakeInput` (the arrow keys come in through `HandleKey`, and the Board list through `IGameOptions`, as in Life) |
 | Look | `SnakeLook`: a four colour palette, with a lighter head so the way it is facing shows |
 | Randomness | An injected `IRandom` places every piece of food, so a seeded one gives the same game every time |
 | Settings | `JsonFileSettings`, read by `run/run-snake.p` and by `SnakeInput` |
@@ -62,7 +67,8 @@ Source: `src/ProGriddle/Games/Snake/`. The composition root is `run/run-snake.p`
 |---|---|
 | `SnakeGame` | The rules: steps, turns, food, speed, crashing and winning |
 | `SnakeInput` | What the window needs: the keys, the status line, the banner and the best score |
-| `SnakeFactory` | Builds the grid (an `ArrayStore` of one layer) and a game on it |
+| `SnakeFactory` | Builds the grid (an `ArrayStore` of one layer) and a game on it, and `Rebuild` changes the board of a running game |
+| `SnakeSizes` | The sizes the Board list offers and the limits on a side, using the shared `BoardSizes` of `Engine` to write and read "30 x 20" |
 | `SnakeLook` | The palette and the text symbols the tests use |
 | `ViewCodes.i` | The numbers the `view` layer holds |
 
@@ -72,8 +78,9 @@ All under `tests/ProGriddle/Games/Snake/`.
 
 | Test class | What it proves |
 |---|---|
-| `SnakeGameTests` | Time and steps, the stall cap, turning (the queue, reversing, repeats), eating and growing, where food may go, speed, crashing into each wall and into the body, chasing the tail, winning, `StartWith`, the contract errors |
-| `SnakeInputTests` | The keys, the status line, the banner, the best score and the members the game leaves empty |
+| `SnakeGameTests` | Time and steps, the stall cap, turning (the queue, reversing, repeats), waiting for the first key, eating and growing, where food may go, speed, crashing into each wall and into the body, chasing the tail, winning, `Replace` (a new board), `StartWith`, the contract errors |
+| `SnakeInputTests` | The keys, the status line, the banner, the best score, the Board option and the members the game leaves empty |
+| `SnakeSizesTests`, `SnakeFactoryTests` | The sizes offered and their limits, and building and rebuilding a board |
 
 `ScriptedRandom` (in `tests/ProGriddle/Core`, shared with 2048) returns the numbers it is given, so a test chooses exactly where the food goes. Run the tests with `powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter "Snake*"`. The window is checked by `tools/gui-smoke-snake.ps1`, which takes over the keyboard for a minute or two.
 
@@ -83,4 +90,6 @@ All under `tests/ProGriddle/Games/Snake/`.
 - **Time, not frames.** `Tick` adds up the real milliseconds it is given and makes a step each time the step length has gone by, so the speed does not depend on how often the clock fires, and the tests drive the game with plain numbers.
 - **Two turns can wait.** A single stored turn drops the second key of a quick pair, and an unbounded queue lets a burst of keys steer the snake long after the player stopped. Two is the usual compromise. A turn is checked against the turn before it, not the way the snake is facing now, so up then down is refused even though down is not opposite to the current heading.
 - **The random source is asked once per piece of food**, for a number below the count of empty cells, so the food can never land on the snake, and a scripted source can choose the cell.
+- **A game that waits for a key.** `SnakeGame:WaitForKey` is off by default, so a test or a script that drives the clock gets a snake that moves. The run file turns it on. Without it, choosing a board size (or pressing R) would start a snake that is already running while the player is still reaching for the keyboard, and on a small board it would crash within a second.
+- **Changing the board.** `SnakeGame:Replace` swaps in a new grid and starts a new game on it, disposing the old grid, and `SnakeFactory:Rebuild` is what the Board option calls. Unlike Life, which carries its live cells across, a snake cannot be carried to a different board, so a new size is a new game.
 - **Arrow keys and the window.** Snake and 2048 are the first games played with the arrow keys from the first moment, which showed that Windows treats an arrow as a dialog key and swallows it unless the board says it wants it. `GridView:WantsKey` and the window focusing the board when it opens fixed that for every game.
