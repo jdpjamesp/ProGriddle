@@ -23,6 +23,16 @@ CLASS ProGriddle.Games.Life.LifeGame INHERITS AbstractGame IMPLEMENTS ISteppable
         GET.
         PRIVATE SET.
 
+    /* The share of cells expected to be alive, 0 to 1. LifeFactory sets it when it builds the game
+       and uses it to choose the engine again when the rules or the size change. */
+    DEFINE PUBLIC PROPERTY ExpectedLive AS DECIMAL NO-UNDO INITIAL 0.1
+        GET.
+        SET(INPUT pdValue AS DECIMAL):
+            IF pdValue = ? OR pdValue < 0 OR pdValue > 1 THEN
+                UNDO, THROW NEW GridException("The expected live share must be from 0 to 1, not " + STRING(pdValue)).
+            ExpectedLive = pdValue.
+        END SET.
+
     /* Number of live cells now. */
     DEFINE PUBLIC PROPERTY AliveCount AS INTEGER NO-UNDO
         GET():
@@ -85,6 +95,33 @@ CLASS ProGriddle.Games.Life.LifeGame INHERITS AbstractGame IMPLEMENTS ISteppable
         DO i = 0 TO Grid:CellCount - 1:
             IF poRandom:NextDecimal() < pdDensity THEN Grid:Store:SetCellAt(1, i, 1).
         END.
+    END METHOD.
+
+    /* Swaps in a new grid, rules and engine (built by LifeFactory:Rebuild, which has already copied the
+       board across) and frees the old grid and engine. With plKeepStart the state Reset returns to is
+       kept, which is only right when the board is the same size. Without it that state is dropped and
+       the generation goes back to 0, because a smaller or larger board has no start to go back to.
+       Throws GridException, and changes nothing, when the grid does not have the one layer "state". */
+    METHOD PUBLIC VOID Replace(INPUT poGrid AS Grid, INPUT poRules AS LifeRules, INPUT poEngine AS ILifeEngine, INPUT plKeepStart AS LOGICAL):
+        DEFINE VARIABLE oldGrid   AS Grid        NO-UNDO.
+        DEFINE VARIABLE oldEngine AS ILifeEngine NO-UNDO.
+        IF NOT VALID-OBJECT(poGrid) THEN UNDO, THROW NEW GridException("A Life game needs a grid").
+        IF NOT VALID-OBJECT(poRules) THEN UNDO, THROW NEW GridException("A Life game needs rules").
+        IF NOT VALID-OBJECT(poEngine) THEN UNDO, THROW NEW GridException("A Life game needs an engine").
+        IF poGrid:Store:LayerCount <> 1 OR poGrid:Store:LayerName(1) <> "state" THEN
+            UNDO, THROW NEW GridException("A Life grid has exactly one layer, named state").
+        oldGrid = Grid.
+        oldEngine = mEngine.
+        Grid = poGrid.
+        Rules = poRules.
+        mEngine = poEngine.
+        IF NOT plKeepStart THEN DO:
+            IF VALID-OBJECT(mStart) THEN mStart:Dispose().
+            mStart = ?.
+            Generation = 0.
+        END.
+        oldEngine:Dispose().
+        oldGrid:Dispose().
     END METHOD.
 
     /* Saves the board as the state Reset returns to. */

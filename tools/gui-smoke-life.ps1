@@ -19,12 +19,13 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 $env:DLC = $Dlc
+. (Join-Path $PSScriptRoot 'progress-temp.ps1')
 $shots = Join-Path $root 'build\screenshots'
 New-Item -ItemType Directory -Force $shots | Out-Null
 $settingsFile = Join-Path $root 'build\smoke-settings.json'
 if (Test-Path $settingsFile) { Remove-Item $settingsFile }
 
-Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+Add-Type -AssemblyName System.Windows.Forms, System.Drawing, UIAutomationClient, UIAutomationTypes
 Add-Type -ReferencedAssemblies System.Drawing @'
 using System; using System.Drawing; using System.Drawing.Imaging; using System.Runtime.InteropServices;
 public class Native {
@@ -100,7 +101,7 @@ function Check([string]$name, [bool]$ok, [string]$detail = '') {
 }
 
 function Start-Life([int]$autoClose = 150) {
-    $args = @('-p', 'tools/launch.p', '-param', "`"run/run-life.p,$settingsFile,$autoClose`"", '-clientlog', 'build/smoke-client.log')
+    $args = @('-T', "`"$(Get-ProgressTempDir)`"", '-p', 'tools/launch.p', '-param', "`"run/run-life.p,$settingsFile,$autoClose`"", '-clientlog', 'build/smoke-client.log')
     $p = Start-Process "$Dlc\bin\prowin.exe" -ArgumentList $args -PassThru
     $deadline = (Get-Date).AddSeconds(25)
     do { Start-Sleep -Milliseconds 300; $p.Refresh() } until ($p.MainWindowTitle -like 'ProGriddle Life*' -or (Get-Date) -gt $deadline -or $p.HasExited)
@@ -125,6 +126,27 @@ function Click-Screen([int]$x, [int]$y, [string]$button = 'left') {
     if ($button -eq 'left') { [Native]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero); [Native]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero) }
     else { [Native]::mouse_event(8, 0, 0, 0, [UIntPtr]::Zero); [Native]::mouse_event(16, 0, 0, 0, [UIntPtr]::Zero) }
     Start-Sleep -Milliseconds 350
+}
+
+# The lists in the toolbar, found through UI Automation by their window class (WinForms controls all
+# report as plain panes), in reading order: the pattern, the rules, the board size. The toolbar may
+# wrap onto a second row, so they are put in order by row first and then left to right.
+function Get-Combos($p) {
+    $rootEl = [System.Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
+    $all = $rootEl.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
+    $list = @()
+    foreach ($e in $all) { if ($e.Current.ClassName -like '*COMBOBOX*') { $list += $e.Current.BoundingRectangle } }
+    return @($list | Sort-Object @{ Expression = { [math]::Round($_.Y / 25) } }, @{ Expression = { [int]$_.X } })
+}
+
+# Opens list number n (0 is the pattern list), goes to the first item, down to the one wanted (counted
+# from 0) and presses Enter. Typing a name would not do: a drop down only jumps by first letter.
+function Choose-Item($p, [int]$n, [int]$index) {
+    $combos = Get-Combos $p
+    if ($combos.Count -le $n) { throw "The toolbar has only $($combos.Count) lists, so list $n cannot be found." }
+    $r = $combos[$n]
+    Click-Screen ([int]($r.X + $r.Width / 2)) ([int]($r.Y + $r.Height / 2))
+    Send-Keys ('{HOME}' + ('{DOWN}' * $index) + '{ENTER}')
 }
 
 function Get-WindowRect($p) { $r = New-Object Native+RECT; [Native]::GetWindowRect($p.MainWindowHandle, [ref]$r) | Out-Null; return $r }
@@ -220,21 +242,45 @@ try {
     # the pattern list: open it, choose Blinker, and the next right click places a Blinker (3 cells,
     # not the default Glider's 5). The offsets are where the list sits in the toolbar at the default
     # window size, so a change to the toolbar layout will show up here.
-    $win = Get-WindowRect $proc
     Send-Keys 'c'
-    Click-Screen ($win.L + 898) ($win.T + 63)
-    Click-Screen ($win.L + 816) ($win.T + 118)
+    Check 'the toolbar has three lists: the pattern, the rules and the board size' ((Get-Combos $proc).Count -eq 3) "lists: $((Get-Combos $proc).Count)"
+    Choose-Item $proc 0 2    # Block, Beehive, Blinker
     $c = Cell-Centre $board 60 20
     Click-Screen $c[0] $c[1] 'right'
     Check 'choosing Blinker in the list makes the next right click place a Blinker' ((Get-Alive $proc) -eq 3) (Get-Title $proc)
     Send-Keys 'c'
     Check 'keys work again straight after using the list' ((Get-Alive $proc) -eq 0) (Get-Title $proc)
     # back to the glider for the rest of the run
-    Click-Screen ($win.L + 898) ($win.T + 63)
-    Click-Screen ($win.L + 816) ($win.T + 166)
+    Choose-Item $proc 0 5    # Toad, Beacon, Glider
     $c = Cell-Centre $board 30 30
     Click-Screen $c[0] $c[1] 'right'
     Check 'choosing Glider again places a glider' ((Get-Alive $proc) -eq 5) (Get-Title $proc)
+
+    # the rules list: HighLife replaces Conway's rules and the glider stays where it is
+    Check 'the rules start as Conway B3/S23' ((Get-Title $proc) -match 'Rules B3/S23') (Get-Title $proc)
+    Choose-Item $proc 1 1    # Conway, HighLife
+    Check 'choosing HighLife in the rules list changes the rules to B36/S23' ((Get-Title $proc) -match 'Rules B36/S23') (Get-Title $proc)
+    Check 'and keeps the live cells and the generation' ((Get-Alive $proc) -eq 5 -and (Get-Gen $proc) -eq 0) (Get-Title $proc)
+    Send-Keys 's'
+    Check 'keys work again after the rules list and the game steps by the new rules' ((Get-Gen $proc) -eq 1 -and (Get-Alive $proc) -eq 5) (Get-Title $proc)
+    Send-Keys 'r'
+    Choose-Item $proc 1 2    # Seeds
+    Check 'Seeds is B2/S' ((Get-Title $proc) -match 'Rules B2/S ') (Get-Title $proc)
+    Choose-Item $proc 1 0    # Conway
+    Check 'choosing Conway puts the rules back to B3/S23' ((Get-Title $proc) -match 'Rules B3/S23') (Get-Title $proc)
+    Choose-Item $proc 1 1    # HighLife again, for the settings
+
+    # the board list: a bigger board keeps the glider and starts again at generation 0
+    $before = (Get-Board $proc 'smoke-3a-before-size' 100 70).Cell
+    Choose-Item $proc 2 3    # 50, 75, 100, 150
+    Check 'choosing 150 x 100 in the board list makes the board 150 x 100' ((Get-Title $proc) -match '150 x 100 bounded') (Get-Title $proc)
+    Check 'the live cells carry across to the bigger board and the generation is 0' ((Get-Alive $proc) -eq 5 -and (Get-Gen $proc) -eq 0) (Get-Title $proc)
+    $bigBoard = Get-Board $proc 'smoke-3b-bigger-board' 150 100
+    Check 'the bigger board is drawn with smaller cells' ($bigBoard -ne $null -and $bigBoard.Cell -lt $before) "before $before after $(if ($bigBoard) { $bigBoard.Cell })"
+    Choose-Item $proc 2 0    # 50 x 35
+    Check 'choosing 50 x 35 gives a smaller board' ((Get-Title $proc) -match '50 x 35 bounded') (Get-Title $proc)
+    Choose-Item $proc 2 2    # 100 x 70
+    Check 'choosing 100 x 70 goes back to the usual board' ((Get-Title $proc) -match '100 x 70 bounded') (Get-Title $proc)
 
     # speed keys
     Send-Keys '{ADD}'
@@ -275,11 +321,14 @@ try {
     $json = if (Test-Path $settingsFile) { Get-Content $settingsFile -Raw | ConvertFrom-Json } else { $null }
     Check 'it records the speed' ($json -and $json.values.'life.speed' -eq 5) ($json | ConvertTo-Json -Compress)
     Check 'it records the chosen pattern' ($json -and $json.values.'life.choice' -eq 'Glider')
+    Check 'it records the chosen rules' ($json -and $json.values.'life.ruleset' -eq 'HighLife') ($json | ConvertTo-Json -Compress)
+    Check 'it records the chosen board size' ($json -and $json.values.'life.size' -eq '100 x 70') ($json | ConvertTo-Json -Compress)
     Check 'it records the window size' ($json -and $json.values.'window.width' -gt 300 -and $json.values.'window.height' -gt 300)
 
     Write-Host '--- second run: settings come back'
     $proc = Start-Life 20
     Check 'speed is restored' ((Get-Speed $proc) -eq 5) (Get-Title $proc)
+    Check 'the rules are restored' ((Get-Title $proc) -match 'Rules B36/S23') (Get-Title $proc)
     $r2 = Get-WindowRect $proc
     Check 'window size is restored' ([math]::Abs(($r2.R - $r2.L) - ($sizeBeforeClose.R - $sizeBeforeClose.L)) -le 4 -and [math]::Abs(($r2.B - $r2.T) - ($sizeBeforeClose.B - $sizeBeforeClose.T)) -le 4) "now $($r2.R-$r2.L)x$($r2.B-$r2.T), was $($sizeBeforeClose.R-$sizeBeforeClose.L)x$($sizeBeforeClose.B-$sizeBeforeClose.T)"
     $shotAgain = Take-Shot $proc 'smoke-7-second-run'; $shotAgain.Dispose()

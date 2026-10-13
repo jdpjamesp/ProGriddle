@@ -27,9 +27,28 @@ From the repository root:
 | C | Clear the board |
 | + or Up arrow, - or Down arrow | Faster, slower (six speeds, from 1000 ms down to 30 ms a step) |
 | Pattern box | Choose which pattern a right click places. The keyboard goes back to the board once you have chosen |
+| Rules box | Choose the rule set (below). It applies from the next generation, on the board you have |
+| Board box | Choose the board size (below). The live cells stay where they are, and the board goes back to generation 0 |
 | Speed slider and the buttons | The same things with the mouse |
 
-The status bar and the window title show the generation, the number of live cells, the rules, the board size and the speed. Resizing the window rescales the cells. The window size, position, speed and chosen pattern are remembered between runs.
+The status bar and the window title show the generation, the number of live cells, the rules, the board size and the speed. Resizing the window rescales the cells. The window size, position, speed, chosen pattern, rules and board size are remembered between runs.
+
+### Rules and board size
+
+The Rules and Board boxes change a game that is running, without starting it again. A notice over the board says what was chosen.
+
+| Rules | Notation | What it does |
+|---|---|---|
+| Conway | B3/S23 | The classic |
+| HighLife | B36/S23 | Like Conway, plus a small replicator |
+| Seeds | B2/S | Nothing survives, every cell with two neighbours is born: explosive |
+| Day and Night | B3678/S34678 | Symmetric between live and dead |
+| Life without Death | B3/S012345678 | Cells never die, so patterns only grow |
+| Maze | B3/S12345 | Fills the board with maze-like walls |
+
+A rule set from `life.rules` that is none of these is added to the box under its notation. Changing the rules keeps the board, the generation and the state that Reset returns to.
+
+The board sizes are 50 x 35, 75 x 50, 100 x 70, 150 x 100, 200 x 140 and 300 x 200, and the current size is added when it is something else (from `life.width` and `life.height`). A new size keeps every live cell in the same place, and loses the ones outside a smaller board. It goes back to generation 0, because the state that Reset returns to belongs to the old size, and the first step after it saves the new one. The wrapping and the engine choice (dense or sparse, by `life.expectedLive`) carry over, and the engine is chosen again for the new rules, since a rule with a birth on no neighbours (`B0`) needs the dense one.
 
 ### Patterns
 
@@ -48,7 +67,7 @@ Edit `%APPDATA%\ProGriddle\settings.json` while the program is closed. Every key
 | `life.palette` | Dead and alive colours as hex | `1B1F24,F2C14E` |
 | `life.startPattern` | Pattern placed on a new board, or `None` | `GosperGliderGun` |
 
-The window also saves `window.width`, `window.height`, `window.x`, `window.y`, `window.maximised`, `life.speed` and `life.choice` (the pattern) by itself.
+The window also saves `window.width`, `window.height`, `window.x`, `window.y`, `window.maximised`, `life.speed`, `life.choice` (the pattern), `life.ruleset` (the name of the rule set, or its notation) and `life.size` (such as `150 x 100`) by itself. A saved `life.ruleset` or `life.size` wins over `life.rules`, `life.width` and `life.height` the next time the window opens. Edit or delete it to go back to those.
 
 ## How it uses the framework
 
@@ -66,14 +85,15 @@ Source: `src/ProGriddle/Games/Life/`. The composition root, the only place that 
 
 | Class | Job |
 |---|---|
-| `LifeRules` | The birth and survival rule as data, in B/S notation. `B3/S23` is Conway's rule and `B36/S23` is HighLife. Counts outside 0 to 8 never give a birth or a survival. |
+| `LifeRules` | The birth and survival rule as data, in B/S notation. `B3/S23` is Conway's rule and `B36/S23` is HighLife. Counts outside 0 to 8 never give a birth or a survival. It also knows the six presets the Rules box offers. |
+| `LifeSizes` | The board sizes the Board box offers and the text form `100 x 70`, with the limits of 5 and 400 cells a side. |
 | `LifePatterns` | The named patterns, built on the framework's `Shape`, and the plain text loader. |
 | `ILifeEngine` | Computes one generation on a grid, in place. |
 | `DenseLifeEngine` | For an `ArrayStore`. Copies the layer out in one block, computes the next generation into a second buffer, and copies it back, so the update is simultaneous. Interior cells use precomputed index steps (unrolled for eight neighbours); edge cells ask the grid, so bounded and wrapped boards both work. |
 | `SparseLifeEngine` | For a `SparseStore`. Exports the live cells, adds one to the count of each neighbour in a second temp table, decides only the counted cells, and imports the survivors. Its cost follows the number of live cells. It refuses rules with a birth on zero neighbours (`B0`). |
 | `LifeGame` | The game. Single layer `state`. Reset (`Initialise`) returns to the board as it was when the first step was taken. |
-| `LifeFactory` | Builds a game with the right store and engine for the expected crowding. |
-| `LifeInput` | Left click toggles, right click places the chosen pattern, Random and Clear start a new board. |
+| `LifeFactory` | Builds a game with the right store and engine for the expected crowding, and `Rebuild` changes the rules and size of a running game. |
+| `LifeInput` | Left click toggles, right click places the chosen pattern, Random and Clear start a new board. It also implements `IGameOptions` for the Rules and Board boxes. |
 
 ## Performance
 
@@ -96,19 +116,21 @@ All under `tests/ProGriddle/Games/Life/`.
 
 | Test class | What it proves |
 |---|---|
-| `LifeRulesTests` | The rule notation, births and survivals, bad input |
+| `LifeRulesTests` | The rule notation, births and survivals, bad input, the presets |
+| `LifeSizesTests` | The offered sizes, the text form, the limits |
 | `LifePatternsTests` | Each pattern's size, the name lookup, the plain text loader |
 | `LifeEngineTests` | The Life behaviour itself, run on both engines: still lifes, oscillators, gliders (including the torus return after 4 x width generations), the Gosper gun, HighLife, S0 rules, and every generation of random boards against a slow independent reference |
-| `LifeGameTests` | Editing cells, placing patterns, randomising, reset behaviour, validation |
-| `LifeFactoryTests` | The 5% switch over and what it builds |
-| `LifeInputTests` | The status text, the pattern picker, clicks and the extra commands |
+| `LifeGameTests` | Editing cells, placing patterns, randomising, reset behaviour, validation, replacing the grid and engine |
+| `LifeFactoryTests` | The 5% switch over, what it builds, and rebuilding a running game: cells kept or lost, generation, wrapping, the engine chosen again |
+| `LifeInputTests` | The status text, the pattern picker, clicks, the extra commands and the Rules and Board options |
+| `GameWindowOptionsTests` (WinForms) | The window puts back saved options and ignores ones that are not on offer |
 | `LifeSessionTests` | Whole keyboard sessions through `GameController`, `FakeClock` and `TextGridRenderer`, with no window |
 
 Run them with `powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1`.
 
 ## Checking the window
 
-`tools/gui-smoke-life.ps1` launches the real window with a throwaway settings file and drives it like a user. It finds the board from a screenshot, clicks and types, drives the pattern list with a real mouse, reads the state back from the window title, resizes the window, closes it, checks that the process exits and the settings were saved, then starts it again to see them restored. It sends real keystrokes and mouse clicks to the foreground, so leave the keyboard and mouse alone for the minute or so it takes. Screenshots go to `build/screenshots`.
+`tools/gui-smoke-life.ps1` launches the real window with a throwaway settings file and drives it like a user. It finds the board from a screenshot, clicks and types, drives the pattern, rules and board lists with a real mouse and the arrow keys (HighLife, Seeds, back to Conway, then a bigger, a smaller and the usual board), reads the state back from the window title, resizes the window, closes it, checks that the process exits and the settings were saved, then starts it again to see them restored. It sends real keystrokes and mouse clicks to the foreground, so leave the keyboard and mouse alone for the minute or so it takes. Screenshots go to `build/screenshots`.
 
 ```
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/gui-smoke-life.ps1

@@ -72,6 +72,45 @@ CLASS ProGriddle.Games.Life.LifeRules FINAL:
         RETURN NEW LifeRules("B36/S23").
     END METHOD.
 
+    /* The names of the well known rule sets the window offers, comma separated:
+       Conway, HighLife, Seeds, Day and Night, Life without Death and Maze. */
+    METHOD PUBLIC STATIC CHARACTER PresetNames():
+        RETURN "Conway,HighLife,Seeds,Day and Night,Life without Death,Maze".
+    END METHOD.
+
+    /* The notation of a preset, for example "B36/S23" for HighLife, or an empty string when the
+       name is not one of PresetNames. */
+    METHOD PUBLIC STATIC CHARACTER PresetNotation(INPUT pcPreset AS CHARACTER):
+        IF pcPreset = ? THEN RETURN "".
+        CASE pcPreset:
+            WHEN "Conway" THEN RETURN "B3/S23".
+            WHEN "HighLife" THEN RETURN "B36/S23".
+            WHEN "Seeds" THEN RETURN "B2/S".
+            WHEN "Day and Night" THEN RETURN "B3678/S34678".
+            WHEN "Life without Death" THEN RETURN "B3/S012345678".
+            WHEN "Maze" THEN RETURN "B3/S12345".
+            OTHERWISE RETURN "".
+        END CASE.
+    END METHOD.
+
+    /* The name of the preset with this notation (any spelling LifeRules accepts), or an empty
+       string when it is not one of them, or is not a notation at all. */
+    METHOD PUBLIC STATIC CHARACTER PresetNameOf(INPUT pcNotation AS CHARACTER):
+        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE canon AS CHARACTER NO-UNDO.
+        IF pcNotation = ? THEN RETURN "".
+        DO ON ERROR UNDO, THROW:
+            canon = NEW LifeRules(pcNotation):Notation.
+            CATCH e AS Progress.Lang.Error:
+                RETURN "".
+            END CATCH.
+        END.
+        DO i = 1 TO NUM-ENTRIES(PresetNames()):
+            IF PresetNotation(ENTRY(i, PresetNames())) = canon THEN RETURN ENTRY(i, PresetNames()).
+        END.
+        RETURN "".
+    END METHOD.
+
     /* True when a dead cell with this many live neighbours becomes alive. */
     METHOD PUBLIC LOGICAL Births(INPUT piCount AS INTEGER):
         IF piCount < 0 OR piCount > 8 THEN RETURN FALSE.

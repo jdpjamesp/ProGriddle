@@ -137,4 +137,51 @@ CLASS ProGriddle.Games.Life.LifeRulesTests:
         NEW LifeRules(s).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID TheWellKnownRuleSetsAreOfferedByName():
+        Assert:Equals("Conway,HighLife,Seeds,Day and Night,Life without Death,Maze", LifeRules:PresetNames()).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID EveryPresetHasANotationThatLifeRulesAccepts():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO NUM-ENTRIES(LifeRules:PresetNames()):
+            Assert:IsTrue(LifeRules:PresetNotation(ENTRY(i, LifeRules:PresetNames())) <> "").
+            Assert:Equals(LifeRules:PresetNotation(ENTRY(i, LifeRules:PresetNames())),
+                          NEW LifeRules(LifeRules:PresetNotation(ENTRY(i, LifeRules:PresetNames()))):Notation).
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ThePresetNotationsAreTheUsualOnes():
+        Assert:Equals("B3/S23", LifeRules:PresetNotation("Conway")).
+        Assert:Equals("B36/S23", LifeRules:PresetNotation("HighLife")).
+        Assert:Equals("B2/S", LifeRules:PresetNotation("Seeds")).
+        Assert:Equals("B3678/S34678", LifeRules:PresetNotation("Day and Night")).
+        Assert:Equals("B3/S012345678", LifeRules:PresetNotation("Life without Death")).
+        Assert:Equals("B3/S12345", LifeRules:PresetNotation("Maze")).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ANameThatIsNotAPresetHasNoNotation():
+        Assert:Equals("", LifeRules:PresetNotation("Nonsense")).
+        Assert:Equals("", LifeRules:PresetNotation("")).
+        Assert:Equals("", LifeRules:PresetNotation(?)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID APresetIsRecognisedFromAnySpellingOfItsNotation():
+        Assert:Equals("Conway", LifeRules:PresetNameOf("B3/S23")).
+        Assert:Equals("Conway", LifeRules:PresetNameOf("b3/s32")).
+        Assert:Equals("HighLife", LifeRules:PresetNameOf("B63/S32")).
+        Assert:Equals("Seeds", LifeRules:PresetNameOf("B2/S")).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ARuleThatIsNoPresetHasNoName():
+        Assert:Equals("", LifeRules:PresetNameOf("B1/S1")).
+        Assert:Equals("", LifeRules:PresetNameOf("junk")).
+        Assert:Equals("", LifeRules:PresetNameOf(?)).
+    END METHOD.
+
 END CLASS.

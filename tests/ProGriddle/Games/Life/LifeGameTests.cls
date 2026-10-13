@@ -429,4 +429,108 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
         END.
     END METHOD.
 
+    /* ---- replacing the grid, the rules and the engine ---- */
+
+    @Test.
+    METHOD PUBLIC VOID TheExpectedLiveShareStartsAtTenPercentAndCanBeSet():
+        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = LifeTestKit:Make(1, 4, 4, FALSE, LifeRules:Conway()).
+            Assert:Equals(0.1, g:ExpectedLive).
+            g:ExpectedLive = 0.5.
+            Assert:Equals(0.5, g:ExpectedLive).
+            FINALLY:
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test (expected="ProGriddle.Core.GridException").
+    METHOD PUBLIC VOID AnExpectedLiveShareOverOneIsRefused():
+        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        g = LifeTestKit:Make(1, 4, 4, FALSE, LifeRules:Conway()).
+        g:ExpectedLive = 1.5.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ReplaceSwapsTheGridTheRulesAndTheEngineAndKeepsTheGeneration():
+        DEFINE VARIABLE g      AS LifeGame NO-UNDO.
+        DEFINE VARIABLE other  AS LifeGame NO-UNDO.
+        DEFINE VARIABLE newGrid AS Grid    NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = LifeTestKit:Make(1, 6, 6, FALSE, LifeRules:Conway()).
+            other = LifeTestKit:Make(1, 8, 5, FALSE, LifeRules:HighLife()).
+            g:Place(LifePatterns:Blinker(), 1, 1).
+            g:Step().
+            newGrid = other:Grid.
+            g:Replace(newGrid, LifeRules:HighLife(), NEW DenseLifeEngine(newGrid, LifeRules:HighLife()), TRUE).
+            Assert:Equals(8, g:Grid:Width).
+            Assert:Equals(5, g:Grid:Height).
+            Assert:Equals("B36/S23", g:Rules:Notation).
+            Assert:Equals(1, g:Generation).
+            FINALLY:
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ReplaceWithoutKeepingTheStartGoesBackToGenerationZeroAndResetClears():
+        DEFINE VARIABLE g      AS LifeGame NO-UNDO.
+        DEFINE VARIABLE other  AS LifeGame NO-UNDO.
+        DEFINE VARIABLE newGrid AS Grid    NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = LifeTestKit:Make(1, 6, 6, FALSE, LifeRules:Conway()).
+            other = LifeTestKit:Make(1, 9, 9, FALSE, LifeRules:Conway()).
+            g:Place(LifePatterns:Blinker(), 1, 1).
+            g:Step().
+            newGrid = other:Grid.
+            newGrid:Store:SetCell(1, 4, 4, 1).
+            g:Replace(newGrid, LifeRules:Conway(), NEW DenseLifeEngine(newGrid, LifeRules:Conway()), FALSE).
+            Assert:Equals(0, g:Generation).
+            Assert:IsTrue(g:IsAlive(4, 4)).
+            g:Initialise().
+            Assert:Equals(0, g:AliveCount).
+            FINALLY:
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ReplaceKeepingTheStartLetsResetReturnToIt():
+        DEFINE VARIABLE g      AS LifeGame NO-UNDO.
+        DEFINE VARIABLE other  AS LifeGame NO-UNDO.
+        DEFINE VARIABLE newGrid AS Grid    NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = LifeTestKit:Make(1, 6, 6, FALSE, LifeRules:Conway()).
+            other = LifeTestKit:Make(1, 6, 6, FALSE, LifeRules:Conway()).
+            g:Place(LifePatterns:Blinker(), 1, 2).
+            g:Step().
+            newGrid = other:Grid.
+            g:Replace(newGrid, LifeRules:Conway(), NEW DenseLifeEngine(newGrid, LifeRules:Conway()), TRUE).
+            g:Initialise().
+            Assert:Equals(3, g:AliveCount).
+            FINALLY:
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test (expected="ProGriddle.Core.GridException").
+    METHOD PUBLIC VOID ReplaceRefusesAGridWithoutTheStateLayer():
+        DEFINE VARIABLE g      AS LifeGame NO-UNDO.
+        DEFINE VARIABLE bad    AS Grid     NO-UNDO.
+        g = LifeTestKit:Make(1, 6, 6, FALSE, LifeRules:Conway()).
+        bad = NEW Grid(NEW ArrayStore(6, 6, "other"), NEW BoundedTopology(), NEW MooreNeighbourhood()).
+        g:Replace(bad, LifeRules:Conway(), NEW DenseLifeEngine(bad, LifeRules:Conway()), TRUE).
+    END METHOD.
+
+    @Test (expected="ProGriddle.Core.GridException").
+    METHOD PUBLIC VOID ReplaceRefusesMissingParts():
+        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        g = LifeTestKit:Make(1, 6, 6, FALSE, LifeRules:Conway()).
+        g:Replace(?, LifeRules:Conway(), ?, TRUE).
+    END METHOD.
+
 END CLASS.
