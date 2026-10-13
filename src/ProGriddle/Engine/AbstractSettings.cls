@@ -1,6 +1,9 @@
 /* Shared behaviour of the settings implementations: key checking and typed values held in
    a JSON object. A subclass decides where the values come from and go to (Save). The
-   native Progress.Json classes are used, so nothing here needs .NET. */
+   native Progress.Json classes are used, so nothing here needs .NET.
+
+   Every Set remembers its key, so a subclass that shares its storage with other programs can
+   save only what this object changed (see JsonFileSettings). */
 USING Progress.Json.ObjectModel.*.
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
@@ -12,6 +15,10 @@ CLASS ProGriddle.Engine.AbstractSettings ABSTRACT IMPLEMENTS ISettings:
 
     /* The key and value pairs. A subclass may replace this object when it loads. */
     DEFINE PROTECTED VARIABLE mValues AS JsonObject NO-UNDO.
+
+    /* The keys set since the object was built or last saved, as ",key1,key2," (keys cannot hold
+       a comma). */
+    DEFINE PRIVATE VARIABLE mChanged AS CHARACTER NO-UNDO INITIAL ",".
 
     CONSTRUCTOR PROTECTED AbstractSettings():
         mValues = NEW JsonObject().
@@ -58,6 +65,7 @@ CLASS ProGriddle.Engine.AbstractSettings ABSTRACT IMPLEMENTS ISettings:
         IF pcValue = ? THEN UNDO, THROW NEW GridException("A setting cannot be the unknown value: " + pcKey).
         Forget(pcKey).
         mValues:Add(pcKey, pcValue).
+        Note(pcKey).
     END METHOD.
 
     METHOD PUBLIC VOID SetInteger(INPUT pcKey AS CHARACTER, INPUT piValue AS INTEGER):
@@ -65,6 +73,7 @@ CLASS ProGriddle.Engine.AbstractSettings ABSTRACT IMPLEMENTS ISettings:
         IF piValue = ? THEN UNDO, THROW NEW GridException("A setting cannot be the unknown value: " + pcKey).
         Forget(pcKey).
         mValues:Add(pcKey, piValue).
+        Note(pcKey).
     END METHOD.
 
     METHOD PUBLIC VOID SetDecimal(INPUT pcKey AS CHARACTER, INPUT pdValue AS DECIMAL):
@@ -72,6 +81,7 @@ CLASS ProGriddle.Engine.AbstractSettings ABSTRACT IMPLEMENTS ISettings:
         IF pdValue = ? THEN UNDO, THROW NEW GridException("A setting cannot be the unknown value: " + pcKey).
         Forget(pcKey).
         mValues:Add(pcKey, pdValue).
+        Note(pcKey).
     END METHOD.
 
     METHOD PUBLIC VOID SetLogical(INPUT pcKey AS CHARACTER, INPUT plValue AS LOGICAL):
@@ -79,6 +89,7 @@ CLASS ProGriddle.Engine.AbstractSettings ABSTRACT IMPLEMENTS ISettings:
         IF plValue = ? THEN UNDO, THROW NEW GridException("A setting cannot be the unknown value: " + pcKey).
         Forget(pcKey).
         mValues:Add(pcKey, plValue).
+        Note(pcKey).
     END METHOD.
 
     METHOD PUBLIC ABSTRACT VOID Save().
@@ -96,6 +107,20 @@ CLASS ProGriddle.Engine.AbstractSettings ABSTRACT IMPLEMENTS ISettings:
                     OR ch = "." OR ch = "_" OR ch = "-") THEN
                 UNDO, THROW NEW GridException("Invalid setting key: " + pcKey).
         END.
+    END METHOD.
+
+    /* The keys set since the object was built or last saved, comma separated. */
+    METHOD PROTECTED CHARACTER ChangedKeys():
+        RETURN TRIM(mChanged, ",").
+    END METHOD.
+
+    /* Forgets which keys were set, once they have been saved. */
+    METHOD PROTECTED VOID ClearChanged():
+        mChanged = ",".
+    END METHOD.
+
+    METHOD PRIVATE VOID Note(INPUT pcKey AS CHARACTER):
+        IF INDEX(mChanged, "," + pcKey + ",") = 0 THEN mChanged = mChanged + pcKey + ",".
     END METHOD.
 
     /* Removes the key if it is there, so a value of another type can take its place. */

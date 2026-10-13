@@ -205,4 +205,171 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
         NEW JsonFileSettings("").
     END METHOD.
 
+    /* ---- several programs sharing the one file ---- */
+
+    @Test.
+    METHOD PUBLIC VOID ASaveKeepsWhatAnotherProgramSavedInTheMeantime():
+        DEFINE VARIABLE path   AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE tetris AS JsonFileSettings NO-UNDO.
+        DEFINE VARIABLE life   AS JsonFileSettings NO-UNDO.
+        DEFINE VARIABLE again  AS JsonFileSettings NO-UNDO.
+        path = FreshPath("shared.json").
+        /* both windows open and read the file, as two games started from the Cookoff do */
+        tetris = NEW JsonFileSettings(path).
+        life = NEW JsonFileSettings(path).
+        tetris:SetString("tetris.scores", "1200:8").
+        tetris:Save().
+        life:SetString("life.ruleset", "HighLife").
+        life:Save().
+        again = NEW JsonFileSettings(path).
+        Assert:Equals("1200:8", again:GetString("tetris.scores", "")).
+        Assert:Equals("HighLife", again:GetString("life.ruleset", "")).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheProgramThatSavesLastSeesTheOthersChangesAfterwards():
+        DEFINE VARIABLE path AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE a    AS JsonFileSettings NO-UNDO.
+        DEFINE VARIABLE b    AS JsonFileSettings NO-UNDO.
+        path = FreshPath("seen.json").
+        a = NEW JsonFileSettings(path).
+        b = NEW JsonFileSettings(path).
+        a:SetInteger("a.value", 1).
+        a:Save().
+        b:SetInteger("b.value", 2).
+        b:Save().
+        Assert:Equals(1, b:GetInteger("a.value", 0)).
+        Assert:Equals(2, b:GetInteger("b.value", 0)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID WhenBothSetTheSameKeyTheLaterSaveWins():
+        DEFINE VARIABLE path  AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE a     AS JsonFileSettings NO-UNDO.
+        DEFINE VARIABLE b     AS JsonFileSettings NO-UNDO.
+        DEFINE VARIABLE again AS JsonFileSettings NO-UNDO.
+        path = FreshPath("same-key.json").
+        a = NEW JsonFileSettings(path).
+        b = NEW JsonFileSettings(path).
+        a:SetInteger("window.width", 800).
+        b:SetInteger("window.width", 900).
+        a:Save().
+        b:Save().
+        again = NEW JsonFileSettings(path).
+        Assert:Equals(900, again:GetInteger("window.width", 0)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ValuesThisProgramLoadedButDidNotChangeAreNotWrittenOverNewerOnes():
+        DEFINE VARIABLE path  AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE earlier AS JsonFileSettings NO-UNDO.
+        DEFINE VARIABLE a     AS JsonFileSettings NO-UNDO.
+        DEFINE VARIABLE b     AS JsonFileSettings NO-UNDO.
+        DEFINE VARIABLE again AS JsonFileSettings NO-UNDO.
+        path = FreshPath("untouched.json").
+        earlier = NEW JsonFileSettings(path).
+        earlier:SetInteger("tetris.best", 100).
+        earlier:Save().
+        a = NEW JsonFileSettings(path).
+        b = NEW JsonFileSettings(path).
+        /* b improves the score and saves. a only changes something else, and must not put 100 back */
+        b:SetInteger("tetris.best", 500).
+        b:Save().
+        a:SetInteger("window.x", 10).
+        a:Save().
+        again = NEW JsonFileSettings(path).
+        Assert:Equals(500, again:GetInteger("tetris.best", 0)).
+        Assert:Equals(10, again:GetInteger("window.x", 0)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AllFourTypesSurviveTheMerge():
+        DEFINE VARIABLE path  AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE a     AS JsonFileSettings NO-UNDO.
+        DEFINE VARIABLE b     AS JsonFileSettings NO-UNDO.
+        DEFINE VARIABLE again AS JsonFileSettings NO-UNDO.
+        path = FreshPath("types.json").
+        a = NEW JsonFileSettings(path).
+        b = NEW JsonFileSettings(path).
+        b:SetString("o.text", "x").
+        b:Save().
+        a:SetString("m.text", "hello").
+        a:SetInteger("m.int", -7).
+        a:SetDecimal("m.dec", 0.25).
+        a:SetLogical("m.flag", TRUE).
+        a:Save().
+        again = NEW JsonFileSettings(path).
+        Assert:Equals("hello", again:GetString("m.text", "")).
+        Assert:Equals(-7, again:GetInteger("m.int", 0)).
+        Assert:Equals(0.25, again:GetDecimal("m.dec", 0)).
+        Assert:IsTrue(again:GetLogical("m.flag", FALSE)).
+        Assert:Equals("x", again:GetString("o.text", "")).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASettingChangedTypeIsReplacedInTheMerge():
+        DEFINE VARIABLE path  AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE a     AS JsonFileSettings NO-UNDO.
+        DEFINE VARIABLE again AS JsonFileSettings NO-UNDO.
+        path = FreshPath("retype.json").
+        a = NEW JsonFileSettings(path).
+        a:SetString("k.value", "text").
+        a:Save().
+        a:SetInteger("k.value", 3).
+        a:Save().
+        again = NEW JsonFileSettings(path).
+        Assert:Equals(3, again:GetInteger("k.value", 0)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID IfTheFileWasDeletedMeanwhileEverythingThisProgramHoldsIsWrittenAgain():
+        DEFINE VARIABLE path  AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE a     AS JsonFileSettings NO-UNDO.
+        DEFINE VARIABLE b     AS JsonFileSettings NO-UNDO.
+        DEFINE VARIABLE again AS JsonFileSettings NO-UNDO.
+        path = FreshPath("deleted.json").
+        a = NEW JsonFileSettings(path).
+        a:SetInteger("life.speed", 4).
+        a:Save().
+        b = NEW JsonFileSettings(path).
+        OS-DELETE VALUE(path).
+        b:SetInteger("window.x", 5).
+        b:Save().
+        again = NEW JsonFileSettings(path).
+        Assert:Equals(4, again:GetInteger("life.speed", 0)).
+        Assert:Equals(5, again:GetInteger("window.x", 0)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID IfTheFileWasCorruptedMeanwhileTheSaveWritesAGoodOne():
+        DEFINE VARIABLE path  AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE a     AS JsonFileSettings NO-UNDO.
+        DEFINE VARIABLE again AS JsonFileSettings NO-UNDO.
+        path = FreshPath("corrupted-later.json").
+        a = NEW JsonFileSettings(path).
+        a:SetInteger("life.speed", 4).
+        a:Save().
+        WriteFile(path, "this is not json").
+        a:SetInteger("window.x", 5).
+        a:Save().
+        again = NEW JsonFileSettings(path).
+        Assert:Equals("loaded", again:LoadStatus).
+        Assert:Equals(4, again:GetInteger("life.speed", 0)).
+        Assert:Equals(5, again:GetInteger("window.x", 0)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID SavingTwiceInARowLeavesTheSameFile():
+        DEFINE VARIABLE path  AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE a     AS JsonFileSettings NO-UNDO.
+        DEFINE VARIABLE earlier AS CHARACTER NO-UNDO.
+        path = FreshPath("twice.json").
+        a = NEW JsonFileSettings(path).
+        a:SetInteger("life.speed", 4).
+        a:Save().
+        earlier = ReadFile(path).
+        a:Save().
+        Assert:Equals(earlier, ReadFile(path)).
+    END METHOD.
+
 END CLASS.
