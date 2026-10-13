@@ -3,7 +3,7 @@
    A subclass overrides OnInitialise to set up its starting position and sets IsOver and
    Generation as play proceeds. */
 USING Progress.Lang.*.
-USING ProGriddle.Core.*.
+USING ProGriddle.Core.GridException.
 USING ProGriddle.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
