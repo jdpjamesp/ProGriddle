@@ -40,6 +40,7 @@ Core depends on nothing. Engine depends on Core. UI.Text depends on Core and Eng
 - Play Minesweeper: `prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-minesweeper.p"`. Its window check is `tools/gui-smoke-minesweeper.ps1` (also takes over the keyboard and mouse, for a couple of minutes, so warn the user first)
 - Play Tetris: `prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-tetris.p"`. Its window check is `tools/gui-smoke-tetris.ps1` (also takes over the keyboard and mouse, for a couple of minutes, so warn the user first)
 - Play 2048: `prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-2048.p"`. Its window check is `tools/gui-smoke-2048.ps1` (also takes over the keyboard and mouse, for a minute or two, so warn the user first). Its namespace is `ProGriddle.Games.2048` because a namespace may start with a digit but a class name may not, so its classes are `Tiles...`
+- Play Snake: `prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-snake.p"`. Its window check is `tools/gui-smoke-snake.ps1` (also takes over the keyboard, for a minute or two, so warn the user first)
 
 ## Environment notes (found in Phase 0 and 3)
 - Under `prowin -b` WinForms objects can be built and drawn (`DrawToBitmap`) but there is no .NET message loop, so timers never tick and `Application:Run` fails. `Application:DoEvents` is forbidden in ABL anyway. Anything that needs real ticks or real input is checked in a windowed run.
