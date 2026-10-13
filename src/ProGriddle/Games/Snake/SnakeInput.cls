@@ -1,7 +1,10 @@
 /* What a Snake window can do. All play is on the keyboard: the arrow keys or W A S D steer the
    snake. A turn is made at the next step, so a quick pair of presses (up, then left) makes both
    turns, and a key that would send the snake straight back on itself is ignored. P or Space pauses
-   and F2 or R starts a new game (the window's own keys). There is nothing to click and no picker.
+   and F2 or R starts a new game (the window's own keys). There is nothing to click.
+
+   The one option, a drop down list called Board, chooses the size of the board (see SnakeSizes). Choosing
+   a size starts a new game on a board of that size, and the window remembers the choice as snake.size.
 
    The status line shows the score, the length, the level (the snake speeds up with every piece of
    food) and the best score. When a game ends, its score becomes the best score if it beats it, and
@@ -9,7 +12,8 @@
    settings when it closes.
 
    The banner says PAUSED while paused, GAME OVER when the snake has crashed and YOU WIN when it has
-   filled the board. */
+   filled the board. When the game is set to wait for a key (SnakeGame:WaitForKey, as the run file does),
+   a new game shows PRESS AN ARROW KEY until the first turn. */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
@@ -17,7 +21,7 @@ USING ProGriddle.Games.Snake.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput:
+CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput, IGameOptions:
 
     DEFINE PRIVATE VARIABLE mGame     AS SnakeGame NO-UNDO.
     DEFINE PRIVATE VARIABLE mSettings AS ISettings NO-UNDO.
@@ -25,6 +29,7 @@ CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput:
     /* the game that has just ended has been counted for the best score, and it was a new best */
     DEFINE PRIVATE VARIABLE mRecorded AS LOGICAL   NO-UNDO.
     DEFINE PRIVATE VARIABLE mNewBest  AS LOGICAL   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mNotice   AS CHARACTER NO-UNDO.
 
     DEFINE PUBLIC PROPERTY StatusText AS CHARACTER NO-UNDO
         GET():
@@ -66,6 +71,7 @@ CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput:
             NoteEnd().
             IF mGame:IsOver THEN RETURN (IF mGame:HasWon THEN "YOU WIN" ELSE "GAME OVER").
             IF mGame:Paused THEN RETURN "PAUSED".
+            IF mGame:Waiting THEN RETURN "PRESS AN ARROW KEY".
             RETURN "".
         END GET.
 
@@ -79,6 +85,12 @@ CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput:
             RETURN "".
         END GET.
 
+    /* One option: the board size. */
+    DEFINE PUBLIC PROPERTY OptionCount AS INTEGER NO-UNDO
+        GET():
+            RETURN 1.
+        END GET.
+
     CONSTRUCTOR PUBLIC SnakeInput(INPUT poGame AS SnakeGame, INPUT poSettings AS ISettings):
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("Snake input needs a game").
         IF NOT VALID-OBJECT(poSettings) THEN UNDO, THROW NEW GridException("Snake input needs settings").
@@ -87,9 +99,12 @@ CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput:
         mBest = MAX(0, mSettings:GetInteger("snake.best", 0)).
     END CONSTRUCTOR.
 
-    /* Snake has nothing to say between moves. */
+    /* What the last change of board size said, once. */
     METHOD PUBLIC CHARACTER TakeNotice():
-        RETURN "".
+        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        notice = mNotice.
+        mNotice = "".
+        RETURN notice.
     END METHOD.
 
     /* The arrow keys and W A S D steer. Returns true for those keys, even when the turn is refused or
@@ -121,6 +136,52 @@ CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput:
     END METHOD.
 
     METHOD PUBLIC VOID TertiaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+    END METHOD.
+
+    /* ---- options (IGameOptions) ---- */
+
+    METHOD PUBLIC CHARACTER OptionLabel(INPUT piOption AS INTEGER):
+        CheckOption(piOption).
+        RETURN "Board".
+    END METHOD.
+
+    METHOD PUBLIC CHARACTER OptionKey(INPUT piOption AS INTEGER):
+        CheckOption(piOption).
+        RETURN "size".
+    END METHOD.
+
+    /* The usual sizes, and the game's own as well when it is not one of them (the settings can ask for any). */
+    METHOD PUBLIC CHARACTER OptionNames(INPUT piOption AS INTEGER):
+        DEFINE VARIABLE names AS CHARACTER NO-UNDO.
+        CheckOption(piOption).
+        names = SnakeSizes:Names().
+        IF LOOKUP(OptionValue(1), names) = 0 THEN names = names + "," + OptionValue(1).
+        RETURN names.
+    END METHOD.
+
+    /* The size of the board, as "20 x 20". */
+    METHOD PUBLIC CHARACTER OptionValue(INPUT piOption AS INTEGER):
+        CheckOption(piOption).
+        RETURN SnakeSizes:Label(mGame:Grid:Width, mGame:Grid:Height).
+    END METHOD.
+
+    /* A size such as "30 x 20": starts a new game on a board of that size. Throws GridException for
+       anything else. Choosing the size the board is already gives no new game. */
+    METHOD PUBLIC VOID SetOption(INPUT piOption AS INTEGER, INPUT pcValue AS CHARACTER):
+        DEFINE VARIABLE w AS INTEGER NO-UNDO.
+        DEFINE VARIABLE h AS INTEGER NO-UNDO.
+        CheckOption(piOption).
+        IF pcValue = ? THEN UNDO, THROW NEW GridException("An option cannot be set to the unknown value").
+        w = SnakeSizes:WidthOf(pcValue).
+        h = SnakeSizes:HeightOf(pcValue).
+        IF w = mGame:Grid:Width AND h = mGame:Grid:Height THEN RETURN.
+        SnakeFactory:Rebuild(mGame, w, h).
+        mNotice = "Board: " + OptionValue(1).
+    END METHOD.
+
+    METHOD PRIVATE VOID CheckOption(INPUT piOption AS INTEGER):
+        IF piOption = ? OR piOption <> 1 THEN
+            UNDO, THROW NEW GridException("Snake has one option, number 1, not " + STRING(piOption)).
     END METHOD.
 
     /* Counts the game that has just ended towards the best score, once. The window asks for the

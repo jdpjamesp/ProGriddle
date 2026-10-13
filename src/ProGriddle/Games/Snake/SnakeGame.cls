@@ -18,6 +18,9 @@
    - The game asks its random source once for each piece of food, for a number below the count
      of empty cells (the nth empty cell, counting along the rows).
    - While Paused, or after the game is over, Tick and every turn do nothing.
+   - With WaitForKey on, a new game does not start moving until the first turn key: the snake waits
+     (Waiting is true) and Tick does nothing. The first turn starts it, and a turn that repeats the way
+     it is facing does too, since it is only a way to say "go". A turn that would reverse it does not.
 
    The snake lives in a ring of cell indexes, tail to head, made once, so a step allocates
    nothing. The grid shows one layer, "view" (see ViewCodes.i). The game owns its grid, and
@@ -56,10 +59,29 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
     DEFINE PRIVATE VARIABLE mFood      AS INTEGER NO-UNDO INITIAL -1.
     DEFINE PRIVATE VARIABLE mEaten     AS INTEGER NO-UNDO.
     DEFINE PRIVATE VARIABLE mAcc       AS INTEGER NO-UNDO.
+    DEFINE PRIVATE VARIABLE mWaitForKey AS LOGICAL NO-UNDO.
 
     DEFINE PUBLIC PROPERTY Paused AS LOGICAL NO-UNDO
         GET.
         SET.
+
+    /* True while a new game is waiting for its first turn key. Tick does nothing then. */
+    DEFINE PUBLIC PROPERTY Waiting AS LOGICAL NO-UNDO
+        GET.
+        PRIVATE SET.
+
+    /* When true, each new game waits for the first turn key before it moves (see Waiting). Setting it on
+       a game that has not begun to move makes that game wait now. Off by default, so a test or a script
+       that drives the clock gets a snake that moves. */
+    DEFINE PUBLIC PROPERTY WaitForKey AS LOGICAL NO-UNDO
+        GET():
+            RETURN mWaitForKey.
+        END GET.
+        SET(INPUT plValue AS LOGICAL):
+            mWaitForKey = plValue.
+            IF NOT plValue THEN Waiting = FALSE.
+            ELSE IF Generation = 0 AND NOT IsOver THEN Waiting = TRUE.
+        END SET.
 
     /* Points: 10 for each piece of food eaten. */
     DEFINE PUBLIC PROPERTY Score AS INTEGER NO-UNDO
@@ -133,10 +155,7 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
     /* The grid must have exactly one layer, named "view", and be at least 5 x 5. */
     CONSTRUCTOR PUBLIC SnakeGame(INPUT poGrid AS Grid, INPUT poRandom AS IRandom):
         SUPER("Snake", poGrid).
-        IF poGrid:Store:LayerCount <> 1 OR poGrid:Store:LayerName(1) <> "view" THEN
-            UNDO, THROW NEW GridException("A Snake grid has exactly one layer, named view").
-        IF poGrid:Width < 5 OR poGrid:Height < 5 THEN
-            UNDO, THROW NEW GridException("A Snake board is at least 5 x 5").
+        CheckGrid(poGrid).
         IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("A Snake game needs a random source").
         mRandom = poRandom.
         mWidth = poGrid:Width.
@@ -144,6 +163,22 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
         EXTENT(mBody) = poGrid:CellCount.
         Initialise().
     END CONSTRUCTOR.
+
+    /* Swaps the board for another, which is how the window changes the board size, and starts a new game
+       on it. The old grid is disposed. Throws GridException, and changes nothing, unless the grid has
+       exactly one layer, named "view", and is at least 5 x 5. */
+    METHOD PUBLIC VOID Replace(INPUT poGrid AS Grid):
+        DEFINE VARIABLE oldGrid AS Grid NO-UNDO.
+        CheckGrid(poGrid).
+        oldGrid = Grid.
+        Grid = poGrid.
+        mWidth = poGrid:Width.
+        mHeight = poGrid:Height.
+        EXTENT(mBody) = poGrid:CellCount.
+        mFood = -1.
+        Initialise().
+        oldGrid:Dispose().
+    END METHOD.
 
     /* Milliseconds between steps after piEaten pieces of food. */
     METHOD PUBLIC STATIC INTEGER StepMsFor(INPUT piEaten AS INTEGER):
@@ -178,7 +213,7 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
        was made, so the controller redraws only when it has to. */
     METHOD PUBLIC LOGICAL Tick(INPUT piElapsedMs AS INTEGER):
         DEFINE VARIABLE moved AS LOGICAL NO-UNDO.
-        IF Paused OR IsOver OR piElapsedMs <= 0 THEN RETURN FALSE.
+        IF Paused OR IsOver OR Waiting OR piElapsedMs <= 0 THEN RETURN FALSE.
         mAcc = mAcc + MIN(piElapsedMs, {&MOST-MS}).
         DO WHILE mAcc >= StepMs AND NOT IsOver:
             mAcc = mAcc - StepMs.
@@ -247,6 +282,7 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
         mAcc = 0.
         mFood = -1.
         PlaceFood().
+        Waiting = mWaitForKey AND NOT IsOver.
     END METHOD.
 
     /* Puts the food in the empty cell at piX, piY, taking it from where it was. Throws GridException
@@ -272,10 +308,30 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
         StartWith(SUBSTITUTE("&1,&3;&2,&3;&4,&3", cx - 2, cx - 1, cy, cx), "Right").
     END METHOD.
 
+    /* Checks a grid is one a Snake game can use. */
+    METHOD PRIVATE VOID CheckGrid(INPUT poGrid AS Grid):
+        IF NOT VALID-OBJECT(poGrid) THEN UNDO, THROW NEW GridException("A Snake game needs a grid").
+        IF poGrid:Store:LayerCount <> 1 OR poGrid:Store:LayerName(1) <> "view" THEN
+            UNDO, THROW NEW GridException("A Snake grid has exactly one layer, named view").
+        IF poGrid:Width < 5 OR poGrid:Height < 5 THEN
+            UNDO, THROW NEW GridException("A Snake board is at least 5 x 5").
+    END METHOD.
+
     /* Queues a turn to face piDirection. See TurnUp for when it is refused. */
     METHOD PRIVATE LOGICAL Steer(INPUT piDirection AS INTEGER):
         DEFINE VARIABLE previous AS INTEGER NO-UNDO.
-        IF Paused OR IsOver OR mQueued >= 2 THEN RETURN FALSE.
+        IF Paused OR IsOver THEN RETURN FALSE.
+        IF Waiting THEN DO:
+            /* the first key starts the snake. Reversing into its own body is no way to start */
+            IF piDirection = (mDirection + 2) MODULO 4 THEN RETURN FALSE.
+            Waiting = FALSE.
+            IF piDirection <> mDirection THEN DO:
+                mQueue1 = piDirection.
+                mQueued = 1.
+            END.
+            RETURN TRUE.
+        END.
+        IF mQueued >= 2 THEN RETURN FALSE.
         previous = (IF mQueued = 0 THEN mDirection ELSE IF mQueued = 1 THEN mQueue1 ELSE mQueue2).
         IF piDirection = previous OR piDirection = (previous + 2) MODULO 4 THEN RETURN FALSE.
         IF mQueued = 0 THEN mQueue1 = piDirection.

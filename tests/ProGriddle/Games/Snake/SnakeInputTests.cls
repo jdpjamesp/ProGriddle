@@ -215,10 +215,153 @@ CLASS ProGriddle.Games.Snake.SnakeInputTests:
         Assert:IsTrue(INDEX(mInput:StatusText, "Best 0") > 0).
     END METHOD.
 
+    /* ---- waiting for the first key ---- */
+
+    @Test.
+    METHOD PUBLIC VOID TheBannerAsksForAnArrowKeyWhileTheGameWaits():
+        mGame:WaitForKey = TRUE.
+        mGame:Initialise().
+        Assert:Equals("PRESS AN ARROW KEY", mInput:BannerText).
+        Assert:IsTrue(mInput:HandleKey("Up")).
+        Assert:Equals("", mInput:BannerText).
+        mGame:Tick(150).
+        Assert:Equals(3, mGame:HeadY).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID PausedComesBeforeWaitingInTheBanner():
+        mGame:WaitForKey = TRUE.
+        mGame:Initialise().
+        mGame:Paused = TRUE.
+        Assert:Equals("PAUSED", mInput:BannerText).
+    END METHOD.
+
+    /* ---- the board size option ---- */
+
+    @Test.
+    METHOD PUBLIC VOID ThereIsOneOptionCalledBoardSavedAsSize():
+        Assert:Equals(1, mInput:OptionCount).
+        Assert:Equals("Board", mInput:OptionLabel(1)).
+        Assert:Equals("size", mInput:OptionKey(1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheOptionOffersTheUsualSizesAndShowsTheCurrentOne():
+        Assert:Equals("8 x 8", mInput:OptionValue(1)).
+        Assert:IsTrue(LOOKUP("20 x 20", mInput:OptionNames(1)) > 0).
+        Assert:IsTrue(LOOKUP("8 x 8", mInput:OptionNames(1)) > 0).
+        Assert:Equals("8 x 8", ENTRY(NUM-ENTRIES(mInput:OptionNames(1)), mInput:OptionNames(1))).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASizeThatIsOfferedIsNotAddedAgain():
+        mInput:SetOption(1, "20 x 20").
+        Assert:Equals(NUM-ENTRIES(SnakeSizes:Names()), NUM-ENTRIES(mInput:OptionNames(1))).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ChoosingASizeStartsANewGameOnABoardOfThatSize():
+        mGame:SetFood(5, 4).
+        mGame:Tick(150).
+        mInput:SetOption(1, "30 x 20").
+        Assert:Equals(30, mGame:Grid:Width).
+        Assert:Equals(20, mGame:Grid:Height).
+        Assert:Equals("30 x 20", mInput:OptionValue(1)).
+        Assert:Equals(0, mGame:Score).
+        Assert:Equals(3, mGame:Length).
+        Assert:Equals("Board: 30 x 20", mInput:TakeNotice()).
+        Assert:Equals("", mInput:TakeNotice()).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ChoosingTheSizeTheBoardAlreadyIsChangesNothing():
+        mGame:SetFood(5, 4).
+        mGame:Tick(150).
+        mInput:SetOption(1, "8 x 8").
+        Assert:Equals(10, mGame:Score).
+        Assert:Equals("", mInput:TakeNotice()).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ChoosingASizeAfterAGameOverBeginsAFreshGame():
+        Crash().
+        Assert:IsTrue(mGame:IsOver).
+        mInput:SetOption(1, "10 x 10").
+        Assert:IsFalse(mGame:IsOver).
+        Assert:Equals("", mInput:BannerText).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASizeThatIsNotASizeOrIsOutOfRangeIsRefused():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            mInput:SetOption(1, "huge").
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mInput:SetOption(1, "41 x 20").
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mInput:SetOption(1, "20 x 4").
+            CATCH e3 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mInput:SetOption(1, ?).
+            CATCH e4 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(4, thrown).
+        Assert:Equals("8 x 8", mInput:OptionValue(1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID OnlyOptionNumberOneExists():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            mInput:OptionLabel(2).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mInput:OptionKey(0).
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mInput:OptionNames(?).
+            CATCH e3 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mInput:OptionValue(3).
+            CATCH e4 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mInput:SetOption(2, "10 x 10").
+            CATCH e5 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(5, thrown).
+    END METHOD.
+
     /* ---- what the window does not get ---- */
 
     @Test.
-    METHOD PUBLIC VOID ThereIsNoPickerNoCommandsNoInfoScreenAndNoNotice():
+    METHOD PUBLIC VOID ThereIsNoPickerNoCommandsNoInfoScreenAndNoNoticeToStartWith():
         Assert:Equals("", mInput:ChoiceLabel).
         Assert:Equals("", mInput:ChoiceNames).
         Assert:Equals("", mInput:Choice).

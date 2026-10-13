@@ -460,6 +460,143 @@ CLASS ProGriddle.Games.Snake.SnakeGameTests:
         Assert:Equals("*......./......../......../......../..oo@.../......../......../........", Board()).
     END METHOD.
 
+    /* ---- waiting for the first key ---- */
+
+    @Test.
+    METHOD PUBLIC VOID ByDefaultAGameDoesNotWaitForAKey():
+        Assert:IsFalse(mGame:WaitForKey).
+        Assert:IsFalse(mGame:Waiting).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AGameThatWaitsForAKeyDoesNotMoveUntilTheFirstTurn():
+        mGame:WaitForKey = TRUE.
+        Assert:IsTrue(mGame:Waiting).
+        Assert:IsFalse(mGame:Tick(1000)).
+        Assert:Equals(4, mGame:HeadX).
+        Assert:IsTrue(mGame:TurnUp()).
+        Assert:IsFalse(mGame:Waiting).
+        Steps(1).
+        Assert:Equals(4, mGame:HeadX).
+        Assert:Equals(3, mGame:HeadY).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheKeyForTheWayItIsFacingStartsTheSnakeWithoutTurningIt():
+        mGame:WaitForKey = TRUE.
+        Assert:IsTrue(mGame:TurnRight()).
+        Assert:IsFalse(mGame:Waiting).
+        Steps(1).
+        Assert:Equals(5, mGame:HeadX).
+        Assert:Equals(4, mGame:HeadY).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AKeyThatWouldReverseTheSnakeDoesNotStartIt():
+        mGame:WaitForKey = TRUE.
+        Assert:IsFalse(mGame:TurnLeft()).
+        Assert:IsTrue(mGame:Waiting).
+        Assert:IsFalse(mGame:Tick(1000)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID EveryNewGameWaitsAgain():
+        mGame:WaitForKey = TRUE.
+        mGame:TurnRight().
+        Steps(1).
+        mGame:Initialise().
+        Assert:IsTrue(mGame:Waiting).
+        mGame:StartWith("1,1;2,1", "Right").
+        Assert:IsTrue(mGame:Waiting).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AGameThatIsAlreadyMovingDoesNotStopToWaitWhenTheFlagIsSet():
+        Steps(1).
+        mGame:WaitForKey = TRUE.
+        Assert:IsFalse(mGame:Waiting).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID SwitchingTheFlagOffStopsTheWaiting():
+        mGame:WaitForKey = TRUE.
+        mGame:WaitForKey = FALSE.
+        Assert:IsFalse(mGame:Waiting).
+        Assert:IsTrue(mGame:Tick(150)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID APausedWaitingGameTakesNoTurn():
+        mGame:WaitForKey = TRUE.
+        mGame:Paused = TRUE.
+        Assert:IsFalse(mGame:TurnUp()).
+        Assert:IsTrue(mGame:Waiting).
+    END METHOD.
+
+    /* ---- changing the board ---- */
+
+    @Test.
+    METHOD PUBLIC VOID ReplaceStartsANewGameOnTheNewBoard():
+        mGame:SetFood(5, 4).
+        Steps(1).
+        mGame:Replace(SnakeFactory:CreateGrid(12, 10)).
+        Assert:Equals(12, mGame:Grid:Width).
+        Assert:Equals(10, mGame:Grid:Height).
+        Assert:Equals(6, mGame:HeadX).
+        Assert:Equals(5, mGame:HeadY).
+        Assert:Equals(3, mGame:Length).
+        Assert:Equals(0, mGame:Score).
+        Assert:Equals(1, mGame:Direction).
+        Assert:IsFalse(mGame:IsOver).
+        Assert:IsTrue(mGame:Tick(150)).
+        Assert:Equals(7, mGame:HeadX).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ReplaceWorksOnAGameThatIsOverAndOnAMuchSmallerBoard():
+        Steps(4).
+        Assert:IsTrue(mGame:IsOver).
+        mGame:Replace(SnakeFactory:CreateGrid(5, 5)).
+        Assert:IsFalse(mGame:IsOver).
+        Assert:Equals(2, mGame:HeadX).
+        Assert:Equals(2, mGame:HeadY).
+        Assert:IsTrue(mGame:Tick(150)).
+        Assert:Equals(3, mGame:HeadX).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ReplaceKeepsTheWaitForKeyChoice():
+        mGame:WaitForKey = TRUE.
+        mGame:Replace(SnakeFactory:CreateGrid(9, 9)).
+        Assert:IsTrue(mGame:Waiting).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ReplaceRefusesAGridThatWillNotDoAndChangesNothing():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            mGame:Replace(NEW Grid(NEW ArrayStore(8, 8, "state"))).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mGame:Replace(SnakeFactory:CreateGrid(4, 9)).
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mGame:Replace(?).
+            CATCH e3 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(3, thrown).
+        Assert:Equals(8, mGame:Grid:Width).
+        Assert:Equals("*......./......../......../......../..oo@.../......../......../........", Board()).
+    END METHOD.
+
     /* ---- building the game ---- */
 
     @Test.

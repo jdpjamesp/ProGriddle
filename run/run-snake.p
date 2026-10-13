@@ -11,6 +11,8 @@
 
    Settings it reads (all optional, edit the file while the program is closed):
      snake.width, snake.height   board size in cells, 5 to 40 (default 20 x 20)
+     snake.size                  the board size chosen in the window, such as 30 x 20 (saved when the window closes,
+                                 and it wins over snake.width and snake.height when the window opens)
      snake.best                  the best score (kept by the game)
    The window also saves its own size and position. */
 USING Progress.Lang.*.
@@ -50,6 +52,8 @@ DO ON ERROR UNDO, THROW:
     oClock = NEW WinFormsClock().
     oClock:Interval = 20.
     oGame = SnakeFactory:Create(iWidth, iHeight, NEW SeededRandom(iSeed)).
+    /* each new game waits for the first arrow key, so the snake never sets off before the player is ready */
+    oGame:WaitForKey = TRUE.
 
     oView = NEW GridView().
     oView:SetPalette(SnakeLook:Palette()).
@@ -58,7 +62,7 @@ DO ON ERROR UNDO, THROW:
                              oClock, oSettings, "snake").
     IF iAutoClose > 0 THEN oWindow:AutoCloseSeconds = iAutoClose.
 
-    /* the snake sets off as soon as the window opens: P pauses, F2 starts again */
+    /* the clock runs from the start, and the snake sets off at the first arrow key: P pauses, F2 starts again */
     oController:Start().
 
     WAIT-FOR Application:Run(oWindow).
