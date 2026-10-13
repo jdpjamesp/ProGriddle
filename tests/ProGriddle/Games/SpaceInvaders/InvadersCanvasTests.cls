@@ -306,6 +306,81 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvasTests:
         Assert:Equals(100, mCanvas:ColourAt(4, 4)).
     END METHOD.
 
+    /* ---- showing the background again ---- */
+
+    @Test.
+    METHOD PUBLIC VOID ShowBackBringsTheBackgroundUpOnAnEmptyCellOnly():
+        mCanvas:SetBack(3, 3, 888).
+        mCanvas:SetBack(4, 3, 999).
+        mCanvas:Plot(4, 3, {&KIND-ALIEN}, 5).
+        mCanvas:ShowBack(3, 3).
+        mCanvas:ShowBack(4, 3).
+        mCanvas:ShowBack(40, 3).
+        Assert:Equals(888, mCanvas:ColourAt(3, 3)).
+        Assert:Equals(5, mCanvas:ColourAt(4, 3)).
+    END METHOD.
+
+    /* ---- big text ---- */
+
+    @Test.
+    METHOD PUBLIC VOID BigTextMakesEachFontCellABlock():
+        DEFINE VARIABLE canvas AS InvadersCanvas NO-UNDO.
+        DEFINE VARIABLE grid   AS Grid           NO-UNDO.
+        grid = NEW Grid(NEW ArrayStore(40, 30, "view,kind,back")).
+        canvas = NEW InvadersCanvas(grid).
+        DO ON ERROR UNDO, THROW:
+            canvas:DrawTextScaled("I", 1, 1, 4000, 4000, 2).
+            /* the top bar of the I is cells 1 to 3 of row 0 of the font, so columns 3 to 8 of rows 1 and 2 */
+            Assert:Equals(4000, canvas:ColourAt(3, 1)).
+            Assert:Equals(4000, canvas:ColourAt(8, 2)).
+            Assert:Equals(0, canvas:ColourAt(2, 1)).
+            Assert:Equals(0, canvas:ColourAt(9, 1)).
+            /* the stem is font column 2, so columns 5 and 6, and the foot is at font row 6, rows 13 and 14 */
+            Assert:Equals(4000, canvas:ColourAt(5, 8)).
+            Assert:Equals(4000, canvas:ColourAt(6, 9)).
+            Assert:Equals(4000, canvas:ColourAt(3, 14)).
+            Assert:Equals(0, canvas:ColourAt(3, 15)).
+            FINALLY:
+                canvas:Dispose().
+                grid:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID BigTextShadesFromTheTopColourToTheBottomColour():
+        DEFINE VARIABLE canvas AS InvadersCanvas NO-UNDO.
+        DEFINE VARIABLE grid   AS Grid           NO-UNDO.
+        grid = NEW Grid(NEW ArrayStore(20, 20, "view,kind,back")).
+        canvas = NEW InvadersCanvas(grid).
+        DO ON ERROR UNDO, THROW:
+            /* the colours mix part by part (red, green, blue), so halfway from black to 60, 120, 180 is 30, 60, 90 */
+            canvas:DrawTextScaled("I", 0, 0, 0, InvadersLook:Rgb(60, 120, 180), 1).
+            Assert:Equals(0, canvas:ColourAt(2, 0)).
+            Assert:Equals(InvadersLook:Rgb(60, 120, 180), canvas:ColourAt(2, 6)).
+            Assert:Equals(InvadersLook:Rgb(30, 60, 90), canvas:ColourAt(2, 3)).
+            FINALLY:
+                canvas:Dispose().
+                grid:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheWidthOfBigTextIsTheWidthOfTheTextTimesTheScale():
+        Assert:Equals(0, InvadersCanvas:ScaledWidth("", 3)).
+        Assert:Equals(15, InvadersCanvas:ScaledWidth("A", 3)).
+        Assert:Equals(33, InvadersCanvas:ScaledWidth("AB", 3)).
+        Assert:Equals(11, InvadersCanvas:ScaledWidth("AB", 0)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID BigTextOffTheBoardIsClipped():
+        mCanvas:DrawTextScaled("II", 8, 6, 4000, 4000, 3).
+        mCanvas:DrawTextScaled("", 0, 0, 1, 1, 2).
+        Assert:Equals(4000, mCanvas:ColourAt(11, 6)).
+    END METHOD.
+
     /* ---- the memory ---- */
 
     @Test.

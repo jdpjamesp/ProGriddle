@@ -1,0 +1,98 @@
+/* What a Space Invaders window needs from the game besides drawing it: the status line and, here, nothing
+   else. The window builds its buttons, picker and status bar from this class and knows nothing
+   about the game, so a new game needs no new window. Most members are empty because this game
+   has no picker, no extra commands, no keys of its own and ignores clicks. Fill in what yours
+   needs:
+
+     ChoiceLabel, ChoiceNames, Choice   a picker, such as the pattern list of Life
+     CommandNames                       extra buttons and keys, written like "Random:G,Clear:C"
+     PrimaryAction, SecondaryAction     left and right click on a cell (TertiaryAction: both, or middle)
+     HandleKey, ReleaseKey              the game's own keys, for a real time game
+     BannerText                         words kept over the board, such as PAUSED
+     InfoLabel, InfoText                an extra text screen, such as high scores
+     TakeNotice                         a few words that fade, about what the last action did
+
+   A game can also implement IGameOptions for extra drop down lists (see Life). */
+USING Progress.Lang.*.
+USING ProGriddle.Core.*.
+USING ProGriddle.Engine.*.
+USING ProGriddle.Games.SpaceInvaders.*.
+
+BLOCK-LEVEL ON ERROR UNDO, THROW.
+
+CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInput FINAL IMPLEMENTS IGameInput:
+
+    DEFINE PRIVATE VARIABLE mGame AS SpaceInvadersGame NO-UNDO.
+
+    DEFINE PUBLIC PROPERTY StatusText AS CHARACTER NO-UNDO
+        GET():
+            RETURN SUBSTITUTE("Generation &1   Lit cell &2", mGame:Generation, mGame:Position).
+        END GET.
+
+    DEFINE PUBLIC PROPERTY ChoiceLabel AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
+
+    DEFINE PUBLIC PROPERTY ChoiceNames AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
+
+    DEFINE PUBLIC PROPERTY Choice AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
+        SET(INPUT pcValue AS CHARACTER):
+        END SET.
+
+    DEFINE PUBLIC PROPERTY CommandNames AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
+
+    DEFINE PUBLIC PROPERTY BannerText AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
+
+    DEFINE PUBLIC PROPERTY InfoLabel AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
+
+    DEFINE PUBLIC PROPERTY InfoText AS CHARACTER NO-UNDO
+        GET():
+            RETURN "".
+        END GET.
+
+    CONSTRUCTOR PUBLIC SpaceInvadersInput(INPUT poGame AS SpaceInvadersGame):
+        IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("SpaceInvaders input needs a game").
+        mGame = poGame.
+    END CONSTRUCTOR.
+
+    METHOD PUBLIC CHARACTER TakeNotice():
+        RETURN "".
+    END METHOD.
+
+    METHOD PUBLIC LOGICAL HandleKey(INPUT pcKey AS CHARACTER):
+        RETURN FALSE.
+    END METHOD.
+
+    METHOD PUBLIC VOID ReleaseKey(INPUT pcKey AS CHARACTER):
+    END METHOD.
+
+    METHOD PUBLIC VOID Perform(INPUT pcCommand AS CHARACTER):
+        UNDO, THROW NEW GridException("Unknown SpaceInvaders command: " + STRING(pcCommand)).
+    END METHOD.
+
+    METHOD PUBLIC VOID PrimaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+    END METHOD.
+
+    METHOD PUBLIC VOID SecondaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+    END METHOD.
+
+    METHOD PUBLIC VOID TertiaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+    END METHOD.
+
+END CLASS.

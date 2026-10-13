@@ -189,6 +189,15 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvas FINAL:
         END.
     END METHOD.
 
+    /* Shows the background of a cell, but only when nothing is on it: for a star that has moved on, or
+       a background colour that has changed under a picture. A cell outside the board is ignored. */
+    METHOD PUBLIC VOID ShowBack(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+        DEFINE VARIABLE idx AS INTEGER NO-UNDO.
+        IF NOT InBounds(piX, piY) THEN RETURN.
+        idx = piY * mWidth + piX.
+        IF mStore:GetCellAt(mKind, idx) = {&KIND-NONE} THEN mStore:SetCellAt(mView, idx, mStore:GetCellAt(mBack, idx)).
+    END METHOD.
+
     /* Counts the cells of one kind on the board. */
     METHOD PUBLIC INTEGER CountKind(INPUT piKind AS INTEGER):
         RETURN mStore:CountOf(mKind, piKind).
@@ -213,6 +222,46 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvas FINAL:
                 DO x = 0 TO PixelFont:GlyphWidth() - 1:
                     IF SUBSTRING(bitRow, x + 1, 1) = "#" AND InBounds(startX + x, piY + y) THEN
                         mStore:SetCellAt(mView, (piY + y) * mWidth + startX + x, piColour).
+                END.
+            END.
+        END.
+    END METHOD.
+
+    /* The width in cells of text drawn at a scale: each cell of a glyph becomes piScale by piScale cells. */
+    METHOD PUBLIC STATIC INTEGER ScaledWidth(INPUT pcText AS CHARACTER, INPUT piScale AS INTEGER):
+        RETURN PixelFont:WidthOf(pcText) * MAXIMUM(1, piScale).
+    END METHOD.
+
+    /* Writes big text: each cell of the font becomes a block of piScale by piScale cells, and the colour goes
+       from piTop on the top row of the letters to piBottom on the bottom row, in even steps, for a shaded
+       title. Kind 0, like DrawText. */
+    METHOD PUBLIC VOID DrawTextScaled(INPUT pcText AS CHARACTER, INPUT piX AS INTEGER, INPUT piY AS INTEGER,
+                                      INPUT piTop AS INTEGER, INPUT piBottom AS INTEGER, INPUT piScale AS INTEGER):
+        DEFINE VARIABLE c       AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE x       AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE y       AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE dx      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE dy      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE glyph   AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE bitRow  AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE startX  AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE colour  AS INTEGER   NO-UNDO.
+        IF pcText = ? OR pcText = "" THEN RETURN.
+        piScale = MAXIMUM(1, piScale).
+        DO c = 1 TO LENGTH(pcText):
+            glyph = PixelFont:Glyph(SUBSTRING(pcText, c, 1)).
+            startX = piX + (c - 1) * (PixelFont:GlyphWidth() + PixelFont:Gap()) * piScale.
+            DO y = 0 TO PixelFont:GlyphHeight() - 1:
+                bitRow = ENTRY(y + 1, glyph, "/").
+                colour = InvadersLook:Mix(piTop, piBottom, y, PixelFont:GlyphHeight() - 1).
+                DO x = 0 TO PixelFont:GlyphWidth() - 1:
+                    IF SUBSTRING(bitRow, x + 1, 1) <> "#" THEN NEXT.
+                    DO dy = 0 TO piScale - 1:
+                        DO dx = 0 TO piScale - 1:
+                            IF InBounds(startX + x * piScale + dx, piY + y * piScale + dy) THEN
+                                mStore:SetCellAt(mView, (piY + y * piScale + dy) * mWidth + startX + x * piScale + dx, colour).
+                        END.
+                    END.
                 END.
             END.
         END.
