@@ -9,7 +9,7 @@ You and the computer each hide a fleet on a square sea. You place yours by hand 
 From the repository root:
 
 ```
-"C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-battleships.p"
+"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-battleships.p"
 ```
 
 `tools/launch.p` sets the PROPATH and then runs the named program. Optional entries after the program name: a settings file (`default` for `%APPDATA%\ProGriddle\settings.json`), a number of seconds after which the window closes by itself, and a seed for the fleets and the computer's shots. The last two are used by the automated checks.

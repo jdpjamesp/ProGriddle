@@ -9,7 +9,7 @@ Life is a simulation, not a game with a winner. Every cell is alive or dead, and
 From the repository root:
 
 ```
-"C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-life.p"
+"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-life.p"
 ```
 
 `tools/launch.p` sets the PROPATH and then runs the named program, so the `USING` statements resolve. Optional entries after the program name: a settings file (`default` for `%APPDATA%\ProGriddle\settings.json`) and a number of seconds after which the window closes by itself (used by the automated checks).

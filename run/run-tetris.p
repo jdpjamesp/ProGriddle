@@ -4,7 +4,7 @@
    Arcade: Tetris | Falling blocks on a timer. Seven bag pieces, ghost piece, levels and a high score list.
 
    Run it under prowin from the repository root:
-     prowin.exe -p tools/launch.p -param "run/run-tetris.p"
+     prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-tetris.p"
    Optional entries after the program name: the settings file ("default" for
    %APPDATA%\ProGriddle\settings.json), a number of seconds after which the window closes by itself
    (for scripted checks), and a seed for the pieces (for scripted checks).

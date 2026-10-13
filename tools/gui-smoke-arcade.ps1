@@ -22,6 +22,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 $env:DLC = $Dlc
+. (Join-Path $PSScriptRoot 'progress-temp.ps1')
 $shots = Join-Path $root 'build\screenshots'
 New-Item -ItemType Directory -Force $shots | Out-Null
 
@@ -91,7 +92,7 @@ $arcade = $null
 $game = $null
 try {
     Write-Host '--- the arcade'
-    $args = @('-p', 'tools/launch.p', '-param', '"run/run-arcade.p,200"', '-clientlog', 'build/smoke-arcade-client.log')
+    $args = @('-T', "`"$(Get-ProgressTempDir)`"", '-p', 'tools/launch.p', '-param', '"run/run-arcade.p,200"', '-clientlog', 'build/smoke-arcade-client.log')
     $arcade = Start-Process "$Dlc\bin\prowin.exe" -ArgumentList $args -PassThru
     $deadline = (Get-Date).AddSeconds(25)
     do { Start-Sleep -Milliseconds 300; $arcade.Refresh() } until ($arcade.MainWindowTitle -like 'ProGriddle Cookoff*' -or (Get-Date) -gt $deadline -or $arcade.HasExited)

@@ -4,7 +4,7 @@
    Arcade: Minesweeper | The classic Windows rules, four levels and a high score list per level.
 
    Run it under prowin from the repository root:
-     prowin.exe -p tools/launch.p -param "run/run-minesweeper.p"
+     prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-minesweeper.p"
    Optional entries after the program name: the settings file ("default" for
    %APPDATA%\ProGriddle\settings.json) and a number of seconds after which the window closes
    by itself (for scripted checks), and then a seed for the mines (for scripted checks).

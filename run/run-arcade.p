@@ -3,7 +3,7 @@
    one launch command reaches every game, and a new game appears as soon as its run file is added.
 
    Run it under prowin from the repository root:
-     prowin.exe -p tools/launch.p -param "run/run-arcade.p"
+     prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-arcade.p"
    Optional entries after the program name: a number of seconds after which the window closes by
    itself (for scripted checks), and the folder to look for games in (default run).
 

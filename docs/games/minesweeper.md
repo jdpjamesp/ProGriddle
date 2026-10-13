@@ -9,7 +9,7 @@ The rules are those of the classic Windows game. The look is modern: a dark boar
 From the repository root:
 
 ```
-"C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-minesweeper.p"
+"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-minesweeper.p"
 ```
 
 `tools/launch.p` sets the PROPATH and then runs the named program. Optional entries after the program name: a settings file (`default` for `%APPDATA%\ProGriddle\settings.json`), a number of seconds after which the window closes by itself, and a seed for the mines. The last two are used by the automated checks.

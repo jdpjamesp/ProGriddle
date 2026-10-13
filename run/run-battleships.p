@@ -4,7 +4,7 @@
    Arcade: Battleships | You against a computer on two boards. Place your fleet and sink theirs.
 
    Run it under prowin from the repository root:
-     prowin.exe -p tools/launch.p -param "run/run-battleships.p"
+     prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-battleships.p"
    Optional entries after the program name: the settings file ("default" for
    %APPDATA%\ProGriddle\settings.json), a number of seconds after which the window closes by
    itself (for scripted checks), and a seed for the fleets and the computer's shots (for scripted

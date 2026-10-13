@@ -1,6 +1,6 @@
 /* Bootstrap for running a program from the command line. The program is compiled
    only after PROPATH is set, so its USING statements resolve.
-     prowin.exe -p tools/launch.p -param "run/run-spike.p,arg2,arg3"
+     prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-spike.p,arg2,arg3"
    Entry 1 is the program to run. Programs read their own arguments from
    SESSION:PARAMETER, entries 2 onwards. Run from the repository root. */
 DEFINE VARIABLE cProgram AS CHARACTER NO-UNDO.

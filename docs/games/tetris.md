@@ -9,7 +9,7 @@ Seven kinds of piece fall one at a time into a ten wide, twenty high well. You s
 From the repository root:
 
 ```
-"C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-tetris.p"
+"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-tetris.p"
 ```
 
 `tools/launch.p` sets the PROPATH and then runs the named program. Optional entries after the program name: a settings file (`default` for `%APPDATA%\ProGriddle\settings.json`), a number of seconds after which the window closes by itself, and a seed for the pieces. The last two are used by the automated checks.

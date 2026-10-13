@@ -22,6 +22,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 $env:DLC = $Dlc
+. (Join-Path $PSScriptRoot 'progress-temp.ps1')
 $shots = Join-Path $root 'build\screenshots'
 New-Item -ItemType Directory -Force $shots | Out-Null
 $settingsFile = Join-Path $root 'build\smoke-tetris-settings.json'
@@ -47,7 +48,7 @@ $PANEL = @(0x1A, 0x1F, 0x25)
 
 # Starts the window. The seed makes the pieces the same every run.
 function Start-Game([int]$autoClose = 300) {
-    $args = @('-p', 'tools/launch.p', '-param', "`"run/run-tetris.p,$settingsFile,$autoClose,$Seed`"", '-clientlog', 'build/smoke-tetris-client.log')
+    $args = @('-T', "`"$(Get-ProgressTempDir)`"", '-p', 'tools/launch.p', '-param', "`"run/run-tetris.p,$settingsFile,$autoClose,$Seed`"", '-clientlog', 'build/smoke-tetris-client.log')
     $p = Start-Process "$Dlc\bin\prowin.exe" -ArgumentList $args -PassThru
     $deadline = (Get-Date).AddSeconds(25)
     do { Start-Sleep -Milliseconds 300; $p.Refresh() } until ($p.MainWindowTitle -like 'ProGriddle Tetris*' -or (Get-Date) -gt $deadline -or $p.HasExited)

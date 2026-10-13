@@ -4,7 +4,7 @@
    Arcade: Life | Conway's cellular automaton. Draw patterns, pick a rule set and watch them evolve.
 
    Run it under prowin from the repository root:
-     prowin.exe -p tools/launch.p -param "run/run-life.p"
+     prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-life.p"
    Optional entries after the program name: the settings file ("default" for
    %APPDATA%\ProGriddle\settings.json) and a number of seconds after which the window closes
    by itself (for scripted checks).

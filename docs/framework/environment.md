@@ -4,6 +4,7 @@ Things found the hard way while building ProGriddle on OpenEdge 12.8.0.1207, Win
 
 ## Running things
 
+- Every launch passes `-T "%TEMP%\ProGriddle"`, the startup parameter for the temp file folder, so the DBI and srt files of a session do not land in the working directory. The folder must exist when prowin starts. `tools/progress-temp.ps1` (`Get-ProgressTempDir`) makes it for the scripts, `cookoff.bat` makes it for itself, and `ProcessGameLauncher` makes it for the games the Cookoff starts.
 - `_progres -b` runs batch programs and ABLUnit. `prowin -b` can do the same and, unlike `_progres`, can also load and draw WinForms classes, so the WinForms tests run under it (`tools/run-tests.ps1 -Gui`).
 - Under `prowin -b` there is **no .NET message loop**. Timers never tick and `Application:Run` fails ("You can only use the .NET event loop in a GUI application"). `PROCESS EVENTS` does not dispatch .NET messages either, and `Application:DoEvents` is forbidden in ABL. Anything that needs real ticks or real input is checked in a windowed run (`tools/gui-smoke-life.ps1`).
 - The `PROPATH` environment variable is ignored by `_progres`. Set `PROPATH` in code. `tools/run-tests.p` and `tools/launch.p` do this, and they set it before the program they run is compiled, which is why programs are started through them (a `USING` is resolved at compile time).

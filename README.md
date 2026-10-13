@@ -28,11 +28,11 @@ This page documents the framework and how to create a new game with it. Each gam
 - `prowin` for the window and `_progres -b` for batch tests. The install location comes from `$env:DLC`, defaulting to `C:\Progress\OpenEdge`.
 - PowerShell for the helper scripts. If scripts are blocked, run them as `powershell -NoProfile -ExecutionPolicy Bypass -File <script>`.
 
-There is no build step: ABL source is compiled when it is run. From the repository root:
+There is no build step: ABL source is compiled when it is run. Every launch passes `-T`, OpenEdge's temp file folder, so the session's temp files go to `%TEMP%\ProGriddle` (or `C:\temp` when `TEMP` is not set) and not into the repository. `cookoff.bat`, the Cookoff's own launches and every script in `tools` do this for you and create the folder; if you start prowin by hand with `-T`, create the folder first. From the repository root:
 
 ```
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -All
-"C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-life.p"
+"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-life.p"
 ```
 
 The first runs every test (plain and WinForms). The second opens the Life game. `tools/launch.p` sets the PROPATH and then runs the program you name, which is how every window program is started.
@@ -165,7 +165,7 @@ Mouse buttons are read as a gesture and acted on when the last one is released, 
 The ProGriddle Cookoff (`run/run-arcade.p`) is one window with a button for every game, so a single launch command reaches them all:
 
 ```
-"C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-arcade.p"
+"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-arcade.p"
 ```
 
 On Windows you can also double click `cookoff.bat` in the repository root, which does the same from any folder (it uses the install named by the `DLC` environment variable, or `C:\Progress\OpenEdge`).
@@ -184,7 +184,7 @@ It is built from the same pieces as the games: `IGameCatalog` and `DirectoryGame
 
 ## Creating a new game
 
-Time to cook up a game on the griddle. Here is a complete, working game in three small files. It lights one cell and moves it along the board, so it shows every piece you need. (Run it with `prowin.exe -p tools/launch.p -param "run/run-scanner.p"` once you create the files.) Replace the rules with your own.
+Time to cook up a game on the griddle. Here is a complete, working game in three small files. It lights one cell and moves it along the board, so it shows every piece you need. (Run it with `prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-scanner.p"` once you create the files.) Replace the rules with your own.
 
 ### 1. Decide what the game is
 
@@ -407,7 +407,7 @@ MIT, see `LICENSE`.
 Start any of them from the **ProGriddle Cookoff**, one window with a button for every game below (and for any game you add, with no list to edit):
 
 ```
-"C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-arcade.p"
+"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-arcade.p"
 ```
 
 [How the Cookoff finds games](#the-cookoff) and how to give yours a title and a line of description are covered above. Each game can also be started on its own with `-param "run/run-<game>.p"`, and each has its own page:

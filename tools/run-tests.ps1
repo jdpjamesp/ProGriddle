@@ -23,6 +23,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 $env:DLC = $Dlc
+. (Join-Path $PSScriptRoot 'progress-temp.ps1')
 $testRoot = Join-Path $root 'tests'
 $out = Join-Path $root 'build\test-results'
 New-Item -ItemType Directory -Force $out | Out-Null
@@ -52,7 +53,7 @@ function Invoke-Suite([string]$Name, [string[]]$Classes, [string]$Exe, [string[]
 
     $logFile = Join-Path $root "build\client-$tag.log"
     Remove-Item $logFile -ErrorAction SilentlyContinue
-    $allArgs = $ExeArgs + @('-p', 'tools/run-tests.p', '-param', "CFG=build/ablunit-$tag.json", '-clientlog', "build/client-$tag.log")
+    $allArgs = $ExeArgs + @('-T', "`"$(Get-ProgressTempDir)`"", '-p', 'tools/run-tests.p', '-param', "CFG=build/ablunit-$tag.json", '-clientlog', "build/client-$tag.log")
     $p = Start-Process -FilePath $Exe -ArgumentList $allArgs -NoNewWindow -Wait -PassThru
     $code = $p.ExitCode
 

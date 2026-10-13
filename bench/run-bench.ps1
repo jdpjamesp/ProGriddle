@@ -16,11 +16,12 @@ param(
 )
 
 $root = Split-Path -Parent $PSScriptRoot
+. (Join-Path $root 'tools\progress-temp.ps1')
 $env:DLC = $Dlc
 $d = $Density.ToString([System.Globalization.CultureInfo]::InvariantCulture)
 $psi = New-Object System.Diagnostics.ProcessStartInfo
 $psi.FileName = Join-Path $Dlc 'bin\_progres.exe'
-$psi.Arguments = "-b -p bench/phase0-storage.p -param `"$Mode,$Width,$Height,$d,$Gens`""
+$psi.Arguments = "-b -T `"$(Get-ProgressTempDir)`" -p bench/phase0-storage.p -param `"$Mode,$Width,$Height,$d,$Gens`""
 $psi.WorkingDirectory = $root
 $psi.RedirectStandardOutput = $true
 $psi.RedirectStandardError = $true

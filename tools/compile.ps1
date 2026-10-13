@@ -17,6 +17,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 $env:DLC = $Dlc
+. (Join-Path $PSScriptRoot 'progress-temp.ps1')
 New-Item -ItemType Directory -Force 'build' | Out-Null
 
 # PROPATH relative names: classes are named from their folder under src or tests.
@@ -34,7 +35,7 @@ $list | Set-Content 'build/compile-list.txt' -Encoding ascii
 
 Remove-Item 'build/compile-errors.txt' -ErrorAction SilentlyContinue
 $prowin = Join-Path $Dlc 'bin\prowin.exe'
-$p = Start-Process -FilePath $prowin -ArgumentList @('-b', '-p', 'tools/launch.p', '-param', 'tools/compile.p') -NoNewWindow -Wait -PassThru
+$p = Start-Process -FilePath $prowin -ArgumentList @('-b', '-T', "`"$(Get-ProgressTempDir)`"", '-p', 'tools/launch.p', '-param', 'tools/compile.p') -NoNewWindow -Wait -PassThru
 
 if (-not (Test-Path 'build/compile-errors.txt')) {
     Write-Host 'The compile run wrote no report.'

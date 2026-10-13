@@ -1,6 +1,8 @@
 /* Starts each game as a program of its own: the same prowin that is running now, run from the
    current folder with tools/launch.p and the game's run file. The arcade stays open, and the games
-   it started are remembered by process id, so a game that is still running is not started twice. */
+   it started are remembered by process id, so a game that is still running is not started twice.
+   Every game is started with -T, so its OpenEdge temp files go to the ProGriddle folder under the
+   user's TEMP folder (C:\temp when TEMP is not set), created when it is missing. */
 USING Progress.Lang.*.
 USING System.Diagnostics.Process FROM ASSEMBLY.
 USING System.Diagnostics.ProcessStartInfo FROM ASSEMBLY.
@@ -16,14 +18,30 @@ CLASS ProGriddle.UI.WinForms.ProcessGameLauncher FINAL IMPLEMENTS IGameLauncher:
         FIELD pid     AS INTEGER
         INDEX ixFile IS UNIQUE PRIMARY runFile.
 
+    /* The folder the games' temp files go to, created when it does not exist yet. */
+    METHOD PUBLIC CHARACTER TempDirectory():
+        DEFINE VARIABLE base AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE dir  AS CHARACTER NO-UNDO.
+        base = OS-GETENV("TEMP").
+        IF base = ? OR base = "" THEN base = "C:\temp".
+        dir = RIGHT-TRIM(base, "\") + "\ProGriddle".
+        System.IO.Directory:CreateDirectory(dir).
+        RETURN dir.
+    END METHOD.
+
+    /* The startup parameters that run a program in a prowin of its own. */
+    METHOD PUBLIC CHARACTER ArgumentsFor(INPUT pcProgram AS CHARACTER):
+        IF pcProgram = ? OR pcProgram = "" THEN UNDO, THROW NEW GridException("There is no program to launch").
+        RETURN SUBSTITUTE('-T "&1" -p tools/launch.p -param "&2"', TempDirectory(), pcProgram).
+    END METHOD.
+
     METHOD PUBLIC VOID Launch(INPUT pcProgram AS CHARACTER):
         DEFINE VARIABLE info    AS ProcessStartInfo NO-UNDO.
         DEFINE VARIABLE started AS Process          NO-UNDO.
         IF pcProgram = ? OR pcProgram = "" THEN UNDO, THROW NEW GridException("There is no program to launch").
         IF IsRunning(pcProgram) THEN RETURN.
         DO ON ERROR UNDO, THROW:
-            info = NEW ProcessStartInfo(Process:GetCurrentProcess():MainModule:FileName,
-                                        SUBSTITUTE('-p tools/launch.p -param "&1"', pcProgram)).
+            info = NEW ProcessStartInfo(Process:GetCurrentProcess():MainModule:FileName, ArgumentsFor(pcProgram)).
             info:WorkingDirectory = System.IO.Directory:GetCurrentDirectory().
             info:UseShellExecute = FALSE.
             started = Process:Start(info).

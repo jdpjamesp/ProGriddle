@@ -21,6 +21,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 $env:DLC = $Dlc
+. (Join-Path $PSScriptRoot 'progress-temp.ps1')
 $shots = Join-Path $root 'build\screenshots'
 New-Item -ItemType Directory -Force $shots | Out-Null
 $settingsFile = Join-Path $root 'build\smoke-ms-settings.json'
@@ -36,7 +37,7 @@ $OPEN = @(22, 26, 32)     # 161A20, an open cell
 
 # Starts the game window. $extra is the settings file entries after the program: seed.
 function Start-Game([int]$autoClose = 240) {
-    $args = @('-p', 'tools/launch.p', '-param', "`"run/run-minesweeper.p,$settingsFile,$autoClose,$Seed`"", '-clientlog', 'build/smoke-ms-client.log')
+    $args = @('-T', "`"$(Get-ProgressTempDir)`"", '-p', 'tools/launch.p', '-param', "`"run/run-minesweeper.p,$settingsFile,$autoClose,$Seed`"", '-clientlog', 'build/smoke-ms-client.log')
     $p = Start-Process "$Dlc\bin\prowin.exe" -ArgumentList $args -PassThru
     $deadline = (Get-Date).AddSeconds(25)
     do { Start-Sleep -Milliseconds 300; $p.Refresh() } until ($p.MainWindowTitle -like 'ProGriddle Minesweeper*' -or (Get-Date) -gt $deadline -or $p.HasExited)
@@ -101,7 +102,7 @@ function Cell-IsHidden($bmp, $p, $board, [int]$cx, [int]$cy) {
 # window starts the game again after building it (a saved level does that once).
 function Get-Layout([int]$restarts, [string]$level = 'Beginner') {
     if (Test-Path $layoutFile) { Remove-Item $layoutFile }
-    $args = @('-b', '-p', 'tools/launch.p', '-param', "`"tools/minesweeper-layout.p,$Seed,$restarts,$layoutFile,$level`"")
+    $args = @('-b', '-T', "`"$(Get-ProgressTempDir)`"", '-p', 'tools/launch.p', '-param', "`"tools/minesweeper-layout.p,$Seed,$restarts,$layoutFile,$level`"")
     $proc = Start-Process "$Dlc\bin\_progres.exe" -ArgumentList $args -PassThru -Wait -WindowStyle Hidden
     if (-not (Test-Path $layoutFile)) { throw 'Could not get the mine layout from tools/minesweeper-layout.p.' }
     $rows = @(Get-Content $layoutFile)
