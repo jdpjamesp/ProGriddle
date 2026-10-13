@@ -706,6 +706,20 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
         END.
     END METHOD.
 
+    /* ---- the keys ---- */
+
+    @Test.
+    METHOD PUBLIC VOID TheViewWantsTheFourArrowKeysAndNothingElse():
+        Assert:IsTrue(mView:WantsKey("Left")).
+        Assert:IsTrue(mView:WantsKey("Right")).
+        Assert:IsTrue(mView:WantsKey("Up")).
+        Assert:IsTrue(mView:WantsKey("Down")).
+        Assert:IsFalse(mView:WantsKey("A")).
+        Assert:IsFalse(mView:WantsKey("Space")).
+        Assert:IsFalse(mView:WantsKey("Left, Shift")).
+        Assert:IsFalse(mView:WantsKey("")).
+    END METHOD.
+
     /* ---- the size of a glyph ---- */
 
     @Test.

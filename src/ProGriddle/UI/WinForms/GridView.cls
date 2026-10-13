@@ -464,6 +464,19 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         END.
     END METHOD.
 
+    /* True for the keys a game on this view is given as key presses: the four arrow keys,
+       named as .NET names them without any modifier ("Left"). Windows treats an arrow key as a
+       dialog key that moves the focus between controls, so unless the view says it wants them
+       the window never sees them as key presses (2048 and Tetris play with the arrows). */
+    METHOD PUBLIC LOGICAL WantsKey(INPUT pcKeyName AS CHARACTER):
+        RETURN pcKeyName = "Left" OR pcKeyName = "Right" OR pcKeyName = "Up" OR pcKeyName = "Down".
+    END METHOD.
+
+    METHOD PROTECTED OVERRIDE LOGICAL IsInputKey(INPUT poKeyData AS Keys):
+        IF WantsKey(STRING(poKeyData)) THEN RETURN TRUE.
+        RETURN SUPER:IsInputKey(poKeyData).
+    END METHOD.
+
     /* The board is smaller than the control, so a resize needs a full repaint, not just the
        newly exposed strip. */
     METHOD PROTECTED OVERRIDE VOID OnResize(INPUT e AS System.EventArgs):

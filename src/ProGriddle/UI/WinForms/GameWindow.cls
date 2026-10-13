@@ -129,6 +129,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         THIS-OBJECT:KeyDown:Subscribe(OnKeyDown).
         THIS-OBJECT:KeyUp:Subscribe(OnKeyUp).
         THIS-OBJECT:FormClosed:Subscribe(OnFormClosed).
+        THIS-OBJECT:Shown:Subscribe(OnShown).
         mClock:Tick:Subscribe(OnClockTick).
 
         SyncSpeed().
@@ -595,6 +596,12 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         ShowNoticeIfAny().
     END METHOD.
 
+    /* When the window first appears the board takes the keyboard, so the arrow keys reach the
+       game from the start and not only after a click on the board. */
+    METHOD PRIVATE VOID OnShown(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
+        mView:Focus().
+    END METHOD.
+
     /* After choosing a pattern, give the keyboard back to the board so Space, S, R and the
        other keys act on the game and not on the list. */
     METHOD PRIVATE VOID OnPickerClosed(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
@@ -632,6 +639,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         THIS-OBJECT:KeyDown:Unsubscribe(OnKeyDown).
         THIS-OBJECT:KeyUp:Unsubscribe(OnKeyUp).
         THIS-OBJECT:FormClosed:Unsubscribe(OnFormClosed).
+        THIS-OBJECT:Shown:Unsubscribe(OnShown).
         IF VALID-OBJECT(mRunButton) THEN mRunButton:Click:Unsubscribe(OnRunClick).
         IF VALID-OBJECT(mStepButton) THEN mStepButton:Click:Unsubscribe(OnStepClick).
         mResetButton:Click:Unsubscribe(OnResetClick).
