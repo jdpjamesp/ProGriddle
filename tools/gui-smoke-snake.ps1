@@ -93,8 +93,8 @@ try {
     Send-Keys 'p'
     Check 'the window opens with the score and length shown' ((Get-Title $proc) -match 'Score 0   Length 3   Level 1   Best 0') (Get-Title $proc)
 
+    # the PAUSED banner covers the middle of the board, where the snake starts, so the snake is looked for once it runs
     $bmp = Take-Shot $proc 'smoke-snake-1-paused'
-    Check 'the board, the body, the head and the food are drawn in their colours' ((Get-Box $bmp $EMPTY) -and (Get-Box $bmp $BODY) -and (Get-Box $bmp $HEAD) -and (Get-Box $bmp $FOOD)) 'a colour is missing'
     $boardBox = Get-Box $bmp $EMPTY
     $ratio = ($boardBox[2] - $boardBox[0]) / [Math]::Max(1, ($boardBox[3] - $boardBox[1]))
     Check 'a 40 x 40 board is square on the screen' ($ratio -gt 0.95 -and $ratio -lt 1.05) "ratio $ratio"
@@ -104,9 +104,13 @@ try {
     $still1 = Get-Picture $proc 'smoke-snake-2a-still'
     Start-Sleep -Milliseconds 900
     Check 'while paused nothing moves' ((Get-Picture $proc 'smoke-snake-2b-still') -eq $still1)
-    $head0 = Get-Head $proc 'smoke-snake-2c-head'
     Send-Keys 'p'
-    Start-Sleep -Milliseconds 700
+    Start-Sleep -Milliseconds 300
+    $bmp = Take-Shot $proc 'smoke-snake-2c-running'
+    Check 'the board, the body, the head and the food are drawn in their colours' ((Get-Box $bmp $EMPTY) -and (Get-Box $bmp $BODY) -and (Get-Box $bmp $HEAD) -and (Get-Box $bmp $FOOD)) 'a colour is missing'
+    $bmp.Dispose()
+    $head0 = Get-Head $proc 'smoke-snake-2d-head'
+    Start-Sleep -Milliseconds 500
     $head1 = Get-Head $proc 'smoke-snake-3-running'
     Check 'P runs it again and the snake crawls to the right' ($head1 -and $head1.X -gt $head0.X + $head0.Cell -and [Math]::Abs($head1.Y - $head0.Y) -lt 2) "from $($head0.X),$($head0.Y) to $($head1.X),$($head1.Y)"
 
@@ -148,9 +152,7 @@ try {
 
     Send-Keys 'r'
     Check 'R starts a new game' ((Has-Text $proc 'Score 0   Length 3') -and -not (Has-Text $proc 'Game over')) (Get-Title $proc)
-    Send-Keys 'p'
     $new0 = Get-Head $proc 'smoke-snake-8a-new-game'
-    Send-Keys 'p'
     Start-Sleep -Milliseconds 600
     $new1 = Get-Head $proc 'smoke-snake-8b-new-game-running'
     Check 'and the new snake moves' ($new0 -and $new1 -and $new1.X -gt $new0.X) "from $($new0.X) to $($new1.X)"
