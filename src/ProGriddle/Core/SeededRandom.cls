@@ -12,7 +12,10 @@ CLASS ProGriddle.Core.SeededRandom FINAL IMPLEMENTS IRandom:
 
     /* Any whole number is a valid seed. */
     CONSTRUCTOR PUBLIC SeededRandom(INPUT piSeed AS INT64):
-        mState = ABSOLUTE(piSeed) MODULO 2147483648.
+        /* the most negative 64 bit number has no absolute value, but it is a multiple of 2^31, so it
+           is the same as seed 0 */
+        IF piSeed < - 9223372036854775807 THEN mState = 0.
+        ELSE mState = ABSOLUTE(piSeed) MODULO 2147483648.
     END CONSTRUCTOR.
 
     METHOD PUBLIC DECIMAL NextDecimal():

@@ -16,7 +16,8 @@ INTERFACE ProGriddle.Engine.IGameController:
     DEFINE PUBLIC PROPERTY Steppable AS LOGICAL NO-UNDO
         GET.
 
-    /* True while the controller is stepping the game on a clock. Always false when not Steppable. */
+    /* True while the controller's clock is running the game: stepping it (a steppable game) or
+       advancing it in real time. Always false for a turn based game, which has no clock. */
     DEFINE PUBLIC PROPERTY IsRunning AS LOGICAL NO-UNDO
         GET.
 
@@ -33,7 +34,7 @@ INTERFACE ProGriddle.Engine.IGameController:
     /* Draws the game again without changing it. */
     METHOD PUBLIC VOID Refresh().
 
-    /* Stops anything running. Does nothing when not Steppable. */
+    /* Stops the clock and pauses the game. Does nothing for a turn based game, which has none. */
     METHOD PUBLIC VOID PauseGame().
 
     /* Sets the speed level. Throws GridException when not Steppable. */

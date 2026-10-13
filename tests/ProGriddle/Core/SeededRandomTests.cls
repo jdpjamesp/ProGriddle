@@ -98,4 +98,16 @@ CLASS ProGriddle.Core.SeededRandomTests:
         NEW SeededRandom(1):NextInt(-5).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID TheMostNegativeSeedWorksAndIsTheSameAsSeedZero():
+        DEFINE VARIABLE lowest AS INT64 NO-UNDO.
+        DEFINE VARIABLE a      AS SeededRandom NO-UNDO.
+        DEFINE VARIABLE b      AS SeededRandom NO-UNDO.
+        lowest = - 9223372036854775807 - 1.
+        a = NEW SeededRandom(lowest).
+        b = NEW SeededRandom(0).
+        Assert:Equals(b:NextDecimal(), a:NextDecimal()).
+        Assert:Equals(b:NextInt(1000), a:NextInt(1000)).
+    END METHOD.
+
 END CLASS.

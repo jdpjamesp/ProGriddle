@@ -103,8 +103,9 @@ CLASS ProGriddle.Core.ArrayStore FINAL INHERITS AbstractCellStore:
             SUPER:CopyFrom(poSource).
     END METHOD.
 
-    /* Internal: writes this store's raw bytes into a MEMPTR of the same size. The MEMPTR is
-       passed by reference, so the caller sees the bytes. Used by CopyFrom. */
+    /* Internal, public only so the dense Life engine and the board view can copy a whole layer in
+       one block: writes this store's raw bytes into a MEMPTR of the same size. The MEMPTR is
+       passed by reference, so the caller sees the bytes. Games should use GetCell and SetCell. */
     METHOD PUBLIC VOID CopyBytesTo(INPUT pmTarget AS MEMPTR):
         IF GET-SIZE(pmTarget) <> GET-SIZE(mMem) THEN
             UNDO, THROW NEW GridException("Target memory size differs").

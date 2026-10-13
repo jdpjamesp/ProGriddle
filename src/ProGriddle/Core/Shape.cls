@@ -6,8 +6,9 @@
    Rotate and Flip return new, normalised shapes and never change this one.
    Rotation is clockwise as seen on screen, where y grows downwards.
 
-   Text form (Parse and ToString): rows separated by "/", "X" is a cell and
-   any other character is empty. For example "XX/.X". */
+   Text form (Parse and ToString): rows separated by "/", "X" (or "x", since ABL ignores case
+   when it compares text) is a cell and any other character is empty. ToString always writes
+   "X" for a cell and "." for empty. For example "XX/.X". */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
 

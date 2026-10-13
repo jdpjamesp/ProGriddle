@@ -974,4 +974,27 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGameTests:
         Assert:IsTrue(worst < 75).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID TheComputersMissOnYourBoardIsShownByOwnShotAt():
+        StartGame(WaterShots()).
+        Assert:Equals(0, mGame:OwnShotAt(2, 0)).
+        mGame:Fire(4, 4).
+        /* the scripted computer fires at the first cell of yours that holds no ship, which is (2, 0) */
+        Assert:Equals(1, mGame:OwnShotAt(2, 0)).
+        Assert:Equals(0, mGame:OwnShotAt(0, 0)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheComputersHitOnYourBoardIsShownByOwnShotAtAsTwo():
+        StartGame("0,0;" + WaterShots()).
+        mGame:Fire(4, 4).
+        Assert:Equals(2, mGame:OwnShotAt(0, 0)).
+    END METHOD.
+
+    @Test (expected="ProGriddle.Core.GridException").
+    METHOD PUBLIC VOID OwnShotAtRefusesACellOffYourBoard():
+        StartGame(WaterShots()).
+        mGame:OwnShotAt(5, 0).
+    END METHOD.
+
 END CLASS.
