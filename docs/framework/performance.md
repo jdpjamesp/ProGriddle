@@ -34,6 +34,24 @@ Conclusions that shaped the framework:
 - 1000 x 1000 is not interactive in any mode. Treat roughly 200 x 200 as the practical interactive limit for dense Life.
 - A temp table per cell (`TableStore`) suits small boards (Minesweeper, Battleships, Tetris) and is too slow for large Life boards.
 
+## Life at 500 x 500 (Phase 7)
+
+The real engines, built by `LifeFactory`, on a 500 x 500 board (250,000 cells) for 100 generations, bounded, B3/S23, a seeded random start, each case in its own `_progres -b` process (`bench/run-life-bench.ps1`, the case list and the program are in `bench/`). Same machine and install as above.
+
+| Start | Engine | Live at start | Live at the end | Total for 100 generations | Per generation |
+|---|---|---|---|---|---|
+| 30% | Dense | 74,972 | 23,546 | 70.4 s | 703 ms |
+| 10% | Dense | 24,988 | 11,780 | 71.9 s | 718 ms |
+| 3% | Dense | 7,500 | 151 | 86.2 s | 861 ms |
+| 3% | Sparse | 7,500 | 151 | 2.2 s | 22 ms |
+| 1% | Sparse | 2,563 | 4 | 0.3 s | 3 ms |
+| 0.3% | Sparse | 785 | 0 | 0.08 s | under 1 ms |
+
+- **Dense is a steady 0.7 to 0.9 seconds a generation**, so a whole 100 generation run takes more than a minute, whatever the board holds. That is about 2.9 microseconds a cell, in line with the 300 x 300 figures (310 ms for 90,000 cells). The spread between the three dense rows is machine noise, not density.
+- **Sparse follows the number of live cells**: 22 ms a generation for a run that starts with 7,500 and dies down to 151, which is the same board that takes the dense engine 86 seconds.
+- **The sparse figures flatter it.** A random start at these densities collapses within a few generations (look at the "live at the end" column), so most of the 100 generations are nearly empty. A board that stays crowded costs sparse 8 to 75 microseconds a live cell (the Life page has the figures), so a settled population of 25,000 cells would cost it between 0.2 and 1.9 seconds a generation, about the same as dense or worse. That is why `LifeFactory` switches at 5% live and does not simply prefer sparse.
+- **A 500 x 500 board is a run it, wait for it, look at it experience, not an interactive one** with the dense engine. The Life window offers boards up to 300 x 200 (60,000 cells, about 0.2 seconds a generation dense) for that reason, and a larger board can still be asked for with `life.width` and `life.height` up to 400.
+
 ## Neighbour lookup
 
 `Grid:GetNeighbourIndexes` costs about 12.5 microseconds a call (125 ms to visit every cell of a 100 x 100 board), three times the inline loop. Engines that visit every cell therefore work from the precomputed index step of each neighbour offset and only call the grid for cells near an edge. Engines that visit few cells (the sparse Life engine) can call it freely.

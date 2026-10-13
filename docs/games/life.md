@@ -108,6 +108,8 @@ Random start, milliseconds per generation. The two engines are checked against e
 | 300 x 300 | 10% | 311 | 680 |
 | 300 x 300 | 30% | 306 | 2638 |
 
+On a 500 x 500 board for 100 generations (Phase 7, see [Performance notes](../framework/performance.md#life-at-500-x-500-phase-7)) the dense engine takes 0.7 to 0.9 seconds a generation whatever the density, 70 to 86 seconds in all, while the sparse engine takes 22 ms a generation from a 3% start and 3 ms from a 1% start, because those random boards die down within a few generations.
+
 The dense engine costs the same at any density. The sparse engine costs 8 to 75 microseconds per live cell, so it wins only on mostly empty boards. They break even at about 5% live cells, and `LifeFactory` uses sparse below that. A board of 1000 x 1000 is not interactive in any mode. Background and the wider benchmark are in [Performance notes](../framework/performance.md).
 
 ## Tests
