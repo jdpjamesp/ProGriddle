@@ -9,6 +9,12 @@
    copy of a blank board plus the live cells for a SparseStore, one cell at a time for any
    other store. A cell's colour is the palette entry at its value, so 0 is the first colour.
 
+   Direct colour: with DirectColor on, a cell's value is its colour, 0xRRGGBB, and the palette is
+   not used. A game gets any colour in any cell (fades, glows, gradients), and for an ArrayStore the
+   pixels are filled with one block copy instead of a loop over the cells, which is what makes a board
+   of tens of thousands of cells (Space Invaders: 224 x 256) fast enough to redraw sixty times a
+   second. Glyphs are not drawn in this mode.
+
    Glyphs: SetGlyphs gives some cell values a piece of text drawn centred in the cell, in a
    colour of its own, over the cell's palette colour. Minesweeper uses it for the counts, the
    flag and the mine. Text is drawn at paint time, so it stays sharp at any cell size, and only
@@ -70,6 +76,12 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
     DEFINE PRIVATE VARIABLE mNoticeText  AS CHARACTER  NO-UNDO.
     DEFINE PRIVATE VARIABLE mNoticeStart AS INT64      NO-UNDO.
     DEFINE PRIVATE VARIABLE mNoticeTimer AS Timer      NO-UNDO.
+
+    /* True when a cell's value is its colour, 0xRRGGBB (16711680 is red), instead of a number that
+       picks an entry of the palette. Takes effect on the next Show. Glyphs are ignored while it is on. */
+    DEFINE PUBLIC PROPERTY DirectColor AS LOGICAL NO-UNDO INITIAL FALSE
+        GET.
+        SET.
 
     /* Draw thin lines between cells when each cell is at least 8 pixels wide. */
     DEFINE PUBLIC PROPERTY ShowGridLines AS LOGICAL NO-UNDO INITIAL TRUE
@@ -554,6 +566,21 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         DEFINE VARIABLE n    AS INTEGER NO-UNDO.
         DEFINE VARIABLE base AS INTEGER NO-UNDO.
         n = mCols * mRows.
+
+        IF DirectColor THEN DO:
+            IF TYPE-OF(poStore, ArrayStore) THEN DO:
+                IF GET-SIZE(mWork) <> n * poStore:LayerCount * 4 THEN DO:
+                    SET-SIZE(mWork) = 0.
+                    SET-SIZE(mWork) = n * poStore:LayerCount * 4.
+                END.
+                CAST(poStore, ArrayStore):CopyBytesTo(mWork).
+                COPY-LOB FROM mWork STARTING AT (piLayer - 1) * n * 4 + 1 FOR n * 4 TO mPixels OVERLAY AT 1.
+            END.
+            ELSE DO i = 0 TO n - 1:
+                PUT-LONG(mPixels, i * 4 + 1) = poStore:GetCellAt(piLayer, i).
+            END.
+            RETURN.
+        END.
 
         IF TYPE-OF(poStore, ArrayStore) THEN DO:
             IF GET-SIZE(mWork) <> n * poStore:LayerCount * 4 THEN DO:

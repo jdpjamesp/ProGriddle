@@ -706,6 +706,100 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
         END.
     END METHOD.
 
+    /* ---- direct colour ---- */
+
+    @Test.
+    METHOD PUBLIC VOID DirectColourIsOffByDefault():
+        Assert:IsFalse(mView:DirectColor).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID WithDirectColourEveryStoreKindUsesTheCellValueAsTheColour():
+        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        DEFINE VARIABLE g AS Grid NO-UNDO.
+        DEFINE VARIABLE v AS GridView NO-UNDO.
+        DO k = 1 TO 3 ON ERROR UNDO, THROW:
+            g = NewGrid(k, 4, 3).
+            g:Store:SetCell(1, 1, 0, 16744448).
+            g:Store:SetCell(1, 3, 2, 255).
+            g:Store:SetCell(1, 0, 2, 16777215).
+            v = NEW GridView().
+            v:SetPalette("000000,FF8000,0000FF").
+            v:DirectColor = TRUE.
+            v:Show(g, "state").
+            Assert:Equals(0, v:PixelAt(0, 0)).
+            Assert:Equals(16744448, v:PixelAt(1, 0)).
+            Assert:Equals(255, v:PixelAt(3, 2)).
+            Assert:Equals(16777215, v:PixelAt(0, 2)).
+            Assert:Equals(0, v:PixelAt(2, 1)).
+            CATCH e AS Progress.Lang.Error:
+                IF VALID-OBJECT(v) THEN v:ReleaseResources().
+                IF VALID-OBJECT(g) THEN g:Dispose().
+                UNDO, THROW e.
+            END CATCH.
+            FINALLY:
+                IF VALID-OBJECT(v) THEN v:ReleaseResources().
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID DirectColourShowsTheLayerYouAskFor():
+        DEFINE VARIABLE g AS Grid NO-UNDO.
+        g = NEW Grid(NEW ArrayStore(3, 2, "back,front")).
+        DO ON ERROR UNDO, THROW:
+            g:Store:SetCell(1, 0, 0, 11).
+            g:Store:SetCell(2, 0, 0, 22).
+            g:Store:SetCell(1, 2, 1, 33).
+            g:Store:SetCell(2, 2, 1, 44).
+            mView:DirectColor = TRUE.
+            mView:Show(g, "back").
+            Assert:Equals(11, mView:PixelAt(0, 0)).
+            Assert:Equals(33, mView:PixelAt(2, 1)).
+            mView:Show(g, "front").
+            Assert:Equals(22, mView:PixelAt(0, 0)).
+            Assert:Equals(44, mView:PixelAt(2, 1)).
+            FINALLY:
+                g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID SwitchingDirectColourOffGoesBackToThePalette():
+        DEFINE VARIABLE g AS Grid NO-UNDO.
+        g = NewGrid(1, 2, 1).
+        DO ON ERROR UNDO, THROW:
+            g:Store:SetCell(1, 0, 0, 1).
+            mView:DirectColor = TRUE.
+            mView:Show(g, "state").
+            Assert:Equals(1, mView:PixelAt(0, 0)).
+            mView:DirectColor = FALSE.
+            mView:Show(g, "state").
+            Assert:Equals(16744448, mView:PixelAt(0, 0)).
+            FINALLY:
+                g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ADirectColourBoardOfSpaceInvadersSizeFillsFast():
+        DEFINE VARIABLE g AS Grid NO-UNDO.
+        g = NEW Grid(NEW ArrayStore(224, 256, "view,kind,back")).
+        DO ON ERROR UNDO, THROW:
+            g:Store:FillLayer(1, 2236962).
+            mView:DirectColor = TRUE.
+            mView:Show(g, "view").
+            Assert:Equals(2236962, mView:PixelAt(100, 100)).
+            Assert:IsTrue(mView:LastFillMs < 20, SUBSTITUTE("a 224 x 256 fill took &1 ms", mView:LastFillMs)).
+            FINALLY:
+                g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
     /* ---- the keys ---- */
 
     @Test.
