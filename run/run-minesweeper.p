@@ -1,7 +1,7 @@
 /* Minesweeper in a window, with the rules of the classic Windows game. This is the composition
    root: the only place that builds the concrete classes and wires them together.
 
-   Arcade: Minesweeper | The classic Windows rules, four levels and a high score list per level.
+   Arcade: Minesweeper | The classic Windows rules, four levels and a high score list per level. | blue
 
    Run it under prowin from the repository root:
      prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-minesweeper.p"

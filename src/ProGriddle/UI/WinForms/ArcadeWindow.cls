@@ -2,8 +2,8 @@
    Cookoff artwork (CookoffBackdrop). A chip starts the game through an IGameLauncher and, while that
    game is running, shows PLAYING in green. A click on a game that is already running only says so.
    Pointing at a chip shows that game's blurb under the badge, and leaving it brings back the line that
-   names all the games. The games come from the catalog, so adding a game adds a chip, in the next
-   accent colour, without changing this class.
+   names all the games. The games come from the catalog, so adding a game adds a chip without changing
+   this class. A chip's colour is the one its run file asks for, or one worked out from its title.
 
    It knows nothing about any game. Call ReleaseResources (the window does when it closes) to stop the
    timers that watch for games that have finished and that close the window for scripted runs. */
@@ -73,6 +73,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
     CONSTRUCTOR PUBLIC ArcadeWindow(INPUT pcTitle AS CHARACTER, INPUT poCatalog AS IGameCatalog, INPUT poLauncher AS IGameLauncher):
         DEFINE VARIABLE i    AS INTEGER   NO-UNDO.
         DEFINE VARIABLE flow AS FlowLayoutPanel NO-UNDO.
+        DEFINE VARIABLE rowsShown AS INTEGER NO-UNDO.
         SUPER().
         IF pcTitle = ? OR pcTitle = "" THEN UNDO, THROW NEW GridException("An arcade needs a title").
         IF NOT VALID-OBJECT(poCatalog) THEN UNDO, THROW NEW GridException("An arcade needs a game catalog").
@@ -84,7 +85,10 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
         THIS-OBJECT:StartPosition = FormStartPosition:CenterScreen.
         THIS-OBJECT:FormBorderStyle = FormBorderStyle:FixedSingle.
         THIS-OBJECT:MaximizeBox = FALSE.
-        THIS-OBJECT:ClientSize = NEW Size(1120, 650).
+        /* two chips to a row, 86 pixels a row. The window shows at least two rows and grows to four to
+           fit the games, and a catalog with more than eight scrolls inside the list */
+        rowsShown = MINIMUM(4, MAXIMUM(2, INTEGER(TRUNCATE((mCatalog:Count + 1) / 2, 0)))).
+        THIS-OBJECT:ClientSize = NEW Size(1120, 650 + (rowsShown - 2) * 86).
         THIS-OBJECT:BackColor = Color:FromArgb(10, 14, 22).
         THIS-OBJECT:ForeColor = Color:FromArgb(245, 239, 230).
 
@@ -107,7 +111,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
         /* the chips sit in a panel that wraps them two to a row and scrolls when there are more */
         flow = NEW FlowLayoutPanel().
         flow:Location = NEW Point(46, 372).
-        flow:Size = NEW Size(540, 178).
+        flow:Size = NEW Size(540, rowsShown * 86 + 6).
         flow:FlowDirection = FlowDirection:LeftToRight.
         flow:WrapContents = TRUE.
         flow:AutoScroll = TRUE.
@@ -147,6 +151,15 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
             IF mCatalog:ProgramAt(i) = pcProgram THEN RETURN mButtons[i].
         END.
         UNDO, THROW NEW GridException("The arcade has no game " + STRING(pcProgram)).
+    END METHOD.
+
+    /* The colour name (red, orange, blue, purple, green, yellow or teal) of the chip of the game started
+       by this program, for tests and scripts. */
+    METHOD PUBLIC CHARACTER AccentNameFor(INPUT pcProgram AS CHARACTER):
+        DEFINE VARIABLE place AS INTEGER NO-UNDO.
+        place = PlaceOf(pcProgram).
+        IF place = 0 THEN UNDO, THROW NEW GridException("The arcade has no game " + STRING(pcProgram)).
+        RETURN ENTRY(AccentNumber(place) + 1, "red,orange,blue,purple,green,yellow,teal").
     END METHOD.
 
     /* True while the launcher says this game is running, which is when its chip shows PLAYING. */
@@ -220,10 +233,27 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
         RETURN names + ", all cooking on the same grid.".
     END METHOD.
 
-    /* The accent colour of the chip at a place. The first four match the artwork: Battleships red,
-       Life orange, Minesweeper blue, Tetris purple, and later games carry on with green, yellow and teal. */
+    /* The number of the accent colour of the chip at a place, 0 to 6 for red, orange, blue, purple, green,
+       yellow and teal. It is the colour the game asked for in its run file, and when it asked for none,
+       one worked out from its title, so a game keeps its colour whatever else is added to the list. */
+    METHOD PRIVATE INTEGER AccentNumber(INPUT piPlace AS INTEGER):
+        DEFINE VARIABLE named AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE gameName AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE sum   AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
+        named = LOOKUP(mCatalog:AccentAt(piPlace), "red,orange,blue,purple,green,yellow,teal").
+        IF named > 0 THEN RETURN named - 1.
+        gameName = LC(mTitles[piPlace]).
+        DO i = 1 TO LENGTH(gameName):
+            sum = sum + ASC(SUBSTRING(gameName, i, 1)) * i.
+        END.
+        RETURN sum MODULO 7.
+    END METHOD.
+
+    /* The accent colour of the chip at a place (see AccentNumber). Red, orange, blue and purple are the
+       colours of the artwork's chips. */
     METHOD PRIVATE Color Accent(INPUT piPlace AS INTEGER):
-        CASE (piPlace - 1) MODULO 7:
+        CASE AccentNumber(piPlace):
             WHEN 0 THEN RETURN Color:FromArgb(255, 242, 84, 90).
             WHEN 1 THEN RETURN Color:FromArgb(255, 255, 138, 61).
             WHEN 2 THEN RETURN Color:FromArgb(255, 74, 144, 240).
@@ -314,8 +344,8 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
             e:Graphics:TextRenderingHint = TextRenderingHint:AntiAliasGridFit.
             mark = NEW SolidBrush(Accent(place)).
             glow = NEW SolidBrush(Color:FromArgb(45, Accent(place))).
-            /* the first accent is round, as the ships are in the artwork, the rest are rounded squares */
-            IF (place - 1) MODULO 7 = 0 THEN DO:
+            /* red is round, as the ships are in the artwork, the rest are squares */
+            IF AccentNumber(place) = 0 THEN DO:
                 e:Graphics:FillEllipse(glow, 11, cy - 12, 24, 24).
                 e:Graphics:FillEllipse(mark, 16, cy - 7, 14, 14).
             END.

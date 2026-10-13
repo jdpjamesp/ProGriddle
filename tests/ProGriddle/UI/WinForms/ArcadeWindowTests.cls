@@ -171,4 +171,117 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
         w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(""), ?).
     END METHOD.
 
+    /* A catalog of n games named G1 to Gn. */
+    METHOD PRIVATE CHARACTER Games(INPUT piCount AS INTEGER):
+        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        DO i = 1 TO piCount:
+            result = result + (IF i > 1 THEN ";" ELSE "") + SUBSTITUTE("run/run-g&1.p|G&1|Game &1", i).
+        END.
+        RETURN result.
+    END METHOD.
+
+    /* The height of the window for a catalog of n games. */
+    METHOD PRIVATE INTEGER HeightFor(INPUT piCount AS INTEGER):
+        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        DEFINE VARIABLE h AS INTEGER      NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(Games(piCount)), mLauncher).
+            h = w:ClientSize:Height.
+            FINALLY:
+                IF VALID-OBJECT(w) THEN DO:
+                    w:ReleaseResources().
+                    w:Dispose().
+                END.
+            END FINALLY.
+        END.
+        RETURN h.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID FourGamesOrFewerFitTheUsualWindow():
+        Assert:Equals(650, HeightFor(0)).
+        Assert:Equals(650, HeightFor(1)).
+        Assert:Equals(650, HeightFor(4)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheWindowGrowsARowForEveryTwoGamesMoreUpToFourRows():
+        Assert:Equals(736, HeightFor(5)).
+        Assert:Equals(736, HeightFor(6)).
+        Assert:Equals(822, HeightFor(7)).
+        Assert:Equals(822, HeightFor(8)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID MoreThanEightGamesStopGrowingTheWindowAndScrollInsteadOfLosingAny():
+        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(Games(12)), mLauncher).
+            Assert:Equals(822, w:ClientSize:Height).
+            Assert:Equals(12, w:GameCount).
+            Assert:Equals("G12", w:ButtonFor("run/run-g12.p"):Text).
+            FINALLY:
+                IF VALID-OBJECT(w) THEN DO:
+                    w:ReleaseResources().
+                    w:Dispose().
+                END.
+            END FINALLY.
+        END.
+    END METHOD.
+
+    /* The window with the given games, and the accent name of one of them. */
+    METHOD PRIVATE CHARACTER AccentIn(INPUT pcGames AS CHARACTER, INPUT pcProgram AS CHARACTER):
+        DEFINE VARIABLE w      AS ArcadeWindow NO-UNDO.
+        DEFINE VARIABLE result AS CHARACTER    NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(pcGames), mLauncher).
+            result = w:AccentNameFor(pcProgram).
+            FINALLY:
+                IF VALID-OBJECT(w) THEN DO:
+                    w:ReleaseResources().
+                    w:Dispose().
+                END.
+            END FINALLY.
+        END.
+        RETURN result.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AColourAGameAsksForIsTheOneItGets():
+        Assert:Equals("purple", AccentIn("run/run-a.p|Alpha|x|purple", "run/run-a.p")).
+        Assert:Equals("teal", AccentIn("run/run-a.p|Alpha|x|TEAL", "run/run-a.p")).
+        Assert:Equals("red", AccentIn("run/run-a.p|Alpha|x|red", "run/run-a.p")).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AGameKeepsItsColourWhateverElseIsInTheList():
+        DEFINE VARIABLE alone  AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE second AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE third  AS CHARACTER NO-UNDO.
+        alone = AccentIn("run/run-z.p|Zebra|x", "run/run-z.p").
+        second = AccentIn("run/run-a.p|Alpha|x;run/run-z.p|Zebra|x", "run/run-z.p").
+        third = AccentIn("run/run-a.p|Alpha|x;run/run-b.p|Beta|x;run/run-z.p|Zebra|x", "run/run-z.p").
+        Assert:Equals(alone, second).
+        Assert:Equals(alone, third).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AColourNameThatIsNotOneOfTheSevenFallsBackToTheTitlesOwn():
+        Assert:Equals(AccentIn("run/run-a.p|Alpha|x", "run/run-a.p"),
+                      AccentIn("run/run-a.p|Alpha|x|chartreuse", "run/run-a.p")).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheDefaultColourIsOneOfTheSeven():
+        DEFINE VARIABLE c AS CHARACTER NO-UNDO.
+        c = AccentIn("run/run-a.p|Alpha|x", "run/run-a.p").
+        Assert:IsTrue(LOOKUP(c, "red,orange,blue,purple,green,yellow,teal") > 0).
+    END METHOD.
+
+    @Test (expected="ProGriddle.Core.GridException").
+    METHOD PUBLIC VOID TheColourOfAGameThatIsNotThereThrows():
+        mWindow:AccentNameFor("run/run-zzz.p").
+    END METHOD.
+
 END CLASS.

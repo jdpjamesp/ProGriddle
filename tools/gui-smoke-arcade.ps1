@@ -29,8 +29,23 @@ New-Item -ItemType Directory -Force $shots | Out-Null
 . (Join-Path $PSScriptRoot 'gui-smoke-common.ps1')
 Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
 
-# The games the run folder should offer, by the title on the button. The arcade itself is hidden.
-$expected = @(Get-ChildItem (Join-Path $root 'run') -Filter 'run-*.p' | Where-Object { @(Get-Content $_.FullName -TotalCount 60 | Where-Object { $_ -match '^\s*Arcade:\s*hidden' }).Count -eq 0 } | ForEach-Object { $_.Name })
+# The games the run folder should offer, by the title on the button, in the order the Cookoff lists them
+# (by title, ignoring case). The title is the Arcade line of the run file, or the file name with its first
+# letter capitalised, and a run file that says "Arcade: hidden" (the Cookoff itself) is left out. Nothing
+# here names a game, so adding a game does not change this test.
+function Get-ExpectedTitle([System.IO.FileInfo]$file) {
+    $line = Get-Content $file.FullName -TotalCount 60 | Where-Object { $_ -match '^\s*Arcade:' } | Select-Object -First 1
+    if ($line) {
+        $tag = ($line -replace '^\s*Arcade:\s*', '').Trim()
+        if ($tag -eq 'hidden') { return $null }
+        $title = ($tag -split '\|')[0].Trim()
+        if ($title) { return $title }
+    }
+    $base = $file.BaseName.Substring(4)
+    return $base.Substring(0, 1).ToUpper() + $base.Substring(1)
+}
+$expectedTitles = @(Get-ChildItem (Join-Path $root 'run') -Filter 'run-*.p' | ForEach-Object { Get-ExpectedTitle $_ } | Where-Object { $_ } | Sort-Object { $_.ToLower() })
+$expected = $expectedTitles
 
 # The buttons of the window, found through UI Automation by their window class (WinForms controls
 # all report as plain panes). Each is its text, whether it is switched on, and its place on screen.
@@ -51,13 +66,15 @@ function Find-Button($p, [string]$startsWith) {
     return @(Get-Buttons $p | Where-Object { $_.Text -like "$startsWith*" })[0]
 }
 
-# True when the chip shows the green PLAYING tag: green pixels inside the chip's box in a screenshot.
+# True when the chip shows the green PLAYING tag: green pixels in the right hand end of the chip's box in a
+# screenshot. The coloured mark at the left may be green too, so the left of the chip is not looked at.
 function Test-Playing($p, $b, [string]$shotName = 'smoke-arcade-probe') {
     $bmp = Take-Shot $p $shotName
     try {
         $r = Get-WindowRect $p
-        $x = [int]($b.Rect.X - $r.L); $y = [int]($b.Rect.Y - $r.T)
-        $w = [int]$b.Rect.Width; $h = [int]$b.Rect.Height
+        $w = [int][math]::Min(90, $b.Rect.Width)
+        $x = [int]($b.Rect.X - $r.L + $b.Rect.Width - $w); $y = [int]($b.Rect.Y - $r.T)
+        $h = [int]$b.Rect.Height
         if ($x -lt 0 -or $y -lt 0 -or $x + $w -gt $bmp.Width -or $y + $h -gt $bmp.Height) { return $false }
         $crop = $bmp.Clone((New-Object System.Drawing.Rectangle $x, $y, $w, $h), $bmp.PixelFormat)
         try { return ([Native]::FindColour($crop, 61, 214, 140, 24))[0] -ge 0 } finally { $crop.Dispose() }
@@ -105,7 +122,7 @@ try {
     $buttons = @(Get-Buttons $arcade)
     Check "the arcade has a button for each of the $($expected.Count) games in the run folder" ($buttons.Count -eq $expected.Count) "buttons: $(($buttons | ForEach-Object { $_.Text }) -join ', ')"
     $titles = @($buttons | ForEach-Object { $_.Text })
-    Check 'the buttons are Battleships, Life, Minesweeper and Tetris, in that order' (($titles -join ',') -eq 'Battleships,Life,Minesweeper,Tetris') ($titles -join ',')
+    Check "the buttons are $($expectedTitles -join ', '), in that order" (($titles -join ',') -eq ($expectedTitles -join ',')) ($titles -join ',')
     Check 'the arcade does not list itself' (($titles | Where-Object { $_ -like '*Arcade*' }).Count -eq 0)
     Check 'no game is shown as playing' (@($buttons | Where-Object { Test-Playing $arcade $_ }).Count -eq 0)
 

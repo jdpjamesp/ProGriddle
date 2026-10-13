@@ -5,7 +5,8 @@
 
    Everything except the caption is drawn once into a bitmap and then copied, so a repaint costs one
    copy and one line of text. The window places its game buttons on top of this control, at the
-   places the layout below leaves free: the buttons go at 48, 372 and the board is at 590, 50.
+   places the layout below leaves free: the buttons go at 48, 372 and the board is at 590, 50. The
+   window may be taller than 650 when there are more games, and the footer follows the bottom.
    Call ReleaseResources when the window closes. */
 USING Progress.Lang.*.
 USING System.Drawing.Drawing2D.* FROM ASSEMBLY.
@@ -136,7 +137,7 @@ CLASS ProGriddle.UI.WinForms.CookoffBackdrop INHERITS Panel:
 
             DrawSparkles(g).
             DrawBoard(g).
-            DrawWords(g).
+            DrawWords(g, h).
 
             FINALLY:
                 IF VALID-OBJECT(gridPen) THEN gridPen:Dispose().
@@ -341,7 +342,7 @@ CLASS ProGriddle.UI.WinForms.CookoffBackdrop INHERITS Panel:
 
     /* ---- the words ---- */
 
-    METHOD PRIVATE VOID DrawWords(INPUT g AS Graphics):
+    METHOD PRIVATE VOID DrawWords(INPUT g AS Graphics, INPUT piHeight AS INTEGER):
         DEFINE VARIABLE mono    AS Font       NO-UNDO.
         DEFINE VARIABLE monoSm  AS Font       NO-UNDO.
         DEFINE VARIABLE word    AS Font       NO-UNDO.
@@ -362,7 +363,8 @@ CLASS ProGriddle.UI.WinForms.CookoffBackdrop INHERITS Panel:
             g:DrawString("Pro", word, cream, System.Convert:ToSingle(38), System.Convert:ToSingle(66), plain).
             g:DrawString("Griddle", word, orange, System.Convert:ToSingle(38), System.Convert:ToSingle(132), plain).
             DrawBadge(g, mono, orange).
-            Spaced(g, "WRITTEN IN OPENEDGE ABL", monoSm, muted, 48, 596, 3).
+            /* the footer sits near the bottom, wherever that is: the window grows when there are many games */
+            Spaced(g, "WRITTEN IN OPENEDGE ABL", monoSm, muted, 48, piHeight - 26, 3).
 
             FINALLY:
                 IF VALID-OBJECT(muted) THEN muted:Dispose().

@@ -151,4 +151,56 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
         c = NEW DirectoryGameCatalog("").
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID ATitleBlurbAndColourAreReadFromTheThreePartsOfTheLine():
+        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        WriteRunFile("run-tetris.p", "Arcade: Tetris | Falling blocks. | Purple").
+        c = NEW DirectoryGameCatalog(mFolder).
+        Assert:Equals("Tetris", c:TitleAt(1)).
+        Assert:Equals("Falling blocks.", c:BlurbAt(1)).
+        Assert:Equals("purple", c:AccentAt(1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID WithoutAThirdPartThereIsNoColour():
+        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        WriteRunFile("run-a.p", "Arcade: Alpha | The first.").
+        WriteRunFile("run-b.p", "Arcade: Beta").
+        WriteRunFile("run-c.p", "No tag here.").
+        c = NEW DirectoryGameCatalog(mFolder).
+        Assert:Equals("", c:AccentAt(1)).
+        Assert:Equals("", c:AccentAt(2)).
+        Assert:Equals("", c:AccentAt(3)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AColourWithAnEmptyBlurbIsStillRead():
+        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        WriteRunFile("run-a.p", "Arcade: Alpha | | teal").
+        c = NEW DirectoryGameCatalog(mFolder).
+        Assert:Equals("Alpha", c:TitleAt(1)).
+        Assert:Equals("", c:BlurbAt(1)).
+        Assert:Equals("teal", c:AccentAt(1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheFourGamesAskForTheColoursOfTheArtwork():
+        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        c = NEW DirectoryGameCatalog("run").
+        DO i = 1 TO c:Count:
+            IF c:TitleAt(i) = "Battleships" THEN Assert:Equals("red", c:AccentAt(i)).
+            IF c:TitleAt(i) = "Life" THEN Assert:Equals("orange", c:AccentAt(i)).
+            IF c:TitleAt(i) = "Minesweeper" THEN Assert:Equals("blue", c:AccentAt(i)).
+            IF c:TitleAt(i) = "Tetris" THEN Assert:Equals("purple", c:AccentAt(i)).
+        END.
+    END METHOD.
+
+    @Test (expected="ProGriddle.Core.GridException").
+    METHOD PUBLIC VOID AccentAtAPlaceOffTheListThrows():
+        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        c = NEW DirectoryGameCatalog(mFolder).
+        c:AccentAt(1).
+    END METHOD.
+
 END CLASS.

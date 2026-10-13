@@ -1,7 +1,7 @@
 /* Conway's Game of Life in a window. This is the composition root: the only place that builds
    the concrete classes and wires them together.
 
-   Arcade: Life | Conway's cellular automaton. Draw patterns, pick a rule set and watch them evolve.
+   Arcade: Life | Conway's cellular automaton. Draw patterns, pick a rule set and watch them evolve. | orange
 
    Run it under prowin from the repository root:
      prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-life.p"
