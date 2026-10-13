@@ -1,6 +1,6 @@
 # Performance notes
 
-Measured in Phase 0 and Phase 3 on OpenEdge 12.8.0.1207, Windows 11. These numbers decided the storage design and the default store for each game. Re-measure before relying on them on another machine.
+Measured in Phase 0 and Phase 3 on OpenEdge 12.8.0.1207, Windows 11. These numbers decided the storage design and the default store for each game. Re-measure before relying on them on another machine. The throwaway Phase 0 experiment code (`bench/phase0-storage.p` and its runners) was removed in Phase 7, once its results were written down here and the real Life engines had their own benchmark, `bench/run-life-bench.ps1`. It is still in git history: `git log --diff-filter=D -- bench/phase0-storage.p` finds the commit that removed it, and `git show <parent of that commit>:bench/phase0-storage.p` prints it.
 
 ## The rule of thumb
 
