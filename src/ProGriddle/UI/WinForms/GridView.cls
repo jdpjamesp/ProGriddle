@@ -12,7 +12,8 @@
    Glyphs: SetGlyphs gives some cell values a piece of text drawn centred in the cell, in a
    colour of its own, over the cell's palette colour. Minesweeper uses it for the counts, the
    flag and the mine. Text is drawn at paint time, so it stays sharp at any cell size, and only
-   for the cells whose value has a glyph.
+   for the cells whose value has a glyph. A glyph of three or
+   more characters, such as a 2048 tile, is drawn smaller so it stays inside its cell.
 
    Notice: ShowNotice draws a few words in the middle of the control, on a dark panel, for
    about a second and then fades them out. A timer drives the fade and stops when it is done.
@@ -56,8 +57,11 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
     DEFINE PRIVATE VARIABLE mGlyphText   AS LONGCHAR   NO-UNDO EXTENT.
     DEFINE PRIVATE VARIABLE mGlyphBrush  AS SolidBrush NO-UNDO EXTENT.
     DEFINE PRIVATE VARIABLE mGlyphCount  AS INTEGER    NO-UNDO.
+    /* how many characters each glyph is drawn with (a code point is one), to pick its font */
+    DEFINE PRIVATE VARIABLE mGlyphLen    AS INTEGER    NO-UNDO EXTENT.
     DEFINE PRIVATE VARIABLE mCellValues  AS MEMPTR     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGlyphFont   AS Font       NO-UNDO.
+    /* one font per glyph length, 2 up to 12, because a longer glyph is drawn smaller */
+    DEFINE PRIVATE VARIABLE mGlyphFonts  AS Font       NO-UNDO EXTENT 12.
     DEFINE PRIVATE VARIABLE mGlyphFontPx AS INTEGER    NO-UNDO.
     DEFINE PRIVATE VARIABLE mGlyphFormat AS StringFormat NO-UNDO.
 
@@ -168,15 +172,23 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         IF pcGlyphs = ? THEN UNDO, THROW NEW GridException("Glyphs cannot be the unknown value").
         IF pcColors = ? THEN pcColors = "".
         FreeGlyphs().
+        FreeFont().
         n = NUM-ENTRIES(pcGlyphs).
         EXTENT(mGlyphSpec) = n.
         EXTENT(mGlyphText) = n.
         EXTENT(mGlyphBrush) = n.
+        EXTENT(mGlyphLen) = n.
         DO i = 1 TO n:
             item = TRIM(ENTRY(i, pcGlyphs)).
             mGlyphSpec[i] = item.
-            IF item BEGINS "U+" THEN SetCodePoint(i, HexToInt(SUBSTRING(item, 3), 1)).
-            ELSE mGlyphText[i] = item.
+            IF item BEGINS "U+" THEN DO:
+                SetCodePoint(i, HexToInt(SUBSTRING(item, 3), 1)).
+                mGlyphLen[i] = 1.
+            END.
+            ELSE DO:
+                mGlyphText[i] = item.
+                mGlyphLen[i] = LENGTH(item).
+            END.
             rgb = 16777215.
             IF i <= NUM-ENTRIES(pcColors) AND TRIM(ENTRY(i, pcColors)) <> "" THEN rgb = HexToInt(TRIM(ENTRY(i, pcColors)), 6).
             mGlyphBrush[i] = NEW SolidBrush(Color:FromArgb(INTEGER(TRUNCATE(rgb / 65536, 0)),
@@ -184,6 +196,17 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
                                                          rgb MODULO 256)).
         END.
         mGlyphCount = n.
+    END METHOD.
+
+    /* The height in pixels of the font for a glyph of piChars characters in a cell piCellSize
+       pixels square. One or two characters are 60 percent of the cell, and a longer glyph
+       shrinks so its width stays inside the cell (a tile that says 2048 or 131072). Never
+       below 6 pixels. */
+    METHOD PUBLIC STATIC INTEGER GlyphPixelsFor(INPUT piCellSize AS INTEGER, INPUT piChars AS INTEGER):
+        DEFINE VARIABLE px AS INTEGER NO-UNDO.
+        IF piChars <= 2 THEN px = INTEGER(TRUNCATE(piCellSize * 0.6, 0)).
+        ELSE px = INTEGER(TRUNCATE(piCellSize * 1.5 / piChars, 0)).
+        RETURN MAX(6, px).
     END METHOD.
 
     /* How opaque the notice is, 255 to 0, this many milliseconds after it appeared: fully
@@ -416,11 +439,17 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         DEFINE VARIABLE px AS DECIMAL NO-UNDO.
         DEFINE VARIABLE py AS DECIMAL NO-UNDO.
         DEFINE VARIABLE half AS DECIMAL NO-UNDO.
+        DEFINE VARIABLE len  AS INTEGER NO-UNDO.
         n = mCols * mRows.
         IF GET-SIZE(mCellValues) <> n * 4 THEN RETURN.
-        IF NOT VALID-OBJECT(mGlyphFont) OR mGlyphFontPx <> piCs THEN DO:
+        IF mGlyphFontPx <> piCs THEN DO:
             FreeFont().
-            mGlyphFont = NEW Font(GlyphFontName, System.Convert:ToSingle(piCs * 0.6), FontStyle:Bold, GraphicsUnit:Pixel).
+            /* the fonts are made here, once per cell size, never inside the loop over cells */
+            DO i = 1 TO mGlyphCount:
+                len = FontIndex(mGlyphLen[i]).
+                IF NOT VALID-OBJECT(mGlyphFonts[len]) THEN
+                    mGlyphFonts[len] = NEW Font(GlyphFontName, System.Convert:ToSingle(GlyphPixelsFor(piCs, len)), FontStyle:Bold, GraphicsUnit:Pixel).
+            END.
             mGlyphFontPx = piCs.
         END.
         poGraphics:TextRenderingHint = TextRenderingHint:AntiAliasGridFit.
@@ -431,7 +460,7 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
             IF mGlyphSpec[v + 1] = "" THEN NEXT.
             px = piOx + (i MODULO mCols) * piCs + half.
             py = piOy + TRUNCATE(i / mCols, 0) * piCs + half.
-            poGraphics:DrawString(mGlyphText[v + 1], mGlyphFont, mGlyphBrush[v + 1], System.Convert:ToSingle(px), System.Convert:ToSingle(py), mGlyphFormat).
+            poGraphics:DrawString(mGlyphText[v + 1], mGlyphFonts[FontIndex(mGlyphLen[v + 1])], mGlyphBrush[v + 1], System.Convert:ToSingle(px), System.Convert:ToSingle(py), mGlyphFormat).
         END.
     END METHOD.
 
@@ -464,9 +493,17 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
     END METHOD.
 
     METHOD PRIVATE VOID FreeFont():
-        IF VALID-OBJECT(mGlyphFont) THEN mGlyphFont:Dispose().
-        mGlyphFont = ?.
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO EXTENT(mGlyphFonts):
+            IF VALID-OBJECT(mGlyphFonts[i]) THEN mGlyphFonts[i]:Dispose().
+            mGlyphFonts[i] = ?.
+        END.
         mGlyphFontPx = 0.
+    END METHOD.
+
+    /* The slot in mGlyphFonts for a glyph of this many characters: 1 shares slot 2. */
+    METHOD PRIVATE INTEGER FontIndex(INPUT piChars AS INTEGER):
+        RETURN MIN(12, MAX(2, piChars)).
     END METHOD.
 
     METHOD PRIVATE VOID FreeGlyphs():

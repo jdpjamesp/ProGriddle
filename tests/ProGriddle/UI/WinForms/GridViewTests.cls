@@ -706,6 +706,28 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
         END.
     END METHOD.
 
+    /* ---- the size of a glyph ---- */
+
+    @Test.
+    METHOD PUBLIC VOID AGlyphOfOneOrTwoCharactersIsSixtyPercentOfTheCell():
+        Assert:Equals(60, GridView:GlyphPixelsFor(100, 1)).
+        Assert:Equals(60, GridView:GlyphPixelsFor(100, 2)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ALongerGlyphShrinksSoItsWidthStaysInsideTheCell():
+        Assert:Equals(50, GridView:GlyphPixelsFor(100, 3)).
+        Assert:Equals(37, GridView:GlyphPixelsFor(100, 4)).
+        Assert:Equals(25, GridView:GlyphPixelsFor(100, 6)).
+        Assert:IsTrue(GridView:GlyphPixelsFor(100, 6) < GridView:GlyphPixelsFor(100, 4)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AGlyphIsNeverSmallerThanSixPixels():
+        Assert:Equals(6, GridView:GlyphPixelsFor(10, 8)).
+        Assert:Equals(6, GridView:GlyphPixelsFor(1, 1)).
+    END METHOD.
+
     /* ---- the notice ---- */
 
     @Test.
