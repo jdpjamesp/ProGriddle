@@ -1,14 +1,18 @@
-name: Layering check
+name: Checks
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 jobs:
-  layering:
+  checks:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check layering rules
+      - name: Layering rules
         shell: pwsh
         run: ./tools/check-layering.ps1
+      - name: Conventions audit
+        shell: pwsh
+        run: ./tools/audit-conventions.ps1

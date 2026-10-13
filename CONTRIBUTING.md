@@ -34,6 +34,12 @@ The first runs every test, plain and WinForms. The second opens the Cookoff, one
 
 The smoke tests drive the real window with real keystrokes and mouse clicks, so they take over the keyboard and mouse for a minute or a couple of minutes. Start one, then leave the machine alone until it says it passed.
 
+### What the checks on GitHub cover
+
+Every push to `main` and every pull request runs `tools/check-layering.ps1` and `tools/audit-conventions.ps1` on a hosted Windows machine (`.github/workflows/checks.yml`). They need no OpenEdge, so a change that breaks the layering or a convention shows a red cross on the pull request.
+
+They do **not** compile the code, run the tests or run the smoke tests: OpenEdge is not installed there, and the smoke tests need a real desktop. A green tick means the structure and style are fine, not that the code works. That is why the pull request template asks you to confirm you ran `tools/run-tests.ps1 -All` yourself.
+
 ## The rules of the codebase
 
 The full list, with the reasons, is in [CLAUDE.md](CLAUDE.md). The ones you meet first:

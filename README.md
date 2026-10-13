@@ -1,5 +1,7 @@
 # ProGriddle
 
+[![Checks](https://github.com/jdpjamesp/ProGriddle/actions/workflows/checks.yml/badge.svg)](https://github.com/jdpjamesp/ProGriddle/actions/workflows/checks.yml)
+
 **Allowing you to cook up new grid based games easily.**
 
 ProGriddle is an OpenEdge ABL object oriented framework for games played on a rectangular grid. Think of it as the griddle: it gives you the hot, flat surface (the board, the storage, the rules for edges and neighbours, the game loop, a window and saved settings), so all you bring is the recipe, the rules of your game.
