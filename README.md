@@ -171,7 +171,7 @@ The ProGriddle Cookoff (`run/run-arcade.p`) is one window with a button for ever
 
 On Windows you can also double click `cookoff.bat` in the repository root, which does the same from any folder (it uses the install named by the `DLC` environment variable, or `C:\Progress\OpenEdge`).
 
-Each game has a chip with its title and a colour (Battleships red, Life orange, Minesweeper blue and Tetris purple, then green, yellow and teal for games added later). Pointing at a chip shows that game's description under the COOKOFF badge. A click starts the game in a prowin of its own, so the Cookoff stays open and several games can be played at once. While a game is running its chip is outlined in its colour and says PLAYING in green, and goes back to normal when the game's window closes.
+Each game has a chip with its title and a colour: the one its run file asks for, or else one worked out from its title, so a game keeps its colour whatever else is added. The window grows to fit up to eight games, two to a row, and scrolls beyond that. Pointing at a chip shows that game's description under the COOKOFF badge. A click starts the game in a prowin of its own, so the Cookoff stays open and several games can be played at once. While a game is running its chip is outlined in its colour and says PLAYING in green, and goes back to normal when the game's window closes.
 
 Nothing is registered anywhere. The Cookoff looks in the `run` folder for files named `run-*.p`, so **a new game appears as soon as its run file exists**. A run file can describe itself with one line in its header comment (and the comment must not close on that line):
 
@@ -179,13 +179,19 @@ Nothing is registered anywhere. The Cookoff looks in the `run` folder for files 
    Arcade: Tetris | Falling blocks on a timer. Seven bag pieces, ghost piece, levels and a high score list.
 ```
 
-The words before the bar are the button's title and the words after it the line shown beside the button. Without the line the title comes from the file name (`run-battleships.p` is Battleships) and there is no description. A run file that is not a game says `Arcade: hidden` (`run/run-arcade.p` does). Games are listed by title.
+The words before the first bar are the button's title and the words after it the line shown beside the button. An optional third part after a second bar names the colour of the chip, one of `red`, `orange`, `blue`, `purple`, `green`, `yellow` or `teal` (the four games here use the colours of the Cookoff artwork, for example `Arcade: Tetris | Falling blocks. | purple`). Without the line the title comes from the file name (`run-battleships.p` is Battleships) and there is no description. A run file that is not a game says `Arcade: hidden` (`run/run-arcade.p` does). Games are listed by title.
 
 It is built from the same pieces as the games: `IGameCatalog` and `DirectoryGameCatalog` (the list of games, in `Engine`), `IGameLauncher` (starts a program, with `ProcessGameLauncher` in `UI.WinForms` starting a real prowin) and `ArcadeWindow` (the window), wired together in `run/run-arcade.p`. The look comes from the Cookoff artwork and is drawn in code by `CookoffBackdrop` (the navy backdrop, the wordmark, the badge and the board of mixed games), so it stays sharp and needs no image files. Only the window icon is a file, `assets/progriddle.ico`. A game does not need to know about the Cookoff.
 
 ## Creating a new game
 
-Time to cook up a game on the griddle. Here is a complete, working game in three small files. It lights one cell and moves it along the board, so it shows every piece you need. (Run it with `prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-scanner.p"` once you create the files.) Replace the rules with your own.
+Time to cook up a game on the griddle. The quick way is one command, which writes a working game with its tests, run file and docs page, and gives it a button in the Cookoff:
+
+```
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/new-game.ps1 -Name Snake -Title "Snake" -Blurb "Eat, grow, and do not bite yourself."
+```
+
+[Adding a game](docs/adding-a-game.md) is the walk through from there, and [CONTRIBUTING.md](CONTRIBUTING.md) is how a change goes. What follows is the same game written out by hand, so you can see every piece: a complete, working game in three small files. It lights one cell and moves it along the board, so it shows every piece you need. (Run it with `prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-scanner.p"` once you create the files.) Replace the rules with your own.
 
 ### 1. Decide what the game is
 
@@ -382,6 +388,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter 
 | `tools/run-tests.ps1 -All` | Runs both sets |
 | `tools/run-tests.ps1 -Filter "Grid*"` | Runs only test classes whose file name matches |
 | `tools/check-layering.ps1` | Checks the layering rules. Needs no OpenEdge install |
+| `tools/audit-conventions.ps1` | Checks the rules of `CLAUDE.md` that a script can: header comments, `BLOCK-LEVEL`, wildcard `USING`, no dashes, `MEMPTR` freed, every public member named in a test. Needs no OpenEdge |
+| `tools/new-game.ps1 -Name Snake` | Starts a new game from `templates/game`: its classes, tests, run file and page. See [Adding a game](docs/adding-a-game.md) |
+| `tools/check-template.ps1` | Makes a game from the template, runs its tests and removes it, to prove the template still works |
+| `bench/run-life-bench.ps1` | Times the real Life engines on a 500 x 500 board for 100 generations. Takes several minutes |
 | `tools/compile.ps1` | Compiles every source file in one pass and lists all errors (`-SourceOnly` skips tests) |
 | `tools/gui-smoke-arcade.ps1` | Drives the Cookoff: a button for every game, starting Tetris and Life from it, the playing state and its return. Takes over the keyboard and mouse for under a minute |
 | `tools/gui-smoke-life.ps1` | Drives the real Life window like a user and checks what happens. Takes over the keyboard and mouse for about a minute |
@@ -395,8 +405,11 @@ Under `prowin -b` WinForms objects can be built and drawn to a bitmap, but there
 
 ## More documentation
 
+- [Adding a game](docs/adding-a-game.md): from one command to a finished game, step by step.
+- [Contributing](CONTRIBUTING.md): how a change goes, the rules of the codebase and what a good pull request looks like.
 - [OpenEdge environment notes](docs/framework/environment.md): running and testing, language gotchas, the ABL keywords to avoid.
 - [Performance notes](docs/framework/performance.md): the measurements behind the storage and rendering design.
+- [Framework review](docs/framework/review.md): the Phase 7 review, what it found and fixed, and whether the repository is ready to split.
 - `CLAUDE.md`: the coding conventions every change follows.
 
 ## Licence
