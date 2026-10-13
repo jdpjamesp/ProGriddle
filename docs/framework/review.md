@@ -1,6 +1,6 @@
 # Framework review (Phase 7)
 
-A review of the whole framework after four games and the Cookoff were built on it: what was checked, what was found and fixed, what was found and left alone on purpose, and whether the repository is ready to split. Written on 13 October 2026.
+A review of the whole framework after four games and the Cookoff were built on it: what was checked, what was found and fixed, what was found and left alone on purpose, and why the repository stays whole. Written on 13 October 2026.
 
 ## What was reviewed
 
@@ -72,17 +72,17 @@ The interfaces a game implements have stayed small and have only grown by extens
 
 Each time, a game that did not need the addition kept compiling unchanged, because the new members went on a new interface or were already empty for it.
 
-## Is the repository ready to split?
+## One repository: decided
 
-The plan (stage 2) sets three conditions for splitting it into a framework repository and a games repository:
+The original plan (stage 2) was to split the repository in two, a framework and a games repository, once three conditions held:
 
 | Condition | Met? |
 |---|---|
-| The layering check has been green throughout | **Yes** |
-| The public API has been reviewed | **Yes**, by this review |
-| The last two games went in with no change to `Core` or `Engine` | **No.** Battleships added to `IGameInput` and to the window, Tetris added `IRealTimeGame`, the real time controller, `Pausable`, the key members and the banner, and Life's rule and size options added `IGameOptions` to `Engine` after that |
+| The layering check has been green throughout | Yes |
+| The public API has been reviewed | Yes, by this review |
+| The last two games went in with no change to `Core` or `Engine` | No. Battleships added to `IGameInput` and to the window, Tetris added `IRealTimeGame`, the real time controller, `Pausable`, the key members and the banner, and Life's rule and size options added `IGameOptions` |
 
-**Recommendation: do not split yet.** The third condition is the one that says the framework has stopped moving, and it has not: every new kind of game so far has asked for something. Wait until two games in a row land without touching `Core` or `Engine`. The new game template makes that easy to test, because `tools/new-game.ps1` plus a simple game is exactly the experiment. If the next two games are as simple as the template, it is time. Splitting is James's call either way.
+**Decision (James, 13 October 2026): the repository will not be split.** It stays one repository. That settles the question for good, so it is not an open item to revisit, and it is the simpler arrangement for what the project is: the framework and its games change together, a framework change and the game that needs it land in one commit, and the layering check already keeps the layers apart inside the one tree. Nothing in the framework depends on the split, and nothing needs to be prepared for it.
 
 ## Method notes for the next review
 
