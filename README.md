@@ -168,6 +168,8 @@ The ProGriddle Cookoff (`run/run-arcade.p`) is one window with a button for ever
 "C:\Progress\OpenEdge\bin\prowin.exe" -p tools/launch.p -param "run/run-arcade.p"
 ```
 
+On Windows you can also double click `cookoff.bat` in the repository root, which does the same from any folder (it uses the install named by the `DLC` environment variable, or `C:\Progress\OpenEdge`).
+
 Each game has a chip with its title and a colour (Battleships red, Life orange, Minesweeper blue and Tetris purple, then green, yellow and teal for games added later). Pointing at a chip shows that game's description under the COOKOFF badge. A click starts the game in a prowin of its own, so the Cookoff stays open and several games can be played at once. While a game is running its chip is outlined in its colour and says PLAYING in green, and goes back to normal when the game's window closes.
 
 Nothing is registered anywhere. The Cookoff looks in the `run` folder for files named `run-*.p`, so **a new game appears as soon as its run file exists**. A run file can describe itself with one line in its header comment (and the comment must not close on that line):
