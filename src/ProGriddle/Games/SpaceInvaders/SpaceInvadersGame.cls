@@ -11,10 +11,10 @@
      the shot is gone. A shot that meets an invader's bomb destroys both.
    - Three kinds of bomb, at most one of each in the air, 3 in all. The rolling one is dropped from the column
      above the cannon, the other two from columns in a fixed pattern. They fall about 1.25 cells a frame. As in the
-     arcade the reload is not a timer: a new bomb is only dropped once every bomb already falling has come a
-     fair way down (3 frames for each reload step, see ReloadFor), and that distance shortens as the score goes
-     up, so at the start there is one bomb at a time and later two or three. The squiggly bomb is not dropped
-     while the saucer is out.
+     arcade the reload is a distance as well as a time: a new bomb is only dropped once every bomb already falling
+     has come a fair way down, and not sooner than a gap after the last one (3 frames for each reload step, see
+     ReloadFor). Both shorten as the score goes up, so at the start there is a bomb every 2.4 seconds or so and
+     later one every half second. The squiggly bomb is not dropped while the saucer is out.
    - Four shields that wear away a mark at a time where a shot or a bomb hits them, and that the invaders eat
      as they pass through. They are rebuilt at the start of each wave.
    - The saucer crosses the top about every 25 seconds, never with fewer than 8 invaders left. It is worth 50,
@@ -854,6 +854,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         shooter = ShooterFor(chosen).
         IF shooter < 0 THEN RETURN.
         DropBomb(chosen, mRack:X(shooter) + INTEGER(TRUNCATE(mRack:WidthOf(shooter) / 2, 0)) - 1, mRack:Y(shooter) + InvaderRack:SpriteHeight()).
+        mReload = ReloadFor(Score) * 3.
         mNextBomb = (chosen + 1) MODULO 3.
     END METHOD.
 

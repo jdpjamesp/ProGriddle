@@ -112,6 +112,22 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         END.
     END METHOD.
 
+    /* Plays piFrames frames and says how many bombs were dropped meanwhile. */
+    METHOD PRIVATE INTEGER CountBombs(INPUT piFrames AS INTEGER):
+        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE t     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE total AS INTEGER NO-UNDO.
+        DEFINE VARIABLE was   AS LOGICAL NO-UNDO EXTENT 3.
+        DO n = 1 TO piFrames:
+            mGame:Advance().
+            DO t = 0 TO 2:
+                IF mGame:BombActive(t) AND NOT was[t + 1] THEN total = total + 1.
+                was[t + 1] = mGame:BombActive(t).
+            END.
+        END.
+        RETURN total.
+    END METHOD.
+
     /* Plays until the cannon has finished exploding. */
     METHOD PRIVATE VOID WaitForTheBlast():
         DEFINE VARIABLE n AS INTEGER NO-UNDO.
@@ -649,23 +665,23 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     END METHOD.
 
     @Test.
-    METHOD PUBLIC VOID OnceTheScoreHasRisenSeveralBombsAreInTheAirTogether():
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE out  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE most AS INTEGER NO-UNDO.
+    METHOD PUBLIC VOID OnceTheScoreHasRisenBombsComeMoreOften():
+        DEFINE VARIABLE low  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE high AS INTEGER NO-UNDO.
         Play().
         mGame:SetPlayerX(40).
+        low = CountBombs(900).
         mGame:AddScore(1200).
-        DO n = 1 TO 600:
-            mGame:Advance().
-            out = 0.
-            DO t = 0 TO 2:
-                IF mGame:BombActive(t) THEN out = out + 1.
-            END.
-            most = MAXIMUM(most, out).
-        END.
-        Assert:IsTrue(most >= 2, STRING(most)).
+        high = CountBombs(900).
+        Assert:IsTrue(high > low + 3, SUBSTITUTE("&1 then &2", low, high)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AtTheStartABombComesOnlyEveryTwoOrThreeSeconds():
+        Play().
+        mGame:SetPlayerX(40).
+        /* 900 frames is 15 seconds at the arcade's speed: five or six bombs, not a dozen */
+        Assert:IsTrue(CountBombs(900) <= 7).
     END METHOD.
 
     @Test.
