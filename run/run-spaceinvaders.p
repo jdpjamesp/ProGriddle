@@ -11,11 +11,11 @@
 
    Settings it reads (all optional):
      spaceinvaders.hiscore   the best score (kept by the game)
-   The window also saves its own size and position, as spaceinvaders.window.width and the like. The first
-   time it opens it asks for a window tall enough for 3 pixel cells (about 860 high), but a window is never
-   taller or wider than the screen's working area, so on a smaller screen the cells come out smaller. */
+   The window saves its position as spaceinvaders.window.x and y. Its size is always worked out from the board
+   (224 x 256 cells, 3 pixels to a cell where the screen is tall enough, else 2), so there is no empty space round it. */
 USING Progress.Lang.*.
 USING System.Windows.Forms.Application FROM ASSEMBLY.
+USING System.Windows.Forms.Screen FROM ASSEMBLY.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
 USING ProGriddle.Games.SpaceInvaders.*.
@@ -24,6 +24,7 @@ USING ProGriddle.UI.WinForms.*.
 DEFINE VARIABLE cSettingsFile AS CHARACTER           NO-UNDO INITIAL "default".
 DEFINE VARIABLE iAutoClose    AS INTEGER             NO-UNDO.
 DEFINE VARIABLE iSeed         AS INT64               NO-UNDO.
+DEFINE VARIABLE iCell         AS INTEGER             NO-UNDO.
 DEFINE VARIABLE oSettings     AS ISettings           NO-UNDO.
 DEFINE VARIABLE oGame         AS SpaceInvadersGame   NO-UNDO.
 DEFINE VARIABLE oView         AS GridView            NO-UNDO.
@@ -42,11 +43,13 @@ DO ON ERROR UNDO, THROW:
     IF cSettingsFile = "default" THEN cSettingsFile = JsonFileSettings:DefaultPath().
     oSettings = NEW JsonFileSettings(cSettingsFile).
 
-    /* a window of its own shape the first time: tall, for a tall board */
-    IF NOT oSettings:Has("spaceinvaders.window.width") THEN DO:
-        oSettings:SetInteger("spaceinvaders.window.width", 700).
-        oSettings:SetInteger("spaceinvaders.window.height", 860).
-    END.
+    /* a window the shape of the board, so there is no dead space round it: 3 pixels to a cell when the screen is tall
+       enough (the board is 224 x 256, and the toolbar and the status bar take about 66 more), else 2. The size it
+       had when it last closed is not kept, because it would only be a window that had been dragged away from this
+       shape: the position is. */
+    iCell = (IF Screen:PrimaryScreen:WorkingArea:Height >= 3 * 256 + 66 + 40 THEN 3 ELSE 2).
+    oSettings:SetInteger("spaceinvaders.window.width", 224 * iCell).
+    oSettings:SetInteger("spaceinvaders.window.height", 256 * iCell + 66).
 
     /* the clock ticks as often as Windows will let it: the game makes its own 60 frames a second out of the time it is given */
     oClock = NEW WinFormsClock().

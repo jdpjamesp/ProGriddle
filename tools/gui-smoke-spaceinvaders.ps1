@@ -134,6 +134,7 @@ try {
     Check 'the board is found by its ground line' ($null -ne $geo -and $geo.Cell -ge 1) 'no ground line'
     Check 'the gradient title is on the screen' ($null -ne (Get-Box $bmp $TITLE 40)) 'no title colour'
     Check 'the board is a tall one: 224 wide and 256 high' ($null -ne $geo -and $bmp.Height -gt $geo.Y0 + 240 * $geo.Cell) ''
+    Check 'the board fills the window: little dead space round it' ($null -ne $geo -and ($geo.Cell * 224) / $bmp.Width -gt 0.85) "board $($geo.Cell * 224) of $($bmp.Width)"
     $bmp.Dispose()
 
     # the title waits: a tap of Space starts a game
@@ -141,9 +142,9 @@ try {
     Start-Sleep -Milliseconds 400
     Check 'Space starts a game' ((Get-Title $proc) -match 'Score 0   Hi 0   Lives 3   Wave 1') (Get-Title $proc)
 
-    # the wave draws in (55 frames, under a second) and play begins. The first bomb is aimed at the cannon and
+    # the wave builds itself over 130 frames (2 seconds at the arcade's speed, 3 at the starting speed of 70 percent) and play begins. The first bomb is aimed at the cannon and
     # arrives about two seconds after that, so the checks that follow keep the cannon moving.
-    Start-Sleep -Milliseconds 1000
+    Start-Sleep -Milliseconds 3400
     $bmp = Take-Shot $proc 'smoke-si-2-wave'
     $geo = Get-Geometry $bmp
     $missing = @()
