@@ -128,7 +128,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         DEFINE VARIABLE before AS INTEGER NO-UNDO.
         DEFINE VARIABLE after  AS INTEGER NO-UNDO.
         DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        /* the picture on the title screen differs from one frame to the next only by the drifting dust */
+        /* with the rocks taken away, the picture on the title screen differs from the background only by the drifting dust */
+        mGame:Rocks:Clear().
         mGame:Advance().
         DO y = 0 TO 239:
             DO x = 0 TO 319:
@@ -136,6 +137,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
             END.
         END.
         Frames(2000).
+        mGame:Rocks:Clear().
+        mGame:Advance().
         DO y = 0 TO 239:
             DO x = 0 TO 319:
                 IF mGame:Canvas:ColourAt(x, y) <> mGame:Canvas:BackAt(x, y) THEN after = after + 1.
@@ -364,10 +367,16 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         DEFINE VARIABLE x     AS INTEGER NO-UNDO.
         DEFINE VARIABLE y     AS INTEGER NO-UNDO.
         DEFINE VARIABLE other AS INTEGER NO-UNDO.
+        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
         Play().
         mGame:ThrustHeld = TRUE.
-        Frames(100).
+        DO i = 1 TO 100:
+            mGame:Rocks:Clear().
+            mGame:Advance().
+        END.
         mGame:ThrustHeld = FALSE.
+        mGame:Rocks:Clear().
+        mGame:Advance().
         /* every cell is either the background, a drifting dust cell, or part of the ship (within 12 cells of its middle) */
         DO y = 0 TO 239:
             DO x = 0 TO 319:
@@ -378,6 +387,552 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         END.
         /* only the 20 dust cells may be elsewhere */
         Assert:IsTrue(other <= 20, STRING(other)).
+    END METHOD.
+
+    /* ---------------------------------- the helpers for rocks ---------------------------------- */
+
+    /* A stationary rock of a size with its middle at a cell. */
+    METHOD PRIVATE INTEGER RockAt(INPUT piSize AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+        RETURN mGame:Rocks:Add(piX * 4096, piY * 4096, 0, 0, piSize, 0, 0, 1000, 1).
+    END METHOD.
+
+    /* A game in play with the wave in and no rocks, and the ship's protection over, so only what a test puts there can
+       hit it. */
+    METHOD PRIVATE VOID EmptySky():
+        mGame:StartGame().
+        mGame:SkipIntro().
+        mGame:Rocks:Clear().
+        Frames(60).
+        mGame:Rocks:Clear().
+    END METHOD.
+
+    /* Frames with the rocks taken away before each one, so the next wave's rocks cannot get in the way of a test. */
+    METHOD PRIVATE VOID Quiet(INPUT piCount AS INTEGER):
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        DO n = 1 TO piCount:
+            mGame:Rocks:Clear().
+            mGame:Advance().
+        END.
+    END METHOD.
+
+    /* The ship is hit by a rock at the middle of the screen, and the rock goes. */
+    METHOD PRIVATE VOID Crash():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO WHILE mGame:ShieldFrames > 0 AND i < 200:
+            mGame:Rocks:Clear().
+            mGame:Advance().
+            i = i + 1.
+        END.
+        mGame:Rocks:Clear().
+        RockAt(1, 160, 120).
+        mGame:Advance().
+        mGame:Rocks:Clear().
+    END METHOD.
+
+    /* ---------------------------------- the shots ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID FiringSendsAShotUpFromTheNoseSixCellsAFrame():
+        EmptySky().
+        mGame:FireHeld = TRUE.
+        mGame:Advance().
+        Assert:Equals(1, mGame:ShotCount).
+        Assert:Equals(160, mGame:ShotX(0)).
+        Assert:Equals(108, mGame:ShotY(0)).
+        Assert:Equals(39, mGame:ShotLife(0)).
+        mGame:FireHeld = FALSE.
+        Frames(1).
+        Assert:Equals(102, mGame:ShotY(0)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AShotGoesTheWayTheShipPoints():
+        EmptySky().
+        mGame:TurnDirection = 1.
+        Frames(22).
+        mGame:TurnDirection = 0.
+        mGame:FireHeld = TRUE.
+        mGame:Advance().
+        mGame:FireHeld = FALSE.
+        /* heading 16, a quarter turn: the shot leaves to the right */
+        Assert:IsTrue(mGame:ShotX(0) > 160).
+        Assert:Equals(120, mGame:ShotY(0)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AShotFadesAfterFortyFramesAndItsSlotIsFree():
+        EmptySky().
+        mGame:FireHeld = TRUE.
+        mGame:Advance().
+        mGame:FireHeld = FALSE.
+        Quiet(38).
+        Assert:Equals(1, mGame:ShotLife(0)).
+        Assert:Equals(1, mGame:ShotCount).
+        Quiet(1).
+        Assert:Equals(0, mGame:ShotLife(0)).
+        Assert:Equals(0, mGame:ShotCount).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID HoldingFireMakesAShotEveryEightFramesUpToFourInTheAir():
+        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE top AS INTEGER NO-UNDO.
+        EmptySky().
+        mGame:FireHeld = TRUE.
+        Frames(8).
+        Assert:Equals(1, mGame:ShotCount).
+        Frames(1).
+        Assert:Equals(2, mGame:ShotCount).
+        DO i = 1 TO 100:
+            mGame:Rocks:Clear().
+            mGame:Advance().
+            top = MAXIMUM(top, mGame:ShotCount).
+            Assert:IsTrue(mGame:ShotCount <= 4).
+        END.
+        Assert:Equals(4, top).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AShotComesInOnTheOtherSideOfTheScreen():
+        EmptySky().
+        mGame:FireHeld = TRUE.
+        mGame:Advance().
+        mGame:FireHeld = FALSE.
+        Frames(19).
+        /* 114 up by 20 frames of 6 cells is -6, which is 234 */
+        Assert:Equals(234, mGame:ShotY(0)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheShipDoesNotFireWhileItIsBreakingUp():
+        EmptySky().
+        Crash().
+        mGame:FireHeld = TRUE.
+        Quiet(20).
+        Assert:Equals(0, mGame:ShotCount).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASlotMustBeZeroToThree():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            mGame:ShotX(4).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mGame:ShotY(-1).
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mGame:ShotLife(?).
+            CATCH e3 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(3, thrown).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheShotHasAWhiteTwoByTwoHead():
+        EmptySky().
+        mGame:FireHeld = TRUE.
+        mGame:Advance().
+        Assert:Equals(AsteroidsLook:Colour({&C-SHOT-HEAD}), mGame:Canvas:ColourAt(160, 108)).
+        Assert:Equals(AsteroidsLook:Colour({&C-SHOT-HEAD}), mGame:Canvas:ColourAt(161, 108)).
+        Assert:Equals(AsteroidsLook:Colour({&C-SHOT-HEAD}), mGame:Canvas:ColourAt(160, 109)).
+        Assert:Equals(AsteroidsLook:Colour({&C-SHOT-HEAD}), mGame:Canvas:ColourAt(161, 109)).
+    END METHOD.
+
+    /* ---------------------------------- the rocks and the waves ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID AWaveHasFourLargeRocksAndTwoMoreEachWaveUpToEleven():
+        Assert:Equals(4, AsteroidsGame:RocksFor(1)).
+        Assert:Equals(6, AsteroidsGame:RocksFor(2)).
+        Assert:Equals(8, AsteroidsGame:RocksFor(3)).
+        Assert:Equals(10, AsteroidsGame:RocksFor(4)).
+        Assert:Equals(11, AsteroidsGame:RocksFor(5)).
+        Assert:Equals(11, AsteroidsGame:RocksFor(40)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheRocksOfAWaveComeAfterAShortPauseAndFlashWhite():
+        mGame:StartGame().
+        Frames(29).
+        Assert:Equals(0, mGame:Rocks:Count).
+        Frames(1).
+        Assert:Equals(4, mGame:Rocks:Count).
+        Assert:Equals(4, mGame:Rocks:CountOfSize(1)).
+        Assert:IsTrue(mGame:Rocks:Flash(0) > 0 OR mGame:Rocks:Flash(1) > 0 OR mGame:Rocks:Flash(2) > 0 OR mGame:Rocks:Flash(3) > 0).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheFirstRocksAreWellAwayFromTheShip():
+        DEFINE VARIABLE r  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dx AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
+        mGame:StartGame().
+        mGame:SkipIntro().
+        DO r = 0 TO 63:
+            IF NOT mGame:Rocks:Alive(r) THEN NEXT.
+            dx = ABSOLUTE(mGame:Rocks:X(r) / 4096 - 160).
+            IF dx > 160 THEN dx = 320 - dx.
+            dy = ABSOLUTE(mGame:Rocks:Y(r) / 4096 - 120).
+            IF dy > 120 THEN dy = 240 - dy.
+            Assert:IsTrue(SQRT(dx * dx + dy * dy) >= 68, SUBSTITUTE("rock &1 is &2 from the ship", r, SQRT(dx * dx + dy * dy))).
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheRocksDriftAndSpin():
+        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y0 AS INTEGER NO-UNDO.
+        DEFINE VARIABLE h0 AS INTEGER NO-UNDO.
+        mGame:StartGame().
+        mGame:SkipIntro().
+        x0 = mGame:Rocks:X(0).
+        y0 = mGame:Rocks:Y(0).
+        h0 = mGame:Rocks:HeadingAt(0).
+        Frames(70).
+        Assert:IsTrue(mGame:Rocks:X(0) <> x0 OR mGame:Rocks:Y(0) <> y0).
+        Assert:IsTrue(mGame:Rocks:HeadingAt(0) <> h0).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AShotThatReachesALargeRockBreaksItIntoTwoMediumOnesAndScoresTwenty():
+        EmptySky().
+        RockAt(1, 160, 60).
+        mGame:FireHeld = TRUE.
+        Frames(6).
+        mGame:FireHeld = FALSE.
+        Assert:Equals(20, mGame:Score).
+        Assert:Equals(0, mGame:Rocks:CountOfSize(1)).
+        Assert:Equals(2, mGame:Rocks:CountOfSize(2)).
+        Assert:Equals(0, mGame:ShotCount).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AMediumRockBreaksIntoTwoSmallOnesAndScoresFifty():
+        EmptySky().
+        RockAt(2, 160, 60).
+        mGame:FireHeld = TRUE.
+        Frames(8).
+        mGame:FireHeld = FALSE.
+        Assert:Equals(50, mGame:Score).
+        Assert:Equals(0, mGame:Rocks:CountOfSize(2)).
+        Assert:Equals(2, mGame:Rocks:CountOfSize(3)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASmallRockJustBurstsAndScoresAHundred():
+        EmptySky().
+        RockAt(3, 160, 60).
+        mGame:FireHeld = TRUE.
+        Frames(9).
+        mGame:FireHeld = FALSE.
+        Assert:Equals(100, mGame:Score).
+        Assert:Equals(0, mGame:Rocks:Count).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AShotThatMissesTheRockFliesOn():
+        EmptySky().
+        RockAt(1, 220, 60).
+        mGame:FireHeld = TRUE.
+        Frames(1).
+        mGame:FireHeld = FALSE.
+        Frames(12).
+        Assert:Equals(0, mGame:Score).
+        Assert:Equals(1, mGame:Rocks:Count).
+        Assert:Equals(1, mGame:ShotCount).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ThePiecesOfARockFlyApartWithTheOldVelocityBetweenThem():
+        DEFINE VARIABLE a   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE b   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE r   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
+        EmptySky().
+        RockAt(1, 160, 60).
+        mGame:FireHeld = TRUE.
+        Frames(6).
+        mGame:FireHeld = FALSE.
+        a = -1.
+        DO r = 0 TO 63:
+            IF mGame:Rocks:SizeAt(r) = 2 THEN DO:
+                IF a < 0 THEN a = r.
+                ELSE b = r.
+            END.
+        END.
+        Assert:IsTrue(a >= 0 AND b > 0).
+        Assert:IsTrue(ABSOLUTE(mGame:Rocks:VX(a) + mGame:Rocks:VX(b)) <= 2 * 8).
+        Assert:IsTrue(ABSOLUTE(mGame:Rocks:VY(a) + mGame:Rocks:VY(b)) <= 2 * 8).
+        Assert:IsTrue(mGame:Rocks:VX(a) <> mGame:Rocks:VX(b) OR mGame:Rocks:VY(a) <> mGame:Rocks:VY(b)).
+        /* a push of between 0.3 and 0.6 of a cell a frame each */
+        Assert:IsTrue(SQRT(DECIMAL(mGame:Rocks:VX(a)) * mGame:Rocks:VX(a) + DECIMAL(mGame:Rocks:VY(a)) * mGame:Rocks:VY(a)) >= 1200).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID WhenTheLastRockGoesTheNextWaveComesAfterASecondAndTheRocksAfterAHalfSecondMore():
+        mGame:StartGame().
+        mGame:SkipIntro().
+        mGame:Rocks:Clear().
+        Frames(59).
+        Assert:Equals(1, mGame:Wave).
+        Frames(1).
+        Assert:Equals(2, mGame:Wave).
+        Frames(29).
+        Assert:Equals(0, mGame:Rocks:Count).
+        Frames(1).
+        Assert:Equals(6, mGame:Rocks:CountOfSize(1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID RockPointsAre20And50And100AndNothingElseIsAnAnswer():
+        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        Assert:Equals(20, AsteroidsGame:RockPoints(1)).
+        Assert:Equals(50, AsteroidsGame:RockPoints(2)).
+        Assert:Equals(100, AsteroidsGame:RockPoints(3)).
+        DO ON ERROR UNDO, THROW:
+            AsteroidsGame:RockPoints(4).
+            CATCH e AS GridException:
+                thrown = TRUE.
+            END CATCH.
+        END.
+        Assert:IsTrue(thrown).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ThereAreSixSlowRocksBehindTheTitle():
+        Assert:Equals(6, mGame:Rocks:Count).
+        Assert:Equals(2, mGame:Rocks:CountOfSize(1)).
+        Assert:Equals(2, mGame:Rocks:CountOfSize(2)).
+        Assert:Equals(2, mGame:Rocks:CountOfSize(3)).
+        Assert:IsTrue(ABSOLUTE(mGame:Rocks:VX(0)) + ABSOLUTE(mGame:Rocks:VY(0)) <= 4 * 820).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ARockIsADrawnOutlineAndANewOneFlashesWhite():
+        EmptySky().
+        /* a large rock with its first outline, not turned: a corner of it is at (100.9, 80.9), so cell (101, 81) */
+        RockAt(1, 100, 100).
+        mGame:Advance().
+        Assert:Equals(AsteroidsLook:Colour({&C-FLASH}), mGame:Canvas:ColourAt(101, 81)).
+        Frames(8).
+        Assert:Equals(AsteroidsLook:Colour({&C-ROCK-LARGE}), mGame:Canvas:ColourAt(101, 81)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheRocksBehindTheTitleAreDim():
+        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dimly AS INTEGER NO-UNDO.
+        mGame:Rocks:Clear().
+        mGame:Advance().
+        Frames(8).
+        RockAt(1, 100, 100).
+        Frames(8).
+        DO y = 70 TO 130:
+            DO x = 70 TO 130:
+                IF mGame:Canvas:ColourAt(x, y) = AsteroidsLook:Colour({&C-ATTRACT-LARGE}) THEN dimly = dimly + 1.
+            END.
+        END.
+        Assert:IsTrue(dimly > 30).
+    END METHOD.
+
+    /* ---------------------------------- breaking up and coming back ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID ARockThatTouchesTheShipBreaksItAndCostsAShip():
+        EmptySky().
+        RockAt(1, 160, 120).
+        mGame:Advance().
+        Assert:Equals(2, mGame:Lives).
+        Assert:IsFalse(mGame:ShipAlive).
+        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ARockThatMissesTheShipDoesNothing():
+        EmptySky().
+        RockAt(1, 160, 70).
+        Frames(30).
+        Assert:IsTrue(mGame:ShipAlive).
+        Assert:Equals(3, mGame:Lives).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ANewShipCannotBeHitForAMinuteAndAHalfAndBlinksAndThenCan():
+        mGame:StartGame().
+        mGame:SkipIntro().
+        mGame:Rocks:Clear().
+        Assert:IsTrue(mGame:ShieldFrames > 0).
+        RockAt(1, 160, 120).
+        Frames(10).
+        Assert:IsTrue(mGame:ShipAlive).
+        Assert:Equals(3, mGame:Lives).
+        Frames(60).
+        Assert:IsFalse(mGame:ShipAlive).
+        Assert:Equals(2, mGame:Lives).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheShieldRingIsDrawnRoundANewShipAndTheShipBlinksInsideIt():
+        mGame:StartGame().
+        Assert:Equals(90, mGame:ShieldFrames).
+        Assert:Equals(AsteroidsLook:Colour({&C-SHIELD-RING}), mGame:Canvas:ColourAt(160, 106)).
+        Assert:Equals(AsteroidsLook:Colour({&C-SHIP-CORE}), mGame:Canvas:ColourAt(160, 114)).
+        Frames(5).
+        /* hidden for five frames, and then back */
+        Assert:IsFalse(mGame:Canvas:ColourAt(160, 114) = AsteroidsLook:Colour({&C-SHIP-CORE})).
+        Frames(5).
+        Assert:Equals(AsteroidsLook:Colour({&C-SHIP-CORE}), mGame:Canvas:ColourAt(160, 114)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheNextShipWaitsForAClearMiddleAndComesBackProtected():
+        EmptySky().
+        RockAt(1, 160, 120).
+        mGame:Advance().
+        /* the rock sits in the middle: the ship cannot come back */
+        Frames(200).
+        Assert:IsFalse(mGame:ShipAlive).
+        Assert:Equals(2, mGame:Lives).
+        mGame:Rocks:Clear().
+        Frames(1).
+        Assert:IsTrue(mGame:ShipAlive).
+        Assert:Equals(90, mGame:ShieldFrames).
+        Assert:Equals(160, mGame:ShipX).
+        Assert:Equals(120, mGame:ShipY).
+        Assert:Equals(0, mGame:ShipVX).
+        Assert:Equals(0, mGame:ShipHeading).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ARockNearTheMiddleButNotInItDoesNotKeepTheShipOut():
+        EmptySky().
+        RockAt(3, 160, 120).
+        mGame:Advance().
+        mGame:Rocks:Clear().
+        RockAt(3, 160, 200).
+        Frames(150).
+        Assert:IsTrue(mGame:ShipAlive).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID LosingTheLastShipEndsTheGameAfterItBreaksUp():
+        EmptySky().
+        Crash().
+        Quiet(200).
+        Crash().
+        Quiet(200).
+        Crash().
+        Assert:Equals(0, mGame:Lives).
+        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Quiet(89).
+        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Quiet(1).
+        Assert:Equals({&PHASE-GAMEOVER}, mGame:Phase).
+        Assert:IsFalse(mGame:ShipAlive).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheGameOverScreenWaitsNinetyFramesForAFreshFirePressThenGoesToTheTitle():
+        EmptySky().
+        Crash().
+        Quiet(200).
+        Crash().
+        Quiet(200).
+        Crash().
+        Quiet(90).
+        mGame:AddScore(50).
+        mGame:FireHeld = TRUE.
+        Quiet(3).
+        Assert:Equals({&PHASE-GAMEOVER}, mGame:Phase).
+        mGame:FireHeld = FALSE.
+        Quiet(90).
+        Assert:Equals({&PHASE-GAMEOVER}, mGame:Phase).
+        mGame:FireHeld = TRUE.
+        Quiet(1).
+        Assert:Equals({&PHASE-TITLE}, mGame:Phase).
+        Assert:Equals(0, mGame:Score).
+        Assert:Equals(50, mGame:HiScore).
+        Assert:Equals(6, mGame:Rocks:Count).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheRocksKeepDriftingBehindGameOver():
+        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        EmptySky().
+        Crash().
+        Quiet(200).
+        Crash().
+        Quiet(200).
+        Crash().
+        Quiet(90).
+        Assert:Equals({&PHASE-GAMEOVER}, mGame:Phase).
+        mGame:Rocks:Clear().
+        RockAt(1, 50, 50).
+        mGame:Rocks:Add(50 * 4096, 60 * 4096, 2000, 0, 1, 0, 0, 1000, 1).
+        x0 = mGame:Rocks:X(1).
+        Frames(10).
+        Assert:Equals(x0 + 20000, mGame:Rocks:X(1)).
+    END METHOD.
+
+    /* ---------------------------------- the score ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID AnExtraShipComesAtEveryTenThousandPoints():
+        Play().
+        mGame:AddScore(9990).
+        Assert:Equals(3, mGame:Lives).
+        Assert:Equals("", mGame:TakeNotice()).
+        mGame:AddScore(10).
+        Assert:Equals(4, mGame:Lives).
+        Assert:Equals("Extra ship", mGame:TakeNotice()).
+        Assert:Equals("", mGame:TakeNotice()).
+        mGame:AddScore(10000).
+        Assert:Equals(5, mGame:Lives).
+        mGame:AddScore(20000).
+        Assert:Equals(7, mGame:Lives).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheHiScoreFollowsTheScoreWhenItIsBeatenAndKeepsTheOldOneWhenNot():
+        Play().
+        mGame:HiScore = 500.
+        mGame:AddScore(300).
+        Assert:Equals(500, mGame:HiScore).
+        Assert:IsFalse(mGame:NewHiScore).
+        mGame:AddScore(300).
+        Assert:Equals(600, mGame:HiScore).
+        Assert:IsTrue(mGame:NewHiScore).
+        mGame:StartGame().
+        Assert:IsFalse(mGame:NewHiScore).
+        Assert:Equals(600, mGame:HiScore).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID NegativePointsAreRefused():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            mGame:AddScore(-5).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mGame:AddScore(?).
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(2, thrown).
     END METHOD.
 
     /* ---------------------------------- the clock ---------------------------------- */

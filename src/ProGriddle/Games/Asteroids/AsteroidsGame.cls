@@ -7,8 +7,12 @@
    to a heading and drawn as lines (see OutlinePen), so a frame is: put the background back, draw all the lines in
    one batch, then the cells (shots, sparks, text) over them. Collisions are circles, never the drawn lines.
 
-   The ship turns, thrusts and drifts with a little drag, on a screen that wraps on all four edges. The game owns its
-   grid. Dispose releases it. */
+   The ship turns, thrusts and drifts with a little drag, on a screen that wraps on all four edges, and has up to four
+   shots in the air that fade after about three quarters of the screen. A wave starts with 4 large rocks and 2 more
+   each wave up to 11: a shot splits a large rock into two medium ones, a medium into two small ones, and a small one
+   just bursts (20, 50 and 100 points). The ship that touches a rock breaks up, and a new one comes only when the middle
+   of the screen is clear, blinking and protected for a second and a half. Three ships, and an extra one at every
+   10000 points. The game owns its grid. Dispose releases it. */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
@@ -32,6 +36,22 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     &SCOPED-DEFINE THRUST 225
     &SCOPED-DEFINE MAX-SPEED 14336
     &SCOPED-DEFINE DRAG-DIVISOR 128
+    /* shots: how many, how fast (6 cells a frame), how long they live, the gap between two, and where the nose is */
+    &SCOPED-DEFINE SHOTS 4
+    &SCOPED-DEFINE SHOT-SPEED 24576
+    &SCOPED-DEFINE SHOT-LIFE 40
+    &SCOPED-DEFINE FIRE-GAP 8
+    &SCOPED-DEFINE NOSE 24576
+    /* what the ship is doing */
+    &SCOPED-DEFINE SHIP-ALIVE 0
+    &SCOPED-DEFINE SHIP-DYING 1
+    &SCOPED-DEFINE SHIP-WAITING 2
+    /* how long things take, in frames */
+    &SCOPED-DEFINE INTRO-FRAMES 30
+    &SCOPED-DEFINE DYING-FRAMES 90
+    &SCOPED-DEFINE SHIELD-FRAMES 90
+    &SCOPED-DEFINE CLEARED-FRAMES 60
+    &SCOPED-DEFINE OVER-FRAMES 90
     /* the most frames one Tick will make, and the most time it will count: a stall must not make a burst */
     &SCOPED-DEFINE MOST-FRAMES 4
     &SCOPED-DEFINE MOST-MS 100
@@ -55,8 +75,28 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     DEFINE PRIVATE VARIABLE mTurnAcc   AS INTEGER     NO-UNDO.
     DEFINE PRIVATE VARIABLE mFlameT    AS INTEGER     NO-UNDO.
     DEFINE PRIVATE VARIABLE mThrusting AS LOGICAL     NO-UNDO.
-    /* keys, as the input gives them, and whether the fire key was down a frame ago */
+    DEFINE PRIVATE VARIABLE mShipMode  AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mShipTimer AS INTEGER     NO-UNDO.
+    /* frames since the ship last appeared: it is protected and blinks while this is under 90 */
+    DEFINE PRIVATE VARIABLE mShieldT   AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mFireGap   AS INTEGER     NO-UNDO.
+    /* whether the fire key was down a frame ago */
     DEFINE PRIVATE VARIABLE mFireWas   AS LOGICAL     NO-UNDO.
+    /* the shots in the air: place and velocity in units, the heading they were fired at, and the frames they have left */
+    DEFINE PRIVATE VARIABLE mShX       AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
+    DEFINE PRIVATE VARIABLE mShY       AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
+    DEFINE PRIVATE VARIABLE mShVX      AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
+    DEFINE PRIVATE VARIABLE mShVY      AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
+    DEFINE PRIVATE VARIABLE mShHead    AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
+    DEFINE PRIVATE VARIABLE mShLife    AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
+    DEFINE PRIVATE VARIABLE mRocks     AS RockField   NO-UNDO.
+    /* frames until the rocks of a new wave appear, and frames since the last rock was shot */
+    DEFINE PRIVATE VARIABLE mIntro     AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mClearT    AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mOverT     AS INTEGER     NO-UNDO.
+    /* the score at which the next extra ship comes */
+    DEFINE PRIVATE VARIABLE mNextExtra AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mNewHi     AS LOGICAL     NO-UNDO.
     /* the dust that drifts: position and velocity in units, and the colour number */
     DEFINE PRIVATE VARIABLE mDustX     AS INTEGER     NO-UNDO EXTENT {&MOVING-DUST}.
     DEFINE PRIVATE VARIABLE mDustY     AS INTEGER     NO-UNDO EXTENT {&MOVING-DUST}.
@@ -148,6 +188,41 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             RETURN mThrusting.
         END GET.
 
+    /* True while the ship is flying (not breaking up, and not waiting for a clear middle of the screen). */
+    DEFINE PUBLIC PROPERTY ShipAlive AS LOGICAL NO-UNDO
+        GET():
+            RETURN mShipMode = {&SHIP-ALIVE} AND Phase = {&PHASE-PLAYING}.
+        END GET.
+
+    /* Frames of protection the ship has left: it cannot be hit while this is above 0. */
+    DEFINE PUBLIC PROPERTY ShieldFrames AS INTEGER NO-UNDO
+        GET():
+            RETURN (IF ShipAlive THEN MAXIMUM(0, {&SHIELD-FRAMES} - mShieldT) ELSE 0).
+        END GET.
+
+    /* The rocks. A test may add and take away rocks to set up a position. */
+    DEFINE PUBLIC PROPERTY Rocks AS RockField NO-UNDO
+        GET():
+            RETURN mRocks.
+        END GET.
+
+    /* How many of the ship's shots are in the air. */
+    DEFINE PUBLIC PROPERTY ShotCount AS INTEGER NO-UNDO
+        GET():
+            DEFINE VARIABLE i AS INTEGER NO-UNDO.
+            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            DO i = 1 TO {&SHOTS}:
+                IF mShLife[i] > 0 THEN n = n + 1.
+            END.
+            RETURN n.
+        END GET.
+
+    /* True once the best score has been beaten in this game. */
+    DEFINE PUBLIC PROPERTY NewHiScore AS LOGICAL NO-UNDO
+        GET():
+            RETURN mNewHi.
+        END GET.
+
     /* How many frames the game has made. */
     DEFINE PUBLIC PROPERTY FrameCount AS INTEGER NO-UNDO
         GET():
@@ -170,6 +245,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mRandom = poRandom.
         mCanvas = NEW PixelCanvas(poGrid).
         mPen = NEW OutlinePen(mCanvas).
+        mRocks = NEW RockField().
         DO i = 0 TO 64:
             mVignette[i + 1] = ColourMath:Mix(AsteroidsLook:Colour({&C-VOID-CENTRE}), AsteroidsLook:Colour({&C-VOID-EDGE}), i, 64).
         END.
@@ -204,9 +280,66 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         Lives = 3.
         Wave = 1.
         mNotice = "".
+        mNextExtra = 10000.
+        mNewHi = FALSE.
+        mOverT = 0.
+        mRocks:Clear().
+        ClearShots().
         Phase = {&PHASE-PLAYING}.
         PlaceShip().
+        StartWave().
         Render().
+    END METHOD.
+
+    /* Puts the rocks of the wave on the screen at once instead of after the short pause that starts a wave. For tests,
+       and for anything that wants the game in play without waiting half a second. */
+    METHOD PUBLIC VOID SkipIntro():
+        DO WHILE mIntro > 0 AND Phase = {&PHASE-PLAYING}:
+            Step().
+        END.
+        Render().
+    END METHOD.
+
+    /* How many large rocks a wave starts with: 4, and 2 more each wave, up to 11. */
+    METHOD PUBLIC STATIC INTEGER RocksFor(INPUT piWave AS INTEGER):
+        RETURN MINIMUM(11, 4 + 2 * (MAXIMUM(1, piWave) - 1)).
+    END METHOD.
+
+    /* The points for breaking a rock of a size (1 large, 2 medium, 3 small): 20, 50 and 100. */
+    METHOD PUBLIC STATIC INTEGER RockPoints(INPUT piSize AS INTEGER):
+        IF piSize = ? OR piSize < 1 OR piSize > 3 THEN UNDO, THROW NEW GridException("A rock size is 1, 2 or 3, not " + STRING(piSize)).
+        RETURN INTEGER(ENTRY(piSize, "20,50,100")).
+    END METHOD.
+
+    /* Adds to the score, and gives an extra ship at every 10000 points, and the best score follows the score. */
+    METHOD PUBLIC VOID AddScore(INPUT piPoints AS INTEGER):
+        IF piPoints = ? OR piPoints < 0 THEN UNDO, THROW NEW GridException("Points are 0 or more, not " + STRING(piPoints)).
+        Score = Score + piPoints.
+        DO WHILE Score >= mNextExtra:
+            mNextExtra = mNextExtra + 10000.
+            Lives = Lives + 1.
+            mNotice = "Extra ship".
+        END.
+        IF Score > HiScore THEN DO:
+            HiScore = Score.
+            mNewHi = TRUE.
+        END.
+    END METHOD.
+
+    /* The shot in a slot (0 to 3): where it is in whole cells, and the frames it has left (0 when the slot is free). */
+    METHOD PUBLIC INTEGER ShotX(INPUT piSlot AS INTEGER):
+        CheckShot(piSlot).
+        RETURN INTEGER(TRUNCATE(mShX[piSlot + 1] / {&UNIT}, 0)).
+    END METHOD.
+
+    METHOD PUBLIC INTEGER ShotY(INPUT piSlot AS INTEGER):
+        CheckShot(piSlot).
+        RETURN INTEGER(TRUNCATE(mShY[piSlot + 1] / {&UNIT}, 0)).
+    END METHOD.
+
+    METHOD PUBLIC INTEGER ShotLife(INPUT piSlot AS INTEGER):
+        CheckShot(piSlot).
+        RETURN mShLife[piSlot + 1].
     END METHOD.
 
     /* The ship jumps to a random place and comes back a moment later, with a small chance of blowing up. Does
@@ -234,9 +367,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mFrames = 0.
         Phase = {&PHASE-TITLE}.
         Score = 0.
+        mNewHi = FALSE.
+        ClearShots().
         BakeBackground().
         MakeDust().
         PlaceShip().
+        MakeAttractRocks().
         Render().
     END METHOD.
 
@@ -254,20 +390,189 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     END METHOD.
 
     METHOD PRIVATE VOID FrameTitle():
+        mRocks:Move().
         IF FireHeld AND NOT mFireWas THEN StartGame().
     END METHOD.
 
+    /* A frame of play: the wave, the ship, the shots, the rocks, and what they hit. */
     METHOD PRIVATE VOID FramePlaying():
-        MoveShip().
+        RunWave().
+        CASE mShipMode:
+            WHEN {&SHIP-ALIVE} THEN FlyShip().
+            WHEN {&SHIP-DYING} THEN FrameDying().
+            WHEN {&SHIP-WAITING} THEN FrameWaiting().
+        END CASE.
+        MoveShots().
+        mRocks:Move().
+        HitRocksWithShots().
+        IF mShipMode = {&SHIP-ALIVE} AND mShieldT >= {&SHIELD-FRAMES} THEN HitShipWithRocks().
     END METHOD.
 
+    /* The rocks go on drifting behind GAME OVER, and the fire key, pressed afresh once the prompt is up, starts again. */
     METHOD PRIVATE VOID FrameGameOver():
-        IF FireHeld AND NOT mFireWas THEN Initialise().
+        mOverT = mOverT + 1.
+        mRocks:Move().
+        MoveShots().
+        IF FireHeld AND NOT mFireWas AND mOverT >= {&OVER-FRAMES} THEN Initialise().
+    END METHOD.
+
+    /* ================================ the waves ================================ */
+
+    /* A new wave: the rocks come after a short pause, flashing white as they appear. */
+    METHOD PRIVATE VOID StartWave():
+        mIntro = {&INTRO-FRAMES}.
+        mClearT = 0.
+    END METHOD.
+
+    /* The pause before the rocks, and when the last rock is gone, the pause before the next wave. */
+    METHOD PRIVATE VOID RunWave():
+        IF mIntro > 0 THEN DO:
+            mIntro = mIntro - 1.
+            IF mIntro = 0 THEN SpawnRocks().
+            RETURN.
+        END.
+        IF mRocks:Count = 0 THEN DO:
+            mClearT = mClearT + 1.
+            IF mClearT >= {&CLEARED-FRAMES} THEN DO:
+                Wave = Wave + 1.
+                StartWave().
+            END.
+        END.
+        ELSE mClearT = 0.
+    END METHOD.
+
+    /* The large rocks of the wave, in places away from the ship, drifting in random directions. */
+    METHOD PRIVATE VOID SpawnRocks():
+        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE tries AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
+        DO n = 1 TO RocksFor(Wave):
+            DO tries = 1 TO 30:
+                x = mRandom:NextInt({&WIDTH-U}).
+                y = mRandom:NextInt({&HEIGHT-U}).
+                IF NOT Near(x, y, mSX, mSY, 70 * {&UNIT}) THEN LEAVE.
+            END.
+            AddRock(x, y, 0, 0, 1, 0).
+        END.
+    END METHOD.
+
+    /* Puts a rock of a size in a place, drifting at a random speed for its size (a little faster in later waves)
+       in a random direction, plus the velocity it is given. If piSpeed is above 0 it is the speed instead. The
+       outline, the first heading and the spin are random. */
+    METHOD PRIVATE VOID AddRock(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piVX AS INTEGER, INPUT piVY AS INTEGER,
+                                INPUT piSize AS INTEGER, INPUT piSpeed AS INTEGER):
+        DEFINE VARIABLE dir    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE speed  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE lo     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hi     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE period AS INTEGER NO-UNDO.
+        DEFINE VARIABLE slot   AS INTEGER NO-UNDO.
+        dir = mRandom:NextInt(64).
+        CASE piSize:
+            WHEN 1 THEN ASSIGN lo = 1024 hi = 2253 period = 30 + mRandom:NextInt(31).
+            WHEN 2 THEN ASSIGN lo = 1638 hi = 3686 period = 15 + mRandom:NextInt(16).
+            OTHERWISE ASSIGN lo = 2458 hi = 5325 period = 6 + mRandom:NextInt(9).
+        END CASE.
+        speed = lo + mRandom:NextInt(hi - lo + 1).
+        speed = INTEGER(TRUNCATE(speed * (100 + MINIMUM(30, 3 * (MAXIMUM(1, Wave) - 1))) / 100, 0)).
+        IF piSpeed > 0 THEN speed = piSpeed.
+        slot = mRocks:Add(piX, piY, piVX + INTEGER(TRUNCATE(Heading:DirX(dir) * speed / 1024, 0)),
+                          piVY + INTEGER(TRUNCATE(Heading:DirY(dir) * speed / 1024, 0)), piSize,
+                          mRandom:NextInt(AsteroidsArt:RockVariants(piSize)), mRandom:NextInt(64), period,
+                          (IF mRandom:NextInt(2) = 0 THEN -1 ELSE 1)).
+    END METHOD.
+
+    /* Six slow rocks to drift behind the title: two of each size. */
+    METHOD PRIVATE VOID MakeAttractRocks():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        mRocks:Clear().
+        DO i = 0 TO 5:
+            AddRock(mRandom:NextInt({&WIDTH-U}), mRandom:NextInt({&HEIGHT-U}), 0, 0, 1 + (i MODULO 3), 205 + mRandom:NextInt(615)).
+        END.
+    END METHOD.
+
+    /* What a shot hits: the first rock whose circle holds the head of the shot. The rock breaks in two (a large one
+       into two medium, a medium into two small, a small one only bursts), and scores. */
+    METHOD PRIVATE VOID HitRocksWithShots():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DEFINE VARIABLE r AS INTEGER NO-UNDO.
+        DO i = 1 TO {&SHOTS}:
+            IF mShLife[i] <= 0 THEN NEXT.
+            DO r = 0 TO RockField:Capacity() - 1:
+                IF mRocks:SizeAt(r) = 0 THEN NEXT.
+                IF Near(mShX[i], mShY[i], mRocks:X(r), mRocks:Y(r), AsteroidsArt:RockRadius(mRocks:SizeAt(r)) * 16 + {&UNIT}) THEN DO:
+                    mShLife[i] = 0.
+                    BreakRock(r).
+                    LEAVE.
+                END.
+            END.
+        END.
+    END METHOD.
+
+    /* A rock is destroyed: its points, and two smaller ones that fly apart in its place. */
+    METHOD PRIVATE VOID BreakRock(INPUT piSlot AS INTEGER):
+        DEFINE VARIABLE size AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE vx   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE vy   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE push AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dir  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE px   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE py   AS INTEGER NO-UNDO.
+        size = mRocks:SizeAt(piSlot).
+        x = mRocks:X(piSlot).
+        y = mRocks:Y(piSlot).
+        vx = mRocks:VX(piSlot).
+        vy = mRocks:VY(piSlot).
+        mRocks:Remove(piSlot).
+        AddScore(RockPoints(size)).
+        IF size < 3 THEN DO:
+            /* the two pieces get the old velocity and a push of 0.3 to 0.6 cells a frame in opposite directions */
+            push = 1229 + mRandom:NextInt(1230).
+            dir = mRandom:NextInt(64).
+            px = INTEGER(TRUNCATE(Heading:DirX(dir) * push / 1024, 0)).
+            py = INTEGER(TRUNCATE(Heading:DirY(dir) * push / 1024, 0)).
+            AddPiece(x, y, vx + px, vy + py, size + 1).
+            AddPiece(x, y, vx - px, vy - py, size + 1).
+        END.
+    END METHOD.
+
+    METHOD PRIVATE VOID AddPiece(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piVX AS INTEGER, INPUT piVY AS INTEGER, INPUT piSize AS INTEGER):
+        DEFINE VARIABLE period AS INTEGER NO-UNDO.
+        DEFINE VARIABLE slot   AS INTEGER NO-UNDO.
+        period = (IF piSize = 2 THEN 15 + mRandom:NextInt(16) ELSE 6 + mRandom:NextInt(9)).
+        slot = mRocks:Add(piX, piY, piVX, piVY, piSize, mRandom:NextInt(AsteroidsArt:RockVariants(piSize)), mRandom:NextInt(64), period,
+                          (IF mRandom:NextInt(2) = 0 THEN -1 ELSE 1)).
+    END METHOD.
+
+    /* True when two places, on a screen that wraps, are within a distance of each other. All in units. */
+    METHOD PRIVATE LOGICAL Near(INPUT piX1 AS INTEGER, INPUT piY1 AS INTEGER, INPUT piX2 AS INTEGER, INPUT piY2 AS INTEGER, INPUT piRadius AS INTEGER):
+        DEFINE VARIABLE dx AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
+        dx = ABSOLUTE(piX1 - piX2).
+        IF dx > {&WIDTH-U} / 2 THEN dx = {&WIDTH-U} - dx.
+        dy = ABSOLUTE(piY1 - piY2).
+        IF dy > {&HEIGHT-U} / 2 THEN dy = {&HEIGHT-U} - dy.
+        RETURN INT64(dx) * dx + INT64(dy) * dy <= INT64(piRadius) * piRadius.
+    END METHOD.
+
+    METHOD PRIVATE VOID CheckShot(INPUT piSlot AS INTEGER):
+        IF piSlot = ? OR piSlot < 0 OR piSlot >= {&SHOTS} THEN
+            UNDO, THROW NEW GridException(SUBSTITUTE("A shot slot is 0 to &1, not &2", {&SHOTS} - 1, piSlot)).
+    END METHOD.
+
+    METHOD PRIVATE VOID ClearShots():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO {&SHOTS}:
+            mShLife[i] = 0.
+        END.
     END METHOD.
 
     /* ================================ the ship ================================ */
 
-    /* The ship in the middle of the screen, still, nose up. */
+    /* The ship in the middle of the screen, still, nose up, protected for the first second and a half. */
     METHOD PRIVATE VOID PlaceShip():
         mSX = {&WIDTH-U} / 2.
         mSY = {&HEIGHT-U} / 2.
@@ -277,6 +582,98 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mTurnAcc = 0.
         mFlameT = 0.
         mThrusting = FALSE.
+        mShipMode = {&SHIP-ALIVE}.
+        mShieldT = 0.
+        mFireGap = 0.
+    END METHOD.
+
+    /* A frame of the flying ship: the shield runs down, it moves, and it fires if the key is down. */
+    METHOD PRIVATE VOID FlyShip():
+        IF mShieldT < {&SHIELD-FRAMES} THEN mShieldT = mShieldT + 1.
+        MoveShip().
+        IF mFireGap > 0 THEN mFireGap = mFireGap - 1.
+        IF FireHeld AND mFireGap = 0 THEN Fire().
+    END METHOD.
+
+    /* A shot leaves the nose along the heading, faster than the ship by half the ship's own speed, if there is a free
+       slot (at most 4 are in the air). */
+    METHOD PRIVATE VOID Fire():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO {&SHOTS}:
+            IF mShLife[i] = 0 THEN DO:
+                mShX[i] = WrapUnits(mSX + INTEGER(TRUNCATE(Heading:DirX(mHeading) * {&NOSE} / 1024, 0)), {&WIDTH-U}).
+                mShY[i] = WrapUnits(mSY + INTEGER(TRUNCATE(Heading:DirY(mHeading) * {&NOSE} / 1024, 0)), {&HEIGHT-U}).
+                mShVX[i] = INTEGER(TRUNCATE(Heading:DirX(mHeading) * {&SHOT-SPEED} / 1024, 0)) + INTEGER(TRUNCATE(mSVX / 2, 0)).
+                mShVY[i] = INTEGER(TRUNCATE(Heading:DirY(mHeading) * {&SHOT-SPEED} / 1024, 0)) + INTEGER(TRUNCATE(mSVY / 2, 0)).
+                mShHead[i] = mHeading.
+                mShLife[i] = {&SHOT-LIFE}.
+                mFireGap = {&FIRE-GAP}.
+                RETURN.
+            END.
+        END.
+    END METHOD.
+
+    /* Every shot moves, wraps and runs down. */
+    METHOD PRIVATE VOID MoveShots():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO {&SHOTS}:
+            IF mShLife[i] <= 0 THEN NEXT.
+            mShX[i] = WrapUnits(mShX[i] + mShVX[i], {&WIDTH-U}).
+            mShY[i] = WrapUnits(mShY[i] + mShVY[i], {&HEIGHT-U}).
+            mShLife[i] = mShLife[i] - 1.
+        END.
+    END METHOD.
+
+    /* A rock touches the ship: it breaks up. */
+    METHOD PRIVATE VOID HitShipWithRocks():
+        DEFINE VARIABLE r AS INTEGER NO-UNDO.
+        DO r = 0 TO RockField:Capacity() - 1:
+            IF mRocks:SizeAt(r) = 0 THEN NEXT.
+            IF Near(mSX, mSY, mRocks:X(r), mRocks:Y(r), (AsteroidsArt:RockRadius(mRocks:SizeAt(r)) + AsteroidsArt:ShipRadius()) * 16) THEN DO:
+                KillShip().
+                RETURN.
+            END.
+        END.
+    END METHOD.
+
+    /* The ship breaks up and a ship is gone. */
+    METHOD PRIVATE VOID KillShip():
+        Lives = Lives - 1.
+        mShipMode = {&SHIP-DYING}.
+        mShipTimer = 0.
+        mThrusting = FALSE.
+    END METHOD.
+
+    /* The ship comes apart for a second and a half, drifting on. Then the next ship, or the end of the game. */
+    METHOD PRIVATE VOID FrameDying():
+        mShipTimer = mShipTimer + 1.
+        mSX = WrapUnits(mSX + mSVX, {&WIDTH-U}).
+        mSY = WrapUnits(mSY + mSVY, {&HEIGHT-U}).
+        IF mShipTimer >= {&DYING-FRAMES} THEN DO:
+            IF Lives > 0 THEN DO:
+                mShipMode = {&SHIP-WAITING}.
+                mShipTimer = 0.
+            END.
+            ELSE DO:
+                Phase = {&PHASE-GAMEOVER}.
+                mOverT = 0.
+            END.
+        END.
+    END METHOD.
+
+    /* A new ship comes only when the middle of the screen is clear: no rock within 30 cells of the middle, counting the
+       size of the rock itself. */
+    METHOD PRIVATE VOID FrameWaiting():
+        DEFINE VARIABLE r     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE isClear AS LOGICAL NO-UNDO INITIAL TRUE.
+        DEFINE VARIABLE reach AS INTEGER NO-UNDO.
+        mShipTimer = mShipTimer + 1.
+        DO r = 0 TO RockField:Capacity() - 1:
+            IF mRocks:SizeAt(r) = 0 THEN NEXT.
+            reach = (30 * {&UNIT}) + AsteroidsArt:RockRadius(mRocks:SizeAt(r)) * 16.
+            IF ABSOLUTE(mRocks:X(r) - {&WIDTH-U} / 2) <= reach AND ABSOLUTE(mRocks:Y(r) - {&HEIGHT-U} / 2) <= reach THEN isClear = FALSE.
+        END.
+        IF isClear THEN PlaceShip().
     END METHOD.
 
     /* One frame of the ship: turn, thrust, drag, the speed limit, move and wrap. */
@@ -394,8 +791,86 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             mCanvas:Plot(INTEGER(TRUNCATE(mDustX[i] / {&UNIT}, 0)), INTEGER(TRUNCATE(mDustY[i] / {&UNIT}, 0)), 0, AsteroidsLook:Colour(mDustC[i])).
         END.
         mCanvas:BeginBatch().
-        IF Phase = {&PHASE-PLAYING} THEN DrawShip().
+        DrawRocks().
+        IF ShipAlive AND (ShieldFrames = 0 OR INTEGER(TRUNCATE(mShieldT / 5, 0)) MODULO 2 = 0) THEN DrawShip().
+        IF ShipAlive AND ShieldFrames > 0 THEN DrawShieldRing().
         mCanvas:EndBatch().
+        DrawShots().
+    END METHOD.
+
+    /* The rocks, large ones first, one cell lines. On the title screen they are dim, and a new rock flashes white. */
+    METHOD PRIVATE VOID DrawRocks():
+        DEFINE VARIABLE size   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE r      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE colour AS INTEGER NO-UNDO.
+        DO size = 1 TO 3:
+            DO r = 0 TO RockField:Capacity() - 1:
+                IF mRocks:SizeAt(r) <> size THEN NEXT.
+                IF mRocks:Flash(r) > 0 THEN colour = AsteroidsLook:Colour({&C-FLASH}).
+                ELSE IF Phase = {&PHASE-TITLE} THEN colour = AsteroidsLook:Colour({&C-ATTRACT-LARGE} + size - 1).
+                ELSE colour = AsteroidsLook:Colour({&C-ROCK-LARGE} + size - 1).
+                mPen:DrawWrapped(AsteroidsArt:Rock(size, mRocks:Variant(r)), ToPen(mRocks:X(r)), ToPen(mRocks:Y(r)), mRocks:HeadingAt(r),
+                                 AsteroidsArt:RockExtent(size), 0, colour, 0, 0).
+            END.
+        END.
+    END METHOD.
+
+    /* A dashed ring round a ship that has just come: it closes in, then breathes, and flickers when the shield is about
+       to end. 16 points on a circle, and the even dashes between them. */
+    METHOD PRIVATE VOID DrawShieldRing():
+        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE radius AS INTEGER NO-UNDO.
+        DEFINE VARIABLE h      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cy     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x0     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y0     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x1     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y1     AS INTEGER NO-UNDO.
+        IF {&SHIELD-FRAMES} - mShieldT <= 30 AND INTEGER(TRUNCATE(mShieldT / 3, 0)) MODULO 2 = 1 THEN RETURN.
+        /* the radius in 256ths of a cell: 14 closing to 9 over 12 frames, then 9 plus or minus 1.5 */
+        IF mShieldT < 12 THEN radius = 3584 - INTEGER(TRUNCATE((3584 - 2304) * mShieldT / 12, 0)).
+        ELSE radius = 2304 + INTEGER(TRUNCATE(384 * Heading:Sin(INTEGER(TRUNCATE(mShieldT * 64 / 30, 0))) / 1024, 0)).
+        cx = ToPen(mSX).
+        cy = ToPen(mSY).
+        DO k = 0 TO 15 BY 2:
+            h = k * 4 + INTEGER(TRUNCATE(mShieldT * 8 / 15, 0)).
+            x0 = INTEGER(TRUNCATE((cx + INTEGER(TRUNCATE(radius * Heading:DirX(h) / 1024, 0)) + 128) / 256, 0)).
+            y0 = INTEGER(TRUNCATE((cy + INTEGER(TRUNCATE(radius * Heading:DirY(h) / 1024, 0)) + 128) / 256, 0)).
+            x1 = INTEGER(TRUNCATE((cx + INTEGER(TRUNCATE(radius * Heading:DirX(h + 4) / 1024, 0)) + 128) / 256, 0)).
+            y1 = INTEGER(TRUNCATE((cy + INTEGER(TRUNCATE(radius * Heading:DirY(h + 4) / 1024, 0)) + 128) / 256, 0)).
+            mCanvas:DrawLine(x0, y0, x1, y1, 0, AsteroidsLook:Colour({&C-SHIELD-RING})).
+        END.
+    END METHOD.
+
+    /* The shots: a 2 by 2 head and a short trail of three cells behind it, dimming; in the last 15 frames the shot
+       fades away. Cells, not lines. The trail does not paint over a rock or a ship. */
+    METHOD PRIVATE VOID DrawShots():
+        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hy     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE tx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ty     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE head   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE trail  AS INTEGER NO-UNDO.
+        DO i = 1 TO {&SHOTS}:
+            IF mShLife[i] <= 0 THEN NEXT.
+            hx = INTEGER(TRUNCATE(mShX[i] / {&UNIT}, 0)).
+            hy = INTEGER(TRUNCATE(mShY[i] / {&UNIT}, 0)).
+            head = (IF mShLife[i] > 15 THEN {&C-SHOT-HEAD} ELSE {&C-SHOT-TRAIL-1}).
+            mCanvas:Plot(hx, hy, 0, AsteroidsLook:Colour(head)).
+            mCanvas:Plot(hx + 1, hy, 0, AsteroidsLook:Colour(head)).
+            mCanvas:Plot(hx, hy + 1, 0, AsteroidsLook:Colour(head)).
+            mCanvas:Plot(hx + 1, hy + 1, 0, AsteroidsLook:Colour(head)).
+            IF mShLife[i] <= 5 THEN NEXT.
+            DO k = 1 TO 3:
+                tx = INTEGER(TRUNCATE(WrapUnits(mShX[i] - INTEGER(TRUNCATE(Heading:DirX(mShHead[i]) * k * 1331 / 1024, 0)), {&WIDTH-U}) / {&UNIT}, 0)).
+                ty = INTEGER(TRUNCATE(WrapUnits(mShY[i] - INTEGER(TRUNCATE(Heading:DirY(mShHead[i]) * k * 1331 / 1024, 0)), {&HEIGHT-U}) / {&UNIT}, 0)).
+                trail = (IF mShLife[i] > 15 THEN {&C-SHOT-TRAIL-1} + k - 1 ELSE {&C-SHOT-TRAIL-3}).
+                IF mCanvas:ColourAt(tx, ty) = mCanvas:BackAt(tx, ty) THEN mCanvas:Plot(tx, ty, 0, AsteroidsLook:Colour(trail)).
+            END.
+        END.
     END METHOD.
 
     /* The ship: a glow of four dim copies one cell to each side, then the body, the spine and the flame. */
