@@ -402,17 +402,19 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         mGame:StartGame().
         mGame:SkipIntro().
         mGame:Rocks:Clear().
-        Frames(60).
-        mGame:Rocks:Clear().
+        Quiet(60).
     END METHOD.
 
-    /* Frames with the rocks taken away before each one, so the next wave's rocks cannot get in the way of a test. */
+    /* Frames with the rocks taken away before each one, except a small rock in the far corner that is only there so the
+       wave never looks cleared and the next wave's rocks cannot get in the way of a test. It is taken away at the end. */
     METHOD PRIVATE VOID Quiet(INPUT piCount AS INTEGER):
         DEFINE VARIABLE n AS INTEGER NO-UNDO.
         DO n = 1 TO piCount:
             mGame:Rocks:Clear().
+            RockAt(3, 2, 2).
             mGame:Advance().
         END.
+        mGame:Rocks:Clear().
     END METHOD.
 
     /* The ship is hit by a rock at the middle of the screen, and the rock goes. */
@@ -858,7 +860,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Quiet(90).
         Assert:Equals({&PHASE-GAMEOVER}, mGame:Phase).
         mGame:FireHeld = TRUE.
-        Quiet(1).
+        Frames(1).
         Assert:Equals({&PHASE-TITLE}, mGame:Phase).
         Assert:Equals(0, mGame:Score).
         Assert:Equals(50, mGame:HiScore).
@@ -882,6 +884,258 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         x0 = mGame:Rocks:X(1).
         Frames(10).
         Assert:Equals(x0 + 20000, mGame:Rocks:X(1)).
+    END METHOD.
+
+    /* ---------------------------------- the saucers ---------------------------------- */
+
+    /* Runs frames, rocks away, until the saucer has fired once (up to piMax frames). */
+    METHOD PRIVATE VOID UntilTheFirstSaucerShot(INPUT piMax AS INTEGER):
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        DO WHILE n < piMax AND mGame:SaucerShotCount = 0:
+            Quiet(1).
+            n = n + 1.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASaucerComesInAtTheEdgeAtTheRowItWasGiven():
+        EmptySky().
+        mGame:LaunchSaucerAt(TRUE, 1, 100).
+        Assert:IsTrue(mGame:SaucerActive).
+        Assert:IsTrue(mGame:SaucerLarge).
+        Assert:Equals(-8, mGame:SaucerX).
+        Assert:Equals(100, mGame:SaucerY).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheLargeSaucerCrossesAtSevenTenthsOfACellAFrameAndTheSmallOneAtOne():
+        EmptySky().
+        mGame:LaunchSaucerAt(TRUE, 1, 100).
+        Quiet(100).
+        Assert:IsTrue(mGame:SaucerX >= 61 AND mGame:SaucerX <= 63, STRING(mGame:SaucerX)).
+        mGame:PlaceSaucer(400, 100).
+        Quiet(20).
+        Assert:IsFalse(mGame:SaucerActive).
+        mGame:LaunchSaucerAt(FALSE, 1, 100).
+        Quiet(100).
+        Assert:IsTrue(mGame:SaucerX >= 91 AND mGame:SaucerX <= 93, STRING(mGame:SaucerX)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASaucerFromTheRightFliesLeftAndLeavesTheScreen():
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        EmptySky().
+        mGame:LaunchSaucerAt(FALSE, -1, 100).
+        Assert:Equals(328, mGame:SaucerX).
+        DO WHILE mGame:SaucerActive AND n < 400:
+            Quiet(1).
+            n = n + 1.
+        END.
+        Assert:IsFalse(mGame:SaucerActive).
+        Assert:IsTrue(n >= 300 AND n <= 345, STRING(n)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID OnlyOneSaucerAtATimeAndOnlyInAGame():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            mGame:LaunchSaucer(TRUE, 1).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        EmptySky().
+        mGame:LaunchSaucer(TRUE, 1).
+        DO ON ERROR UNDO, THROW:
+            mGame:LaunchSaucer(FALSE, -1).
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(2, thrown).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ABadSaucerRequestIsRefused():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        EmptySky().
+        DO ON ERROR UNDO, THROW:
+            mGame:LaunchSaucerAt(?, 1, 100).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mGame:LaunchSaucerAt(TRUE, 0, 100).
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mGame:LaunchSaucerAt(TRUE, 1, 10).
+            CATCH e3 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mGame:PlaceSaucer(10, 10).
+            CATCH e4 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(4, thrown).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheSaucerFiresItsFirstShotAfterASecondAndNotBefore():
+        EmptySky().
+        mGame:LaunchSaucerAt(TRUE, 1, 30).
+        Quiet(55).
+        Assert:Equals(0, mGame:SaucerShotCount).
+        UntilTheFirstSaucerShot(60).
+        Assert:Equals(1, mGame:SaucerShotCount).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheSmallSaucerAimsAtTheShipWhenTheScoreIsHigh():
+        DEFINE VARIABLE sx0  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE sy0  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ax   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ay   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE h1   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE h2   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE diff AS INTEGER NO-UNDO.
+        EmptySky().
+        mGame:AddScore(30000).
+        mGame:LaunchSaucerAt(FALSE, 1, 30).
+        mGame:PlaceSaucer(40, 30).
+        UntilTheFirstSaucerShot(100).
+        Assert:Equals(1, mGame:SaucerShotCount).
+        sx0 = mGame:SaucerShotX(0).
+        sy0 = mGame:SaucerShotY(0).
+        ax = mGame:SaucerX.
+        ay = mGame:SaucerY.
+        Quiet(5).
+        /* five frames of flight show which way it is going: from the saucer to the ship at (160, 120) */
+        h1 = Heading:Nearest(mGame:SaucerShotX(0) - sx0, mGame:SaucerShotY(0) - sy0).
+        h2 = Heading:Nearest(160 - ax, 120 - ay).
+        diff = ABSOLUTE(h1 - h2).
+        IF diff > 32 THEN diff = 64 - diff.
+        Assert:IsTrue(diff <= 2, SUBSTITUTE("flying &1, ship is &2", h1, h2)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASaucerShotIsDrawnAsAPlusWithAPaleMiddle():
+        EmptySky().
+        mGame:LaunchSaucerAt(TRUE, 1, 30).
+        UntilTheFirstSaucerShot(100).
+        Assert:Equals(AsteroidsLook:Colour({&C-SAUCER-SHOT-CENTRE}), mGame:Canvas:ColourAt(mGame:SaucerShotX(0), mGame:SaucerShotY(0))).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AShipShotThatReachesTheLargeSaucerDestroysItAndScoresTwoHundred():
+        EmptySky().
+        mGame:LaunchSaucerAt(TRUE, 1, 100).
+        mGame:PlaceSaucer(154, 60).
+        mGame:FireHeld = TRUE.
+        Quiet(14).
+        mGame:FireHeld = FALSE.
+        Assert:IsFalse(mGame:SaucerActive).
+        Assert:Equals(200, mGame:Score).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AShipShotThatReachesTheSmallSaucerScoresAThousand():
+        EmptySky().
+        mGame:LaunchSaucerAt(FALSE, 1, 100).
+        mGame:PlaceSaucer(151, 60).
+        mGame:FireHeld = TRUE.
+        Quiet(14).
+        mGame:FireHeld = FALSE.
+        Assert:IsFalse(mGame:SaucerActive).
+        Assert:Equals(1000, mGame:Score).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASaucerThatFliesIntoTheShipBreaksItAndIsDestroyedAndScores():
+        EmptySky().
+        mGame:LaunchSaucerAt(TRUE, 1, 100).
+        mGame:PlaceSaucer(155, 120).
+        Quiet(2).
+        Assert:IsFalse(mGame:SaucerActive).
+        Assert:IsFalse(mGame:ShipAlive).
+        Assert:Equals(2, mGame:Lives).
+        Assert:Equals(200, mGame:Score).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASaucerShotThatReachesTheShipBreaksIt():
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        EmptySky().
+        mGame:AddScore(30000).
+        mGame:LaunchSaucerAt(FALSE, 1, 120).
+        mGame:PlaceSaucer(30, 120).
+        /* the first shot is aimed along the row, 130 cells at 2.2 cells a frame */
+        DO WHILE n < 160 AND mGame:ShipAlive:
+            Quiet(1).
+            n = n + 1.
+        END.
+        Assert:IsFalse(mGame:ShipAlive).
+        Assert:Equals(5, mGame:Lives).
+        Assert:IsTrue(mGame:SaucerActive).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASaucerThatFliesIntoARockIsDestroyedAndTheRockBreaksWithoutPoints():
+        EmptySky().
+        mGame:LaunchSaucerAt(TRUE, 1, 100).
+        mGame:PlaceSaucer(60, 60).
+        mGame:Rocks:Add(60 * 4096, 60 * 4096, 0, 0, 1, 0, 0, 1000, 1).
+        mGame:Advance().
+        Assert:IsFalse(mGame:SaucerActive).
+        Assert:Equals(0, mGame:Score).
+        Assert:Equals(0, mGame:Rocks:CountOfSize(1)).
+        Assert:Equals(2, mGame:Rocks:CountOfSize(2)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASaucerComesByItselfAfterTwentySecondsOrSoAndTheFirstOnesAreLarge():
+        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE seen  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE was   AS LOGICAL NO-UNDO.
+        DEFINE VARIABLE small AS LOGICAL NO-UNDO.
+        EmptySky().
+        DO n = 1 TO 1500:
+            Quiet(1).
+            IF mGame:SaucerActive AND NOT was THEN DO:
+                seen = seen + 1.
+                IF NOT mGame:SaucerLarge THEN small = TRUE.
+            END.
+            was = mGame:SaucerActive.
+        END.
+        Assert:Equals(1, seen).
+        Assert:IsFalse(small).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheSaucerIsDrawnWithItsGlowAndTheTwoLinesInside():
+        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE core AS INTEGER NO-UNDO.
+        DEFINE VARIABLE halo AS INTEGER NO-UNDO.
+        EmptySky().
+        mGame:LaunchSaucerAt(TRUE, 1, 100).
+        mGame:PlaceSaucer(100, 60).
+        mGame:Advance().
+        DO y = 50 TO 70:
+            DO x = 90 TO 112:
+                IF mGame:Canvas:ColourAt(x, y) = AsteroidsLook:Colour({&C-SAUCER-L-CORE}) THEN core = core + 1.
+                IF mGame:Canvas:ColourAt(x, y) = AsteroidsLook:Colour({&C-SAUCER-L-HALO}) THEN halo = halo + 1.
+            END.
+        END.
+        /* the body, the waist and the dome base make about forty cells; the glow is more than that */
+        Assert:IsTrue(core >= 30 AND core <= 60, STRING(core)).
+        Assert:IsTrue(halo >= core, SUBSTITUTE("&1 glow, &2 core", halo, core)).
     END METHOD.
 
     /* ---------------------------------- the score ---------------------------------- */

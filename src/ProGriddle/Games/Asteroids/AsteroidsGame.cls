@@ -12,7 +12,9 @@
    each wave up to 11: a shot splits a large rock into two medium ones, a medium into two small ones, and a small one
    just bursts (20, 50 and 100 points). The ship that touches a rock breaks up, and a new one comes only when the middle
    of the screen is clear, blinking and protected for a second and a half. Three ships, and an extra one at every
-   10000 points. The game owns its grid. Dispose releases it. */
+   10000 points. Now and then a saucer crosses the screen and shoots: the large one (200 points) at random, the small
+   one (1000 points, from 3000 points up) aimed at the ship, less wildly as the score grows. A saucer, and its shots,
+   break the ship too; a saucer that touches a rock is destroyed. The game owns its grid. Dispose releases it. */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
@@ -46,6 +48,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     &SCOPED-DEFINE SHIP-ALIVE 0
     &SCOPED-DEFINE SHIP-DYING 1
     &SCOPED-DEFINE SHIP-WAITING 2
+    /* the saucers: how fast they cross, how fast their shots fly (cells a frame), and how long a shot lives */
+    &SCOPED-DEFINE SAUCER-SHOTS 4
+    &SCOPED-DEFINE SAUCER-SHOT-LIFE 80
     /* how long things take, in frames */
     &SCOPED-DEFINE INTRO-FRAMES 30
     &SCOPED-DEFINE DYING-FRAMES 90
@@ -90,6 +95,30 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     DEFINE PRIVATE VARIABLE mShHead    AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
     DEFINE PRIVATE VARIABLE mShLife    AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
     DEFINE PRIVATE VARIABLE mRocks     AS RockField   NO-UNDO.
+    /* the saucer: there is at most one. Place and velocity in units, which size, how long it has been out, frames to its
+       next shot and to its next change of height */
+    DEFINE PRIVATE VARIABLE mSaucOn    AS LOGICAL     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mSaucLarge AS LOGICAL     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mSaucX     AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mSaucY     AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mSaucVX    AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mSaucVY    AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mSaucAge   AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mSaucFireT AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mSaucZigT  AS INTEGER     NO-UNDO.
+    /* frames until the next saucer, and the one that has been planned: its size, side and height */
+    DEFINE PRIVATE VARIABLE mSaucWait  AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPlanned   AS LOGICAL     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPlanLarge AS LOGICAL     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPlanDir   AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPlanY     AS INTEGER     NO-UNDO.
+    /* the saucers' shots */
+    DEFINE PRIVATE VARIABLE mSsX       AS INTEGER     NO-UNDO EXTENT {&SAUCER-SHOTS}.
+    DEFINE PRIVATE VARIABLE mSsY       AS INTEGER     NO-UNDO EXTENT {&SAUCER-SHOTS}.
+    DEFINE PRIVATE VARIABLE mSsVX      AS INTEGER     NO-UNDO EXTENT {&SAUCER-SHOTS}.
+    DEFINE PRIVATE VARIABLE mSsVY      AS INTEGER     NO-UNDO EXTENT {&SAUCER-SHOTS}.
+    DEFINE PRIVATE VARIABLE mSsLife    AS INTEGER     NO-UNDO EXTENT {&SAUCER-SHOTS}.
+    DEFINE PRIVATE VARIABLE mSsLarge   AS LOGICAL     NO-UNDO EXTENT {&SAUCER-SHOTS}.
     /* frames until the rocks of a new wave appear, and frames since the last rock was shot */
     DEFINE PRIVATE VARIABLE mIntro     AS INTEGER     NO-UNDO.
     DEFINE PRIVATE VARIABLE mClearT    AS INTEGER     NO-UNDO.
@@ -217,6 +246,28 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             RETURN n.
         END GET.
 
+    /* True while a saucer is out, and which: the large one or the small one. */
+    DEFINE PUBLIC PROPERTY SaucerActive AS LOGICAL NO-UNDO
+        GET():
+            RETURN mSaucOn.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY SaucerLarge AS LOGICAL NO-UNDO
+        GET():
+            RETURN mSaucLarge.
+        END GET.
+
+    /* Where the saucer's middle is, in whole cells. It may be a little off the screen as it comes in and goes out. */
+    DEFINE PUBLIC PROPERTY SaucerX AS INTEGER NO-UNDO
+        GET():
+            RETURN INTEGER(TRUNCATE(mSaucX / {&UNIT}, 0)).
+        END GET.
+
+    DEFINE PUBLIC PROPERTY SaucerY AS INTEGER NO-UNDO
+        GET():
+            RETURN INTEGER(TRUNCATE(mSaucY / {&UNIT}, 0)).
+        END GET.
+
     /* True once the best score has been beaten in this game. */
     DEFINE PUBLIC PROPERTY NewHiScore AS LOGICAL NO-UNDO
         GET():
@@ -285,6 +336,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mOverT = 0.
         mRocks:Clear().
         ClearShots().
+        ClearSaucer().
+        mSaucWait = 1200.
         Phase = {&PHASE-PLAYING}.
         PlaceShip().
         StartWave().
@@ -324,6 +377,50 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             HiScore = Score.
             mNewHi = TRUE.
         END.
+    END METHOD.
+
+    /* Sends a saucer across the screen now, from the left (piDirection 1) or the right (-1), at a random height: the large
+       one or the small one. Throws GridException when one is out already, or when there is no game in play. */
+    METHOD PUBLIC VOID LaunchSaucer(INPUT plLarge AS LOGICAL, INPUT piDirection AS INTEGER):
+        LaunchSaucerAt(plLarge, piDirection, 30 + mRandom:NextInt(181)).
+    END METHOD.
+
+    /* The same, at a chosen row of the screen (20 to 220). */
+    METHOD PUBLIC VOID LaunchSaucerAt(INPUT plLarge AS LOGICAL, INPUT piDirection AS INTEGER, INPUT piRow AS INTEGER):
+        IF plLarge = ? THEN UNDO, THROW NEW GridException("A saucer is large or small, not unknown").
+        IF piDirection <> 1 AND piDirection <> -1 THEN UNDO, THROW NEW GridException("A saucer comes from the left (1) or the right (-1), not " + STRING(piDirection)).
+        IF piRow = ? OR piRow < 20 OR piRow > 220 THEN UNDO, THROW NEW GridException("A saucer flies at a row from 20 to 220, not " + STRING(piRow)).
+        IF mSaucOn THEN UNDO, THROW NEW GridException("A saucer is out already").
+        IF Phase <> {&PHASE-PLAYING} THEN UNDO, THROW NEW GridException("There is no game in play to put a saucer in").
+        StartSaucer(plLarge, piDirection, piRow * {&UNIT}).
+    END METHOD.
+
+    /* Moves the saucer that is out to a place, in whole cells. Throws GridException when there is none. */
+    METHOD PUBLIC VOID PlaceSaucer(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+        IF NOT mSaucOn THEN UNDO, THROW NEW GridException("There is no saucer to place").
+        mSaucX = piX * {&UNIT}.
+        mSaucY = piY * {&UNIT}.
+    END METHOD.
+
+    /* How many saucer shots are in the air, and where one is, in whole cells (slots 0 to 3). */
+    DEFINE PUBLIC PROPERTY SaucerShotCount AS INTEGER NO-UNDO
+        GET():
+            DEFINE VARIABLE i AS INTEGER NO-UNDO.
+            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            DO i = 1 TO {&SAUCER-SHOTS}:
+                IF mSsLife[i] > 0 THEN n = n + 1.
+            END.
+            RETURN n.
+        END GET.
+
+    METHOD PUBLIC INTEGER SaucerShotX(INPUT piSlot AS INTEGER):
+        CheckSaucerShot(piSlot).
+        RETURN INTEGER(TRUNCATE(mSsX[piSlot + 1] / {&UNIT}, 0)).
+    END METHOD.
+
+    METHOD PUBLIC INTEGER SaucerShotY(INPUT piSlot AS INTEGER):
+        CheckSaucerShot(piSlot).
+        RETURN INTEGER(TRUNCATE(mSsY[piSlot + 1] / {&UNIT}, 0)).
     END METHOD.
 
     /* The shot in a slot (0 to 3): where it is in whole cells, and the frames it has left (0 when the slot is free). */
@@ -369,6 +466,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         Score = 0.
         mNewHi = FALSE.
         ClearShots().
+        ClearSaucer().
         BakeBackground().
         MakeDust().
         PlaceShip().
@@ -403,9 +501,17 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             WHEN {&SHIP-WAITING} THEN FrameWaiting().
         END CASE.
         MoveShots().
+        MoveSaucerShots().
+        RunSaucer().
         mRocks:Move().
         HitRocksWithShots().
-        IF mShipMode = {&SHIP-ALIVE} AND mShieldT >= {&SHIELD-FRAMES} THEN HitShipWithRocks().
+        HitSaucerWithShots().
+        IF mShipMode = {&SHIP-ALIVE} AND mShieldT >= {&SHIELD-FRAMES} THEN DO:
+            HitShipWithRocks().
+            HitShipWithSaucer().
+            HitShipWithSaucerShots().
+        END.
+        HitRocksWithSaucer().
     END METHOD.
 
     /* The rocks go on drifting behind GAME OVER, and the fire key, pressed afresh once the prompt is up, starts again. */
@@ -413,6 +519,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mOverT = mOverT + 1.
         mRocks:Move().
         MoveShots().
+        MoveSaucerShots().
+        IF mSaucOn THEN MoveSaucer().
         IF FireHeld AND NOT mFireWas AND mOverT >= {&OVER-FRAMES} THEN Initialise().
     END METHOD.
 
@@ -431,7 +539,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             IF mIntro = 0 THEN SpawnRocks().
             RETURN.
         END.
-        IF mRocks:Count = 0 THEN DO:
+        IF mRocks:Count = 0 AND NOT mSaucOn THEN DO:
             mClearT = mClearT + 1.
             IF mClearT >= {&CLEARED-FRAMES} THEN DO:
                 Wave = Wave + 1.
@@ -503,7 +611,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
                 IF mRocks:SizeAt(r) = 0 THEN NEXT.
                 IF Near(mShX[i], mShY[i], mRocks:X(r), mRocks:Y(r), AsteroidsArt:RockRadius(mRocks:SizeAt(r)) * 16 + {&UNIT}) THEN DO:
                     mShLife[i] = 0.
-                    BreakRock(r).
+                    BreakRock(r, TRUE).
                     LEAVE.
                 END.
             END.
@@ -511,7 +619,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     END METHOD.
 
     /* A rock is destroyed: its points, and two smaller ones that fly apart in its place. */
-    METHOD PRIVATE VOID BreakRock(INPUT piSlot AS INTEGER):
+    METHOD PRIVATE VOID BreakRock(INPUT piSlot AS INTEGER, INPUT plScore AS LOGICAL):
         DEFINE VARIABLE size AS INTEGER NO-UNDO.
         DEFINE VARIABLE x    AS INTEGER NO-UNDO.
         DEFINE VARIABLE y    AS INTEGER NO-UNDO.
@@ -527,7 +635,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         vx = mRocks:VX(piSlot).
         vy = mRocks:VY(piSlot).
         mRocks:Remove(piSlot).
-        AddScore(RockPoints(size)).
+        IF plScore THEN AddScore(RockPoints(size)).
         IF size < 3 THEN DO:
             /* the two pieces get the old velocity and a push of 0.3 to 0.6 cells a frame in opposite directions */
             push = 1229 + mRandom:NextInt(1230).
@@ -556,6 +664,184 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         dy = ABSOLUTE(piY1 - piY2).
         IF dy > {&HEIGHT-U} / 2 THEN dy = {&HEIGHT-U} - dy.
         RETURN INT64(dx) * dx + INT64(dy) * dy <= INT64(piRadius) * piRadius.
+    END METHOD.
+
+    /* ================================ the saucers ================================ */
+
+    /* Waits for the next saucer, shows a warning a second before it comes, and flies the one that is out. */
+    METHOD PRIVATE VOID RunSaucer():
+        IF mSaucOn THEN DO:
+            MoveSaucer().
+            RETURN.
+        END.
+        IF mIntro > 0 THEN RETURN.
+        mSaucWait = mSaucWait - 1.
+        IF mSaucWait <= 60 AND NOT mPlanned THEN PlanSaucer().
+        IF mSaucWait <= 0 THEN StartSaucer(mPlanLarge, mPlanDir, mPlanY).
+    END METHOD.
+
+    /* Decides which saucer comes next, which side it comes from and at what height. The small one only comes once
+       the score is 3000, and more and more often after that. */
+    METHOD PRIVATE VOID PlanSaucer():
+        DEFINE VARIABLE small AS LOGICAL NO-UNDO.
+        mPlanned = TRUE.
+        small = Score >= 3000 AND mRandom:NextInt(100) < (IF Score >= 10000 THEN 70 ELSE 35).
+        mPlanLarge = NOT small.
+        mPlanDir = (IF mRandom:NextInt(2) = 0 THEN 1 ELSE -1).
+        mPlanY = (30 + mRandom:NextInt(181)) * {&UNIT}.
+    END METHOD.
+
+    /* The saucer comes in at the edge it was planned for, moving across at its own speed: 0.7 of a cell a frame for the
+       large one and a cell a frame for the small one. */
+    METHOD PRIVATE VOID StartSaucer(INPUT plLarge AS LOGICAL, INPUT piDirection AS INTEGER, INPUT piY AS INTEGER):
+        mSaucOn = TRUE.
+        mSaucLarge = plLarge.
+        mSaucX = (IF piDirection = 1 THEN - 8 * {&UNIT} ELSE {&WIDTH-U} + 8 * {&UNIT}).
+        mSaucY = piY.
+        mSaucVX = piDirection * (IF plLarge THEN 2867 ELSE 4096).
+        mSaucVY = 0.
+        mSaucAge = 0.
+        mSaucFireT = 60 + mRandom:NextInt(40).
+        mSaucZigT = 40 + mRandom:NextInt(60).
+        mPlanned = FALSE.
+    END METHOD.
+
+    /* The saucer moves across, changes height now and then, turns back from the top and the bottom, fires, and goes
+       when it is across. */
+    METHOD PRIVATE VOID MoveSaucer():
+        mSaucAge = mSaucAge + 1.
+        mSaucX = mSaucX + mSaucVX.
+        mSaucY = mSaucY + mSaucVY.
+        IF mSaucY < 20 * {&UNIT} THEN mSaucVY = ABSOLUTE(mSaucVY).
+        IF mSaucY > 220 * {&UNIT} THEN mSaucVY = - ABSOLUTE(mSaucVY).
+        mSaucZigT = mSaucZigT - 1.
+        IF mSaucZigT <= 0 THEN DO:
+            mSaucVY = (mRandom:NextInt(3) - 1) * 1638.
+            mSaucZigT = 40 + mRandom:NextInt(80).
+        END.
+        mSaucFireT = mSaucFireT - 1.
+        IF mSaucFireT <= 0 THEN DO:
+            SaucerFire().
+            mSaucFireT = (IF mSaucLarge THEN 70 + mRandom:NextInt(50) ELSE 55 + mRandom:NextInt(35)).
+        END.
+        IF (mSaucVX > 0 AND mSaucX > {&WIDTH-U} + 9 * {&UNIT}) OR (mSaucVX < 0 AND mSaucX < - 9 * {&UNIT}) THEN RemoveSaucer().
+    END METHOD.
+
+    /* A saucer shot leaves the saucer: the large saucer fires in a random direction, the small one aims at the ship, with
+       an error that gets smaller as the score grows (6 headings at 3000 points, none at 30000). */
+    METHOD PRIVATE VOID SaucerFire():
+        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE h     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE err   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dx    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dy    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE speed AS INTEGER NO-UNDO.
+        DO i = 1 TO {&SAUCER-SHOTS}:
+            IF mSsLife[i] > 0 THEN NEXT.
+            IF mSaucLarge OR NOT ShipAlive THEN h = mRandom:NextInt(64).
+            ELSE DO:
+                dx = mSX - mSaucX.
+                IF dx > {&WIDTH-U} / 2 THEN dx = dx - {&WIDTH-U}.
+                IF dx < - {&WIDTH-U} / 2 THEN dx = dx + {&WIDTH-U}.
+                dy = mSY - mSaucY.
+                IF dy > {&HEIGHT-U} / 2 THEN dy = dy - {&HEIGHT-U}.
+                IF dy < - {&HEIGHT-U} / 2 THEN dy = dy + {&HEIGHT-U}.
+                h = Heading:Nearest(INTEGER(TRUNCATE(dx / 16, 0)), INTEGER(TRUNCATE(dy / 16, 0))).
+                err = MAXIMUM(0, 6 - INTEGER(TRUNCATE(Score / 5000, 0))).
+                h = h + mRandom:NextInt(2 * err + 1) - err.
+            END.
+            speed = (IF mSaucLarge THEN 8192 ELSE 9011).
+            mSsX[i] = WrapUnits(mSaucX, {&WIDTH-U}).
+            mSsY[i] = WrapUnits(mSaucY, {&HEIGHT-U}).
+            mSsVX[i] = INTEGER(TRUNCATE(Heading:DirX(h) * speed / 1024, 0)).
+            mSsVY[i] = INTEGER(TRUNCATE(Heading:DirY(h) * speed / 1024, 0)).
+            mSsLife[i] = {&SAUCER-SHOT-LIFE}.
+            mSsLarge[i] = mSaucLarge.
+            RETURN.
+        END.
+    END METHOD.
+
+    METHOD PRIVATE VOID MoveSaucerShots():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO {&SAUCER-SHOTS}:
+            IF mSsLife[i] <= 0 THEN NEXT.
+            mSsX[i] = WrapUnits(mSsX[i] + mSsVX[i], {&WIDTH-U}).
+            mSsY[i] = WrapUnits(mSsY[i] + mSsVY[i], {&HEIGHT-U}).
+            mSsLife[i] = mSsLife[i] - 1.
+        END.
+    END METHOD.
+
+    /* The saucer is gone, shot or crossed: the next one comes in 15 to 30 seconds. */
+    METHOD PRIVATE VOID RemoveSaucer():
+        mSaucOn = FALSE.
+        mSaucWait = 900 + mRandom:NextInt(900).
+    END METHOD.
+
+    METHOD PRIVATE VOID ClearSaucer():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        mSaucOn = FALSE.
+        mPlanned = FALSE.
+        mSaucWait = 1200.
+        DO i = 1 TO {&SAUCER-SHOTS}:
+            mSsLife[i] = 0.
+        END.
+    END METHOD.
+
+    /* A shot of the ship that reaches the saucer destroys it: 200 points for the large one, 1000 for the small. */
+    METHOD PRIVATE VOID HitSaucerWithShots():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        IF NOT mSaucOn THEN RETURN.
+        DO i = 1 TO {&SHOTS}:
+            IF mShLife[i] <= 0 THEN NEXT.
+            IF Near(mShX[i], mShY[i], mSaucX, mSaucY, AsteroidsArt:SaucerRadius(mSaucLarge) * 16 + {&UNIT}) THEN DO:
+                mShLife[i] = 0.
+                AddScore(IF mSaucLarge THEN 200 ELSE 1000).
+                RemoveSaucer().
+                RETURN.
+            END.
+        END.
+    END METHOD.
+
+    /* A saucer that flies into the ship breaks it, and is destroyed itself (and scores). */
+    METHOD PRIVATE VOID HitShipWithSaucer():
+        IF NOT mSaucOn THEN RETURN.
+        IF Near(mSX, mSY, mSaucX, mSaucY, (AsteroidsArt:SaucerRadius(mSaucLarge) + AsteroidsArt:ShipRadius()) * 16) THEN DO:
+            AddScore(IF mSaucLarge THEN 200 ELSE 1000).
+            RemoveSaucer().
+            KillShip().
+        END.
+    END METHOD.
+
+    /* A saucer's shot that reaches the ship breaks it. */
+    METHOD PRIVATE VOID HitShipWithSaucerShots():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO {&SAUCER-SHOTS}:
+            IF mSsLife[i] <= 0 THEN NEXT.
+            IF Near(mSX, mSY, mSsX[i], mSsY[i], AsteroidsArt:ShipRadius() * 16 + 6144) THEN DO:
+                mSsLife[i] = 0.
+                KillShip().
+                RETURN.
+            END.
+        END.
+    END METHOD.
+
+    /* A saucer that flies into a rock is destroyed, and the rock breaks (but nobody scores). */
+    METHOD PRIVATE VOID HitRocksWithSaucer():
+        DEFINE VARIABLE r AS INTEGER NO-UNDO.
+        IF NOT mSaucOn THEN RETURN.
+        DO r = 0 TO RockField:Capacity() - 1:
+            IF mRocks:SizeAt(r) = 0 THEN NEXT.
+            IF Near(mSaucX, mSaucY, mRocks:X(r), mRocks:Y(r), (AsteroidsArt:RockRadius(mRocks:SizeAt(r)) + AsteroidsArt:SaucerRadius(mSaucLarge)) * 16) THEN DO:
+                RemoveSaucer().
+                BreakRock(r, FALSE).
+                RETURN.
+            END.
+        END.
+    END METHOD.
+
+    METHOD PRIVATE VOID CheckSaucerShot(INPUT piSlot AS INTEGER):
+        IF piSlot = ? OR piSlot < 0 OR piSlot >= {&SAUCER-SHOTS} THEN
+            UNDO, THROW NEW GridException(SUBSTITUTE("A saucer shot slot is 0 to &1, not &2", {&SAUCER-SHOTS} - 1, piSlot)).
     END METHOD.
 
     METHOD PRIVATE VOID CheckShot(INPUT piSlot AS INTEGER):
@@ -791,11 +1077,71 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             mCanvas:Plot(INTEGER(TRUNCATE(mDustX[i] / {&UNIT}, 0)), INTEGER(TRUNCATE(mDustY[i] / {&UNIT}, 0)), 0, AsteroidsLook:Colour(mDustC[i])).
         END.
         mCanvas:BeginBatch().
+        /* every halo first, so a glow can never cover a line */
+        IF mSaucOn THEN DrawSaucerHalo().
+        IF ShipVisible() THEN DrawShipHalo().
         DrawRocks().
-        IF ShipAlive AND (ShieldFrames = 0 OR INTEGER(TRUNCATE(mShieldT / 5, 0)) MODULO 2 = 0) THEN DrawShip().
+        IF mSaucOn THEN DrawSaucerCore().
+        IF ShipVisible() THEN DrawShipCore().
         IF ShipAlive AND ShieldFrames > 0 THEN DrawShieldRing().
         mCanvas:EndBatch().
+        DrawSaucerShots().
         DrawShots().
+    END METHOD.
+
+    /* True when the ship is on the screen: flying, and not in the blink of a new ship's protection. */
+    METHOD PRIVATE LOGICAL ShipVisible():
+        RETURN ShipAlive AND (ShieldFrames = 0 OR INTEGER(TRUNCATE(mShieldT / 5, 0)) MODULO 2 = 0).
+    END METHOD.
+
+    /* The saucer's glow, four dim copies one cell to each side. */
+    METHOD PRIVATE VOID DrawSaucerHalo():
+        DEFINE VARIABLE halo AS INTEGER NO-UNDO.
+        DEFINE VARIABLE px   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE py   AS INTEGER NO-UNDO.
+        halo = AsteroidsLook:Colour(IF mSaucLarge THEN {&C-SAUCER-L-HALO} ELSE {&C-SAUCER-S-HALO}).
+        px = ToPen(mSaucX).
+        py = ToPen(mSaucY).
+        mPen:Draw(AsteroidsArt:Saucer(mSaucLarge), px, py, 0, 0, halo, -1, 0).
+        mPen:Draw(AsteroidsArt:Saucer(mSaucLarge), px, py, 0, 0, halo, 1, 0).
+        mPen:Draw(AsteroidsArt:Saucer(mSaucLarge), px, py, 0, 0, halo, 0, -1).
+        mPen:Draw(AsteroidsArt:Saucer(mSaucLarge), px, py, 0, 0, halo, 0, 1).
+    END METHOD.
+
+    METHOD PRIVATE VOID DrawSaucerCore():
+        mPen:Draw(AsteroidsArt:Saucer(mSaucLarge), ToPen(mSaucX), ToPen(mSaucY), 0, 0,
+                  AsteroidsLook:Colour(IF mSaucLarge THEN {&C-SAUCER-L-CORE} ELSE {&C-SAUCER-S-CORE}), 0, 0).
+    END METHOD.
+
+    /* The saucers' shots: a plus and a cross of five cells that take turns every four frames, in the colour of the saucer
+       that fired them and a pale middle. */
+    METHOD PRIVATE VOID DrawSaucerShots():
+        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE arm    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE d      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE plus   AS LOGICAL NO-UNDO.
+        DO i = 1 TO {&SAUCER-SHOTS}:
+            IF mSsLife[i] <= 0 THEN NEXT.
+            x = INTEGER(TRUNCATE(mSsX[i] / {&UNIT}, 0)).
+            y = INTEGER(TRUNCATE(mSsY[i] / {&UNIT}, 0)).
+            arm = AsteroidsLook:Colour(IF mSsLarge[i] THEN {&C-SAUCER-L-CORE} ELSE {&C-SAUCER-S-CORE}).
+            plus = INTEGER(TRUNCATE(mSsLife[i] / 4, 0)) MODULO 2 = 0.
+            IF plus THEN DO:
+                mCanvas:Plot(x - 1, y, 0, arm).
+                mCanvas:Plot(x + 1, y, 0, arm).
+                mCanvas:Plot(x, y - 1, 0, arm).
+                mCanvas:Plot(x, y + 1, 0, arm).
+            END.
+            ELSE DO:
+                mCanvas:Plot(x - 1, y - 1, 0, arm).
+                mCanvas:Plot(x + 1, y - 1, 0, arm).
+                mCanvas:Plot(x - 1, y + 1, 0, arm).
+                mCanvas:Plot(x + 1, y + 1, 0, arm).
+            END.
+            mCanvas:Plot(x, y, 0, AsteroidsLook:Colour({&C-SAUCER-SHOT-CENTRE})).
+        END.
     END METHOD.
 
     /* The rocks, large ones first, one cell lines. On the title screen they are dim, and a new rock flashes white. */
@@ -873,12 +1219,11 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         END.
     END METHOD.
 
-    /* The ship: a glow of four dim copies one cell to each side, then the body, the spine and the flame. */
-    METHOD PRIVATE VOID DrawShip():
-        DEFINE VARIABLE px    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE halo  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE flameFrame AS INTEGER NO-UNDO.
+    /* The ship's glow: four dim copies one cell to each side. */
+    METHOD PRIVATE VOID DrawShipHalo():
+        DEFINE VARIABLE px   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE py   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE halo AS INTEGER NO-UNDO.
         px = ToPen(mSX).
         py = ToPen(mSY).
         halo = AsteroidsLook:Colour({&C-SHIP-HALO}).
@@ -886,6 +1231,15 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mPen:DrawWrapped(AsteroidsArt:Ship(), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, halo, 1, 0).
         mPen:DrawWrapped(AsteroidsArt:Ship(), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, halo, 0, -1).
         mPen:DrawWrapped(AsteroidsArt:Ship(), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, halo, 0, 1).
+    END METHOD.
+
+    /* The ship: the body, the spine and the flame. */
+    METHOD PRIVATE VOID DrawShipCore():
+        DEFINE VARIABLE px         AS INTEGER NO-UNDO.
+        DEFINE VARIABLE py         AS INTEGER NO-UNDO.
+        DEFINE VARIABLE flameFrame AS INTEGER NO-UNDO.
+        px = ToPen(mSX).
+        py = ToPen(mSY).
         mPen:DrawWrapped(AsteroidsArt:Ship(), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, AsteroidsLook:Colour({&C-SHIP-CORE}), 0, 0).
         mPen:DrawWrapped(AsteroidsArt:ShipSpine(), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, AsteroidsLook:Colour({&C-SHIP-SPINE}), 0, 0).
         IF mThrusting THEN DO:
