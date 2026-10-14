@@ -102,6 +102,11 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     DEFINE PRIVATE VARIABLE mDebris    AS DebrisPool  NO-UNDO.
     /* the score of a saucer that was shot or rammed, rising where it was: its age in frames (0 for none), the cell it was in, its text */
     DEFINE PRIVATE VARIABLE mPopT      AS INTEGER     NO-UNDO.
+    /* the bars that flash where the ship crossed an edge: for each, the edge (0 left, 1 right, 2 top, 3 bottom), where along it,
+       and its age in frames (0 for a free place) */
+    DEFINE PRIVATE VARIABLE mWrapSide  AS INTEGER     NO-UNDO EXTENT 8.
+    DEFINE PRIVATE VARIABLE mWrapAt    AS INTEGER     NO-UNDO EXTENT 8.
+    DEFINE PRIVATE VARIABLE mWrapAge   AS INTEGER     NO-UNDO EXTENT 8.
     /* frames the icon of a new extra ship still flashes */
     DEFINE PRIVATE VARIABLE mExtraT    AS INTEGER     NO-UNDO.
     DEFINE PRIVATE VARIABLE mPopX      AS INTEGER     NO-UNDO.
@@ -386,6 +391,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mDebris:Clear().
         mPopT = 0.
         mExtraT = 0.
+        ClearWrapFlashes().
         mRocks:Clear().
         ClearShots().
         ClearSaucer().
@@ -549,6 +555,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mDebris:Clear().
         mPopT = 0.
         mExtraT = 0.
+        ClearWrapFlashes().
         ClearShots().
         ClearSaucer().
         BakeBackground().
@@ -564,6 +571,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mFrames = mFrames + 1.
         IF mPulseT > 0 THEN mPulseT = mPulseT - 1.
         IF mExtraT > 0 THEN mExtraT = mExtraT - 1.
+        AgeWrapFlashes().
         MoveDust().
         mDebris:Step().
         IF mPopT > 0 THEN DO:
@@ -1162,6 +1170,11 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             mSVX = INTEGER(TRUNCATE(mSVX * {&MAX-SPEED} / speed, 0)).
             mSVY = INTEGER(TRUNCATE(mSVY * {&MAX-SPEED} / speed, 0)).
         END.
+        /* a ship that leaves by one edge flashes a bar on it and on the edge it comes back by */
+        IF mSX + mSVX < 0 THEN FlashEdges(0, 1, INTEGER(TRUNCATE(mSY / {&UNIT}, 0))).
+        ELSE IF mSX + mSVX >= {&WIDTH-U} THEN FlashEdges(1, 0, INTEGER(TRUNCATE(mSY / {&UNIT}, 0))).
+        IF mSY + mSVY < 0 THEN FlashEdges(2, 3, INTEGER(TRUNCATE(mSX / {&UNIT}, 0))).
+        ELSE IF mSY + mSVY >= {&HEIGHT-U} THEN FlashEdges(3, 2, INTEGER(TRUNCATE(mSX / {&UNIT}, 0))).
         mSX = WrapUnits(mSX + mSVX, {&WIDTH-U}).
         mSY = WrapUnits(mSY + mSVY, {&HEIGHT-U}).
     END METHOD.
@@ -1258,6 +1271,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         IF mShipMode = ShipMode:Dying AND mShipTimer < 3 THEN
             mPen:DrawWrapped(AsteroidsArt:Ship(), ToPen(mSX), ToPen(mSY), mHeading, AsteroidsArt:ShipExtent(), 0, AsteroidsLook:Colour(Palette:Flash), 0, 0).
         mDebris:DrawTo(mCanvas).
+        DrawWrapFlashes().
         IF mPopT > 0 THEN DrawScorePopUp().
         IF ShipWaiting THEN DrawRespawnRing().
         IF SaucerWarning AND INTEGER(TRUNCATE((60 - mSaucWait) / 8, 0)) MODULO 2 = 0 THEN DrawWarning().
@@ -1516,6 +1530,62 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
                 mPen:DrawWrapped(AsteroidsArt:Rock(size, mRocks:Variant(r)), ToPen(mRocks:X(r)), ToPen(mRocks:Y(r)), mRocks:HeadingAt(r),
                                  AsteroidsArt:RockExtent(size), 0, colour, 0, 0).
             END.
+        END.
+    END METHOD.
+
+    /* Starts the bars of a crossing: on the edge the ship left by and on the edge it comes in by, at a cell along them. */
+    METHOD PRIVATE VOID FlashEdges(INPUT piExit AS INTEGER, INPUT piEntry AS INTEGER, INPUT piAt AS INTEGER):
+        AddWrapFlash(piExit, piAt).
+        AddWrapFlash(piEntry, piAt).
+    END METHOD.
+
+    METHOD PRIVATE VOID AddWrapFlash(INPUT piSide AS INTEGER, INPUT piAt AS INTEGER):
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO 8:
+            IF mWrapAge[i] = 0 THEN DO:
+                mWrapSide[i] = piSide.
+                mWrapAt[i] = piAt.
+                mWrapAge[i] = 1.
+                RETURN.
+            END.
+        END.
+    END METHOD.
+
+    /* Every bar a frame older; one is gone after twelve frames. */
+    METHOD PRIVATE VOID AgeWrapFlashes():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO 8:
+            IF mWrapAge[i] = 0 THEN NEXT.
+            mWrapAge[i] = mWrapAge[i] + 1.
+            IF mWrapAge[i] > 12 THEN mWrapAge[i] = 0.
+        END.
+    END METHOD.
+
+    METHOD PRIVATE VOID ClearWrapFlashes():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO 8:
+            mWrapAge[i] = 0.
+        END.
+    END METHOD.
+
+    /* The bars where the ship crossed an edge: 24 cells long and one thick on the edge, centred on the crossing, in
+       the ship's glow colour for four frames and then two dimmer colours for four each. */
+    METHOD PRIVATE VOID DrawWrapFlashes():
+        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE colour AS INTEGER NO-UNDO.
+        DO i = 1 TO 8:
+            IF mWrapAge[i] = 0 THEN NEXT.
+            CASE INTEGER(TRUNCATE((mWrapAge[i] - 1) / 4, 0)):
+                WHEN 0 THEN colour = AsteroidsLook:Colour(Palette:ShipHalo).
+                WHEN 1 THEN colour = AsteroidsLook:Colour(Palette:Wrap2).
+                OTHERWISE colour = AsteroidsLook:Colour(Palette:Wrap3).
+            END CASE.
+            CASE mWrapSide[i]:
+                WHEN 0 THEN mCanvas:DrawLine(0, mWrapAt[i] - 12, 0, mWrapAt[i] + 11, 0, colour).
+                WHEN 1 THEN mCanvas:DrawLine({&WIDTH} - 1, mWrapAt[i] - 12, {&WIDTH} - 1, mWrapAt[i] + 11, 0, colour).
+                WHEN 2 THEN mCanvas:DrawLine(mWrapAt[i] - 12, 0, mWrapAt[i] + 11, 0, 0, colour).
+                OTHERWISE mCanvas:DrawLine(mWrapAt[i] - 12, {&HEIGHT} - 1, mWrapAt[i] + 11, {&HEIGHT} - 1, 0, colour).
+            END CASE.
         END.
     END METHOD.
 

@@ -1077,6 +1077,45 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID WhenTheShipCrossesAnEdgeABarFlashesOnBothEdgesThroughThreeColoursInTwelveFrames():
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        Play().
+        mGame:ThrustHeld = TRUE.
+        mGame:Drawing = FALSE.
+        /* up from the middle until it wraps to the bottom */
+        DO WHILE mGame:ShipY < 200 AND n < 800:
+            mGame:Advance().
+            n = n + 1.
+        END.
+        mGame:ThrustHeld = FALSE.
+        Assert:IsTrue(mGame:ShipY >= 200).
+        mGame:Drawing = TRUE.
+        Frames(1).
+        /* a bar of 24 cells centred on the ship's column on the top edge and on the bottom edge: look at a place the ship itself is not */
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShipHalo), mGame:Canvas:ColourAt(150, 0)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShipHalo), mGame:Canvas:ColourAt(150, 239)).
+        Assert:Equals(mGame:Canvas:BackAt(130, 0), mGame:Canvas:ColourAt(130, 0)).
+        Frames(4).
+        Assert:Equals(AsteroidsLook:Colour(Palette:Wrap2), mGame:Canvas:ColourAt(150, 0)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:Wrap2), mGame:Canvas:ColourAt(150, 239)).
+        Frames(4).
+        Assert:Equals(AsteroidsLook:Colour(Palette:Wrap3), mGame:Canvas:ColourAt(150, 0)).
+        Frames(4).
+        Assert:Equals(mGame:Canvas:BackAt(150, 0), mGame:Canvas:ColourAt(150, 0)).
+        Assert:Equals(mGame:Canvas:BackAt(150, 239), mGame:Canvas:ColourAt(150, 239)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID RocksAndSaucersDoNotFlashWhenTheyWrap():
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        EmptySky().
+        mGame:Rocks:Add(160 * 4096, 2 * 4096, 0, -4096, 3, 0, 0, 1000, 1).
+        Frames(5).
+        Assert:Equals(0, CellsOf(AsteroidsLook:Colour(Palette:Wrap2), 0, 0, 320, 240)).
+        Assert:Equals(0, CellsOf(AsteroidsLook:Colour(Palette:ShipHalo), 100, 0, 120, 1) + CellsOf(AsteroidsLook:Colour(Palette:ShipHalo), 100, 239, 120, 1)).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID TheNewIconOfAnExtraShipFlashesWhiteEveryFourFramesForFortyFrames():
         DEFINE VARIABLE icon  AS INTEGER NO-UNDO.
         DEFINE VARIABLE flash AS INTEGER NO-UNDO.
