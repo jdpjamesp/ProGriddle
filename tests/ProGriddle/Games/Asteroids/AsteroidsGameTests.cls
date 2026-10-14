@@ -355,6 +355,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         END.
         Assert:IsTrue(lit > 0).
         mGame:ThrustHeld = FALSE.
+        /* the exhaust cells that drifted off are not the flame */
+        mGame:ClearDebris().
         Frames(1).
         lit = 0.
         DO y = 120 TO 135:
@@ -387,6 +389,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Quiet(100).
         mGame:ThrustHeld = FALSE.
         mGame:Rocks:Clear().
+        mGame:ClearDebris().
         mGame:Advance().
         /* every cell is either the background, a drifting dust cell, or part of the ship (within 12 cells of its middle) */
         DO y = 50 TO 239:
@@ -928,18 +931,21 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         mGame:FireHeld = TRUE.
         Frames(6).
         mGame:FireHeld = FALSE.
+        Frames(8).
         Assert:Equals(13, mGame:DebrisCount).
         EmptySky().
         RockAt(2, 160, 60).
         mGame:FireHeld = TRUE.
         Frames(8).
         mGame:FireHeld = FALSE.
+        Frames(8).
         Assert:Equals(10, mGame:DebrisCount).
         EmptySky().
         RockAt(3, 160, 60).
         mGame:FireHeld = TRUE.
         Frames(8).
         mGame:FireHeld = FALSE.
+        Frames(8).
         Assert:Equals(8, mGame:DebrisCount).
     END METHOD.
 
@@ -952,6 +958,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         mGame:FireHeld = TRUE.
         Quiet(14).
         mGame:FireHeld = FALSE.
+        Frames(8).
         Assert:IsFalse(mGame:SaucerActive).
         Assert:Equals(22, mGame:DebrisCount).
         EmptySky().
@@ -960,6 +967,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         mGame:FireHeld = TRUE.
         Quiet(14).
         mGame:FireHeld = FALSE.
+        Frames(8).
         Assert:Equals(23, mGame:DebrisCount).
         /* a saucer that crosses the screen and leaves is not a kill: no explosion */
         EmptySky().
@@ -971,6 +979,26 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         END.
         mGame:Drawing = TRUE.
         Assert:IsFalse(mGame:SaucerActive).
+        Assert:Equals(0, mGame:DebrisCount).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID FiringPutsThreeSparksAtTheNoseAndHoldingThrustTrailsAtMostEightFlameCells():
+        EmptySky().
+        mGame:FireHeld = TRUE.
+        Frames(1).
+        mGame:FireHeld = FALSE.
+        Assert:Equals(3, mGame:DebrisCount).
+        Frames(6).
+        Assert:Equals(0, mGame:DebrisCount).
+        /* thrust: a flame cell every other frame, and never more than eight at once */
+        mGame:ThrustHeld = TRUE.
+        Quiet(2).
+        Assert:Equals(1, mGame:DebrisCount).
+        Quiet(60).
+        Assert:IsTrue(mGame:DebrisCount > 3 AND mGame:DebrisCount <= 8, STRING(mGame:DebrisCount)).
+        mGame:ThrustHeld = FALSE.
+        Quiet(21).
         Assert:Equals(0, mGame:DebrisCount).
     END METHOD.
 

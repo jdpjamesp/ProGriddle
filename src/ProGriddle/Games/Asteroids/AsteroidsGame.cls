@@ -978,6 +978,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
                 mShHead[i] = mHeading.
                 mShLife[i] = {&SHOT-LIFE}.
                 mFireGap = {&FIRE-GAP}.
+                mDebris:Muzzle(mShX[i], mShY[i], mHeading).
                 RETURN.
             END.
         END.
@@ -1113,6 +1114,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             mSVX = mSVX + INTEGER(TRUNCATE(Heading:DirX(mHeading) * {&THRUST} / 1024, 0)).
             mSVY = mSVY + INTEGER(TRUNCATE(Heading:DirY(mHeading) * {&THRUST} / 1024, 0)).
             mFlameT = mFlameT + 1.
+            /* a flame cell every other frame from the tail, eight at most at a time */
+            IF mFlameT MODULO 2 = 1 AND mDebris:CountOf(Ramp:Exhaust) < 8 THEN mDebris:Exhaust(mSX, mSY, mSVX, mSVY, mHeading).
         END.
         ELSE mFlameT = 0.
         /* drag, then the speed limit */
