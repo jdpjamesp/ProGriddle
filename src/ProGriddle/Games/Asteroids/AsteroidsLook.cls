@@ -119,6 +119,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsLook FINAL:
             /* the same four the other way round: shot trail 3, 2, 1, then flash */
             WHEN Ramp:SparkIn THEN RETURN (IF piStep = 3 THEN sColours[INTEGER(Palette:Flash) + 1] ELSE sColours[INTEGER(Palette:ShotTrail3) + 1 - piStep]).
             WHEN Ramp:Warm THEN firstStep = Palette:Ember1.
+            WHEN Ramp:Muzzle THEN RETURN (IF piStep = 0 THEN sColours[INTEGER(Palette:Flash) + 1] ELSE sColours[INTEGER(Palette:ShotTrail1) + piStep]).
             OTHERWISE firstStep = Palette:ShipDebris1.
         END CASE.
         RETURN sColours[INTEGER(firstStep) + 1 + piStep].
@@ -127,7 +128,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsLook FINAL:
     /* How many steps a ramp has: 4 for the exhaust and the two sparks, 3 for the warm ember, 6 for the others. */
     METHOD PUBLIC STATIC INTEGER RampSteps(INPUT poRamp AS Ramp):
         IF NOT VALID-OBJECT(poRamp) THEN UNDO, THROW NEW GridException("A ramp is a Ramp entry, not unknown").
-        IF poRamp = Ramp:Warm THEN RETURN 3.
+        IF poRamp = Ramp:Warm OR poRamp = Ramp:Muzzle THEN RETURN 3.
         RETURN (IF poRamp = Ramp:Exhaust OR poRamp = Ramp:Spark OR poRamp = Ramp:SparkIn THEN 4 ELSE 6).
     END METHOD.
 

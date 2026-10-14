@@ -327,6 +327,45 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
         END.
     END METHOD.
 
+    /* ---------------------------------- the muzzle spark and the exhaust ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID TheMuzzleSparkIsThreeCellsFromTheNoseWithinTwentyDegreesOfTheHeadingForSixSteps():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        mPool:Muzzle(160 * 4096, 114 * 4096, 0).
+        Assert:Equals(3, mPool:Count).
+        Assert:Equals(3, mPool:CountOf(Ramp:Muzzle)).
+        DO i = 0 TO 2:
+            Assert:Equals(160, mPool:X(i)).
+            Assert:Equals(114, mPool:Y(i)).
+            /* going up, at about 0.9 of a cell a step, and no more than 20 degrees off straight up */
+            Assert:IsTrue(mPool:VY(i) <= -3400, STRING(mPool:VY(i))).
+            Assert:IsTrue(ABSOLUTE(mPool:VX(i)) <= ABSOLUTE(mPool:VY(i)) * 0.36, STRING(mPool:VX(i))).
+            Assert:Equals(AsteroidsLook:RampColour(Ramp:Muzzle, 0), mPool:ColourOf(i)).
+        END.
+        Steps(5).
+        Assert:Equals(3, mPool:Count).
+        Steps(1).
+        Assert:Equals(0, mPool:Count).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ExhaustLeavesTheTailAtNinetyPercentOfTheShipsSpeedLessAThirdOfACellBackwardsForTwentySteps():
+        mPool:Exhaust(160 * 4096, 120 * 4096, 4096, 0, 0).
+        Assert:Equals(1, mPool:Count).
+        Assert:Equals(1, mPool:CountOf(Ramp:Exhaust)).
+        Assert:Equals(0, mPool:CountOf(Ramp:Muzzle)).
+        /* three cells behind a ship pointing up, moving right at a cell a step: 0.9 of that, and 0.3 of a cell down */
+        Assert:Equals(160, mPool:X(0)).
+        Assert:Equals(123, mPool:Y(0)).
+        Assert:Equals(3686, mPool:VX(0)).
+        Assert:Equals(AsteroidsLook:RampColour(Ramp:Exhaust, 0), mPool:ColourOf(0)).
+        Steps(19).
+        Assert:Equals(1, mPool:Count).
+        Steps(1).
+        Assert:Equals(0, mPool:Count).
+    END METHOD.
+
     /* ---------------------------------- rings ---------------------------------- */
 
     @Test.

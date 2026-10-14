@@ -94,6 +94,12 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
         RETURN mVX[piSlot + 1].
     END METHOD.
 
+    /* The speed of a piece down the screen, in 4096ths of a cell a step. */
+    METHOD PUBLIC INTEGER VY(INPUT piSlot AS INTEGER):
+        CheckSlot(piSlot).
+        RETURN mVY[piSlot + 1].
+    END METHOD.
+
     /* The colour a piece is drawn in now: its step of its ramp, from 0 at birth to the last step as its life runs out. */
     METHOD PUBLIC INTEGER ColourOf(INPUT piSlot AS INTEGER):
         DEFINE VARIABLE i     AS INTEGER NO-UNDO.
@@ -313,6 +319,40 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
                     INTEGER(TRUNCATE(Heading:DirX(dir) * piSpeed / 1024, 0)), INTEGER(TRUNCATE(Heading:DirY(dir) * piSpeed / 1024, 0)),
                     1000, piLife, poRamp).
         END.
+    END METHOD.
+
+    /* How many pieces use a ramp of colours: the muzzle sparks, say, or the exhaust. */
+    METHOD PUBLIC INTEGER CountOf(INPUT poRamp AS Ramp):
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        IF NOT VALID-OBJECT(poRamp) THEN UNDO, THROW NEW GridException("A ramp is a Ramp entry, not unknown").
+        DO i = 1 TO {&SLOTS}:
+            IF mKind[i] <> {&FREE} AND mRamp[i] = poRamp THEN n = n + 1.
+        END.
+        RETURN n.
+    END METHOD.
+
+    /* The ship fires: three sparks leave the nose at (piX, piY) in the direction of heading piHeading, each within 20
+       degrees of it (three headings, 17), at 0.9 of a cell a step for 6 steps, white and then the first two shot
+       trail colours. */
+    METHOD PUBLIC VOID Muzzle(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piHeading AS INTEGER):
+        DEFINE VARIABLE k   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dir AS INTEGER NO-UNDO.
+        DO k = 1 TO 3:
+            dir = piHeading + mRandom:NextInt(7) - 3.
+            AddCell(piX, piY, INTEGER(TRUNCATE(Heading:DirX(dir) * 3686 / 1024, 0)), INTEGER(TRUNCATE(Heading:DirY(dir) * 3686 / 1024, 0)),
+                    1000, 6, Ramp:Muzzle).
+        END.
+    END METHOD.
+
+    /* One flame cell from the tail of a ship at (piX, piY) moving at (piVX, piVY), pointing along heading piHeading: it
+       starts three cells behind the middle, keeps 0.9 of the ship's speed and drifts a third of a cell a step backwards,
+       and fades through the exhaust colours over 20 steps. */
+    METHOD PUBLIC VOID Exhaust(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piVX AS INTEGER, INPUT piVY AS INTEGER, INPUT piHeading AS INTEGER):
+        AddCell(piX - INTEGER(TRUNCATE(Heading:DirX(piHeading) * 3 * {&UNIT} / 1024, 0)), piY - INTEGER(TRUNCATE(Heading:DirY(piHeading) * 3 * {&UNIT} / 1024, 0)),
+                INTEGER(TRUNCATE(piVX * 0.9, 0)) - INTEGER(TRUNCATE(Heading:DirX(piHeading) * 1229 / 1024, 0)),
+                INTEGER(TRUNCATE(piVY * 0.9, 0)) - INTEGER(TRUNCATE(Heading:DirY(piHeading) * 1229 / 1024, 0)),
+                1000, 20, Ramp:Exhaust).
     END METHOD.
 
     /* One step: every piece moves, slows, turns and ages, and the ones whose life is over go. */

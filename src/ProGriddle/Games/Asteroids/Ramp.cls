@@ -7,7 +7,8 @@
      ShipDebris   6 steps
      Spark        4 steps, white then the three shot trail colours: rings and sparks
      SparkIn      4 steps, the spark colours the other way round (the ring that closes in on a ship coming back)
-     Warm         3 steps, the first three ember colours (the extra ring of a failed jump) */
+     Warm         3 steps, the first three ember colours (the extra ring of a failed jump)
+     Muzzle       3 steps, white and the first two shot trail colours (the spark at the nose when the ship fires) */
 ENUM ProGriddle.Games.Asteroids.Ramp:
 
     DEFINE ENUM Exhaust = 0
@@ -17,6 +18,7 @@ ENUM ProGriddle.Games.Asteroids.Ramp:
                 ShipDebris
                 Spark
                 SparkIn
-                Warm.
+                Warm
+                Muzzle.
 
 END ENUM.
