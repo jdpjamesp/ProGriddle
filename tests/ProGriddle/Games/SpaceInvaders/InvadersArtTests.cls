@@ -9,7 +9,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.SpaceInvaders.InvadersArtTests:
 
-    {ProGriddle/Games/SpaceInvaders/Art.i}
 
     METHOD PRIVATE LOGICAL Size(INPUT poSprite AS Sprite, INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER):
         RETURN poSprite:Width = piWidth AND poSprite:Height = piHeight.
@@ -20,13 +19,13 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersArtTests:
         DEFINE VARIABLE i AS INTEGER NO-UNDO.
         Assert:IsTrue(InvadersArt:Count() > 30).
         DO i = 1 TO InvadersArt:Count():
-            Assert:IsTrue(InvadersArt:Picture(i):Count > 0, "picture " + STRING(i)).
+            Assert:IsTrue(InvadersArt:Picture(Image:GetEnum(i - 1)):Count > 0, "picture " + STRING(i)).
         END.
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID ThePicturesAreMadeOnceAndHandedOutAgain():
-        Assert:IsTrue(InvadersArt:Picture({&ART-CANNON}) = InvadersArt:Picture({&ART-CANNON})).
+        Assert:IsTrue(InvadersArt:Picture(Image:Cannon) = InvadersArt:Picture(Image:Cannon)).
         Assert:IsTrue(InvadersArt:Invader(1, 0) = InvadersArt:Invader(1, 0)).
     END METHOD.
 
@@ -58,10 +57,10 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersArtTests:
 
     @Test.
     METHOD PUBLIC VOID TheCannonTheSaucerTheShieldAndTheShotHaveTheArcadeSizes():
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-CANNON}), 13, 8)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-SAUCER}), 16, 7)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-SHIELD}), 22, 16)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-SHOT}), 1, 4)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:Cannon), 13, 8)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:Saucer), 16, 7)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:Shield), 22, 16)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:Shot), 1, 4)).
     END METHOD.
 
     @Test.
@@ -91,7 +90,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersArtTests:
     @Test.
     METHOD PUBLIC VOID TheShieldHasAnArchCutOutOfItsBottom():
         DEFINE VARIABLE s AS Sprite NO-UNDO.
-        s = InvadersArt:Picture({&ART-SHIELD}).
+        s = InvadersArt:Picture(Image:Shield).
         Assert:Equals(0, s:ToneAt(11, 15)).
         Assert:Equals(0, s:ToneAt(7, 12)).
         Assert:Equals(1, s:ToneAt(11, 11)).
@@ -114,23 +113,23 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersArtTests:
 
     @Test.
     METHOD PUBLIC VOID TheEffectsAndTheSecondFramesHaveTheSizesOfTheDesign():
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-ALIEN-BLAST0}), 13, 8)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-ALIEN-BLAST1}), 13, 8)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-ALIEN-BLAST2}), 13, 8)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-CANNON-BLAST-FLASH}), 16, 8)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-CANNON-BLAST0}), 16, 8)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-CANNON-BLAST1}), 16, 8)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-CANNON-BLAST-RUBBLE}), 16, 8)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-SHOT-BURST}), 8, 8)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-SHOT-BURST1}), 8, 8)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-BOMB-SPLAT}), 8, 4)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-BOMB-SPLAT1}), 8, 4)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-SAUCER1}), 16, 7)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-CANNON-GHOST}), 13, 8)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-LIVES}), 11, 6)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-CHIP-SPARK0}), 7, 5)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-CHIP-SPARK1}), 7, 5)).
-        Assert:IsTrue(Size(InvadersArt:Picture({&ART-SHOT-LONG}), 1, 6)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:AlienBlast0), 13, 8)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:AlienBlast1), 13, 8)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:AlienBlast2), 13, 8)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:CannonBlastFlash), 16, 8)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:CannonBlast0), 16, 8)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:CannonBlast1), 16, 8)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:CannonBlastRubble), 16, 8)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:ShotBurst), 8, 8)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:ShotBurst1), 8, 8)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:BombSplat), 8, 4)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:BombSplat1), 8, 4)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:Saucer1), 16, 7)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:CannonGhost), 13, 8)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:Lives), 11, 6)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:ChipSpark0), 7, 5)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:ChipSpark1), 7, 5)).
+        Assert:IsTrue(Size(InvadersArt:Picture(Image:ShotLong), 1, 6)).
     END METHOD.
 
     @Test.
@@ -143,13 +142,13 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersArtTests:
     METHOD PUBLIC VOID ABadPictureKindOrPoseIsRefused():
         DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
         DO ON ERROR UNDO, THROW:
-            InvadersArt:Picture(0).
+            InvadersArt:Picture(?).
             CATCH e1 AS GridException:
                 thrown = thrown + 1.
             END CATCH.
         END.
         DO ON ERROR UNDO, THROW:
-            InvadersArt:Picture(InvadersArt:Count() + 1).
+            InvadersArt:Chip(?, 0).
             CATCH e2 AS GridException:
                 thrown = thrown + 1.
             END CATCH.

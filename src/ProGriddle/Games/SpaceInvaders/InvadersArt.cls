@@ -14,7 +14,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.SpaceInvaders.InvadersArt FINAL:
 
-    {ProGriddle/Games/SpaceInvaders/Art.i}
 
     &SCOPED-DEFINE PICTURES 45
 
@@ -73,11 +72,10 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersArt FINAL:
         END.
     END CONSTRUCTOR.
 
-    /* The picture with a number from Art.i. */
-    METHOD PUBLIC STATIC Sprite Picture(INPUT piArt AS INTEGER):
-        IF piArt = ? OR piArt < 1 OR piArt > {&PICTURES} THEN
-            UNDO, THROW NEW GridException(SUBSTITUTE("A picture is 1 to &1, not &2", {&PICTURES}, piArt)).
-        RETURN sSprites[piArt].
+    /* The picture with a name from the Image enum. */
+    METHOD PUBLIC STATIC Sprite Picture(INPUT poImage AS Image):
+        IF NOT VALID-OBJECT(poImage) THEN UNDO, THROW NEW GridException("A picture is an Image entry, not unknown").
+        RETURN sSprites[INTEGER(poImage) + 1].
     END METHOD.
 
     /* How many pictures there are. */
@@ -91,14 +89,14 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersArt FINAL:
             UNDO, THROW NEW GridException("An invader kind is 0, 1 or 2, not " + STRING(piKind)).
         IF piPose = ? OR piPose < 0 OR piPose > 1 THEN
             UNDO, THROW NEW GridException("An invader pose is 0 or 1, not " + STRING(piPose)).
-        RETURN sSprites[{&ART-SQUID0} + piKind * 2 + piPose].
+        RETURN sSprites[INTEGER(Image:Squid0) + 1 + piKind * 2 + piPose].
     END METHOD.
 
     /* A bomb: type 0 the rolling one, 1 the plunger, 2 the squiggly one, in a frame from 0 to 3. */
     METHOD PUBLIC STATIC Sprite Bomb(INPUT piType AS INTEGER, INPUT piFrame AS INTEGER):
         IF piType = ? OR piType < 0 OR piType > 2 THEN
             UNDO, THROW NEW GridException("A bomb type is 0, 1 or 2, not " + STRING(piType)).
-        RETURN sSprites[{&ART-BOMB-ROLL0} + piType * 4 + (IF piFrame = ? THEN 0 ELSE piFrame MODULO 4)].
+        RETURN sSprites[INTEGER(Image:BombRoll0) + 1 + piType * 4 + (IF piFrame = ? THEN 0 ELSE piFrame MODULO 4)].
     END METHOD.
 
     /* A mark that eats into a shield: kind 0 for the player's shot (from below), 1 for a bomb (from
@@ -106,7 +104,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersArt FINAL:
     METHOD PUBLIC STATIC Sprite Chip(INPUT piKind AS INTEGER, INPUT piVariant AS INTEGER):
         IF piKind = ? OR piKind < 0 OR piKind > 1 THEN
             UNDO, THROW NEW GridException("A chip kind is 0 or 1, not " + STRING(piKind)).
-        RETURN sSprites[{&ART-CHIP-SHOT0} + piKind * 3 + (IF piVariant = ? THEN 0 ELSE piVariant MODULO 3)].
+        RETURN sSprites[INTEGER(Image:ChipShot0) + 1 + piKind * 3 + (IF piVariant = ? THEN 0 ELSE piVariant MODULO 3)].
     END METHOD.
 
 END CLASS.

@@ -72,7 +72,11 @@ Source: `src/ProGriddle/Games/SpaceInvaders/`. The composition root is `run/run-
 | `Sprite` (Engine) | A small text picture with up to three tones (`#`, `+`, `*`) |
 | `PixelFont` (Engine) | The 5 x 7 capital letter font |
 | `InvadersArt` | **Every picture, in one place** (45 of them, as text) |
+| `Image` | The name of each of the 45 pictures (an enum) |
 | `InvadersLook` | **Every colour, in one place** (79 of them), the row colours by wave (mixing and hex parsing are in `ColourMath`, in Engine) |
+| `Palette` | The name of each of the 79 colours (an enum) |
+| `GamePhase` | The phases of the game: title, starting, playing, dying, cleared, game over (an enum) |
+| `CellKind` | What is in a cell of the `kind` layer: none, shield, alien, bomb, saucer, player, shot, fx (an enum) |
 
 Shots, bombs and invaders hit what the `kind` layer says is in a cell, never what colour it is, so the look can change without touching the rules. To change the art, edit the lists in `InvadersArt` and `InvadersLook`: the sizes (invaders 8, 11 and 12 wide by 8 high, cannon 13 x 8, saucer 16 x 7, shield 22 x 16, bombs 3 x 7) must stay, because the rules use those boxes.
 
