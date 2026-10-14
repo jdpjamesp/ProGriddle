@@ -102,6 +102,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     DEFINE PRIVATE VARIABLE mDebris    AS DebrisPool  NO-UNDO.
     /* the score of a saucer that was shot or rammed, rising where it was: its age in frames (0 for none), the cell it was in, its text */
     DEFINE PRIVATE VARIABLE mPopT      AS INTEGER     NO-UNDO.
+    /* frames the icon of a new extra ship still flashes */
+    DEFINE PRIVATE VARIABLE mExtraT    AS INTEGER     NO-UNDO.
     DEFINE PRIVATE VARIABLE mPopX      AS INTEGER     NO-UNDO.
     DEFINE PRIVATE VARIABLE mPopY      AS INTEGER     NO-UNDO.
     DEFINE PRIVATE VARIABLE mPopText   AS CHARACTER   NO-UNDO.
@@ -257,6 +259,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             RETURN mShipMode = ShipMode:Alive AND Phase = GamePhase:Playing.
         END GET.
 
+    /* True while a new ship is waiting for the middle of the screen to clear of rocks. */
+    DEFINE PUBLIC PROPERTY ShipWaiting AS LOGICAL NO-UNDO
+        GET():
+            RETURN mShipMode = ShipMode:Waiting AND Phase = GamePhase:Playing.
+        END GET.
+
     /* True while the ship is away in hyperspace: leaving, gone, or coming back. */
     DEFINE PUBLIC PROPERTY Hyperspacing AS LOGICAL NO-UNDO
         GET():
@@ -377,6 +385,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mOverT = 0.
         mDebris:Clear().
         mPopT = 0.
+        mExtraT = 0.
         mRocks:Clear().
         ClearShots().
         ClearSaucer().
@@ -416,6 +425,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             Lives = Lives + 1.
             mNotice = "Extra ship".
             mPulseT = 20.
+            mExtraT = 40.
         END.
         IF Score > HiScore THEN DO:
             HiScore = Score.
@@ -538,6 +548,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mNewHi = FALSE.
         mDebris:Clear().
         mPopT = 0.
+        mExtraT = 0.
         ClearShots().
         ClearSaucer().
         BakeBackground().
@@ -552,6 +563,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     METHOD PRIVATE VOID Step():
         mFrames = mFrames + 1.
         IF mPulseT > 0 THEN mPulseT = mPulseT - 1.
+        IF mExtraT > 0 THEN mExtraT = mExtraT - 1.
         MoveDust().
         mDebris:Step().
         IF mPopT > 0 THEN DO:
@@ -1247,6 +1259,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             mPen:DrawWrapped(AsteroidsArt:Ship(), ToPen(mSX), ToPen(mSY), mHeading, AsteroidsArt:ShipExtent(), 0, AsteroidsLook:Colour(Palette:Flash), 0, 0).
         mDebris:DrawTo(mCanvas).
         IF mPopT > 0 THEN DrawScorePopUp().
+        IF ShipWaiting THEN DrawRespawnRing().
         IF SaucerWarning AND INTEGER(TRUNCATE((60 - mSaucWait) / 8, 0)) MODULO 2 = 0 THEN DrawWarning().
         IF mShipMode = ShipMode:HyperOut AND Phase = GamePhase:Playing THEN DrawHyperShip(MINIMUM(5, INTEGER(TRUNCATE(MAXIMUM(0, mShipTimer - 1) / 2, 0)))).
         IF mShipMode = ShipMode:HyperBack AND Phase = GamePhase:Playing THEN DrawHyperShip(5 - MINIMUM(5, INTEGER(TRUNCATE(MAXIMUM(0, mShipTimer - 1) / 2, 0)))).
@@ -1388,7 +1401,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         IF Phase = GamePhase:GameOver THEN spare = 0.
         spare = MINIMUM(6, MAXIMUM(0, spare)).
         DO k = 0 TO spare - 1:
-            mPen:DrawScaled(AsteroidsArt:Ship(), (17 + 11 * k) * 256, 44 * 256, 0, 90, 90, 0, AsteroidsLook:Colour(Palette:ShipIcon)).
+            /* the newest icon, the last, alternates between white and its own colour every four frames while it is new */
+            mPen:DrawScaled(AsteroidsArt:Ship(), (17 + 11 * k) * 256, 44 * 256, 0, 90, 90, 0,
+                            AsteroidsLook:Colour(IF k = spare - 1 AND mExtraT > 0 AND INTEGER(TRUNCATE(mExtraT / 4, 0)) MODULO 2 = 1 THEN Palette:Flash ELSE Palette:ShipIcon)).
         END.
     END METHOD.
 
@@ -1501,6 +1516,25 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
                 mPen:DrawWrapped(AsteroidsArt:Rock(size, mRocks:Variant(r)), ToPen(mRocks:X(r)), ToPen(mRocks:Y(r)), mRocks:HeadingAt(r),
                                  AsteroidsArt:RockExtent(size), 0, colour, 0, 0).
             END.
+        END.
+    END METHOD.
+
+    /* While a new ship waits for the middle of the screen to clear, a dim ring of eight dashes 14 cells out from the
+       middle shows why it is not there yet. */
+    METHOD PRIVATE VOID DrawRespawnRing():
+        DEFINE VARIABLE k  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE h  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y0 AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x1 AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y1 AS INTEGER NO-UNDO.
+        DO k = 0 TO 7:
+            h = k * 8 + 1.
+            x0 = {&WIDTH} / 2 + INTEGER(ROUND(14 * Heading:DirX(h) / 1024, 0)).
+            y0 = {&HEIGHT} / 2 + INTEGER(ROUND(14 * Heading:DirY(h) / 1024, 0)).
+            x1 = {&WIDTH} / 2 + INTEGER(ROUND(14 * Heading:DirX(h + 5) / 1024, 0)).
+            y1 = {&HEIGHT} / 2 + INTEGER(ROUND(14 * Heading:DirY(h + 5) / 1024, 0)).
+            mCanvas:DrawLine(x0, y0, x1, y1, 0, AsteroidsLook:Colour(Palette:TitleRule)).
         END.
     END METHOD.
 

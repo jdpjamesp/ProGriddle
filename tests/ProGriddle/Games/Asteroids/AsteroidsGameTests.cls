@@ -1077,6 +1077,50 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID TheNewIconOfAnExtraShipFlashesWhiteEveryFourFramesForFortyFrames():
+        DEFINE VARIABLE icon  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE flash AS INTEGER NO-UNDO.
+        icon = AsteroidsLook:Colour(Palette:ShipIcon).
+        flash = AsteroidsLook:Colour(Palette:Flash).
+        EmptySky().
+        mGame:AddScore(10000).
+        Assert:Equals(4, mGame:Lives).
+        /* the third spare ship, the new one, is at x = 39: white on the first frames, then the icon colour, in turns */
+        Quiet(1).
+        Assert:IsTrue(CellsOf(flash, 33, 38, 13, 13) > 3).
+        Assert:Equals(0, CellsOf(icon, 33, 38, 13, 13)).
+        /* the two older icons are never white */
+        Assert:Equals(0, CellsOf(flash, 10, 38, 20, 13)).
+        Quiet(4).
+        Assert:Equals(0, CellsOf(flash, 33, 38, 13, 13)).
+        Assert:IsTrue(CellsOf(icon, 33, 38, 13, 13) > 3).
+        Quiet(40).
+        Assert:Equals(0, CellsOf(flash, 33, 38, 13, 13)).
+        Assert:IsTrue(CellsOf(icon, 33, 38, 13, 13) > 3).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ADimDashedRingMarksTheMiddleWhileANewShipWaitsForItToClear():
+        DEFINE VARIABLE rule AS INTEGER NO-UNDO.
+        rule = AsteroidsLook:Colour(Palette:TitleRule).
+        EmptySky().
+        Crash().
+        Quiet(89).
+        /* a rock near the middle keeps the new ship out */
+        RockAt(3, 160, 100).
+        Frames(3).
+        Assert:IsTrue(mGame:ShipWaiting).
+        Assert:IsTrue(CellsOf(rule, 144, 104, 33, 33) >= 16, STRING(CellsOf(rule, 144, 104, 33, 33))).
+        /* nothing at the middle itself, only the ring about 14 cells out */
+        Assert:Equals(0, CellsOf(rule, 156, 116, 9, 9)).
+        /* when the rock goes, the ship comes and the ring goes */
+        mGame:Rocks:Clear().
+        Frames(3).
+        Assert:IsTrue(mGame:ShipAlive).
+        Assert:Equals(0, CellsOf(rule, 144, 104, 33, 33)).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ASaucerThatBreaksARockScoresNothingAndShowsNoScore():
         EmptySky().
         mGame:LaunchSaucerAt(TRUE, 1, 100).
@@ -1793,7 +1837,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         mGame:AddScore(10000).
         mGame:AddScore(10000).
         mGame:AddScore(10000).
-        Quiet(1).
+        /* the newest icon flashes white for forty frames, so wait that out */
+        Quiet(45).
         /* eight ships, but only six icons are shown */
         Assert:IsTrue(CellsOf(icon, 65, 38, 14, 12) > 6).
         Assert:Equals(0, CellsOf(icon, 79, 38, 14, 12)).
