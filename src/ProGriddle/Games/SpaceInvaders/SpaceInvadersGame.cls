@@ -111,6 +111,10 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     DEFINE PRIVATE VARIABLE mPopY        AS INTEGER         NO-UNDO.
     /* frames left of the blink after the cannon comes back: it swaps with its outline every 6 frames */
     DEFINE PRIVATE VARIABLE mGhost       AS INTEGER         NO-UNDO.
+    /* what the idle title screen has on show: 0 nothing, 1 the walking octopus, 2 the saucer, and where */
+    DEFINE PRIVATE VARIABLE mIdleKind    AS INTEGER         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mIdleX       AS INTEGER         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mIdlePic     AS INTEGER         NO-UNDO.
 
     /* the three bombs, by type: 0 rolling, 1 plunger, 2 squiggly */
     DEFINE PRIVATE VARIABLE mBombOn      AS LOGICAL         NO-UNDO EXTENT 3.
@@ -160,8 +164,6 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     DEFINE PRIVATE VARIABLE mStPeriod    AS INTEGER         NO-UNDO EXTENT 48.
     DEFINE PRIVATE VARIABLE mStColour    AS INTEGER         NO-UNDO EXTENT 48.
     DEFINE PRIVATE VARIABLE mStShown     AS INTEGER         NO-UNDO EXTENT 48.
-    /* whether a star is on show: false while a word or a picture is in front of it */
-    DEFINE PRIVATE VARIABLE mStOwn       AS LOGICAL         NO-UNDO EXTENT 48.
     DEFINE PRIVATE VARIABLE mSky         AS INTEGER         NO-UNDO EXTENT 256.
     DEFINE PRIVATE VARIABLE mShieldTone  AS INTEGER         NO-UNDO EXTENT 16.
 
@@ -488,6 +490,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             IF t = 150 + 18 * rw THEN DrawTableRow(rw, 0, TRUE).
             IF t = 153 + 18 * rw THEN DrawTableRow(rw, 0, FALSE).
         END.
+        IF t >= 222 + 480 THEN IdleWalk(t - 222 - 480).
         IF t >= 222 THEN DO:
             BlinkPrompt(200, t - 222).
             IF t MODULO 30 = 0 THEN
@@ -495,6 +498,40 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
                     DrawTableRow(rw, INTEGER(TRUNCATE(t / 30, 0)) MODULO 2, FALSE).
                 END.
         END.
+    END METHOD.
+
+    /* Left alone for 8 seconds after the title is built, an octopus walks across the foot of the screen a cell every 4
+       frames, then the saucer crosses the top once, then 10 seconds of quiet, and round again. piFrame counts from the
+       start of the first walk. */
+    METHOD PRIVATE VOID IdleWalk(INPUT piFrame AS INTEGER):
+        DEFINE VARIABLE u    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE kind AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE pic  AS INTEGER NO-UNDO.
+        u = piFrame MODULO (944 + 240 + 600).
+        IF u < 944 THEN DO:
+            kind = 1.
+            x = -12 + INTEGER(TRUNCATE(u / 4, 0)).
+            pic = INTEGER(TRUNCATE(u / 8, 0)) MODULO 2.
+        END.
+        ELSE IF u < 944 + 240 THEN DO:
+            kind = 2.
+            x = -16 + (u - 944).
+            pic = INTEGER(TRUNCATE(u / 8, 0)) MODULO 2.
+        END.
+        IF kind = mIdleKind AND x = mIdleX AND pic = mIdlePic THEN RETURN.
+        /* take what was drawn off, and draw what is due */
+        IF mIdleKind = 1 THEN mCanvas:Erase(InvadersArt:Invader(2, mIdlePic), mIdleX, 205, {&KIND-FX}).
+        ELSE IF mIdleKind = 2 THEN mCanvas:Erase(InvadersArt:Picture(IF mIdlePic = 0 THEN {&ART-SAUCER} ELSE {&ART-SAUCER1}), mIdleX, {&SAUCER-Y}, {&KIND-FX}).
+        mIdleKind = kind.
+        mIdleX = x.
+        mIdlePic = pic.
+        IF kind = 1 THEN
+            mCanvas:Draw(InvadersArt:Invader(2, pic), x, 205, {&KIND-FX},
+                         InvadersLook:InvaderColour(4, 1, 1), InvadersLook:InvaderColour(4, 1, 2), InvadersLook:InvaderColour(4, 1, 3)).
+        ELSE IF kind = 2 THEN
+            mCanvas:Draw(InvadersArt:Picture(IF pic = 0 THEN {&ART-SAUCER} ELSE {&ART-SAUCER1}), x, {&SAUCER-Y}, {&KIND-FX},
+                         InvadersLook:Colour({&C-SAUCER}), InvadersLook:Colour({&C-SAUCER-LIGHT}), InvadersLook:Colour({&C-SAUCER-DEEP})).
     END METHOD.
 
     /* One letter of SPACE INVADERS (0 to 12), with its shadow. */
@@ -640,8 +677,15 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
        cannon or the end. */
     METHOD PRIVATE VOID FrameDying():
         DEFINE VARIABLE art AS INTEGER NO-UNDO.
-        art = (IF mTimer < 9 THEN {&ART-CANNON-BLAST-FLASH}
-               ELSE IF mTimer < 45 THEN (IF INTEGER(TRUNCATE((mTimer - 9) / 6, 0)) MODULO 2 = 0 THEN {&ART-CANNON-BLAST0} ELSE {&ART-CANNON-BLAST1})
+        DEFINE VARIABLE t   AS INTEGER NO-UNDO.
+        IF mTimer < 2 THEN DO:
+            mTimer = mTimer + 1.
+            RETURN.
+        END.
+        IF mTimer = 2 THEN EraseCannon().
+        t = mTimer - 2.
+        art = (IF t < 9 THEN {&ART-CANNON-BLAST-FLASH}
+               ELSE IF t < 45 THEN (IF INTEGER(TRUNCATE((t - 9) / 6, 0)) MODULO 2 = 0 THEN {&ART-CANNON-BLAST0} ELSE {&ART-CANNON-BLAST1})
                ELSE {&ART-CANNON-BLAST-RUBBLE}).
         IF art <> mBlast THEN DO:
             EraseBlast().
@@ -749,7 +793,6 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             mStColour[i] = InvadersLook:Colour(IF mStPeriod[i] = 3 THEN {&C-STAR-BRIGHT} ELSE IF mStPeriod[i] = 5 THEN {&C-STAR-CYAN} ELSE {&C-STAR-DIM}).
             mCanvas:SetBack(mStX[i], mStY[i], mStColour[i]).
             mStShown[i] = mStColour[i].
-            mStOwn[i] = TRUE.
         END.
         mCanvas:Restore().
         ClearEffects().
@@ -770,6 +813,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         DrawHudFrame().
         mCanvas:DrawText("PROGRIDDLE COOKOFF", 58, 241, InvadersLook:Colour({&C-TEXT-CREDIT})).
         mPromptOn = FALSE.
+        mIdleKind = 0.
     END METHOD.
 
     /* Builds the shields, deals out the invaders and starts drawing them in. */
@@ -871,7 +915,10 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         DO i = 0 TO 2:
             EraseBomb(i).
         END.
-        EraseCannon().
+        /* the cannon goes white for 2 frames before it blows up */
+        mCanvas:Draw(InvadersArt:Picture({&ART-CANNON}), mPX, {&PLAYER-Y}, {&KIND-PLAYER},
+                     InvadersLook:Colour({&C-FLASH}), InvadersLook:Colour({&C-FLASH}), InvadersLook:Colour({&C-FLASH})).
+        mGhost = 0.
         Phase = {&PHASE-DYING}.
         mTimer = 0.
         SpawnSparks(mPX + 6, {&PLAYER-Y} + 4, InvadersLook:Colour({&C-CANNON}), 14).
@@ -1550,7 +1597,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         DO i = 1 TO {&STARS}:
             IF mFrames MODULO mStPeriod[i] <> 0 THEN NEXT.
             /* a star is only taken off where it is showing, and only put on where the plain sky is showing: text and pictures win */
-            IF mStOwn[i] AND mCanvas:KindAt(mStX[i], mStY[i]) = {&KIND-NONE} AND mCanvas:ColourAt(mStX[i], mStY[i]) = mStShown[i] THEN DO:
+            IF mCanvas:KindAt(mStX[i], mStY[i]) = {&KIND-NONE} AND mCanvas:ColourAt(mStX[i], mStY[i]) = mStShown[i] THEN DO:
                 mCanvas:SetBack(mStX[i], mStY[i], mSky[mStY[i] + 1]).
                 mCanvas:ShowBack(mStX[i], mStY[i]).
             END.
@@ -1562,7 +1609,6 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             mStShown[i] = (IF mStPeriod[i] = 3 AND (mFrames + i * 13) MODULO 130 < 12 THEN InvadersLook:Colour({&C-STAR-TWINKLE}) ELSE mStColour[i]).
             mCanvas:SetBack(mStX[i], mStY[i], mStShown[i]).
             IF showing THEN mCanvas:ShowBack(mStX[i], mStY[i]).
-            mStOwn[i] = showing.
         END.
     END METHOD.
 

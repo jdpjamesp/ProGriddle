@@ -785,6 +785,10 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Assert:IsFalse(mGame:BombActive(0)).
         Assert:IsFalse(mGame:BombActive(1)).
         Assert:IsFalse(mGame:BombActive(2)).
+        /* the cannon is white for two frames, and then gone */
+        Assert:IsTrue(mGame:Canvas:CountKind({&KIND-PLAYER}) > 30).
+        Assert:Equals(InvadersLook:Colour({&C-FLASH}), mGame:Canvas:ColourAt(mGame:PlayerX + 6, 221)).
+        Frames(3).
         Assert:Equals(0, mGame:Canvas:CountKind({&KIND-PLAYER})).
     END METHOD.
 
@@ -1127,6 +1131,36 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         END.
         Assert:Equals(want, CountLit(55, 108, 114, 7)).
         Assert:Equals(wantCred, CountLit(58, 241, 107, 7)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID LeftAloneTheTitleSendsAnOctopusAcrossTheFootOfTheScreenThenTheSaucerAcrossTheTop():
+        Frames(702 + 200).
+        /* (PRESS SPACE blinks on the rows above, so look at the lower part of the octopus) the octopus has walked about 50 cells in from the left, 4 frames to a cell */
+        Assert:IsTrue(CountLit(30, 207, 40, 6) > 20, "octopus").
+        Assert:Equals(0, CountLit(0, 32, 224, 7)).
+        Frames(944 - 200 + 100).
+        /* the octopus is gone and the saucer is 100 cells along */
+        Assert:Equals(0, CountLit(0, 207, 224, 6)).
+        Assert:IsTrue(CountLit(70, 32, 60, 7) > 20, "saucer").
+        Frames(240).
+        /* ten seconds of quiet, and the screen is as it was */
+        Assert:Equals(0, CountLit(0, 207, 224, 6)).
+        Assert:Equals(0, CountLit(0, 32, 224, 7)).
+        Frames(600 + 100).
+        /* and round again */
+        Assert:IsTrue(CountLit(0, 207, 224, 6) > 20, "again").
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID APressOfTheFireKeyEndsTheIdleWalk():
+        Frames(702 + 400).
+        mGame:FireHeld = FALSE.
+        Frames(2).
+        mGame:FireHeld = TRUE.
+        mGame:Advance().
+        Assert:Equals({&PHASE-STARTING}, mGame:Phase).
+        Assert:Equals(0, CountLit(0, 207, 224, 6)).
     END METHOD.
 
     @Test.
