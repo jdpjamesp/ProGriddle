@@ -3,6 +3,7 @@
    fake clock. */
 USING OpenEdge.Core.*.
 USING Progress.Lang.*.
+USING System.Windows.Forms.Screen FROM ASSEMBLY.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
 USING ProGriddle.Games.Life.*.
@@ -64,10 +65,10 @@ CLASS ProGriddle.UI.WinForms.GameWindowSizeTests:
         mSettings:SetInteger("window.width", 900).
         mSettings:SetInteger("window.height", 650).
         mSettings:SetInteger("life.window.width", 700).
-        mSettings:SetInteger("life.window.height", 800).
+        mSettings:SetInteger("life.window.height", 600).
         OpenWindow().
         Assert:Equals(700, mWindow:ClientSize:Width).
-        Assert:Equals(800, mWindow:ClientSize:Height).
+        Assert:Equals(600, mWindow:ClientSize:Height).
     END METHOD.
 
     @Test.
@@ -84,7 +85,16 @@ CLASS ProGriddle.UI.WinForms.GameWindowSizeTests:
         mSettings:SetInteger("life.window.height", 99999).
         OpenWindow().
         Assert:Equals(400, mWindow:ClientSize:Width).
-        Assert:Equals(3000, mWindow:ClientSize:Height).
+        Assert:IsTrue(mWindow:ClientSize:Height > 300 AND mWindow:ClientSize:Height <= 3000).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AWindowIsNeverOpenedTallerOrWiderThanTheScreensWorkingArea():
+        mSettings:SetInteger("life.window.width", 4000).
+        mSettings:SetInteger("life.window.height", 3000).
+        OpenWindow().
+        Assert:IsTrue(mWindow:Height <= Screen:PrimaryScreen:WorkingArea:Height, "height " + STRING(mWindow:Height) + " client " + STRING(mWindow:ClientSize:Height) + " wa " + STRING(Screen:PrimaryScreen:WorkingArea:Height)).
+        Assert:IsTrue(mWindow:Width <= Screen:PrimaryScreen:WorkingArea:Width, "width " + STRING(mWindow:Width)).
     END METHOD.
 
 END CLASS.

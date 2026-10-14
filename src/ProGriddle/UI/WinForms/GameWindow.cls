@@ -34,7 +34,8 @@
    the shape of its own window (a tall board such as Space Invaders needs a different window to
    a wide one), and "window.width" and the others of the same names without the prefix hold the
    last window to close. A game that has no window of its own saved yet opens at the last window
-   to close, and so does a settings file from before the keys were split. The rest are
+   to close, and so does a settings file from before the keys were split. A window never opens bigger than the
+   screen's working area, whatever size was asked for or saved. The rest are
    "<prefix>.speed" and "<prefix>.choice", and one "<prefix>.<OptionKey>" for each option.
 
    The window owns the GridView it is given and releases it on close. It does not own or
@@ -290,10 +291,16 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         DEFINE VARIABLE y   AS INTEGER NO-UNDO.
         DEFINE VARIABLE pt  AS Point   NO-UNDO.
         DEFINE VARIABLE wa  AS Rectangle NO-UNDO.
+        DEFINE VARIABLE sz  AS Size    NO-UNDO.
         DEFINE VARIABLE sel AS CHARACTER NO-UNDO.
 
         w = MAXIMUM(400, MINIMUM(4000, mSettings:GetInteger(mPrefix + ".window.width", mSettings:GetInteger("window.width", 1000)))).
         h = MAXIMUM(300, MINIMUM(3000, mSettings:GetInteger(mPrefix + ".window.height", mSettings:GetInteger("window.height", 760)))).
+        /* never open taller or wider than the screen's working area, whatever size was asked for or saved */
+        wa = Screen:PrimaryScreen:WorkingArea.
+        sz = THIS-OBJECT:SizeFromClientSize(NEW Size(w, h)).
+        h = MAXIMUM(300, MINIMUM(h, wa:Height - (sz:Height - h))).
+        w = MAXIMUM(400, MINIMUM(w, wa:Width - (sz:Width - w))).
         THIS-OBJECT:ClientSize = NEW Size(w, h).
 
         THIS-OBJECT:StartPosition = FormStartPosition:CenterScreen.
