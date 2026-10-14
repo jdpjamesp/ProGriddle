@@ -100,6 +100,11 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     DEFINE PRIVATE VARIABLE mShLife    AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
     DEFINE PRIVATE VARIABLE mRocks     AS RockField   NO-UNDO.
     DEFINE PRIVATE VARIABLE mDebris    AS DebrisPool  NO-UNDO.
+    /* the score of a saucer that was shot or rammed, rising where it was: its age in frames (0 for none), the cell it was in, its text */
+    DEFINE PRIVATE VARIABLE mPopT      AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPopX      AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPopY      AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPopText   AS CHARACTER   NO-UNDO.
     /* the pieces of text that are ready to draw, and what each is (see Stamp) */
     DEFINE PRIVATE VARIABLE mStamp     AS TextStamp   NO-UNDO EXTENT {&STAMPS}.
     DEFINE PRIVATE VARIABLE mStampKey  AS CHARACTER   NO-UNDO EXTENT {&STAMPS}.
@@ -371,6 +376,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mNewHi = FALSE.
         mOverT = 0.
         mDebris:Clear().
+        mPopT = 0.
         mRocks:Clear().
         ClearShots().
         ClearSaucer().
@@ -525,6 +531,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         Score = 0.
         mNewHi = FALSE.
         mDebris:Clear().
+        mPopT = 0.
         ClearShots().
         ClearSaucer().
         BakeBackground().
@@ -541,6 +548,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         IF mPulseT > 0 THEN mPulseT = mPulseT - 1.
         MoveDust().
         mDebris:Step().
+        IF mPopT > 0 THEN DO:
+            mPopT = mPopT + 1.
+            IF mPopT > 48 THEN mPopT = 0.
+        END.
         CASE Phase:
             WHEN GamePhase:Title THEN FrameTitle().
             WHEN GamePhase:Playing THEN FramePlaying().
@@ -847,9 +858,16 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         END.
     END METHOD.
 
-    /* The saucer is destroyed, by a shot, the ship or a rock: it explodes where it is, and is gone. */
-    METHOD PRIVATE VOID DestroySaucer():
+    /* The saucer is destroyed, by a shot, the ship or a rock: it explodes where it is, and is gone. When it scored (plScored),
+       its points rise from that place for 48 frames. */
+    METHOD PRIVATE VOID DestroySaucer(INPUT plScored AS LOGICAL):
         mDebris:SaucerBurst(mSaucLarge, mSaucX, mSaucY, mSaucVX, mSaucVY).
+        IF plScored THEN DO:
+            mPopT = 1.
+            mPopX = INTEGER(TRUNCATE(mSaucX / {&UNIT}, 0)).
+            mPopY = INTEGER(TRUNCATE(mSaucY / {&UNIT}, 0)).
+            mPopText = (IF mSaucLarge THEN "200" ELSE "1000").
+        END.
         RemoveSaucer().
     END METHOD.
 
@@ -879,7 +897,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
                 mShLife[i] = 0.
                 AddScore(IF mSaucLarge THEN 200 ELSE 1000).
                 mPulseT = 20.
-                DestroySaucer().
+                DestroySaucer(TRUE).
                 RETURN.
             END.
         END.
@@ -891,7 +909,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         IF Near(mSX, mSY, mSaucX, mSaucY, (AsteroidsArt:SaucerRadius(mSaucLarge) + AsteroidsArt:ShipRadius()) * 16) THEN DO:
             AddScore(IF mSaucLarge THEN 200 ELSE 1000).
             mPulseT = 20.
-            DestroySaucer().
+            DestroySaucer(TRUE).
             KillShip().
         END.
     END METHOD.
@@ -916,7 +934,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         DO r = 0 TO RockField:Capacity() - 1:
             IF mRocks:SizeAt(r) = 0 THEN NEXT.
             IF Near(mSaucX, mSaucY, mRocks:X(r), mRocks:Y(r), (AsteroidsArt:RockRadius(mRocks:SizeAt(r)) + AsteroidsArt:SaucerRadius(mSaucLarge)) * 16) THEN DO:
-                DestroySaucer().
+                DestroySaucer(FALSE).
                 BreakRock(r, FALSE).
                 RETURN.
             END.
@@ -1222,6 +1240,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         IF mShipMode = ShipMode:Dying AND mShipTimer < 3 THEN
             mPen:DrawWrapped(AsteroidsArt:Ship(), ToPen(mSX), ToPen(mSY), mHeading, AsteroidsArt:ShipExtent(), 0, AsteroidsLook:Colour(Palette:Flash), 0, 0).
         mDebris:DrawTo(mCanvas).
+        IF mPopT > 0 THEN DrawScorePopUp().
         IF mShipMode = ShipMode:HyperOut AND Phase = GamePhase:Playing THEN DrawHyperShip(MINIMUM(5, INTEGER(TRUNCATE(MAXIMUM(0, mShipTimer - 1) / 2, 0)))).
         IF mShipMode = ShipMode:HyperBack AND Phase = GamePhase:Playing THEN DrawHyperShip(5 - MINIMUM(5, INTEGER(TRUNCATE(MAXIMUM(0, mShipTimer - 1) / 2, 0)))).
         IF ShipAlive AND ShieldFrames > 0 THEN DrawShieldRing().
@@ -1264,6 +1283,15 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         bx = INTEGER(TRUNCATE((320 - PixelFont:WidthOf(words) * 3) / 2, 0)).
         IF mWaveT >= 70 THEN Stamp(words, 3, colour, colour, edge):DrawTo(mCanvas, bx, 64).
         ELSE Stamp(words, 3, AsteroidsLook:Colour(Palette:BannerTop), AsteroidsLook:Colour(Palette:BannerBottom), edge):DrawTo(mCanvas, bx, 64).
+    END METHOD.
+
+    /* The points of a saucer, 200 or 1000, in gold over the place it was, rising a cell every four frames and in the
+       darker gold for the last twelve. */
+    METHOD PRIVATE VOID DrawScorePopUp():
+        DEFINE VARIABLE colour AS INTEGER NO-UNDO.
+        colour = AsteroidsLook:Colour(IF mPopT > 36 THEN Palette:GoldFade ELSE Palette:Gold).
+        Stamp(mPopText, 1, colour, colour, AsteroidsLook:Colour(Palette:TextOutline)):DrawTo(mCanvas, mPopX - INTEGER(TRUNCATE(PixelFont:WidthOf(mPopText) / 2, 0)),
+                                                                                              mPopY - 3 - INTEGER(TRUNCATE(mPopT / 4, 0))).
     END METHOD.
 
     /* The title screen over the attract rocks: ASTEROIDS traced stroke by stroke by a beam (see TitleTrace). */

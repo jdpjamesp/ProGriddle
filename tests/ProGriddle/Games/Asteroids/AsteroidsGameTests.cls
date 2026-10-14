@@ -1003,6 +1003,41 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID AKilledSaucerLeavesItsScoreRisingInGoldAndFadingForFortyEightFrames():
+        DEFINE VARIABLE gold AS INTEGER NO-UNDO.
+        DEFINE VARIABLE fade AS INTEGER NO-UNDO.
+        gold = AsteroidsLook:Colour(Palette:Gold).
+        fade = AsteroidsLook:Colour(Palette:GoldFade).
+        EmptySky().
+        mGame:LaunchSaucerAt(TRUE, 1, 100).
+        mGame:PlaceSaucer(155, 120).
+        Quiet(2).
+        Assert:Equals(200, mGame:Score).
+        /* 200 in gold over the place the saucer was, not yet in the fade colour */
+        Assert:IsTrue(CellsOf(gold, 140, 100, 35, 25) > 5).
+        Assert:Equals(0, CellsOf(fade, 140, 80, 35, 50)).
+        /* it rises a cell every four frames: ten cells in forty frames */
+        Quiet(30).
+        Assert:IsTrue(CellsOf(gold, 140, 80, 35, 50) > 5).
+        Quiet(10).
+        Assert:IsTrue(CellsOf(fade, 140, 80, 35, 50) > 5).
+        Assert:Equals(0, CellsOf(gold, 140, 80, 35, 50)).
+        Quiet(10).
+        Assert:Equals(0, CellsOf(fade, 140, 80, 35, 50)).
+        Assert:Equals(0, CellsOf(gold, 140, 80, 35, 50)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASaucerThatBreaksARockScoresNothingAndShowsNoScore():
+        EmptySky().
+        mGame:LaunchSaucerAt(TRUE, 1, 100).
+        mGame:PlaceSaucer(60, 120).
+        mGame:Rocks:Add(60 * 4096, 120 * 4096, 0, 0, 1, 0, 0, 1000, 1).
+        Quiet(3).
+        Assert:Equals(0, CellsOf(AsteroidsLook:Colour(Palette:Gold), 40, 90, 40, 60)).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ARockThatASaucerFliesIntoBurstsToo():
         EmptySky().
         mGame:LaunchSaucerAt(TRUE, 1, 100).
