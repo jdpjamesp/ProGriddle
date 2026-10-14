@@ -535,6 +535,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     METHOD PRIVATE VOID FrameTitle():
         mTitleT = mTitleT + 1.
+        /* every 14 seconds a large saucer crosses behind the words, left to right at row 140 (clear of PRESS SPACE), and
+           fires nothing */
+        IF mTitleT MODULO 840 = 0 AND NOT mSaucOn THEN StartSaucer(TRUE, 1, 140 * {&UNIT}).
+        IF mSaucOn THEN MoveSaucer().
         mRocks:Move().
         IF FireHeld AND NOT mFireWas THEN StartGame().
     END METHOD.
@@ -766,15 +770,18 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mSaucY = mSaucY + mSaucVY.
         IF mSaucY < 20 * {&UNIT} THEN mSaucVY = ABSOLUTE(mSaucVY).
         IF mSaucY > 220 * {&UNIT} THEN mSaucVY = - ABSOLUTE(mSaucVY).
-        mSaucZigT = mSaucZigT - 1.
-        IF mSaucZigT <= 0 THEN DO:
-            mSaucVY = (mRandom:NextInt(3) - 1) * 1638.
-            mSaucZigT = 40 + mRandom:NextInt(80).
-        END.
-        mSaucFireT = mSaucFireT - 1.
-        IF mSaucFireT <= 0 THEN DO:
-            SaucerFire().
-            mSaucFireT = (IF mSaucLarge THEN 70 + mRandom:NextInt(50) ELSE 55 + mRandom:NextInt(35)).
+        /* the saucer on the title screen flies straight and fires nothing */
+        IF Phase <> GamePhase:Title THEN DO:
+            mSaucZigT = mSaucZigT - 1.
+            IF mSaucZigT <= 0 THEN DO:
+                mSaucVY = (mRandom:NextInt(3) - 1) * 1638.
+                mSaucZigT = 40 + mRandom:NextInt(80).
+            END.
+            mSaucFireT = mSaucFireT - 1.
+            IF mSaucFireT <= 0 THEN DO:
+                SaucerFire().
+                mSaucFireT = (IF mSaucLarge THEN 70 + mRandom:NextInt(50) ELSE 55 + mRandom:NextInt(35)).
+            END.
         END.
         IF (mSaucVX > 0 AND mSaucX > {&WIDTH-U} + 9 * {&UNIT}) OR (mSaucVX < 0 AND mSaucX < - 9 * {&UNIT}) THEN RemoveSaucer().
     END METHOD.

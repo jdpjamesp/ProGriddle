@@ -993,6 +993,45 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID ALargeSaucerCrossesTheTitleScreenLeftToRightAtRowOneHundredFortyEveryFourteenSecondsAndFiresNothing():
+        DEFINE VARIABLE x0   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE shots AS INTEGER NO-UNDO.
+        mGame:Drawing = FALSE.
+        Frames(839).
+        Assert:IsFalse(mGame:SaucerActive).
+        Frames(1).
+        Assert:IsTrue(mGame:SaucerActive).
+        Assert:IsTrue(mGame:SaucerLarge).
+        Assert:Equals(140, mGame:SaucerY).
+        x0 = mGame:SaucerX.
+        /* it crosses in a straight line without firing, and is gone once across (about 470 frames) */
+        DO WHILE mGame:SaucerActive AND n < 600:
+            Frames(1).
+            n = n + 1.
+            shots = shots + mGame:SaucerShotCount.
+            IF mGame:SaucerActive THEN Assert:Equals(140, mGame:SaucerY).
+        END.
+        Assert:IsTrue(n >= 400 AND n <= 520, STRING(n)).
+        Assert:Equals(0, shots).
+        Assert:IsTrue(x0 < 10).
+        /* and the next one comes fourteen seconds after the first */
+        Frames(840 - n - 1).
+        Assert:IsFalse(mGame:SaucerActive).
+        Frames(1).
+        Assert:IsTrue(mGame:SaucerActive).
+        mGame:Drawing = TRUE.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID StartingAGameSendsTheTitleSaucerAway():
+        Frames(850).
+        Assert:IsTrue(mGame:SaucerActive).
+        Play().
+        Assert:IsFalse(mGame:SaucerActive).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID StartingAGameTakesTheTitleAwayAndANewTitleStartsAgainFromTheBeginning():
         DEFINE VARIABLE core AS INTEGER NO-UNDO.
         core = AsteroidsLook:Colour(Palette:TitleCore).
