@@ -446,6 +446,11 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             RETURN mDebris:Count.
         END GET.
 
+    /* Takes every piece of debris off the screen, for a test that wants to count only one kind. */
+    METHOD PUBLIC VOID ClearDebris():
+        mDebris:Clear().
+    END METHOD.
+
     /* How many saucer shots are in the air, and where one is, in whole cells (slots 0 to 3). */
     DEFINE PUBLIC PROPERTY SaucerShotCount AS INTEGER NO-UNDO
         GET():
@@ -701,6 +706,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         y = mRocks:Y(piSlot).
         vx = mRocks:VX(piSlot).
         vy = mRocks:VY(piSlot).
+        mDebris:RockBurst(size, x, y, mRocks:HeadingAt(piSlot), mRocks:Variant(piSlot)).
         mRocks:Remove(piSlot).
         IF plScore THEN AddScore(RockPoints(size)).
         IF size < 3 THEN DO:

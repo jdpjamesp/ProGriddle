@@ -908,6 +908,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         EmptySky().
         Assert:Equals(0, mGame:DebrisCount).
         Crash().
+        /* the rock that hit it burst too: leave only the ship's pieces to count */
+        mGame:ClearDebris().
         /* frames 0 to 2: the whole ship in white, nothing broken yet */
         Assert:Equals(AsteroidsLook:Colour(Palette:Flash), mGame:Canvas:ColourAt(160, 114)).
         Assert:Equals(0, mGame:DebrisCount).
@@ -920,9 +922,44 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID AShotRockBurstsIntoDebrisThirteenPiecesForALargeOneTenForAMediumAndEightForASmall():
+        EmptySky().
+        RockAt(1, 160, 60).
+        mGame:FireHeld = TRUE.
+        Frames(6).
+        mGame:FireHeld = FALSE.
+        Assert:Equals(13, mGame:DebrisCount).
+        EmptySky().
+        RockAt(2, 160, 60).
+        mGame:FireHeld = TRUE.
+        Frames(8).
+        mGame:FireHeld = FALSE.
+        Assert:Equals(10, mGame:DebrisCount).
+        EmptySky().
+        RockAt(3, 160, 60).
+        mGame:FireHeld = TRUE.
+        Frames(8).
+        mGame:FireHeld = FALSE.
+        Assert:Equals(8, mGame:DebrisCount).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ARockThatASaucerFliesIntoBurstsToo():
+        EmptySky().
+        mGame:LaunchSaucerAt(TRUE, 1, 100).
+        mGame:PlaceSaucer(60, 60).
+        mGame:Rocks:Add(60 * 4096, 60 * 4096, 0, 0, 1, 0, 0, 1000, 1).
+        mGame:Advance().
+        Assert:IsTrue(mGame:DebrisCount >= 13).
+        mGame:ClearDebris().
+        Assert:Equals(0, mGame:DebrisCount).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ShipDebrisIsGoneAfterNinetyMoreFramesAndANewGameClearsIt():
         EmptySky().
         Crash().
+        mGame:ClearDebris().
         Quiet(3).
         Assert:Equals(19, mGame:DebrisCount).
         Quiet(14).
@@ -930,6 +967,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         mGame:StartGame().
         Assert:Equals(0, mGame:DebrisCount).
         Crash().
+        mGame:ClearDebris().
         Quiet(3).
         Quiet(90).
         Assert:Equals(0, mGame:DebrisCount).
