@@ -873,6 +873,75 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         mGame = ?.
     END METHOD.
 
+    /* ---------------------------------- the look of things ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID AfterTheExplosionTheCannonBlinksWithItsOutlineForOneAndAHalfSeconds():
+        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE fewest AS INTEGER NO-UNDO INITIAL 9999.
+        DEFINE VARIABLE most   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cells  AS INTEGER NO-UNDO.
+        Play().
+        mGame:SetPlayerX(40).
+        BombTheCannon().
+        WaitForTheBlast().
+        mGame:SetPlayerX(40).
+        DO n = 1 TO 80:
+            mGame:Advance().
+            cells = mGame:Canvas:CountKind({&KIND-PLAYER}).
+            fewest = MINIMUM(fewest, cells).
+            most = MAXIMUM(most, cells).
+        END.
+        Assert:IsTrue(fewest < most, "fewest " + STRING(fewest) + " most " + STRING(most)).
+        Frames(20).
+        Assert:Equals(most, mGame:Canvas:CountKind({&KIND-PLAYER})).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheCannonExplodesInAFlashThenTwoPicturesThenRubble():
+        DEFINE VARIABLE flash  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE middle AS INTEGER NO-UNDO.
+        DEFINE VARIABLE rubble AS INTEGER NO-UNDO.
+        Play().
+        mGame:SetPlayerX(40).
+        BombTheCannon().
+        Frames(3).
+        flash = mGame:Canvas:CountKind({&KIND-FX}).
+        Frames(20).
+        middle = mGame:Canvas:CountKind({&KIND-FX}).
+        Frames(40).
+        rubble = mGame:Canvas:CountKind({&KIND-FX}).
+        Assert:IsTrue(flash > 20).
+        Assert:IsTrue(middle > 20).
+        Assert:IsTrue(rubble > 5).
+        Assert:IsTrue(rubble < flash).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheSaucersBodyPulsesThroughSeveralReds():
+        DEFINE VARIABLE n       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE seen    AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE colour  AS CHARACTER NO-UNDO.
+        Play().
+        mGame:SetPlayerX(40).
+        mGame:LaunchSaucer(1).
+        DO n = 1 TO 60:
+            mGame:Advance().
+            /* a cell in the middle of the second row of the saucer, which is always body */
+            colour = STRING(mGame:Canvas:ColourAt(mGame:SaucerX + 8, 33)).
+            IF LOOKUP(colour, seen) = 0 THEN seen = seen + (IF seen = "" THEN "" ELSE ",") + colour.
+        END.
+        Assert:IsTrue(NUM-ENTRIES(seen) >= 3, seen).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheStarsDriftBehindTheTitleLettersWithoutWipingThem():
+        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        before = CountLit(40, 40, 150, 60).
+        Frames(400).
+        Assert:Equals(before, CountLit(40, 40, 150, 60)).
+    END METHOD.
+
     /* ---------------------------------- contract errors ---------------------------------- */
 
     @Test.
