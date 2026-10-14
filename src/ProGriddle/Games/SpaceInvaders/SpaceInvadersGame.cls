@@ -57,6 +57,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     /* how long things take, in frames */
     &SCOPED-DEFINE DYING-FRAMES 110
     &SCOPED-DEFINE CLEARED-FRAMES 90
+    &SCOPED-DEFINE STARTING-FRAMES 130
     &SCOPED-DEFINE SAUCER-FRAMES 1536
     &SCOPED-DEFINE POP-FRAMES 50
     &SCOPED-DEFINE EXTRA-LIFE-AT 1500
@@ -355,15 +356,12 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     END METHOD.
 
     /* Finishes drawing a wave in at once, and starts play. For tests, and for anything that wants the game in play
-       without waiting a second. */
+       without waiting two seconds. */
     METHOD PUBLIC VOID SkipIntro():
-        DEFINE VARIABLE p AS INTEGER NO-UNDO.
         IF Phase <> {&PHASE-STARTING} THEN RETURN.
-        DO p = mTimer TO InvaderRack:Total() - 1:
-            RevealAlien(p).
+        DO WHILE Phase = {&PHASE-STARTING}:
+            FrameStarting().
         END.
-        Phase = {&PHASE-PLAYING}.
-        mTimer = 0.
     END METHOD.
 
     /* Puts the cannon at a column, between its two limits, taking it off where it was. */
@@ -570,14 +568,37 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         END.
     END METHOD.
 
-    /* The wave draws itself in, one invader a frame, bottom row first, and then play begins. */
+    /* The wave builds itself over 130 frames: the shields grow row by row from frame 0 (one starting every 4
+       frames), the invaders are built one a frame from frame 10, bottom row first, each flashing light for 3 frames,
+       WAVE n and a blinking GET READY stay on the screen, and the cannon blinks. Then play begins. */
     METHOD PRIVATE VOID FrameStarting():
-        IF mTimer < InvaderRack:Total() THEN RevealAlien(mTimer).
+        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        t = mTimer.
+        DO k = 0 TO 3:
+            IF t >= 4 * k AND t < 4 * k + 16 THEN DrawShieldRow(k, 15 - (t - 4 * k)).
+        END.
+        IF t >= 10 AND t < 10 + InvaderRack:Total() THEN RevealAlien(t - 10, TRUE).
+        IF t >= 13 AND t < 13 + InvaderRack:Total() THEN RevealAlien(t - 13, FALSE).
+        IF t = 0 THEN DrawWaveBanner().
+        IF t MODULO 16 = 0 THEN mCanvas:DrawOverlay("GET READY", 85, 170, InvadersLook:Colour({&C-TEXT-GOLD}), InvadersLook:Colour({&C-TEXT-GOLD}), 1, InvadersLook:Colour({&C-TEXT-OUTLINE})).
+        ELSE IF t MODULO 16 = 8 THEN mCanvas:ShowBackRect(84, 169, 56, 9).
+        BlinkCannon().
         mTimer = mTimer + 1.
-        IF mTimer >= InvaderRack:Total() THEN DO:
+        IF mTimer >= {&STARTING-FRAMES} THEN DO:
+            mCanvas:ShowBackRect(60, 149, 110, 17).
+            mCanvas:ShowBackRect(84, 169, 56, 9).
             Phase = {&PHASE-PLAYING}.
             mTimer = 0.
         END.
+    END METHOD.
+
+    /* WAVE n in big shaded letters, centred, with an edge so it reads over the rack. */
+    METHOD PRIVATE VOID DrawWaveBanner():
+        DEFINE VARIABLE banner AS CHARACTER NO-UNDO.
+        banner = "WAVE " + STRING(Wave).
+        mCanvas:DrawOverlay(banner, INTEGER(TRUNCATE(({&WIDTH} - InvadersCanvas:ScaledWidth(banner, 2)) / 2, 0)), 150,
+                            InvadersLook:Colour({&C-TITLE-TOP}), InvadersLook:Colour({&C-TITLE-BOTTOM}), 2, InvadersLook:Colour({&C-TEXT-OUTLINE})).
     END METHOD.
 
     METHOD PRIVATE VOID FramePlaying():
@@ -622,9 +643,34 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         END.
     END METHOD.
 
+    /* The wave is cleared: a pause while the last explosion plays out, then WAVE CLEARED pops in letter by letter, the
+       ground line flashes white and a bright piece of it sweeps across, and NEXT WAVE n appears. */
     METHOD PRIVATE VOID FrameCleared():
+        DEFINE VARIABLE t    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE pos  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE nextText AS CHARACTER NO-UNDO.
         mTimer = mTimer + 1.
-        IF mTimer < {&CLEARED-FRAMES} THEN RETURN.
+        t = mTimer.
+        IF t >= 20 AND (t - 20) MODULO 2 = 0 AND (t - 20) / 2 < 12 THEN
+            IF SUBSTRING("WAVE CLEARED", INTEGER(TRUNCATE((t - 20) / 2, 0)) + 1, 1) <> " " THEN
+                mCanvas:DrawOverlay(SUBSTRING("WAVE CLEARED", INTEGER(TRUNCATE((t - 20) / 2, 0)) + 1, 1), 41 + INTEGER(TRUNCATE((t - 20) / 2, 0)) * 12, 100,
+                                    InvadersLook:Colour({&C-CLEAR-TOP}), InvadersLook:Colour({&C-CLEAR-BOTTOM}), 2, InvadersLook:Colour({&C-TEXT-OUTLINE})).
+        IF t = 20 THEN PaintGround(InvadersLook:Colour({&C-TEXT})).
+        IF t = 26 THEN PaintGround(InvadersLook:Colour({&C-GROUND-LINE})).
+        IF t > 26 AND t <= 60 THEN DO:
+            pos = (t - 26) * 8.
+            PaintGroundPart(pos - 16, pos - 9, InvadersLook:Colour({&C-GROUND-LINE})).
+            PaintGroundPart(pos - 8, pos - 1, InvadersLook:Colour({&C-TEXT})).
+        END.
+        IF t = 50 THEN DO:
+            nextText = "NEXT WAVE " + STRING(Wave + 1).
+            mCanvas:DrawOverlay(nextText, INTEGER(TRUNCATE(({&WIDTH} - PixelFont:WidthOf(nextText)) / 2, 0)), 120,
+                                InvadersLook:Colour({&C-TEXT-LABEL}), InvadersLook:Colour({&C-TEXT-LABEL}), 1, InvadersLook:Colour({&C-TEXT-OUTLINE})).
+        END.
+        IF t < {&CLEARED-FRAMES} THEN RETURN.
+        PaintGround(InvadersLook:Colour({&C-GROUND-LINE})).
+        mCanvas:ShowBackRect(38, 97, 150, 21).
+        mCanvas:ShowBackRect(60, 118, 110, 11).
         Wave = Wave + 1.
         mNotice = "Wave " + STRING(Wave).
         BeginWave().
@@ -714,9 +760,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         EraseBlast().
         /* the band the shields stand in, whatever is left of the old ones */
         mCanvas:ClearRect(0, {&SHIELD-Y}, {&WIDTH}, 16).
-        DO i = 0 TO 3:
-            DrawShield(i).
-        END.
+        mGhost = {&STARTING-FRAMES}.
         mRack:Reset(RackTopFor(Wave)).
         DO i = 1 TO InvaderRack:Total():
             mDrawn[i] = FALSE.
@@ -754,6 +798,15 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         mNewHi = (Score > mHiAtStart AND Score > 0).
         Lives = 0.
         PaintGround(InvadersLook:Colour({&C-OVER-TOP})).
+    END METHOD.
+
+    /* Columns piFrom to piTo of the ground line in one colour (the part off the board is ignored). */
+    METHOD PRIVATE VOID PaintGroundPart(INPUT piFrom AS INTEGER, INPUT piTo AS INTEGER, INPUT piColour AS INTEGER):
+        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        DO x = MAXIMUM(0, piFrom) TO MINIMUM({&WIDTH} - 1, piTo):
+            mCanvas:SetBack(x, {&GROUND-Y}, piColour).
+            mCanvas:ShowBack(x, {&GROUND-Y}).
+        END.
     END METHOD.
 
     /* The whole ground line in one colour (it shows once nothing is on the row), for a flash. */
@@ -899,17 +952,17 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         IF i < 0 THEN RETURN.
         EraseAlienAt(i, mRack:OldX, mRack:OldY).
         EatShields(i).
-        DrawAlien(i).
+        DrawAlien(i, FALSE).
         IF mRack:Bottom() >= {&PLAYER-Y} THEN DO:
             mInvaded = TRUE.
             KillCannon().
         END.
     END METHOD.
 
-    /* Draws one invader in as the wave starts, in the order the rack moves them. */
-    METHOD PRIVATE VOID RevealAlien(INPUT piPlace AS INTEGER):
-        DrawAlien(({&HEIGHT} * 0) + (InvaderRack:Rows() - 1 - INTEGER(TRUNCATE(piPlace / InvaderRack:Columns(), 0))) * InvaderRack:Columns()
-                  + piPlace MODULO InvaderRack:Columns()).
+    /* Draws one invader in as the wave builds, in the order the rack moves them, all in light for the first moments. */
+    METHOD PRIVATE VOID RevealAlien(INPUT piPlace AS INTEGER, INPUT plLight AS LOGICAL):
+        DrawAlien((InvaderRack:Rows() - 1 - INTEGER(TRUNCATE(piPlace / InvaderRack:Columns(), 0))) * InvaderRack:Columns()
+                  + piPlace MODULO InvaderRack:Columns(), plLight).
     END METHOD.
 
     /* An invader that walks into a shield eats the part it overlaps. */
@@ -1151,14 +1204,21 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         mSaucerOn = FALSE.
     END METHOD.
 
-    /* Draws an invader where the rack has it, in the pose the rack is in. */
-    METHOD PRIVATE VOID DrawAlien(INPUT piIndex AS INTEGER):
+    /* Draws an invader where the rack has it, in the pose the rack is in, in its row's colours of this wave. In light
+       (plLight) it is all its pale tone: while it is being built, and the last one left flickers so. */
+    METHOD PRIVATE VOID DrawAlien(INPUT piIndex AS INTEGER, INPUT plLight AS LOGICAL):
         DEFINE VARIABLE kind AS INTEGER NO-UNDO.
         DEFINE VARIABLE row  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE lit  AS LOGICAL NO-UNDO.
         kind = InvaderRack:KindOf(piIndex).
         row = InvaderRack:RowOf(piIndex).
-        mCanvas:Draw(InvadersArt:Invader(kind, mRack:Pose), mRack:X(piIndex), mRack:Y(piIndex), {&KIND-ALIEN},
-                     InvadersLook:InvaderColour(row, Wave, 1), InvadersLook:InvaderColour(row, Wave, 2), InvadersLook:InvaderColour(row, Wave, 3)).
+        lit = plLight OR (mRack:AliveCount = 1 AND INTEGER(TRUNCATE(mFrames / 6, 0)) MODULO 2 = 1).
+        IF lit THEN
+            mCanvas:Draw(InvadersArt:Invader(kind, mRack:Pose), mRack:X(piIndex), mRack:Y(piIndex), {&KIND-ALIEN},
+                         InvadersLook:InvaderColour(row, Wave, 2), InvadersLook:InvaderColour(row, Wave, 2), InvadersLook:InvaderColour(row, Wave, 2)).
+        ELSE
+            mCanvas:Draw(InvadersArt:Invader(kind, mRack:Pose), mRack:X(piIndex), mRack:Y(piIndex), {&KIND-ALIEN},
+                         InvadersLook:InvaderColour(row, Wave, 1), InvadersLook:InvaderColour(row, Wave, 2), InvadersLook:InvaderColour(row, Wave, 3)).
         mDrawn[piIndex + 1] = TRUE.
         mDrawnPose[piIndex + 1] = mRack:Pose.
     END METHOD.
@@ -1174,13 +1234,14 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         mDrawn[piIndex + 1] = FALSE.
     END METHOD.
 
-    /* A shield, cell by cell, each row a little darker than the one above. */
-    METHOD PRIVATE VOID DrawShield(INPUT piShield AS INTEGER):
+    /* One row (0 at the top, 15 at the foot) of a shield, each row a little darker than the one above. */
+    METHOD PRIVATE VOID DrawShieldRow(INPUT piShield AS INTEGER, INPUT piRow AS INTEGER):
         DEFINE VARIABLE sprite AS Sprite  NO-UNDO.
         DEFINE VARIABLE i      AS INTEGER NO-UNDO.
         sprite = InvadersArt:Picture({&ART-SHIELD}).
         DO i = 0 TO sprite:Count - 1:
-            mCanvas:Plot({&SHIELD-X} + piShield * {&SHIELD-PITCH} + sprite:CellX(i), {&SHIELD-Y} + sprite:CellY(i), {&KIND-SHIELD}, mShieldTone[sprite:CellY(i) + 1]).
+            IF sprite:CellY(i) = piRow THEN
+                mCanvas:Plot({&SHIELD-X} + piShield * {&SHIELD-PITCH} + sprite:CellX(i), {&SHIELD-Y} + piRow, {&KIND-SHIELD}, mShieldTone[piRow + 1]).
         END.
     END METHOD.
 

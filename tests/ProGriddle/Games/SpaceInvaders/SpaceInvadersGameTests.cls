@@ -218,15 +218,20 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     /* ---------------------------------- a wave drawing in ---------------------------------- */
 
-    @Test.
-    METHOD PUBLIC VOID TheWaveDrawsInOneInvaderAFrameBottomRowFirst():
+    METHOD PRIVATE VOID StartTheGame():
         mGame:Advance().
         mGame:FireHeld = TRUE.
         mGame:Advance().
         mGame:FireHeld = FALSE.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheWaveDrawsInOneInvaderAFrameBottomRowFirstFromFrameTen():
+        StartTheGame().
+        Frames(10).
         Assert:Equals(0, mGame:Canvas:CountKind({&KIND-ALIEN})).
         mGame:Advance().
-        /* invader 44 is the bottom left octopus; 43 has not been drawn yet */
+        /* invader 44 is the bottom left octopus; 33 is the one above it, and comes eleven frames later */
         Assert:Equals({&KIND-ALIEN}, mGame:Canvas:KindAt(mGame:Rack:X(44) + 4, mGame:Rack:Y(44) + 1)).
         Assert:Equals({&KIND-NONE}, mGame:Canvas:KindAt(mGame:Rack:X(33) + 4, mGame:Rack:Y(33) + 1)).
         Frames(11).
@@ -234,12 +239,61 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     END METHOD.
 
     @Test.
-    METHOD PUBLIC VOID PlayBeginsWhenTheLastInvaderIsDrawnIn():
+    METHOD PUBLIC VOID ANewInvaderIsInLightForThreeFramesAndThenInItsOwnColours():
+        StartTheGame().
+        Frames(11).
+        Assert:Equals(InvadersLook:InvaderColour(4, 1, 2), mGame:Canvas:ColourAt(mGame:Rack:X(44) + 4, mGame:Rack:Y(44) + 1)).
+        Frames(3).
+        Assert:Equals(InvadersLook:InvaderColour(4, 1, 1), mGame:Canvas:ColourAt(mGame:Rack:X(44) + 4, mGame:Rack:Y(44) + 1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheShieldsGrowFromTheFootUpOneShieldEveryFourFrames():
+        StartTheGame().
+        Frames(3).
+        Assert:Equals({&KIND-SHIELD}, mGame:Canvas:KindAt(35, 199)).
+        Assert:Equals({&KIND-NONE}, mGame:Canvas:KindAt(45, 184)).
+        Assert:Equals({&KIND-NONE}, mGame:Canvas:KindAt(79, 199)).
+        Frames(30).
+        Assert:Equals({&KIND-SHIELD}, mGame:Canvas:KindAt(45, 184)).
+        Assert:Equals({&KIND-SHIELD}, mGame:Canvas:KindAt(35 + 132 + 10, 184)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID WaveNumberAndGetReadyStayUpWhileTheWaveBuildsAndGoWhenPlayBegins():
+        StartTheGame().
+        Frames(3).
+        Assert:IsTrue(CountLit(60, 153, 110, 14) > 50, "banner").
+        Assert:IsTrue(CountLit(84, 169, 56, 9) > 20, "get ready").
+        Frames(8).
+        /* GET READY blinks: 8 frames on and 8 off */
+        Assert:Equals(0, CountLit(84, 169, 56, 9)).
+        mGame:SkipIntro().
+        Assert:Equals(0, CountLit(60, 153, 110, 14)).
+        Assert:Equals(0, CountLit(84, 169, 56, 9)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheCannonBlinksThroughTheIntroAndEndsSolid():
+        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE fewest AS INTEGER NO-UNDO INITIAL 9999.
+        DEFINE VARIABLE most   AS INTEGER NO-UNDO.
+        StartTheGame().
+        DO n = 1 TO 129:
+            mGame:Advance().
+            fewest = MINIMUM(fewest, mGame:Canvas:CountKind({&KIND-PLAYER})).
+            most = MAXIMUM(most, mGame:Canvas:CountKind({&KIND-PLAYER})).
+        END.
+        Assert:IsTrue(fewest < most).
         mGame:Advance().
-        mGame:FireHeld = TRUE.
-        mGame:Advance().
-        mGame:FireHeld = FALSE.
-        Frames(InvaderRack:Total() - 1).
+        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(most, mGame:Canvas:CountKind({&KIND-PLAYER})).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID PlayBeginsOneHundredAndThirtyFramesAfterTheWaveStarts():
+        StartTheGame().
+        Frames(129).
         Assert:Equals({&PHASE-STARTING}, mGame:Phase).
         mGame:Advance().
         Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
@@ -838,6 +892,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Assert:Equals(0, mGame:Canvas:CountKind({&KIND-SHIELD})).
         EmptyField(0).
         Frames(100).
+        mGame:SkipIntro().
         Assert:IsTrue(mGame:Canvas:CountKind({&KIND-SHIELD}) > 600).
     END METHOD.
 
@@ -1121,6 +1176,58 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Assert:Equals(0, CountLit(70, 164, 90, 7)).
         Frames(20).
         Assert:IsTrue(CountLit(70, 164, 90, 7) > 20).
+    END METHOD.
+
+    /* ---------------------------------- the wave cleared ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID ClearingAWaveFlashesTheGroundSweepsALightAlongItAndSpellsWaveCleared():
+        Play().
+        EmptyField(0).
+        mGame:Advance().
+        Assert:Equals({&PHASE-CLEARED}, mGame:Phase).
+        Frames(10).
+        Assert:Equals(0, CountLit(41, 100, 142, 14)).
+        Frames(11).
+        /* frame 21: the ground is white and the first letter is up */
+        Assert:Equals(InvadersLook:Colour({&C-TEXT}), mGame:Canvas:ColourAt(100, 232)).
+        Assert:IsTrue(CountLit(41, 100, 142, 14) > 20).
+        Frames(15).
+        Assert:IsTrue(CountLit(41, 100, 142, 14) > 120).
+        Frames(25).
+        /* frame 61: the sweep is over and the NEXT WAVE line is up */
+        Assert:Equals(InvadersLook:Colour({&C-GROUND-LINE}), mGame:Canvas:ColourAt(100, 232)).
+        Assert:Equals(InvadersLook:Colour({&C-GROUND-LINE}), mGame:Canvas:ColourAt(223, 232)).
+        Assert:IsTrue(CountLit(70, 120, 90, 7) > 20).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheClearedScreenIsTidiedAwayWhenTheNextWaveBegins():
+        Play().
+        EmptyField(0).
+        mGame:Advance().
+        Frames(91).
+        Assert:Equals({&PHASE-STARTING}, mGame:Phase).
+        Assert:Equals(0, CountLit(41, 100, 142, 14)).
+        Assert:Equals(0, CountLit(70, 120, 90, 7)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheLastInvaderLeftFlickersBetweenItsColoursAndLight():
+        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE seen AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE c    AS CHARACTER NO-UNDO.
+        Play().
+        mGame:SetPlayerX(40).
+        EmptyField(1).
+        DO n = 1 TO 60:
+            mGame:Advance().
+            /* the invader moves every frame, so look for its colours anywhere on the row it is on */
+            c = STRING(mGame:Canvas:ColourAt(mGame:Rack:X(0) + 4, mGame:Rack:Y(0) + 1)).
+            IF LOOKUP(c, seen) = 0 THEN seen = seen + (IF seen = "" THEN "" ELSE ",") + c.
+        END.
+        Assert:IsTrue(LOOKUP(STRING(InvadersLook:InvaderColour(0, 1, 1)), seen) > 0, seen).
+        Assert:IsTrue(LOOKUP(STRING(InvadersLook:InvaderColour(0, 1, 2)), seen) > 0, seen).
     END METHOD.
 
     /* ---------------------------------- contract errors ---------------------------------- */
