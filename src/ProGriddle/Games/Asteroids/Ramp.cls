@@ -4,13 +4,15 @@
      RockDebris   6 steps
      Ember        6 steps, the large saucer's debris
      Red          6 steps, the small saucer's debris
-     ShipDebris   6 steps */
+     ShipDebris   6 steps
+     Spark        4 steps, white then the three shot trail colours: rings and sparks */
 ENUM ProGriddle.Games.Asteroids.Ramp:
 
     DEFINE ENUM Exhaust = 0
                 RockDebris
                 Ember
                 Red
-                ShipDebris.
+                ShipDebris
+                Spark.
 
 END ENUM.

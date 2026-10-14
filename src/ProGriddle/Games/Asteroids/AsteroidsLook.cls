@@ -106,17 +106,25 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsLook FINAL:
     METHOD PUBLIC STATIC INTEGER RampColour(INPUT poRamp AS Ramp, INPUT piStep AS INTEGER):
         DEFINE VARIABLE firstStep AS Palette NO-UNDO.
         DEFINE VARIABLE steps AS INTEGER NO-UNDO.
-        IF NOT VALID-OBJECT(poRamp) THEN UNDO, THROW NEW GridException("A ramp is a Ramp entry, not unknown").
-        CASE poRamp:
-            WHEN Ramp:Exhaust THEN ASSIGN firstStep = Palette:Exhaust1 steps = 4.
-            WHEN Ramp:RockDebris THEN ASSIGN firstStep = Palette:RockDebris1 steps = 6.
-            WHEN Ramp:Ember THEN ASSIGN firstStep = Palette:Ember1 steps = 6.
-            WHEN Ramp:Red THEN ASSIGN firstStep = Palette:Red1 steps = 6.
-            OTHERWISE ASSIGN firstStep = Palette:ShipDebris1 steps = 6.
-        END CASE.
+        steps = RampSteps(poRamp).
         IF piStep = ? OR piStep < 0 OR piStep >= steps THEN
             UNDO, THROW NEW GridException(SUBSTITUTE("The &1 ramp has steps 0 to &2, not &3", STRING(poRamp), steps - 1, piStep)).
+        CASE poRamp:
+            WHEN Ramp:Exhaust THEN firstStep = Palette:Exhaust1.
+            WHEN Ramp:RockDebris THEN firstStep = Palette:RockDebris1.
+            WHEN Ramp:Ember THEN firstStep = Palette:Ember1.
+            WHEN Ramp:Red THEN firstStep = Palette:Red1.
+            /* the spark is Flash and then the shot trail colours, which are not next to it in the list */
+            WHEN Ramp:Spark THEN RETURN (IF piStep = 0 THEN sColours[INTEGER(Palette:Flash) + 1] ELSE sColours[INTEGER(Palette:ShotTrail1) + piStep]).
+            OTHERWISE firstStep = Palette:ShipDebris1.
+        END CASE.
         RETURN sColours[INTEGER(firstStep) + 1 + piStep].
+    END METHOD.
+
+    /* How many steps a ramp has: 4 for the exhaust and the spark, 6 for the others. */
+    METHOD PUBLIC STATIC INTEGER RampSteps(INPUT poRamp AS Ramp):
+        IF NOT VALID-OBJECT(poRamp) THEN UNDO, THROW NEW GridException("A ramp is a Ramp entry, not unknown").
+        RETURN (IF poRamp = Ramp:Exhaust OR poRamp = Ramp:Spark THEN 4 ELSE 6).
     END METHOD.
 
     /* The colour of a rock of a size (1 large, 2 medium, 3 small): grey stone that gets brighter as the rock gets
