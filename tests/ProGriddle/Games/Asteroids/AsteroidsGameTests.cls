@@ -881,6 +881,84 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Assert:Equals(x0 + 20000, mGame:Rocks:X(1)).
     END METHOD.
 
+    /* ---------------------------------- the game over screen ---------------------------------- */
+
+    /* Three ships lost and the game over screen has just begun (its first frame, tick 0). */
+    METHOD PRIVATE VOID GameOverScreen():
+        EmptySky().
+        Crash().
+        Quiet(200).
+        Crash().
+        Quiet(200).
+        Crash().
+        Quiet(90).
+        Assert:Equals(GamePhase:GameOver, mGame:Phase).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheLettersOfGameOverAppearOneEveryThreeFramesInAGradient():
+        GameOverScreen().
+        Quiet(1).
+        /* the first letter is there, the rest are not */
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:OverTop), 80, 84, 18, 1) > 0).
+        Assert:Equals(0, CellsOf(AsteroidsLook:Colour(Palette:OverTop), 100, 84, 150, 1)).
+        Quiet(3).
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:OverTop), 98, 84, 18, 1) > 0).
+        Quiet(30).
+        /* all nine letters: the top row in the top colour, the bottom row in the bottom colour */
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:OverTop), 200, 84, 40, 1) > 0).
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:OverBottom), 80, 104, 160, 1) > 0).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheScoreLineShowsTheLabelAndTheScoreInWhite():
+        GameOverScreen().
+        Quiet(10).
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:Label), 124, 116, 36, 7) > 5).
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:TextWhite), 160, 116, 40, 7) > 5).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID NewHiScoreBlinksInGoldTenFramesOnAndTenOffAndOnlyWhenTheRecordIsBeaten():
+        DEFINE VARIABLE gold AS INTEGER NO-UNDO.
+        gold = AsteroidsLook:Colour(Palette:Gold).
+        GameOverScreen().
+        Quiet(5).
+        Assert:IsFalse(mGame:NewHiScore).
+        Assert:Equals(0, CellsOf(gold, 124, 132, 100, 7)).
+        /* a record */
+        EmptySky().
+        Crash().
+        Quiet(200).
+        mGame:AddScore(50).
+        Crash().
+        Quiet(200).
+        Crash().
+        Quiet(90).
+        Assert:IsTrue(mGame:NewHiScore).
+        Quiet(5).
+        Assert:IsTrue(CellsOf(gold, 124, 132, 100, 7) > 5).
+        Quiet(10).
+        Assert:Equals(0, CellsOf(gold, 124, 132, 100, 7)).
+        Quiet(10).
+        Assert:IsTrue(CellsOf(gold, 124, 132, 100, 7) > 5).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID PressSpaceAppearsAfterNinetyFramesAndBlinksThirtySixOnAndTwentyFourOff():
+        DEFINE VARIABLE white AS INTEGER NO-UNDO.
+        white = AsteroidsLook:Colour(Palette:TextWhite).
+        GameOverScreen().
+        Quiet(89).
+        Assert:Equals(0, CellsOf(white, 127, 170, 100, 7)).
+        Quiet(1).
+        Assert:IsTrue(CellsOf(white, 127, 170, 100, 7) > 5).
+        Quiet(40).
+        Assert:Equals(0, CellsOf(white, 127, 170, 100, 7)).
+        Quiet(20).
+        Assert:IsTrue(CellsOf(white, 127, 170, 100, 7) > 5).
+    END METHOD.
+
     /* ---------------------------------- the saucers ---------------------------------- */
 
     /* Runs frames, rocks away, until the saucer has fired once (up to piMax frames). */

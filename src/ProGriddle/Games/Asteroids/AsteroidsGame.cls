@@ -1161,6 +1161,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         DrawLivesIcons().
         DrawHud().
         IF Phase = GamePhase:Playing AND mWaveT <= 90 THEN DrawWaveBanner().
+        IF Phase = GamePhase:GameOver THEN DrawGameOver().
         mCanvas:EndBatch().
         DrawSaucerShots().
         DrawShots().
@@ -1195,6 +1196,27 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         bx = INTEGER(TRUNCATE((320 - PixelFont:WidthOf(words) * 3) / 2, 0)).
         IF mWaveT >= 70 THEN Stamp(words, 3, colour, colour, edge):DrawTo(mCanvas, bx, 64).
         ELSE Stamp(words, 3, AsteroidsLook:Colour(Palette:BannerTop), AsteroidsLook:Colour(Palette:BannerBottom), edge):DrawTo(mCanvas, bx, 64).
+    END METHOD.
+
+    /* The game over screen over the drifting rocks: GAME OVER in a red gradient, one letter every 3 frames, the score, a
+       gold NEW HI-SCORE that blinks (10 frames on, 10 off) when the record fell, and after 90 frames PRESS SPACE (36 on,
+       24 off). The letters are stamps of growing beginnings of the words, so each is made once and then only copied. */
+    METHOD PRIVATE VOID DrawGameOver():
+        DEFINE VARIABLE edge   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE white  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE labelCol AS INTEGER NO-UNDO.
+        DEFINE VARIABLE shown  AS INTEGER NO-UNDO.
+        edge = AsteroidsLook:Colour(Palette:TextOutline).
+        white = AsteroidsLook:Colour(Palette:TextWhite).
+        labelCol = AsteroidsLook:Colour(Palette:Label).
+        shown = MINIMUM(9, INTEGER(TRUNCATE(mOverT / 3, 0)) + 1).
+        Stamp(SUBSTRING("GAME OVER", 1, shown), 3, AsteroidsLook:Colour(Palette:OverTop), AsteroidsLook:Colour(Palette:OverBottom), edge):DrawTo(mCanvas, 80, 84).
+        Stamp("SCORE ", 1, labelCol, labelCol, edge):DrawTo(mCanvas, 124, 116).
+        Stamp(STRING(MINIMUM(Score, 999999), "999999"), 1, white, white, edge):DrawTo(mCanvas, 124 + PixelFont:WidthOf("SCORE "), 116).
+        IF mNewHi AND INTEGER(TRUNCATE(mOverT / 10, 0)) MODULO 2 = 0 THEN
+            Stamp("NEW HI-SCORE", 1, AsteroidsLook:Colour(Palette:Gold), AsteroidsLook:Colour(Palette:Gold), edge):DrawTo(mCanvas, 124, 132).
+        IF mOverT >= {&OVER-FRAMES} AND (mOverT - {&OVER-FRAMES}) MODULO 60 < 36 THEN
+            Stamp("PRESS SPACE", 1, white, white, edge):DrawTo(mCanvas, 127, 170).
     END METHOD.
 
     /* One small ship, nine tenths of its size, for every spare ship, along the left under the score (at most six). While
