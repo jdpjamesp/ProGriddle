@@ -81,6 +81,15 @@ CLASS ProGriddle.Engine.RealTimeControllerTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID PauseGameRedrawsOnceSoAPausedPictureCanShow():
+        mController:Start().
+        mClock:Advance(200).
+        Assert:Equals(3, mRenderer:RenderCount).
+        mController:PauseGame().
+        Assert:Equals(4, mRenderer:RenderCount).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID StartAfterPauseCarriesOn():
         mController:Start().
         mClock:Advance(200).

@@ -71,10 +71,11 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsInput FINAL IMPLEMENTS IGameInput:
             RETURN "".
         END GET.
 
-    /* The game draws its own words (GAME OVER, PRESS SPACE) into the picture, so the banner is only for pause. */
+    /* Always empty: the game draws its own words (GAME OVER, PRESS SPACE, and PAUSED over a dimmed picture) into the
+       picture, so the window has no banner to add. */
     DEFINE PUBLIC PROPERTY BannerText AS CHARACTER NO-UNDO
         GET():
-            RETURN (IF mGame:Paused THEN "PAUSED" ELSE "").
+            RETURN "".
         END GET.
 
     DEFINE PUBLIC PROPERTY InfoLabel AS CHARACTER NO-UNDO

@@ -67,6 +67,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     DEFINE PRIVATE VARIABLE mPen       AS OutlinePen  NO-UNDO.
     DEFINE PRIVATE VARIABLE mAcc       AS INTEGER     NO-UNDO.
     DEFINE PRIVATE VARIABLE mFrames    AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPaused    AS LOGICAL     NO-UNDO.
     DEFINE PRIVATE VARIABLE mNotice    AS CHARACTER   NO-UNDO.
     /* the vignette: 65 colours from the middle of the screen to its edge */
     DEFINE PRIVATE VARIABLE mVignette  AS INTEGER     NO-UNDO EXTENT 65.
@@ -141,9 +142,25 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     DEFINE PRIVATE VARIABLE mDustV     AS INTEGER     NO-UNDO EXTENT {&MOVING-DUST}.
     DEFINE PRIVATE VARIABLE mDustC     AS Palette     NO-UNDO EXTENT {&MOVING-DUST}.
 
-    DEFINE PUBLIC PROPERTY Paused AS LOGICAL NO-UNDO
+    /* While false, Advance makes its frame but does not draw the picture, so a test can run hundreds of frames in
+       a moment and draw only the last one. True to begin with. Tick always draws. */
+    DEFINE PUBLIC PROPERTY Drawing AS LOGICAL NO-UNDO INITIAL TRUE
         GET.
         SET.
+
+    /* True while the game is stopped. Pausing a game that has run shows the picture dimmed once, with PAUSED over it; the
+       next frame after resuming draws a fresh picture, so nothing needs undoing. */
+    DEFINE PUBLIC PROPERTY Paused AS LOGICAL NO-UNDO
+        GET():
+            RETURN mPaused.
+        END GET.
+        SET(INPUT plPaused AS LOGICAL):
+            IF plPaused AND NOT mPaused AND mFrames > 0 THEN DO:
+                mCanvas:Dim(45).
+                Stamp("PAUSED", 3, AsteroidsLook:Colour(Palette:TextWhite), AsteroidsLook:Colour(Palette:TextWhite), AsteroidsLook:Colour(Palette:TextOutline)):DrawTo(mCanvas, 107, 100).
+            END.
+            mPaused = plPaused.
+        END SET.
 
     /* How fast the game runs, as a percentage of the real 60 frames a second: 20 to 100. Everything slows together,
        so the game stays the same game and is only easier to play. */
@@ -334,10 +351,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         RETURN made > 0.
     END METHOD.
 
-    /* One sixtieth of a second of the game, and the picture of it. */
+    /* One sixtieth of a second of the game, and the picture of it (unless Drawing is off). */
     METHOD PUBLIC VOID Advance():
         Step().
-        Render().
+        IF Drawing THEN Render().
     END METHOD.
 
     /* Starts a new game: no score, three ships, the first wave. Works from any phase. */

@@ -323,6 +323,25 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
         IF mStore:GetCellAt(mKind, idx) = {&KIND-NONE} THEN mStore:SetCellAt(mView, idx, mStore:GetCellAt(mBack, idx)).
     END METHOD.
 
+    /* Dims what is showing: every cell's colour is multiplied by piPercent percent (45 leaves a little under half
+       the brightness). The kinds and the background are not touched, so Restore undoes it. It visits the whole
+       board once, so call it once for a screen, such as a pause, not every frame. */
+    METHOD PUBLIC VOID Dim(INPUT piPercent AS INTEGER):
+        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE colour  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE lastIn  AS INTEGER NO-UNDO INITIAL ?.
+        DEFINE VARIABLE lastOut AS INTEGER NO-UNDO.
+        {&NOT-IN-BATCH}
+        DO i = 0 TO mWidth * mHeight - 1:
+            colour = mStore:GetCellAt(mView, i).
+            IF colour <> lastIn THEN DO:
+                lastIn = colour.
+                lastOut = ColourMath:Scale(colour, piPercent).
+            END.
+            mStore:SetCellAt(mView, i, lastOut).
+        END.
+    END METHOD.
+
     /* Counts the cells of one kind on the board. */
     METHOD PUBLIC INTEGER CountKind(INPUT piKind AS INTEGER):
         RETURN mStore:CountOf(mKind, piKind).

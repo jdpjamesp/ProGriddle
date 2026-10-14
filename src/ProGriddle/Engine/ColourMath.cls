@@ -41,6 +41,14 @@ CLASS ProGriddle.Engine.ColourMath FINAL:
         RETURN MINIMUM(255, MAXIMUM(0, piRed)) * 65536 + MINIMUM(255, MAXIMUM(0, piGreen)) * 256 + MINIMUM(255, MAXIMUM(0, piBlue)).
     END METHOD.
 
+    /* A colour with each of its parts multiplied by piPercent percent (50 is half as bright, 100 is unchanged). A
+       part that ends outside 0 to 255 is brought back inside. */
+    METHOD PUBLIC STATIC INTEGER Scale(INPUT piColour AS INTEGER, INPUT piPercent AS INTEGER):
+        RETURN Rgb(INTEGER(ROUND(Red(piColour) * piPercent / 100, 0)),
+                   INTEGER(ROUND(Green(piColour) * piPercent / 100, 0)),
+                   INTEGER(ROUND(Blue(piColour) * piPercent / 100, 0))).
+    END METHOD.
+
     /* The colour piPart steps of the way from piFrom to piTo, out of piSteps: 0 gives piFrom, piSteps gives
        piTo. piSteps below 1 gives piFrom. */
     METHOD PUBLIC STATIC INTEGER Mix(INPUT piFrom AS INTEGER, INPUT piTo AS INTEGER, INPUT piPart AS INTEGER, INPUT piSteps AS INTEGER):

@@ -38,9 +38,15 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     METHOD PRIVATE VOID Frames(INPUT piCount AS INTEGER):
         DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        DEFINE VARIABLE drawn AS LOGICAL NO-UNDO.
+        /* only the last frame is drawn (and none if the test turned Drawing off): a picture of every frame is what made
+           the tests slow */
+        drawn = mGame:Drawing.
         DO n = 1 TO piCount:
+            mGame:Drawing = drawn AND n = piCount.
             mGame:Advance().
         END.
+        mGame:Drawing = drawn.
     END METHOD.
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
@@ -292,11 +298,13 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         DEFINE VARIABLE wentY AS LOGICAL NO-UNDO.
         Play().
         mGame:ThrustHeld = TRUE.
+        mGame:Drawing = FALSE.
         DO i = 1 TO 400:
             mGame:Advance().
             Assert:IsTrue(mGame:ShipX >= 0 AND mGame:ShipX < 320 AND mGame:ShipY >= 0 AND mGame:ShipY < 240).
             IF mGame:ShipY > 200 THEN wentY = TRUE.
         END.
+        mGame:Drawing = TRUE.
         /* it left the top of the screen and came back at the bottom */
         Assert:IsTrue(wentY).
     END METHOD.
@@ -404,11 +412,15 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
        wave never looks cleared and the next wave's rocks cannot get in the way of a test. It is taken away at the end. */
     METHOD PRIVATE VOID Quiet(INPUT piCount AS INTEGER):
         DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        DEFINE VARIABLE drawn AS LOGICAL NO-UNDO.
+        drawn = mGame:Drawing.
         DO n = 1 TO piCount:
             mGame:Rocks:Clear().
             RockAt(3, 2, 2).
+            mGame:Drawing = drawn AND n = piCount.
             mGame:Advance().
         END.
+        mGame:Drawing = drawn.
         mGame:Rocks:Clear().
     END METHOD.
 
@@ -1000,10 +1012,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         EmptySky().
         mGame:LaunchSaucerAt(FALSE, -1, 100).
         Assert:Equals(328, mGame:SaucerX).
+        mGame:Drawing = FALSE.
         DO WHILE mGame:SaucerActive AND n < 400:
             Quiet(1).
             n = n + 1.
         END.
+        mGame:Drawing = TRUE.
         Assert:IsFalse(mGame:SaucerActive).
         Assert:IsTrue(n >= 300 AND n <= 345, STRING(n)).
     END METHOD.
@@ -1178,6 +1192,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         DEFINE VARIABLE was   AS LOGICAL NO-UNDO.
         DEFINE VARIABLE small AS LOGICAL NO-UNDO.
         EmptySky().
+        mGame:Drawing = FALSE.
         DO n = 1 TO 1500:
             Quiet(1).
             IF mGame:SaucerActive AND NOT was THEN DO:
@@ -1186,6 +1201,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
             END.
             was = mGame:SaucerActive.
         END.
+        mGame:Drawing = TRUE.
         Assert:Equals(1, seen).
         Assert:IsFalse(small).
     END METHOD.
@@ -1560,6 +1576,68 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Assert:Equals(0, mGame:ShipVY).
         mGame:Paused = FALSE.
         Assert:IsTrue(mGame:Tick(100)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID PausingAGameThatHasRunDimsThePictureOnceAndShowsPaused():
+        DEFINE VARIABLE white AS INTEGER NO-UNDO.
+        DEFINE VARIABLE sky   AS INTEGER NO-UNDO.
+        white = AsteroidsLook:Colour(Palette:TextWhite).
+        sky = mGame:Canvas:BackAt(2, 235).
+        Play().
+        Quiet(5).
+        Assert:Equals(sky, mGame:Canvas:ColourAt(2, 235)).
+        Assert:Equals(0, CellsOf(white, 107, 100, 110, 21)).
+        mGame:Paused = TRUE.
+        Assert:Equals(ColourMath:Scale(sky, 45), mGame:Canvas:ColourAt(2, 235)).
+        Assert:IsTrue(CellsOf(white, 107, 100, 110, 21) > 20).
+        /* pausing again does not dim it twice */
+        mGame:Paused = TRUE.
+        Assert:Equals(ColourMath:Scale(sky, 45), mGame:Canvas:ColourAt(2, 235)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ThePausedPictureIsGoneAtTheNextFrameAfterResuming():
+        DEFINE VARIABLE white AS INTEGER NO-UNDO.
+        white = AsteroidsLook:Colour(Palette:TextWhite).
+        Play().
+        Quiet(5).
+        mGame:Paused = TRUE.
+        mGame:Paused = FALSE.
+        Frames(1).
+        Assert:Equals(mGame:Canvas:BackAt(2, 235), mGame:Canvas:ColourAt(2, 235)).
+        Assert:Equals(0, CellsOf(white, 107, 100, 110, 21)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID WithDrawingOffAFrameIsMadeButNotDrawn():
+        DEFINE VARIABLE core AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y0   AS INTEGER NO-UNDO.
+        core = AsteroidsLook:Colour(Palette:ShipCore).
+        Assert:IsTrue(mGame:Drawing).
+        Play().
+        Assert:Equals(core, mGame:Canvas:ColourAt(160, 114)).
+        y0 = mGame:ShipY.
+        mGame:ThrustHeld = TRUE.
+        mGame:Drawing = FALSE.
+        DO WHILE mGame:ShipY = y0:
+            mGame:Advance().
+        END.
+        /* the frames were made and the ship has moved, but the picture still shows the ship where it was */
+        Assert:IsTrue(mGame:ShipY <> y0).
+        Assert:Equals(core, mGame:Canvas:ColourAt(160, 114)).
+        mGame:Drawing = TRUE.
+        mGame:Advance().
+        Assert:IsTrue(mGame:ShipY <> y0).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID APauseBeforeTheGameHasRunShowsNothing():
+        DEFINE VARIABLE sky AS INTEGER NO-UNDO.
+        sky = mGame:Canvas:BackAt(2, 235).
+        mGame:Paused = TRUE.
+        Assert:Equals(sky, mGame:Canvas:ColourAt(2, 235)).
+        Assert:Equals(0, CellsOf(AsteroidsLook:Colour(Palette:TextWhite), 107, 100, 110, 21)).
     END METHOD.
 
     /* ---------------------------------- the rest of the surface ---------------------------------- */

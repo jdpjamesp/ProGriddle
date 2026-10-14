@@ -167,11 +167,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsInputTests:
     END METHOD.
 
     @Test.
-    METHOD PUBLIC VOID TheBannerSaysPausedOnlyWhilePaused():
+    METHOD PUBLIC VOID TheWindowBannerIsAlwaysEmptyBecauseTheGameDrawsItsOwnPausedScreen():
         Assert:Equals("", mInput:BannerText).
         mGame:Paused = TRUE.
-        Assert:Equals("PAUSED", mInput:BannerText).
-        mGame:Paused = FALSE.
         Assert:Equals("", mInput:BannerText).
     END METHOD.
 

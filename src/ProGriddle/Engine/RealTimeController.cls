@@ -57,9 +57,12 @@ CLASS ProGriddle.Engine.RealTimeController FINAL IMPLEMENTS IGameController:
         mClock:Start().
     END METHOD.
 
+    /* Stops the clock and pauses the game, then redraws once so a game that shows something while paused (a dimmed
+       picture, a banner of its own) can put it up. */
     METHOD PUBLIC VOID PauseGame():
         mGame:Paused = TRUE.
         mClock:Stop().
+        Redraw().
     END METHOD.
 
     /* Starts a new game and runs it. */

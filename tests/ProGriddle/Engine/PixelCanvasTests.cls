@@ -203,6 +203,20 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
         Assert:Equals(120 - 4 - 4, mCanvas:CountKind({&KIND-SHIELD})).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID DimScalesEveryShowingColourButNotTheKindsOrTheBackground():
+        mCanvas:Plot(2, 3, {&KIND-SHOT}, ColourMath:Rgb(200, 100, 40)).
+        mCanvas:Dim(50).
+        Assert:Equals(ColourMath:Rgb(100, 50, 20), mCanvas:ColourAt(2, 3)).
+        Assert:Equals({&KIND-SHOT}, mCanvas:KindAt(2, 3)).
+        /* the sky was colour 100: blue 100 becomes 50 */
+        Assert:Equals(50, mCanvas:ColourAt(7, 7)).
+        Assert:Equals(100, mCanvas:BackAt(7, 7)).
+        /* Restore puts the picture back */
+        mCanvas:Restore().
+        Assert:Equals(100, mCanvas:ColourAt(7, 7)).
+    END METHOD.
+
     /* ---- the background ---- */
 
     @Test.

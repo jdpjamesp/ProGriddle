@@ -72,4 +72,19 @@ CLASS ProGriddle.Engine.ColourMathTests:
         Assert:Equals(ColourMath:Rgb(100, 100, 100), ColourMath:Mix(start, dest, 1, 2)).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID ScaleMultipliesEachPartByAPercentage():
+        Assert:Equals(ColourMath:Rgb(100, 50, 0), ColourMath:Scale(ColourMath:Rgb(200, 100, 0), 50)).
+        Assert:Equals(ColourMath:Rgb(20, 40, 60), ColourMath:Scale(ColourMath:Rgb(20, 40, 60), 100)).
+        Assert:Equals(0, ColourMath:Scale(ColourMath:Rgb(20, 40, 60), 0)).
+        /* 244 * 45 percent is 109.8, which rounds to 110 */
+        Assert:Equals(ColourMath:Rgb(110, 0, 0), ColourMath:Scale(ColourMath:Rgb(244, 0, 0), 45)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ScaleKeepsEachPartInRange():
+        Assert:Equals(ColourMath:Rgb(255, 255, 255), ColourMath:Scale(ColourMath:Rgb(200, 200, 200), 500)).
+        Assert:Equals(0, ColourMath:Scale(ColourMath:Rgb(200, 200, 200), -20)).
+    END METHOD.
+
 END CLASS.
