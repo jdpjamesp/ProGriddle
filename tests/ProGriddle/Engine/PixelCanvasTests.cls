@@ -217,6 +217,57 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
         Assert:Equals(100, mCanvas:ColourAt(7, 7)).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID BakeViewMakesWhatIsShowingTheNewBackgroundSoRestoreKeepsIt():
+        mCanvas:Plot(3, 4, {&KIND-SHOT}, 777).
+        mCanvas:BakeView().
+        Assert:Equals(777, mCanvas:BackAt(3, 4)).
+        Assert:Equals(100, mCanvas:BackAt(4, 4)).
+        mCanvas:Plot(5, 5, {&KIND-SHOT}, 888).
+        mCanvas:Restore().
+        Assert:Equals(777, mCanvas:ColourAt(3, 4)).
+        /* what was plotted after the bake is gone, and so is the kind of what was baked */
+        Assert:Equals(100, mCanvas:ColourAt(5, 5)).
+        Assert:Equals(0, mCanvas:KindAt(3, 4)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID LoadBackCopiesTheBackgroundOfAnotherCanvasOfTheSameSize():
+        DEFINE VARIABLE grid2   AS Grid        NO-UNDO.
+        DEFINE VARIABLE other   AS PixelCanvas NO-UNDO.
+        DEFINE VARIABLE thrown  AS INTEGER     NO-UNDO.
+        DEFINE VARIABLE small1  AS Grid        NO-UNDO.
+        DEFINE VARIABLE canvas3 AS PixelCanvas NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            grid2 = NEW Grid(NEW ArrayStore(12, 10, "view,kind,back")).
+            other = NEW PixelCanvas(grid2).
+            other:SetBack(2, 2, 555).
+            other:SetBack(11, 9, 666).
+            mCanvas:LoadBack(other).
+            Assert:Equals(555, mCanvas:BackAt(2, 2)).
+            Assert:Equals(666, mCanvas:BackAt(11, 9)).
+            /* the view is not touched until Restore */
+            Assert:Equals(100, mCanvas:ColourAt(2, 2)).
+            mCanvas:Restore().
+            Assert:Equals(555, mCanvas:ColourAt(2, 2)).
+            small1 = NEW Grid(NEW ArrayStore(5, 5, "view,kind,back")).
+            canvas3 = NEW PixelCanvas(small1).
+            DO ON ERROR UNDO, THROW:
+                mCanvas:LoadBack(canvas3).
+                CATCH e1 AS GridException:
+                    thrown = thrown + 1.
+                END CATCH.
+            END.
+            Assert:Equals(1, thrown).
+            FINALLY:
+                IF VALID-OBJECT(other) THEN other:Dispose().
+                IF VALID-OBJECT(canvas3) THEN canvas3:Dispose().
+                IF VALID-OBJECT(grid2) THEN grid2:Dispose().
+                IF VALID-OBJECT(small1) THEN small1:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
     /* ---- the background ---- */
 
     @Test.

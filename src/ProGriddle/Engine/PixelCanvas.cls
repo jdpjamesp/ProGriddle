@@ -138,6 +138,58 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
         IF NOT mBatch THEN mStore:CopyBytesFrom(mWork).
     END METHOD.
 
+    /* Makes what is showing the new background: the colours of the view layer are copied into the back layer, so a
+       Restore brings them back. For a picture that is built up and then stays (the settled blocks of a puzzle game),
+       so it costs nothing to draw again each frame. Kinds are not part of the background. One block copy. */
+    METHOD PUBLIC VOID BakeView():
+        DEFINE VARIABLE bytes AS INTEGER NO-UNDO.
+        bytes = mWidth * mHeight * 4.
+        IF GET-SIZE(mWork) <> bytes * 3 THEN DO:
+            SET-SIZE(mWork) = 0.
+            SET-SIZE(mWork) = bytes * 3.
+        END.
+        IF NOT mBatch THEN mStore:CopyBytesTo(mWork).
+        COPY-LOB FROM mWork STARTING AT (mView - 1) * bytes + 1 FOR bytes TO mWork OVERLAY AT (mBack - 1) * bytes + 1.
+        IF NOT mBatch THEN mStore:CopyBytesFrom(mWork).
+    END METHOD.
+
+    /* Copies the background (the back layer) of another canvas of the same size into this one. The view is not touched
+       until the next Restore. For going back to a plain background that was made once and kept. Throws GridException
+       for a canvas of another size or no canvas, or while a batch is open. */
+    METHOD PUBLIC VOID LoadBack(INPUT poOther AS PixelCanvas):
+        DEFINE VARIABLE bytes AS INTEGER NO-UNDO.
+        DEFINE VARIABLE tmp   AS MEMPTR  NO-UNDO.
+        IF NOT VALID-OBJECT(poOther) THEN UNDO, THROW NEW GridException("There is no canvas to copy the background from").
+        IF poOther:Width <> mWidth OR poOther:Height <> mHeight THEN
+            UNDO, THROW NEW GridException(SUBSTITUTE("A background of &1 x &2 does not fit a canvas of &3 x &4", poOther:Width, poOther:Height, mWidth, mHeight)).
+        {&NOT-IN-BATCH}
+        bytes = mWidth * mHeight * 4.
+        DO ON ERROR UNDO, THROW:
+            SET-SIZE(tmp) = bytes * 3.
+            poOther:CopyAllTo(tmp).
+            IF GET-SIZE(mWork) <> bytes * 3 THEN DO:
+                SET-SIZE(mWork) = 0.
+                SET-SIZE(mWork) = bytes * 3.
+            END.
+            mStore:CopyBytesTo(mWork).
+            COPY-LOB FROM tmp STARTING AT (poOther:BackLayer() - 1) * bytes + 1 FOR bytes TO mWork OVERLAY AT (mBack - 1) * bytes + 1.
+            mStore:CopyBytesFrom(mWork).
+            FINALLY:
+                SET-SIZE(tmp) = 0.
+            END FINALLY.
+        END.
+    END METHOD.
+
+    /* The three layers as bytes, for LoadBack. */
+    METHOD PRIVATE VOID CopyAllTo(INPUT-OUTPUT pmBytes AS MEMPTR):
+        mStore:CopyBytesTo(pmBytes).
+    END METHOD.
+
+    /* The place of the back layer, for LoadBack. */
+    METHOD PRIVATE INTEGER BackLayer():
+        RETURN mBack.
+    END METHOD.
+
     /* Starts a batch of lines: the board is copied into the canvas's work memory, and DrawLine writes into
        that until EndBatch. Faster than drawing a line a cell at a time through the store. Throws GridException
        if a batch is already open. */
