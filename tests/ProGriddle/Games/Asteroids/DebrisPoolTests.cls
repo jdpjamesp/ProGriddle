@@ -327,6 +327,54 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
         END.
     END METHOD.
 
+    /* ---------------------------------- rings ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID ARingIsEvenlySpacedCellsFromStraightUpAtItsRadiusMovingOut():
+        mPool:Ring(160 * 4096, 120 * 4096, 8, 3, 4096, 10, Ramp:Spark).
+        Assert:Equals(8, mPool:Count).
+        Assert:Equals(160, mPool:X(0)).
+        Assert:Equals(117, mPool:Y(0)).
+        Assert:Equals(163, mPool:X(2)).
+        Assert:Equals(120, mPool:Y(2)).
+        Assert:Equals(160, mPool:X(4)).
+        Assert:Equals(123, mPool:Y(4)).
+        Steps(2).
+        Assert:Equals(160, mPool:X(0)).
+        Assert:Equals(115, mPool:Y(0)).
+        Assert:Equals(AsteroidsLook:RampColour(Ramp:Spark, 0), mPool:ColourOf(0)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ANegativeSpeedMakesTheRingCloseInOnItsMiddleAndTenCellsMakeTenPieces():
+        mPool:Ring(160 * 4096, 120 * 4096, 10, 12, -4096, 12, Ramp:SparkIn).
+        Assert:Equals(10, mPool:Count).
+        Assert:Equals(108, mPool:Y(0)).
+        Steps(11).
+        /* a cell a step for eleven steps: from twelve cells out to one */
+        Assert:Equals(119, mPool:Y(0)).
+        Steps(1).
+        Assert:Equals(0, mPool:Count).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ARingRefusesNoCellsAndNegativeRadius():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            mPool:Ring(0, 0, 0, 3, 4096, 10, Ramp:Spark).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mPool:Ring(0, 0, 8, -1, 4096, 10, Ramp:Spark).
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(2, thrown).
+    END METHOD.
+
     /* ---------------------------------- saucers exploding ---------------------------------- */
 
     @Test.

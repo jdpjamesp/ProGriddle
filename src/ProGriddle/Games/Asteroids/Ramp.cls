@@ -5,7 +5,9 @@
      Ember        6 steps, the large saucer's debris
      Red          6 steps, the small saucer's debris
      ShipDebris   6 steps
-     Spark        4 steps, white then the three shot trail colours: rings and sparks */
+     Spark        4 steps, white then the three shot trail colours: rings and sparks
+     SparkIn      4 steps, the spark colours the other way round (the ring that closes in on a ship coming back)
+     Warm         3 steps, the first three ember colours (the extra ring of a failed jump) */
 ENUM ProGriddle.Games.Asteroids.Ramp:
 
     DEFINE ENUM Exhaust = 0
@@ -13,6 +15,8 @@ ENUM ProGriddle.Games.Asteroids.Ramp:
                 Ember
                 Red
                 ShipDebris
-                Spark.
+                Spark
+                SparkIn
+                Warm.
 
 END ENUM.

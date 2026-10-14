@@ -298,6 +298,23 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
         END.
     END METHOD.
 
+    /* A ring of piCount cells round (piX, piY), evenly spaced from straight up, each piRadius cells out and moving
+       outward at piSpeed (4096ths of a cell a step; a negative speed closes the ring in on its middle) for piLife steps,
+       in the colours of a ramp. Throws GridException for no cells or a negative radius. */
+    METHOD PUBLIC VOID Ring(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piCount AS INTEGER, INPUT piRadius AS INTEGER,
+                            INPUT piSpeed AS INTEGER, INPUT piLife AS INTEGER, INPUT poRamp AS Ramp):
+        DEFINE VARIABLE k   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dir AS INTEGER NO-UNDO.
+        IF piCount = ? OR piCount < 1 THEN UNDO, THROW NEW GridException("A ring has 1 cell or more, not " + STRING(piCount)).
+        IF piRadius = ? OR piRadius < 0 THEN UNDO, THROW NEW GridException("A ring has a radius of 0 or more, not " + STRING(piRadius)).
+        DO k = 0 TO piCount - 1:
+            dir = INTEGER(TRUNCATE(k * 64 / piCount, 0)).
+            AddCell(piX + INTEGER(TRUNCATE(Heading:DirX(dir) * piRadius * {&UNIT} / 1024, 0)), piY + INTEGER(TRUNCATE(Heading:DirY(dir) * piRadius * {&UNIT} / 1024, 0)),
+                    INTEGER(TRUNCATE(Heading:DirX(dir) * piSpeed / 1024, 0)), INTEGER(TRUNCATE(Heading:DirY(dir) * piSpeed / 1024, 0)),
+                    1000, piLife, poRamp).
+        END.
+    END METHOD.
+
     /* One step: every piece moves, slows, turns and ages, and the ones whose life is over go. */
     METHOD PUBLIC VOID Step():
         DEFINE VARIABLE i AS INTEGER NO-UNDO.

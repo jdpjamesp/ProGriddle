@@ -37,6 +37,18 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsLookTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID TheSparkInRampRunsTheSparkColoursBackwardsAndTheWarmRampIsTheFirstThreeEmbers():
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShotTrail3), AsteroidsLook:RampColour(Ramp:SparkIn, 0)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShotTrail2), AsteroidsLook:RampColour(Ramp:SparkIn, 1)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShotTrail1), AsteroidsLook:RampColour(Ramp:SparkIn, 2)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:Flash), AsteroidsLook:RampColour(Ramp:SparkIn, 3)).
+        Assert:Equals(4, AsteroidsLook:RampSteps(Ramp:SparkIn)).
+        Assert:Equals(AsteroidsLook:RampColour(Ramp:Ember, 0), AsteroidsLook:RampColour(Ramp:Warm, 0)).
+        Assert:Equals(AsteroidsLook:RampColour(Ramp:Ember, 2), AsteroidsLook:RampColour(Ramp:Warm, 2)).
+        Assert:Equals(3, AsteroidsLook:RampSteps(Ramp:Warm)).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID RampsHaveFourOrSixStepsAndRefuseTheRest():
         DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
         Assert:Equals(ColourMath:FromHex("FFC24D"), AsteroidsLook:RampColour(Ramp:Exhaust, 0)).
