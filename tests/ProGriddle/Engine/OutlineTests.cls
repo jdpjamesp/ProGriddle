@@ -128,4 +128,51 @@ CLASS ProGriddle.Engine.OutlineTests:
         Assert:Equals(4, thrown).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID DrawToTurnsMovesAndRoundsTheShapeOntoACanvas():
+        DEFINE VARIABLE grid   AS Grid        NO-UNDO.
+        DEFINE VARIABLE canvas AS PixelCanvas NO-UNDO.
+        grid = NEW Grid(NEW ArrayStore(30, 20, "view,kind,back")).
+        canvas = NEW PixelCanvas(grid).
+        NEW Outline("open 0,0 0,-4"):DrawTo(canvas, 10 * 256, 10 * 256, 16, 1, 777, 0, 0).
+        Assert:Equals(777, canvas:ColourAt(10, 10)).
+        Assert:Equals(777, canvas:ColourAt(14, 10)).
+        Assert:Equals(5, canvas:CountKind(1)).
+        NEW Outline("open 0,0 0,-4"):DrawTo(canvas, 10 * 256, 10 * 256, 0, 2, 888, 5, 3).
+        Assert:Equals(888, canvas:ColourAt(15, 13)).
+        Assert:Equals(888, canvas:ColourAt(15, 9)).
+        canvas:Dispose().
+        grid:Dispose().
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID DrawToRefusesNoCanvasAndALineOfMoreThan64Points():
+        DEFINE VARIABLE grid   AS Grid        NO-UNDO.
+        DEFINE VARIABLE canvas AS PixelCanvas NO-UNDO.
+        DEFINE VARIABLE spec   AS CHARACTER   NO-UNDO.
+        DEFINE VARIABLE i      AS INTEGER     NO-UNDO.
+        DEFINE VARIABLE thrown AS INTEGER     NO-UNDO.
+        grid = NEW Grid(NEW ArrayStore(30, 20, "view,kind,back")).
+        canvas = NEW PixelCanvas(grid).
+        DO ON ERROR UNDO, THROW:
+            NEW Outline("open 0,0 1,1"):DrawTo(?, 0, 0, 0, 1, 1, 0, 0).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        spec = "open".
+        DO i = 1 TO 65:
+            spec = spec + " " + STRING(i MODULO 7) + ",0".
+        END.
+        DO ON ERROR UNDO, THROW:
+            NEW Outline(spec):DrawTo(canvas, 0, 0, 0, 1, 1, 0, 0).
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(2, thrown).
+        canvas:Dispose().
+        grid:Dispose().
+    END METHOD.
+
 END CLASS.

@@ -544,6 +544,127 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
         Assert:Equals(4, mCanvas:CountKind({&KIND-FX})).
     END METHOD.
 
+    /* ---- batches of lines ---- */
+
+    METHOD PRIVATE LOGICAL Refused(INPUT piWhich AS INTEGER):
+        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            CASE piWhich:
+                WHEN 1 THEN mCanvas:BeginBatch().
+                WHEN 2 THEN mCanvas:EndBatch().
+                WHEN 3 THEN mCanvas:Plot(1, 1, {&KIND-FX}, 5).
+                WHEN 4 THEN mCanvas:Unplot(1, 1).
+                WHEN 5 THEN mCanvas:Erase(mSprite, 0, 0, {&KIND-ALIEN}).
+                WHEN 6 THEN mCanvas:Draw(mSprite, 0, 0, {&KIND-ALIEN}, 1, 2, 3).
+                WHEN 7 THEN mCanvas:DrawText("I", 0, 0, 5).
+                WHEN 8 THEN mCanvas:ClearRect(0, 0, 3, 3).
+                WHEN 9 THEN mCanvas:ShowBackRect(0, 0, 3, 3).
+                WHEN 10 THEN mCanvas:SetBack(1, 1, 5).
+                WHEN 11 THEN mCanvas:DrawOverlay("I", 0, 0, 1, 1, 1, -1).
+                WHEN 12 THEN mCanvas:DrawTextScaled("I", 0, 0, 1, 1, 1).
+            END CASE.
+            CATCH e AS GridException:
+                thrown = TRUE.
+            END CATCH.
+        END.
+        RETURN thrown.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID LinesInABatchShowOnlyWhenTheBatchEnds():
+        mCanvas:BeginBatch().
+        mCanvas:DrawLine(1, 2, 6, 2, {&KIND-FX}, 777).
+        Assert:Equals(100, mCanvas:ColourAt(3, 2)).
+        mCanvas:EndBatch().
+        Assert:Equals(777, mCanvas:ColourAt(1, 2)).
+        Assert:Equals(777, mCanvas:ColourAt(6, 2)).
+        Assert:Equals({&KIND-FX}, mCanvas:KindAt(3, 2)).
+        Assert:Equals(100, mCanvas:ColourAt(7, 2)).
+        Assert:Equals(6, mCanvas:CountKind({&KIND-FX})).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ABatchKeepsWhatWasOnTheBoardAndClipsAtTheEdges():
+        mCanvas:Plot(9, 9, {&KIND-ALIEN}, 555).
+        mCanvas:BeginBatch().
+        mCanvas:DrawLine(-5, 3, 30, 3, {&KIND-FX}, 777).
+        mCanvas:DrawLine(100, 100, 200, 200, {&KIND-FX}, 777).
+        mCanvas:EndBatch().
+        Assert:Equals(555, mCanvas:ColourAt(9, 9)).
+        Assert:Equals({&KIND-ALIEN}, mCanvas:KindAt(9, 9)).
+        Assert:Equals(12, mCanvas:CountKind({&KIND-FX})).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ABatchGivesTheSameCellsAsLinesOutsideOne():
+        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        DEFINE VARIABLE alike AS LOGICAL NO-UNDO INITIAL TRUE.
+        DEFINE VARIABLE viaStore AS INTEGER NO-UNDO EXTENT 120.
+        mCanvas:DrawLine(0, 0, 11, 9, {&KIND-FX}, 777).
+        mCanvas:DrawLine(11, 0, 0, 7, {&KIND-BOMB}, 888).
+        DO y = 0 TO 9:
+            DO x = 0 TO 11:
+                viaStore[y * 12 + x + 1] = mCanvas:ColourAt(x, y) * 10 + mCanvas:KindAt(x, y).
+            END.
+        END.
+        mCanvas:Restore().
+        mCanvas:BeginBatch().
+        mCanvas:DrawLine(0, 0, 11, 9, {&KIND-FX}, 777).
+        mCanvas:DrawLine(11, 0, 0, 7, {&KIND-BOMB}, 888).
+        mCanvas:EndBatch().
+        DO y = 0 TO 9:
+            DO x = 0 TO 11:
+                IF viaStore[y * 12 + x + 1] <> mCanvas:ColourAt(x, y) * 10 + mCanvas:KindAt(x, y) THEN alike = FALSE.
+            END.
+        END.
+        Assert:IsTrue(alike).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID RestoreInsideABatchClearsTheBatchPicture():
+        mCanvas:BeginBatch().
+        mCanvas:DrawLine(1, 2, 6, 2, {&KIND-FX}, 777).
+        mCanvas:Restore().
+        mCanvas:DrawLine(1, 5, 6, 5, {&KIND-FX}, 777).
+        mCanvas:EndBatch().
+        Assert:Equals(100, mCanvas:ColourAt(3, 2)).
+        Assert:Equals(777, mCanvas:ColourAt(3, 5)).
+        Assert:Equals(6, mCanvas:CountKind({&KIND-FX})).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ABatchCanBeRunAgainAndAgain():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO 5:
+            mCanvas:Restore().
+            mCanvas:BeginBatch().
+            mCanvas:DrawLine(0, i, 11, i, {&KIND-FX}, 777).
+            mCanvas:EndBatch().
+            Assert:Equals(12, mCanvas:CountKind({&KIND-FX})).
+            Assert:Equals(777, mCanvas:ColourAt(5, i)).
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheBatchRulesAreEnforcedSoAHalfDrawnPictureCannotBeLost():
+        Assert:IsTrue(Refused(2)).
+        mCanvas:BeginBatch().
+        Assert:IsTrue(Refused(1)).
+        Assert:IsTrue(Refused(3)).
+        Assert:IsTrue(Refused(4)).
+        Assert:IsTrue(Refused(5)).
+        Assert:IsTrue(Refused(6)).
+        Assert:IsTrue(Refused(7)).
+        Assert:IsTrue(Refused(8)).
+        Assert:IsTrue(Refused(9)).
+        Assert:IsTrue(Refused(10)).
+        Assert:IsTrue(Refused(11)).
+        Assert:IsTrue(Refused(12)).
+        mCanvas:EndBatch().
+        Assert:IsFalse(Refused(3)).
+    END METHOD.
+
     @Test.
     METHOD PUBLIC VOID ALineOfKindZeroStillColoursItsCellsAndLeavesTheBackgroundAlone():
         mCanvas:DrawLine(1, 1, 5, 1, {&KIND-NONE}, 777).

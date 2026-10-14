@@ -96,6 +96,55 @@ CLASS ProGriddle.Engine.Outline FINAL:
         RETURN 64.
     END METHOD.
 
+    /* Draws the outline on a canvas with its origin at (piX, piY), in 256ths of a cell, turned to heading
+       piHeading (any whole number, it is wrapped to 0 to 63), every cell taking piKind and piColour. Each point
+       is turned, moved and rounded to the nearest cell (halves go up), then joined to the one before it. piOffsetX
+       and piOffsetY move the whole picture by whole cells. This is the work of OutlinePen, which adds wrapping
+       at the edges of the board: it is here because it reads the points directly, which is a good deal faster
+       than asking for each one. A line of more than 64 points is refused. */
+    METHOD PUBLIC VOID DrawTo(INPUT poCanvas AS PixelCanvas, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piHeading AS INTEGER,
+                              INPUT piKind AS INTEGER, INPUT piColour AS INTEGER, INPUT piOffsetX AS INTEGER, INPUT piOffsetY AS INTEGER):
+        DEFINE VARIABLE sn     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cs     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE baseX  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE baseY  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE l      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE p      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE origin AS INTEGER NO-UNDO.
+        DEFINE VARIABLE v      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE prevX  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE prevY  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE startX AS INTEGER NO-UNDO.
+        DEFINE VARIABLE startY AS INTEGER NO-UNDO.
+        IF NOT VALID-OBJECT(poCanvas) THEN UNDO, THROW NEW GridException("There is no canvas to draw on").
+        sn = Heading:Sin(piHeading).
+        cs = Heading:Cos(piHeading).
+        /* the position in 65536ths of a cell, with the rounding half and a lift of 1024 cells so that
+           every value is positive and can be divided exactly with MODULO */
+        baseX = piX * 256 + 32768 + 67108864.
+        baseY = piY * 256 + 32768 + 67108864.
+        DO l = 1 TO LineCount:
+            n = mCount[l].
+            IF n > 64 THEN UNDO, THROW NEW GridException("A line is drawn up to 64 points, not " + STRING(n)).
+            origin = mStart[l].
+            DO p = 1 TO n:
+                v = baseX + mXs[origin + p] * cs - mYs[origin + p] * sn.
+                x = (v - v MODULO 65536) / 65536 - 1024 + piOffsetX.
+                v = baseY + mXs[origin + p] * sn + mYs[origin + p] * cs.
+                y = (v - v MODULO 65536) / 65536 - 1024 + piOffsetY.
+                IF p = 1 THEN ASSIGN startX = x
+                                     startY = y.
+                ELSE poCanvas:DrawLine(prevX, prevY, x, y, piKind, piColour).
+                ASSIGN prevX = x
+                       prevY = y.
+            END.
+            IF mClosed[l] THEN poCanvas:DrawLine(prevX, prevY, startX, startY, piKind, piColour).
+        END.
+    END METHOD.
+
     /* True when the last point of line piLine (1 to LineCount) joins back to the first. */
     METHOD PUBLIC LOGICAL IsClosed(INPUT piLine AS INTEGER):
         CheckLine(piLine).

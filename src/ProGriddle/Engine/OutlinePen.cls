@@ -18,12 +18,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.OutlinePen FINAL:
 
-    /* adds a whole number of cells so every value is positive before it is divided and rounded */
     &SCOPED-DEFINE LIFT 1024
 
     DEFINE PRIVATE VARIABLE mCanvas AS PixelCanvas NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWx     AS INTEGER     NO-UNDO EXTENT 64.
-    DEFINE PRIVATE VARIABLE mWy     AS INTEGER     NO-UNDO EXTENT 64.
 
     CONSTRUCTOR PUBLIC OutlinePen(INPUT poCanvas AS PixelCanvas):
         IF NOT VALID-OBJECT(poCanvas) THEN UNDO, THROW NEW GridException("A pen needs a canvas").
@@ -35,33 +32,8 @@ CLASS ProGriddle.Engine.OutlinePen FINAL:
        whole picture by whole cells: draw the same shape four times with offsets of one cell for a halo. */
     METHOD PUBLIC VOID Draw(INPUT poOutline AS Outline, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piHeading AS INTEGER,
                             INPUT piKind AS INTEGER, INPUT piColour AS INTEGER, INPUT piOffsetX AS INTEGER, INPUT piOffsetY AS INTEGER):
-        DEFINE VARIABLE sn    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cs    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE baseX AS INTEGER NO-UNDO.
-        DEFINE VARIABLE baseY AS INTEGER NO-UNDO.
-        DEFINE VARIABLE l     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE p     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ly    AS INTEGER NO-UNDO.
         IF NOT VALID-OBJECT(poOutline) THEN UNDO, THROW NEW GridException("There is no outline to draw").
-        sn = Heading:Sin(piHeading).
-        cs = Heading:Cos(piHeading).
-        /* position in 65536ths of a cell, with the rounding half and the lift added */
-        baseX = piX * 256 + 32768 + {&LIFT} * 65536.
-        baseY = piY * 256 + 32768 + {&LIFT} * 65536.
-        DO l = 1 TO poOutline:LineCount:
-            n = poOutline:PointCount(l).
-            IF n > 64 THEN UNDO, THROW NEW GridException("A pen draws lines of up to 64 points, not " + STRING(n)).
-            DO p = 1 TO n:
-                lx = poOutline:PointX(l, p).
-                ly = poOutline:PointY(l, p).
-                mWx[p] = INTEGER(TRUNCATE((baseX + lx * cs - ly * sn) / 65536, 0)) - {&LIFT} + piOffsetX.
-                mWy[p] = INTEGER(TRUNCATE((baseY + lx * sn + ly * cs) / 65536, 0)) - {&LIFT} + piOffsetY.
-                IF p > 1 THEN mCanvas:DrawLine(mWx[p - 1], mWy[p - 1], mWx[p], mWy[p], piKind, piColour).
-            END.
-            IF poOutline:IsClosed(l) THEN mCanvas:DrawLine(mWx[n], mWy[n], mWx[1], mWy[1], piKind, piColour).
-        END.
+        poOutline:DrawTo(mCanvas, piX, piY, piHeading, piKind, piColour, piOffsetX, piOffsetY).
     END METHOD.
 
     /* The same, and again on the far side of every edge it comes within piExtent cells of (the board wraps).

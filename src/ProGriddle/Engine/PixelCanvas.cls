@@ -11,6 +11,10 @@
    of a cell is not wiped out by the thing it covered. Cells outside the board are skipped, so a sprite can
    go half off an edge. Restore puts the whole board back to the empty sky in one block copy.
 
+   Lines can be drawn in a batch for speed: BeginBatch copies the board into the canvas's own memory, DrawLine
+   then writes straight into that, and EndBatch puts the whole board back in one block. Until EndBatch the
+   board itself has not changed, and only DrawLine and Restore may be used, any other drawing is refused.
+
    The canvas needs an ArrayStore with exactly the layers view, kind and back. It keeps work memory for the
    block copy, which Dispose frees (a destructor does it as a safety net). It does not own the grid. */
 USING Progress.Lang.*.
@@ -32,6 +36,10 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
     /* work memory for the block copy: the raw bytes of the store, and a layer of zeros */
     DEFINE PRIVATE VARIABLE mWork    AS MEMPTR      NO-UNDO.
     DEFINE PRIVATE VARIABLE mZero    AS MEMPTR      NO-UNDO.
+    /* true between BeginBatch and EndBatch, when mWork holds the picture being drawn */
+    DEFINE PRIVATE VARIABLE mBatch   AS LOGICAL     NO-UNDO.
+
+    &SCOPED-DEFINE NOT-IN-BATCH IF mBatch THEN UNDO, THROW NEW GridException("The canvas is in a batch: only DrawLine and Restore work until EndBatch").
 
     DEFINE PUBLIC PROPERTY Width AS INTEGER NO-UNDO
         GET():
@@ -92,6 +100,7 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
     /* Sets the background colour of a cell. It shows once the cell is empty: SetBack does not change
        what is showing. A cell outside the board is ignored. */
     METHOD PUBLIC VOID SetBack(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piColour AS INTEGER):
+        {&NOT-IN-BATCH}
         IF InBounds(piX, piY) THEN mStore:SetCellAt(mBack, piY * mWidth + piX, piColour).
     END METHOD.
 
@@ -100,6 +109,7 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
     METHOD PUBLIC VOID SetBackRows(INPUT piColours AS INTEGER EXTENT):
         DEFINE VARIABLE x AS INTEGER NO-UNDO.
         DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        {&NOT-IN-BATCH}
         IF EXTENT(piColours) <> mHeight THEN
             UNDO, THROW NEW GridException(SUBSTITUTE("The background needs one colour for each of the &1 rows, not &2", mHeight, EXTENT(piColours))).
         DO y = 0 TO mHeight - 1:
@@ -122,9 +132,32 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
             SET-SIZE(mZero) = 0.
             SET-SIZE(mZero) = bytes.
         END.
-        mStore:CopyBytesTo(mWork).
+        IF NOT mBatch THEN mStore:CopyBytesTo(mWork).
         COPY-LOB FROM mWork STARTING AT (mBack - 1) * bytes + 1 FOR bytes TO mWork OVERLAY AT (mView - 1) * bytes + 1.
         COPY-LOB FROM mZero FOR bytes TO mWork OVERLAY AT (mKind - 1) * bytes + 1.
+        IF NOT mBatch THEN mStore:CopyBytesFrom(mWork).
+    END METHOD.
+
+    /* Starts a batch of lines: the board is copied into the canvas's work memory, and DrawLine writes into
+       that until EndBatch. Faster than drawing a line a cell at a time through the store. Throws GridException
+       if a batch is already open. */
+    METHOD PUBLIC VOID BeginBatch():
+        DEFINE VARIABLE bytes AS INTEGER NO-UNDO.
+        IF mBatch THEN UNDO, THROW NEW GridException("A batch is already open").
+        bytes = mWidth * mHeight * 4.
+        IF GET-SIZE(mWork) <> bytes * 3 THEN DO:
+            SET-SIZE(mWork) = 0.
+            SET-SIZE(mWork) = bytes * 3.
+        END.
+        mStore:CopyBytesTo(mWork).
+        mBatch = TRUE.
+    END METHOD.
+
+    /* Ends the batch: everything drawn in it goes onto the board in one block. Throws GridException if no
+       batch is open. */
+    METHOD PUBLIC VOID EndBatch():
+        IF NOT mBatch THEN UNDO, THROW NEW GridException("There is no batch to end").
+        mBatch = FALSE.
         mStore:CopyBytesFrom(mWork).
     END METHOD.
 
@@ -149,6 +182,7 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
         DEFINE VARIABLE x   AS INTEGER NO-UNDO.
         DEFINE VARIABLE y   AS INTEGER NO-UNDO.
         DEFINE VARIABLE idx AS INTEGER NO-UNDO.
+        {&NOT-IN-BATCH}
         DO i = 0 TO poSprite:Count - 1:
             x = piX + poSprite:CellX(i).
             y = piY + poSprite:CellY(i).
@@ -164,6 +198,7 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
     /* Colours one cell, giving it a kind. A cell outside the board is ignored. */
     METHOD PUBLIC VOID Plot(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piKind AS INTEGER, INPUT piColour AS INTEGER):
         DEFINE VARIABLE idx AS INTEGER NO-UNDO.
+        {&NOT-IN-BATCH}
         IF NOT InBounds(piX, piY) THEN RETURN.
         idx = piY * mWidth + piX.
         mStore:SetCellAt(mKind, idx, piKind).
@@ -173,7 +208,7 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
     /* Draws a straight line one cell thick from one cell to another, both ends included, with an integer
        line algorithm (no blending, no anti-aliasing). The ends may be anywhere, even far off the board: the
        cells outside it are skipped. Every cell takes piKind and piColour, so piKind 0 draws a picture
-       element that nothing can hit. */
+       element that nothing can hit. In a batch it writes into the batch (see BeginBatch). */
     METHOD PUBLIC VOID DrawLine(INPUT piX0 AS INTEGER, INPUT piY0 AS INTEGER, INPUT piX1 AS INTEGER, INPUT piY1 AS INTEGER,
                                 INPUT piKind AS INTEGER, INPUT piColour AS INTEGER):
         DEFINE VARIABLE dx  AS INTEGER NO-UNDO.
@@ -183,16 +218,45 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
         DEFINE VARIABLE err AS INTEGER NO-UNDO.
         DEFINE VARIABLE e2  AS INTEGER NO-UNDO.
         DEFINE VARIABLE idx AS INTEGER NO-UNDO.
+        DEFINE VARIABLE viewBase AS INTEGER NO-UNDO.
+        DEFINE VARIABLE kindBase AS INTEGER NO-UNDO.
+        viewBase = (mView - 1) * mWidth * mHeight * 4 + 1.
+        kindBase = (mKind - 1) * mWidth * mHeight * 4 + 1.
         dx = ABSOLUTE(piX1 - piX0).
         dy = - ABSOLUTE(piY1 - piY0).
         sx = (IF piX0 < piX1 THEN 1 ELSE -1).
         sy = (IF piY0 < piY1 THEN 1 ELSE -1).
         err = dx + dy.
+        /* the usual case, a line wholly on the board in a batch: no need to look at every cell */
+        IF mBatch AND piX0 >= 0 AND piX0 < mWidth AND piY0 >= 0 AND piY0 < mHeight AND
+                      piX1 >= 0 AND piX1 < mWidth AND piY1 >= 0 AND piY1 < mHeight THEN DO:
+            DO WHILE TRUE:
+                idx = (piY0 * mWidth + piX0) * 4.
+                PUT-LONG(mWork, kindBase + idx) = piKind.
+                PUT-LONG(mWork, viewBase + idx) = piColour.
+                IF piX0 = piX1 AND piY0 = piY1 THEN RETURN.
+                e2 = 2 * err.
+                IF e2 >= dy THEN DO:
+                    err = err + dy.
+                    piX0 = piX0 + sx.
+                END.
+                IF e2 <= dx THEN DO:
+                    err = err + dx.
+                    piY0 = piY0 + sy.
+                END.
+            END.
+        END.
         DO WHILE TRUE:
             IF piX0 >= 0 AND piX0 < mWidth AND piY0 >= 0 AND piY0 < mHeight THEN DO:
                 idx = piY0 * mWidth + piX0.
-                mStore:SetCellAt(mKind, idx, piKind).
-                mStore:SetCellAt(mView, idx, piColour).
+                IF mBatch THEN DO:
+                    PUT-LONG(mWork, kindBase + idx * 4) = piKind.
+                    PUT-LONG(mWork, viewBase + idx * 4) = piColour.
+                END.
+                ELSE DO:
+                    mStore:SetCellAt(mKind, idx, piKind).
+                    mStore:SetCellAt(mView, idx, piColour).
+                END.
             END.
             IF piX0 = piX1 AND piY0 = piY1 THEN LEAVE.
             e2 = 2 * err.
@@ -210,6 +274,7 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
     /* Puts one cell back to empty space: its background colour and kind 0. */
     METHOD PUBLIC VOID Unplot(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
         DEFINE VARIABLE idx AS INTEGER NO-UNDO.
+        {&NOT-IN-BATCH}
         IF NOT InBounds(piX, piY) THEN RETURN.
         idx = piY * mWidth + piX.
         mStore:SetCellAt(mKind, idx, {&KIND-NONE}).
@@ -220,6 +285,7 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
     METHOD PUBLIC VOID ClearRect(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER):
         DEFINE VARIABLE x AS INTEGER NO-UNDO.
         DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        {&NOT-IN-BATCH}
         DO y = MAXIMUM(0, piY) TO MINIMUM(mHeight - 1, piY + piHeight - 1):
             DO x = MAXIMUM(0, piX) TO MINIMUM(mWidth - 1, piX + piWidth - 1):
                 Unplot(x, y).
@@ -231,6 +297,7 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
        a background colour that has changed under a picture. A cell outside the board is ignored. */
     METHOD PUBLIC VOID ShowBack(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
         DEFINE VARIABLE idx AS INTEGER NO-UNDO.
+        {&NOT-IN-BATCH}
         IF NOT InBounds(piX, piY) THEN RETURN.
         idx = piY * mWidth + piX.
         IF mStore:GetCellAt(mKind, idx) = {&KIND-NONE} THEN mStore:SetCellAt(mView, idx, mStore:GetCellAt(mBack, idx)).
@@ -251,6 +318,7 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
         DEFINE VARIABLE glyph  AS CHARACTER NO-UNDO.
         DEFINE VARIABLE bitRow AS CHARACTER NO-UNDO.
         DEFINE VARIABLE startX AS INTEGER   NO-UNDO.
+        {&NOT-IN-BATCH}
         IF pcText = ? OR pcText = "" THEN RETURN.
         DO c = 1 TO LENGTH(pcText):
             glyph = PixelFont:Glyph(SUBSTRING(pcText, c, 1)).
@@ -284,6 +352,7 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
         DEFINE VARIABLE bitRow  AS CHARACTER NO-UNDO.
         DEFINE VARIABLE startX  AS INTEGER   NO-UNDO.
         DEFINE VARIABLE colour  AS INTEGER   NO-UNDO.
+        {&NOT-IN-BATCH}
         IF pcText = ? OR pcText = "" THEN RETURN.
         piScale = MAXIMUM(1, piScale).
         DO c = 1 TO LENGTH(pcText):
@@ -324,6 +393,7 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
         DEFINE VARIABLE bitRow  AS CHARACTER NO-UNDO.
         DEFINE VARIABLE startX  AS INTEGER   NO-UNDO.
         DEFINE VARIABLE colour  AS INTEGER   NO-UNDO.
+        {&NOT-IN-BATCH}
         IF pcText = ? OR pcText = "" THEN RETURN.
         piScale = MAXIMUM(1, piScale).
         DO pass = (IF piEdge < 0 THEN 2 ELSE 1) TO 2:
@@ -356,6 +426,7 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
     METHOD PUBLIC VOID ShowBackRect(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER):
         DEFINE VARIABLE x AS INTEGER NO-UNDO.
         DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        {&NOT-IN-BATCH}
         DO y = MAXIMUM(0, piY) TO MINIMUM(mHeight - 1, piY + piHeight - 1):
             DO x = MAXIMUM(0, piX) TO MINIMUM(mWidth - 1, piX + piWidth - 1):
                 ShowBack(x, y).
@@ -378,6 +449,7 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
         DEFINE VARIABLE y      AS INTEGER NO-UNDO.
         DEFINE VARIABLE idx    AS INTEGER NO-UNDO.
         DEFINE VARIABLE tone   AS INTEGER NO-UNDO.
+        {&NOT-IN-BATCH}
         DO i = 0 TO poSprite:Count - 1:
             x = piX + poSprite:CellX(i).
             y = piY + poSprite:CellY(i).
