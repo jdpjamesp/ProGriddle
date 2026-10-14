@@ -62,6 +62,7 @@ Then change `Step`, `OnInitialise` and what the grid holds. A few things to know
 - **A `view` layer.** When the picture is not simply the rules (Minesweeper hides cells, Tetris overlays a falling piece), keep one more layer that holds, for each cell, just what to draw. The window turns that number into a colour with a palette, and the tests compare it as text.
 - **Shapes.** `Shape` is an immutable set of cell offsets that can rotate and flip. Life patterns, Battleships ships and Tetris pieces are all shapes, and `Stamp`, `Erase` and `CanPlace` put them on a layer.
 - **Randomness** goes through `IRandom`. Pass a `SeededRandom` from the run file and tests get the same game every time.
+- **Named values are enums.** If the game has phases, kinds of cell, view codes or a palette, make each an `ENUM` in its own file (`MyGamePhase`-style, see `GamePhase` in Asteroids) and not a list of `&GLOBAL-DEFINE` lines in an include. Write `INTEGER(ViewCode:Head)` where a value goes into a cell store.
 - **Throw `GridException`** for a call that breaks the contract. Never return a magic value.
 - **No allocation in a loop over cells.** Read and write cells with `GetCellAt` and `SetCellAt`, and build objects outside the loop.
 - **The game never touches a window, a timer or a .NET type.** If it needs the time, it takes an `IClock`, and tests pass a `FakeClock` they advance by hand.

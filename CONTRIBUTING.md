@@ -48,6 +48,7 @@ The full list, with the reasons, is in [CLAUDE.md](CLAUDE.md). The ones you meet
 - **`USING` statements, always in the wildcard form**, one line per namespace (`USING ProGriddle.Core.*.`). Never a fully qualified name inline.
 - **`BLOCK-LEVEL ON ERROR UNDO, THROW.`** in every class, between the `USING` statements and `CLASS`. Without it a thrown error prints and carries on.
 - **Program against interfaces.** Concrete classes are created only in the composition roots (the `run/run-*.p` files) and in tests.
+- **Enums, not include files, for named values.** A set of names for the cases of one idea (a game's phases, the kinds of thing in a cell, the colours of a palette, the names of the pictures) is an `ENUM` in its own file, as `GamePhase` and `Palette` are, never a list of `&GLOBAL-DEFINE` lines in an include. Plain quantities such as a board size or a frame count can stay as preprocessor constants. See [CLAUDE.md](CLAUDE.md) for the details.
 - **Throw `GridException`** (or a subclass) for a broken contract. Never return a magic value.
 - **No object allocation inside a loop over cells.** Boards have tens of thousands of cells and ABL objects are not free.
 - **Free what you allocate.** Every `MEMPTR` is set back to size 0 as soon as you finish with it (in `FINALLY` when it is local, in `Dispose` when an object owns it). Dispose .NET objects and unsubscribe from .NET events when the window closes.
