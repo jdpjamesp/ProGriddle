@@ -68,9 +68,9 @@ Source: `src/ProGriddle/Games/SpaceInvaders/`. The composition root is `run/run-
 | `SpaceInvadersInput` | Keys as held states, the speed keys, the status line, the pause banner and the saved best score and speed |
 | `SpaceInvadersFactory` | Builds the grid and the game |
 | `InvaderRack` | The 55 invaders: where each is, which moves next, the edges, the drops and the speed-up |
-| `InvadersCanvas` | Draws and erases sprites by kind, clips at the edges, writes text with the pixel font (also big gradient text) and restores the picture from the `back` layer |
-| `Sprite` | A small text picture with up to three tones (`#`, `+`, `*`) |
-| `PixelFont` | The 5 x 7 capital letter font |
+| `PixelCanvas` (Engine) | Draws and erases sprites by kind, clips at the edges, writes text with the pixel font (also big gradient text) and restores the picture from the `back` layer |
+| `Sprite` (Engine) | A small text picture with up to three tones (`#`, `+`, `*`) |
+| `PixelFont` (Engine) | The 5 x 7 capital letter font |
 | `InvadersArt` | **Every picture, in one place** (45 of them, as text) |
 | `InvadersLook` | **Every colour, in one place** (79 of them), the row colours by wave (mixing and hex parsing are in `ColourMath`, in Engine) |
 
@@ -91,7 +91,7 @@ All under `tests/ProGriddle/Games/SpaceInvaders/`.
 | `SpaceInvadersInputTests` | Held keys, both direction keys, an empty name letting go of every key, the status line for each phase, the banner and the saved best score |
 | `SpaceInvadersFactoryTests` | The grid, the title screen and seeded stars |
 | `InvaderRackTests` | The rack: order of movement, edges, drops, speed-up |
-| `InvadersCanvasTests`, `SpriteTests`, `PixelFontTests` | Drawing, erasing by kind, clipping, text and the font |
+| `PixelCanvasTests`, `SpriteTests`, `PixelFontTests` (now in `tests/ProGriddle/Engine/`) | Drawing, erasing by kind, clipping, text and the font |
 | `InvadersArtTests`, `InvadersLookTests` | The picture sizes the rules rely on, the palette, the row colours by wave |
 
 Run them with `powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter "Invad*"` (and `-Filter "SpaceInvaders*"`).

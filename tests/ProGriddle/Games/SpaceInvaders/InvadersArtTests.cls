@@ -2,6 +2,7 @@
 USING OpenEdge.Core.*.
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
+USING ProGriddle.Engine.*.
 USING ProGriddle.Games.SpaceInvaders.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.

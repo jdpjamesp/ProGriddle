@@ -1,10 +1,10 @@
 USING OpenEdge.Core.*.
 USING Progress.Lang.*.
-USING ProGriddle.Games.SpaceInvaders.*.
+USING ProGriddle.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS ProGriddle.Games.SpaceInvaders.PixelFontTests:
+CLASS ProGriddle.Engine.PixelFontTests:
 
     @Test.
     METHOD PUBLIC VOID AGlyphIsFiveCellsWideAndSevenHigh():

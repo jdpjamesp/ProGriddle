@@ -25,7 +25,7 @@
 
    The game is never "over" to its controller: a game ends in the GAMEOVER phase, which waits for the fire key and
    goes back to the TITLE screen, so the clock keeps running and the stars keep drifting. The picture is drawn on
-   an InvadersCanvas: what a shot hits is decided by the kind layer, never by colour. The game owns its grid.
+   an PixelCanvas: what a shot hits is decided by the kind layer, never by colour. The game owns its grid.
    Dispose releases it. */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
@@ -70,7 +70,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     &SCOPED-DEFINE STARS 48
 
     DEFINE PRIVATE VARIABLE mRandom      AS IRandom         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas      AS InvadersCanvas  NO-UNDO.
+    DEFINE PRIVATE VARIABLE mCanvas      AS PixelCanvas  NO-UNDO.
     DEFINE PRIVATE VARIABLE mRack        AS InvaderRack     NO-UNDO.
     DEFINE PRIVATE VARIABLE mFirst       AS LOGICAL         NO-UNDO INITIAL TRUE.
     DEFINE PRIVATE VARIABLE mAcc         AS INTEGER         NO-UNDO.
@@ -288,7 +288,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             RETURN mRack.
         END GET.
 
-    DEFINE PUBLIC PROPERTY Canvas AS InvadersCanvas NO-UNDO
+    DEFINE PUBLIC PROPERTY Canvas AS PixelCanvas NO-UNDO
         GET():
             RETURN mCanvas.
         END GET.
@@ -301,7 +301,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             UNDO, THROW NEW GridException("A Space Invaders grid is " + STRING({&WIDTH}) + " x " + STRING({&HEIGHT})).
         IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("A Space Invaders game needs a random source").
         mRandom = poRandom.
-        mCanvas = NEW InvadersCanvas(poGrid).
+        mCanvas = NEW PixelCanvas(poGrid).
         mRack = NEW InvaderRack().
         DO i = 1 TO 16:
             mShieldTone[i] = ColourMath:Mix(InvadersLook:Colour({&C-SHIELD-TOP}), InvadersLook:Colour({&C-SHIELD-BOTTOM}), i - 1, 15).
@@ -653,7 +653,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     METHOD PRIVATE VOID DrawWaveBanner():
         DEFINE VARIABLE banner AS CHARACTER NO-UNDO.
         banner = "WAVE " + STRING(Wave).
-        mCanvas:DrawOverlay(banner, INTEGER(TRUNCATE(({&WIDTH} - InvadersCanvas:ScaledWidth(banner, 2)) / 2, 0)), 150,
+        mCanvas:DrawOverlay(banner, INTEGER(TRUNCATE(({&WIDTH} - PixelCanvas:ScaledWidth(banner, 2)) / 2, 0)), 150,
                             InvadersLook:Colour({&C-TITLE-TOP}), InvadersLook:Colour({&C-TITLE-BOTTOM}), 2, InvadersLook:Colour({&C-TEXT-OUTLINE})).
     END METHOD.
 

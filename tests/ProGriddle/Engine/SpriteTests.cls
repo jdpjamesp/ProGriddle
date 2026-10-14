@@ -1,11 +1,11 @@
 USING OpenEdge.Core.*.
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
-USING ProGriddle.Games.SpaceInvaders.*.
+USING ProGriddle.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS ProGriddle.Games.SpaceInvaders.SpriteTests:
+CLASS ProGriddle.Engine.SpriteTests:
 
     METHOD PRIVATE LOGICAL Refused(INPUT pcRows AS CHARACTER):
         DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.

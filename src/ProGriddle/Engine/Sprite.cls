@@ -5,11 +5,11 @@
    walking its cells with CellX, CellY and CellTone and giving each tone a colour. */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
-USING ProGriddle.Games.SpaceInvaders.*.
+USING ProGriddle.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS ProGriddle.Games.SpaceInvaders.Sprite FINAL:
+CLASS ProGriddle.Engine.Sprite FINAL:
 
     DEFINE PRIVATE VARIABLE mXs    AS INTEGER NO-UNDO EXTENT.
     DEFINE PRIVATE VARIABLE mYs    AS INTEGER NO-UNDO EXTENT.

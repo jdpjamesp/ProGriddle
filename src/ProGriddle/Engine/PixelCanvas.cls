@@ -1,10 +1,11 @@
-/* The picture of a Space Invaders game, kept as three layers of one grid, one cell to a pixel:
+/* The picture of a pixel game, kept as three layers of one grid, one cell to a pixel:
 
      view   the colour of the cell, 0xRRGGBB, which is what the window shows (the view uses direct colour)
-     kind   what is in the cell (see Kinds.i): 0 for empty space, else a shield, an alien, a bomb and so on.
+     kind   what is in the cell (the game decides): 0 for empty space, else a shield, an alien, a bomb and so on.
             Shots and bombs look at this to know what they hit, never at the colour
      back   the colour of the cell when nothing is on it: the starry sky, the ground line
 
+   A kind is any whole number the game likes, 0 meaning empty space.
    Drawing a sprite sets view and kind for each of its cells. Erasing one puts the background colour back
    and the kind to 0, but only in the cells that are still of that kind, so something that has moved on top
    of a cell is not wiped out by the thing it covered. Cells outside the board are skipped, so a sprite can
@@ -15,13 +16,12 @@
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
-USING ProGriddle.Games.SpaceInvaders.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvas FINAL:
+CLASS ProGriddle.Engine.PixelCanvas FINAL:
 
-    {ProGriddle/Games/SpaceInvaders/Kinds.i}
+    &SCOPED-DEFINE KIND-NONE 0
 
     DEFINE PRIVATE VARIABLE mStore   AS ArrayStore NO-UNDO.
     DEFINE PRIVATE VARIABLE mWidth   AS INTEGER     NO-UNDO.
@@ -44,7 +44,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvas FINAL:
         END GET.
 
     /* The grid must be on an ArrayStore with the layers view, kind and back. */
-    CONSTRUCTOR PUBLIC InvadersCanvas(INPUT poGrid AS Grid):
+    CONSTRUCTOR PUBLIC PixelCanvas(INPUT poGrid AS Grid):
         IF NOT VALID-OBJECT(poGrid) THEN UNDO, THROW NEW GridException("A canvas needs a grid").
         IF NOT TYPE-OF(poGrid:Store, ArrayStore) THEN UNDO, THROW NEW GridException("A canvas needs an ArrayStore").
         IF poGrid:Store:LayerCount <> 3 THEN UNDO, THROW NEW GridException("A canvas grid has the three layers view, kind and back").
@@ -56,7 +56,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvas FINAL:
         mBack = mStore:LayerIndex("back").
     END CONSTRUCTOR.
 
-    DESTRUCTOR PUBLIC InvadersCanvas():
+    DESTRUCTOR PUBLIC PixelCanvas():
         Dispose().
     END DESTRUCTOR.
 
@@ -70,7 +70,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvas FINAL:
         RETURN piX >= 0 AND piX < mWidth AND piY >= 0 AND piY < mHeight.
     END METHOD.
 
-    /* What is in a cell, as in Kinds.i. A cell outside the board is empty space, so a shot that
+    /* What is in a cell, as the game numbers kinds. A cell outside the board is empty space, so a shot that
        leaves the board meets nothing. */
     METHOD PUBLIC INTEGER KindAt(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
         IF NOT InBounds(piX, piY) THEN RETURN {&KIND-NONE}.

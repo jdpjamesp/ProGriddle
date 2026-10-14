@@ -7,6 +7,7 @@
    a shield 22 x 16, a bomb 3 x 7 and the shot 1 x 4, because the rules use those boxes). */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
+USING ProGriddle.Engine.*.
 USING ProGriddle.Games.SpaceInvaders.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.

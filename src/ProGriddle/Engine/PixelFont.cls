@@ -3,11 +3,11 @@
    letters. Lower case letters are drawn as capitals. A character with no glyph is drawn as a ?. The
    canvas draws text with it, so the score and the title are part of the picture like everything else. */
 USING Progress.Lang.*.
-USING ProGriddle.Games.SpaceInvaders.*.
+USING ProGriddle.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS ProGriddle.Games.SpaceInvaders.PixelFont FINAL:
+CLASS ProGriddle.Engine.PixelFont FINAL:
 
     /* The characters that have a glyph, in the order of the glyph table. */
     &SCOPED-DEFINE CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-<>=?.:!+ "

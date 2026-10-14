@@ -3,22 +3,26 @@ USING OpenEdge.Core.*.
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
-USING ProGriddle.Games.SpaceInvaders.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvasTests:
+CLASS ProGriddle.Engine.PixelCanvasTests:
 
-    {ProGriddle/Games/SpaceInvaders/Kinds.i}
+    &SCOPED-DEFINE KIND-NONE 0
+    &SCOPED-DEFINE KIND-SHIELD 1
+    &SCOPED-DEFINE KIND-ALIEN 2
+    &SCOPED-DEFINE KIND-BOMB 3
+    &SCOPED-DEFINE KIND-SHOT 6
+    &SCOPED-DEFINE KIND-FX 7
 
     DEFINE PRIVATE VARIABLE mGrid   AS Grid           NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas AS InvadersCanvas NO-UNDO.
+    DEFINE PRIVATE VARIABLE mCanvas AS PixelCanvas NO-UNDO.
     DEFINE PRIVATE VARIABLE mSprite AS Sprite         NO-UNDO.
 
     @Setup.
     METHOD PUBLIC VOID BuildCanvas():
         mGrid = NEW Grid(NEW ArrayStore(12, 10, "view,kind,back")).
-        mCanvas = NEW InvadersCanvas(mGrid).
+        mCanvas = NEW PixelCanvas(mGrid).
         /* a 3 x 2 sprite with a hole: tone 1, tone 2 and tone 3 cells */
         mSprite = NEW Sprite("#+*/#.#").
         mGrid:Store:FillLayer(mGrid:Store:LayerIndex("back"), 100).
@@ -49,19 +53,19 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvasTests:
     METHOD PUBLIC VOID TheCanvasRefusesAGridThatIsNotRight():
         DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
         DO ON ERROR UNDO, THROW:
-            NEW InvadersCanvas(NEW Grid(NEW ArrayStore(4, 4, "view,kind"))).
+            NEW PixelCanvas(NEW Grid(NEW ArrayStore(4, 4, "view,kind"))).
             CATCH e1 AS GridException:
                 thrown = thrown + 1.
             END CATCH.
         END.
         DO ON ERROR UNDO, THROW:
-            NEW InvadersCanvas(NEW Grid(NEW TableStore(4, 4, "view,kind,back"))).
+            NEW PixelCanvas(NEW Grid(NEW TableStore(4, 4, "view,kind,back"))).
             CATCH e2 AS GridException:
                 thrown = thrown + 1.
             END CATCH.
         END.
         DO ON ERROR UNDO, THROW:
-            NEW InvadersCanvas(?).
+            NEW PixelCanvas(?).
             CATCH e3 AS GridException:
                 thrown = thrown + 1.
             END CATCH.
@@ -325,10 +329,10 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID BigTextMakesEachFontCellABlock():
-        DEFINE VARIABLE canvas AS InvadersCanvas NO-UNDO.
+        DEFINE VARIABLE canvas AS PixelCanvas NO-UNDO.
         DEFINE VARIABLE grid   AS Grid           NO-UNDO.
         grid = NEW Grid(NEW ArrayStore(40, 30, "view,kind,back")).
-        canvas = NEW InvadersCanvas(grid).
+        canvas = NEW PixelCanvas(grid).
         DO ON ERROR UNDO, THROW:
             canvas:DrawTextScaled("I", 1, 1, 4000, 4000, 2).
             /* the top bar of the I is cells 1 to 3 of row 0 of the font, so columns 3 to 8 of rows 1 and 2 */
@@ -350,10 +354,10 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID BigTextShadesFromTheTopColourToTheBottomColour():
-        DEFINE VARIABLE canvas AS InvadersCanvas NO-UNDO.
+        DEFINE VARIABLE canvas AS PixelCanvas NO-UNDO.
         DEFINE VARIABLE grid   AS Grid           NO-UNDO.
         grid = NEW Grid(NEW ArrayStore(20, 20, "view,kind,back")).
-        canvas = NEW InvadersCanvas(grid).
+        canvas = NEW PixelCanvas(grid).
         DO ON ERROR UNDO, THROW:
             /* the colours mix part by part (red, green, blue), so halfway from black to 60, 120, 180 is 30, 60, 90 */
             canvas:DrawTextScaled("I", 0, 0, 0, ColourMath:Rgb(60, 120, 180), 1).
@@ -369,10 +373,10 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID TheWidthOfBigTextIsTheWidthOfTheTextTimesTheScale():
-        Assert:Equals(0, InvadersCanvas:ScaledWidth("", 3)).
-        Assert:Equals(15, InvadersCanvas:ScaledWidth("A", 3)).
-        Assert:Equals(33, InvadersCanvas:ScaledWidth("AB", 3)).
-        Assert:Equals(11, InvadersCanvas:ScaledWidth("AB", 0)).
+        Assert:Equals(0, PixelCanvas:ScaledWidth("", 3)).
+        Assert:Equals(15, PixelCanvas:ScaledWidth("A", 3)).
+        Assert:Equals(33, PixelCanvas:ScaledWidth("AB", 3)).
+        Assert:Equals(11, PixelCanvas:ScaledWidth("AB", 0)).
     END METHOD.
 
     @Test.
