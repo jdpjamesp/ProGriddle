@@ -1514,6 +1514,35 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID HyperspaceSendsARingOutWhereTheShipLeftAndAnotherClosesInWhereItReturns():
+        LuckyGame(99).
+        mGame:Hyperspace().
+        Assert:Equals(0, mGame:DebrisCount).
+        Quiet(12).
+        /* at the end of the stretch: ten sparks burst out */
+        Assert:Equals(10, mGame:DebrisCount).
+        Quiet(10).
+        Assert:Equals(0, mGame:DebrisCount).
+        /* after the gap of thirty frames, ten cells start twelve cells out and close in for twelve */
+        Quiet(20).
+        Assert:Equals(10, mGame:DebrisCount).
+        Quiet(12).
+        Assert:Equals(0, mGame:DebrisCount).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AFailedJumpAddsARingOfSixteenToTheBreakUp():
+        LuckyGame(0).
+        mGame:Hyperspace().
+        Quiet(54).
+        Assert:IsFalse(mGame:ShipAlive).
+        /* 16 for the failed jump, and the ship's own pieces arrive after its three white frames */
+        Assert:Equals(16, mGame:DebrisCount).
+        Quiet(3).
+        Assert:Equals(16 + 19, mGame:DebrisCount).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID TheShipIsNotHurtWhileItIsAwayButCanBeOnTheWayBack():
         LuckyGame(99).
         mGame:Hyperspace().

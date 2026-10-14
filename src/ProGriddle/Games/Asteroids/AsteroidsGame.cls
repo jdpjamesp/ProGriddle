@@ -1012,6 +1012,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mSX = WrapUnits(mSX + mSVX, {&WIDTH-U}).
         mSY = WrapUnits(mSY + mSVY, {&HEIGHT-U}).
         IF mShipTimer >= {&HYPER-OUT-FRAMES} THEN DO:
+            /* ten sparks burst out of the place it left */
+            mDebris:Ring(mSX, mSY, 10, 2, 2867, 10, Ramp:Spark).
             mShipMode = ShipMode:HyperGap.
             mShipTimer = 0.
             /* it comes back somewhere else, at rest, away from the very edge */
@@ -1026,6 +1028,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     METHOD PRIVATE VOID FrameHyperGap():
         mShipTimer = mShipTimer + 1.
         IF mShipTimer >= {&HYPER-GAP-FRAMES} THEN DO:
+            /* ten cells close in from twelve cells out as the ship comes back */
+            mDebris:Ring(mSX, mSY, 10, 12, -4096, 12, Ramp:SparkIn).
             mShipMode = ShipMode:HyperBack.
             mShipTimer = 0.
         END.
@@ -1036,7 +1040,11 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     METHOD PRIVATE VOID FrameHyperBack():
         mShipTimer = mShipTimer + 1.
         IF mShipTimer >= {&HYPER-BACK-FRAMES} THEN DO:
-            IF mHyperFail THEN KillShip().
+            IF mHyperFail THEN DO:
+                /* a failed jump: a ring of sixteen warm sparks marks it, and the ship breaks up */
+                mDebris:Ring(mSX, mSY, 16, 4, 3277, 20, Ramp:Warm).
+                KillShip().
+            END.
             ELSE DO:
                 mShipMode = ShipMode:Alive.
                 mShieldT = {&SHIELD-FRAMES}.
