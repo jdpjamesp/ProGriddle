@@ -55,7 +55,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     &SCOPED-DEFINE HYPER-GAP-FRAMES 30
     &SCOPED-DEFINE HYPER-BACK-FRAMES 12
     /* how many pieces of text the game keeps ready to draw */
-    &SCOPED-DEFINE STAMPS 48
+    &SCOPED-DEFINE STAMPS 96
     /* the most frames one Tick will make, and the most time it will count: a stall must not make a burst */
     &SCOPED-DEFINE MOST-FRAMES 4
     &SCOPED-DEFINE MOST-MS 100
@@ -1222,8 +1222,43 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* The title screen over the attract rocks: ASTEROIDS traced stroke by stroke by a beam (see TitleTrace). */
     METHOD PRIVATE VOID DrawTitle():
+        DEFINE VARIABLE half   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE edge   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE labelCol AS INTEGER NO-UNDO.
+        DEFINE VARIABLE white  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE tint   AS INTEGER NO-UNDO.
         IF NOT VALID-OBJECT(mTrace) THEN mTrace = NEW TitleTrace().
         mTrace:DrawTo(mCanvas, mTitleT).
+        /* ticks 110 to 128: the rule under the title grows from the middle, 14 cells a tick each way, to 240 cells */
+        IF mTitleT > 110 THEN DO:
+            half = MINIMUM(120, 14 * (mTitleT - 110)).
+            mCanvas:DrawLine(160 - half, 98, 159 + half, 98, 0, AsteroidsLook:Colour(Palette:TitleRule)).
+        END.
+        edge = AsteroidsLook:Colour(Palette:TextOutline).
+        labelCol = AsteroidsLook:Colour(Palette:Label).
+        white = AsteroidsLook:Colour(Palette:TextWhite).
+        /* from tick 128: the subtitle types in, a letter a tick */
+        IF mTitleT >= 128 THEN
+            Stamp(SUBSTRING("A PROGRIDDLE COOKOFF GAME", 1, MINIMUM(25, mTitleT - 127)), 1, labelCol, labelCol, edge):DrawTo(mCanvas, 85, 106).
+        /* from tick 160: the two hint lines fade in, each through Title Rule, Label and Dim, 5 ticks a step */
+        tint = HintColour(160).
+        IF tint >= 0 THEN Stamp("LEFT RIGHT TURN   UP THRUST   SPACE FIRE", 1, tint, tint, edge):DrawTo(mCanvas, 40, 168).
+        tint = HintColour(180).
+        IF tint >= 0 THEN Stamp("DOWN HYPERSPACE", 1, tint, tint, edge):DrawTo(mCanvas, 115, 180).
+        /* from tick 200: PRESS SPACE, 36 ticks on and 24 off */
+        IF mTitleT >= 200 AND (mTitleT - 200) MODULO 60 < 36 THEN
+            Stamp("PRESS SPACE", 2, white, white, edge):DrawTo(mCanvas, 95, 204).
+    END METHOD.
+
+    /* The colour of a hint line that began to fade in at a tick of the title: Title Rule, then Label, then Dim, five
+       ticks each. -1 before it begins. */
+    METHOD PRIVATE INTEGER HintColour(INPUT piStart AS INTEGER):
+        DEFINE VARIABLE passed AS INTEGER NO-UNDO.
+        passed = mTitleT - piStart.
+        IF passed < 0 THEN RETURN -1.
+        IF passed < 5 THEN RETURN AsteroidsLook:Colour(Palette:TitleRule).
+        IF passed < 10 THEN RETURN AsteroidsLook:Colour(Palette:Label).
+        RETURN AsteroidsLook:Colour(Palette:Dim).
     END METHOD.
 
     /* The game over screen over the drifting rocks: GAME OVER in a red gradient, one letter every 3 frames, the score, a

@@ -918,6 +918,81 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID TheRuleGrowsFromTheMiddleBetweenTicksOneHundredAndTenAndOneHundredAndTwentyEight():
+        DEFINE VARIABLE rule AS INTEGER NO-UNDO.
+        rule = AsteroidsLook:Colour(Palette:TitleRule).
+        Frames(110).
+        Assert:Equals(0, CellsOf(rule, 0, 98, 320, 1)).
+        Frames(1).
+        Assert:IsTrue(CellsOf(rule, 0, 98, 320, 1) >= 20 AND CellsOf(rule, 0, 98, 320, 1) <= 40).
+        Assert:IsTrue(CellsOf(rule, 150, 98, 20, 1) >= 20).
+        Frames(17).
+        /* all 240 cells, from x = 40 to x = 279 */
+        Assert:Equals(240, CellsOf(rule, 0, 98, 320, 1)).
+        Assert:Equals(1, CellsOf(rule, 40, 98, 1, 1)).
+        Assert:Equals(1, CellsOf(rule, 279, 98, 1, 1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheSubtitleTypesInALetterATickFromTickOneHundredAndTwentyEight():
+        DEFINE VARIABLE labelCol AS INTEGER NO-UNDO.
+        DEFINE VARIABLE early    AS INTEGER NO-UNDO.
+        labelCol = AsteroidsLook:Colour(Palette:Label).
+        Frames(127).
+        Assert:Equals(0, CellsOf(labelCol, 85, 106, 160, 9)).
+        Frames(3).
+        early = CellsOf(labelCol, 85, 106, 160, 9).
+        Assert:IsTrue(early > 5).
+        /* three letters so far, so nothing past the first 20 cells */
+        Assert:Equals(0, CellsOf(labelCol, 105, 106, 140, 9)).
+        Frames(30).
+        Assert:IsTrue(CellsOf(labelCol, 85, 106, 160, 9) > early * 4).
+        Assert:IsTrue(CellsOf(labelCol, 200, 106, 45, 9) > 5).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheHintLinesFadeInThroughRuleLabelAndDimFiveTicksAStepTwentyTicksApart():
+        DEFINE VARIABLE rule AS INTEGER NO-UNDO.
+        DEFINE VARIABLE labelCol AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dimCol AS INTEGER NO-UNDO.
+        rule = AsteroidsLook:Colour(Palette:TitleRule).
+        labelCol = AsteroidsLook:Colour(Palette:Label).
+        dimCol = AsteroidsLook:Colour(Palette:Dim).
+        Frames(159).
+        Assert:Equals(0, CellsOf(rule, 40, 168, 200, 9)).
+        Frames(1).
+        Assert:IsTrue(CellsOf(rule, 40, 168, 200, 9) > 20).
+        Frames(5).
+        Assert:Equals(0, CellsOf(rule, 40, 168, 200, 9)).
+        Assert:IsTrue(CellsOf(labelCol, 40, 168, 200, 9) > 20).
+        Frames(5).
+        Assert:IsTrue(CellsOf(dimCol, 40, 168, 200, 9) > 20).
+        /* the second line has not begun */
+        Assert:Equals(0, CellsOf(dimCol, 115, 180, 100, 9) + CellsOf(labelCol, 115, 180, 100, 9) + CellsOf(rule, 115, 180, 100, 9)).
+        Frames(10).
+        Assert:IsTrue(CellsOf(rule, 115, 180, 100, 9) > 10).
+        Frames(10).
+        Assert:IsTrue(CellsOf(dimCol, 115, 180, 100, 9) > 10).
+        Assert:IsTrue(CellsOf(dimCol, 40, 168, 200, 9) > 20).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID PressSpaceAppearsAtTickTwoHundredAndBlinksThirtySixOnTwentyFourOff():
+        DEFINE VARIABLE white AS INTEGER NO-UNDO.
+        white = AsteroidsLook:Colour(Palette:TextWhite).
+        Frames(199).
+        Assert:Equals(0, CellsOf(white, 95, 204, 130, 14)).
+        Frames(1).
+        Assert:IsTrue(CellsOf(white, 95, 204, 130, 14) > 20).
+        Frames(35).
+        Assert:IsTrue(CellsOf(white, 95, 204, 130, 14) > 20).
+        Frames(1).
+        Assert:Equals(0, CellsOf(white, 95, 204, 130, 14)).
+        Frames(24).
+        Assert:IsTrue(CellsOf(white, 95, 204, 130, 14) > 20).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID StartingAGameTakesTheTitleAwayAndANewTitleStartsAgainFromTheBeginning():
         DEFINE VARIABLE core AS INTEGER NO-UNDO.
         core = AsteroidsLook:Colour(Palette:TitleCore).
