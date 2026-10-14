@@ -1028,6 +1028,55 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID AWarningMarkShowsForTheLastSixtyFramesBeforeASaucerEnters():
+        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ahead  AS INTEGER NO-UNDO.
+        EmptySky().
+        Assert:IsFalse(mGame:SaucerWarning).
+        mGame:Drawing = FALSE.
+        DO WHILE NOT mGame:SaucerWarning AND n < 1400:
+            Quiet(1).
+            n = n + 1.
+        END.
+        Assert:IsTrue(mGame:SaucerWarning).
+        Assert:IsFalse(mGame:SaucerActive).
+        DO WHILE NOT mGame:SaucerActive AND ahead < 100:
+            Quiet(1).
+            ahead = ahead + 1.
+        END.
+        mGame:Drawing = TRUE.
+        Assert:IsTrue(ahead >= 58 AND ahead <= 61, STRING(ahead)).
+        /* once it has come in, the mark goes */
+        Assert:IsFalse(mGame:SaucerWarning).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheWarningMarkIsAFiveCellChevronAtTheEdgeItBlinksEightFramesOnAndEightOff():
+        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE warn AS INTEGER NO-UNDO.
+        warn = AsteroidsLook:Colour(Palette:Warning).
+        EmptySky().
+        mGame:Drawing = FALSE.
+        DO WHILE NOT mGame:SaucerWarning AND n < 1400:
+            Quiet(1).
+            n = n + 1.
+        END.
+        mGame:Drawing = TRUE.
+        /* the first frame of the warning: on, at the left edge if the saucer comes in from the left and at the right if it comes from the right */
+        /* eight frames on (this one and the seven after it), eight off, then on again */
+        Quiet(1).
+        Assert:Equals(5, CellsOf(warn, 0, 20, 8, 210) + CellsOf(warn, 312, 20, 8, 210)).
+        Quiet(6).
+        Assert:Equals(5, CellsOf(warn, 0, 20, 8, 210) + CellsOf(warn, 312, 20, 8, 210)).
+        Quiet(1).
+        Assert:Equals(0, CellsOf(warn, 0, 20, 8, 210) + CellsOf(warn, 312, 20, 8, 210)).
+        Quiet(7).
+        Assert:Equals(0, CellsOf(warn, 0, 20, 8, 210) + CellsOf(warn, 312, 20, 8, 210)).
+        Quiet(1).
+        Assert:Equals(5, CellsOf(warn, 0, 20, 8, 210) + CellsOf(warn, 312, 20, 8, 210)).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ASaucerThatBreaksARockScoresNothingAndShowsNoScore():
         EmptySky().
         mGame:LaunchSaucerAt(TRUE, 1, 100).

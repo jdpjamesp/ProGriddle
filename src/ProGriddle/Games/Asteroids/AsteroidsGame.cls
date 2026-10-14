@@ -452,6 +452,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             RETURN mDebris:Count.
         END GET.
 
+    /* True for the last 60 frames before a saucer comes in, while its marker shows at the edge it will enter by. */
+    DEFINE PUBLIC PROPERTY SaucerWarning AS LOGICAL NO-UNDO
+        GET():
+            RETURN mPlanned AND NOT mSaucOn AND Phase = GamePhase:Playing.
+        END GET.
+
     /* Takes every piece of debris off the screen, for a test that wants to count only one kind. */
     METHOD PUBLIC VOID ClearDebris():
         mDebris:Clear().
@@ -1241,6 +1247,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             mPen:DrawWrapped(AsteroidsArt:Ship(), ToPen(mSX), ToPen(mSY), mHeading, AsteroidsArt:ShipExtent(), 0, AsteroidsLook:Colour(Palette:Flash), 0, 0).
         mDebris:DrawTo(mCanvas).
         IF mPopT > 0 THEN DrawScorePopUp().
+        IF SaucerWarning AND INTEGER(TRUNCATE((60 - mSaucWait) / 8, 0)) MODULO 2 = 0 THEN DrawWarning().
         IF mShipMode = ShipMode:HyperOut AND Phase = GamePhase:Playing THEN DrawHyperShip(MINIMUM(5, INTEGER(TRUNCATE(MAXIMUM(0, mShipTimer - 1) / 2, 0)))).
         IF mShipMode = ShipMode:HyperBack AND Phase = GamePhase:Playing THEN DrawHyperShip(5 - MINIMUM(5, INTEGER(TRUNCATE(MAXIMUM(0, mShipTimer - 1) / 2, 0)))).
         IF ShipAlive AND ShieldFrames > 0 THEN DrawShieldRing().
@@ -1283,6 +1290,22 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         bx = INTEGER(TRUNCATE((320 - PixelFont:WidthOf(words) * 3) / 2, 0)).
         IF mWaveT >= 70 THEN Stamp(words, 3, colour, colour, edge):DrawTo(mCanvas, bx, 64).
         ELSE Stamp(words, 3, AsteroidsLook:Colour(Palette:BannerTop), AsteroidsLook:Colour(Palette:BannerBottom), edge):DrawTo(mCanvas, bx, 64).
+    END METHOD.
+
+    /* The marker for a saucer that is about to come in: a chevron of five cells, pointing inward, on the edge it will
+       enter by (x = 2 on the left, 317 on the right) at the height it will fly at. */
+    METHOD PRIVATE VOID DrawWarning():
+        DEFINE VARIABLE k    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE warn AS INTEGER NO-UNDO.
+        warn = AsteroidsLook:Colour(Palette:Warning).
+        y = INTEGER(TRUNCATE(mPlanY / {&UNIT}, 0)).
+        DO k = 0 TO 4:
+            /* the cells run down the chevron: (0,-2), (1,-1), (2,0), (1,1), (0,2) from the edge, on the right mirrored */
+            x = (IF mPlanDir = 1 THEN 2 + (IF k <= 2 THEN k ELSE 4 - k) ELSE 317 - (IF k <= 2 THEN k ELSE 4 - k)).
+            mCanvas:DrawLine(x, y + k - 2, x, y + k - 2, 0, warn).
+        END.
     END METHOD.
 
     /* The points of a saucer, 200 or 1000, in gold over the place it was, rising a cell every four frames and in the
