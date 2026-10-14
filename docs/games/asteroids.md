@@ -108,6 +108,8 @@ A test drives the game with `Advance` (one sixtieth of a second, drawn). `Astero
 
 Run them with `powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter "Asteroids*"` (and `-Filter "DebrisPool*"`, `"TitleTrace*"`). The script prints a line every 15 seconds so a long run shows it is alive.
 
+The window check is `tools/gui-smoke-asteroids.ps1`: it plays a real window (the traced title and its rule and hints, starting a game, the ship and the rocks, a held key turning the ship, the flame, a shot, pause with the dimmed picture, a new game, the saved window position). It takes over the keyboard for about a minute, so do not touch it while it runs. `tools/look-asteroids.ps1` saves a screenshot of the title screen to `build/screenshots` and sends no keys.
+
 ## Design notes
 
 - **The look is a separate design.** Every shape, colour, screen layout and effect came from a design brief and the designer's answer, `docs/design/asteroids-art.md` ("Obsidian Line"). The art is in `AsteroidsArt` and the colours in `AsteroidsLook`, one place each. Where the design did not fit, this is what the game does instead:

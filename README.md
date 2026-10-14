@@ -406,6 +406,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter 
 | `tools/gui-smoke-2048.ps1` | The same for 2048: the arrow keys and W A S D, the score, a game played to GAME OVER, a new game, the best score saved and read back. Takes over the keyboard and mouse for a minute or two |
 | `tools/gui-smoke-snake.ps1` | The same for Snake: steering, pause, the snake crashing into the wall, a new game, the best score saved and read back. Takes over the keyboard for a minute or two |
 | `tools/gui-smoke-spaceinvaders.ps1` | The same for Space Invaders: the title, the wave and its colours, held keys steering the cannon, a shot, pause, a new game, the saved window size. Takes over the keyboard for about a minute |
+| `tools/gui-smoke-asteroids.ps1` | The same for Asteroids: the traced title, the rule and hints, starting a game, the ship and the rocks, a held key turning the ship, the flame under thrust, a shot, pause (the picture freezes and dims), a new game, the saved window position. Takes over the keyboard for about a minute |
+| `tools/look-asteroids.ps1` | Saves a screenshot of the Asteroids title screen to `build/screenshots`, sending no keys |
 | `tools/look-spaceinvaders.ps1` | Saves a screenshot of the Space Invaders title screen to `build/screenshots`, sending no keys |
 
 Results go to `build/test-results/results.xml` (plain) and `build/test-results/gui/results.xml` (WinForms). Screenshots from the smoke test go to `build/screenshots`.
