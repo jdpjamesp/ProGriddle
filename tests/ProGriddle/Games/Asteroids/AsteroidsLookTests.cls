@@ -9,88 +9,137 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Asteroids.AsteroidsLookTests:
 
-    {ProGriddle/Games/Asteroids/Colours.i}
 
     @Test.
     METHOD PUBLIC VOID EveryColourIsAnRgbNumber():
         DEFINE VARIABLE i AS INTEGER NO-UNDO.
         Assert:IsTrue(AsteroidsLook:Count() >= 60).
-        DO i = 1 TO AsteroidsLook:Count():
-            Assert:IsTrue(AsteroidsLook:Colour(i) >= 0 AND AsteroidsLook:Colour(i) <= 16777215).
+        DO i = 0 TO AsteroidsLook:Count() - 1:
+            Assert:IsTrue(AsteroidsLook:Colour(Palette:GetEnum(i)) >= 0 AND AsteroidsLook:Colour(Palette:GetEnum(i)) <= 16777215).
         END.
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID TheEnumHasAnEntryForEveryColour():
+        Assert:Equals(AsteroidsLook:Count() - 1, INTEGER(Palette:ShipDebris6)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID RampsHaveFourOrSixStepsAndRefuseTheRest():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        Assert:Equals(ColourMath:FromHex("FFC24D"), AsteroidsLook:RampColour(Ramp:Exhaust, 0)).
+        Assert:Equals(ColourMath:FromHex("5E4318"), AsteroidsLook:RampColour(Ramp:Exhaust, 3)).
+        Assert:Equals(ColourMath:FromHex("FFD9B8"), AsteroidsLook:RampColour(Ramp:Ember, 0)).
+        Assert:Equals(ColourMath:FromHex("2E0E0E"), AsteroidsLook:RampColour(Ramp:Red, 5)).
+        DO ON ERROR UNDO, THROW:
+            AsteroidsLook:RampColour(Ramp:Exhaust, 4).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            AsteroidsLook:RampColour(Ramp:ShipDebris, 6).
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            AsteroidsLook:RampColour(Ramp:Red, -1).
+            CATCH e3 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            AsteroidsLook:RampColour(?, 0).
+            CATCH e4 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(4, thrown).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID RocksHaveAColourForEachSizeAndADimOneForTheTitle():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        Assert:Equals(AsteroidsLook:Colour(Palette:RockLarge), AsteroidsLook:SizeColour(FALSE, 1)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:RockMedium), AsteroidsLook:SizeColour(FALSE, 2)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:RockSmall), AsteroidsLook:SizeColour(FALSE, 3)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:AttractLarge), AsteroidsLook:SizeColour(TRUE, 1)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:AttractSmall), AsteroidsLook:SizeColour(TRUE, 3)).
+        DO ON ERROR UNDO, THROW:
+            AsteroidsLook:SizeColour(FALSE, 4).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            AsteroidsLook:SizeColour(?, 1).
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(2, thrown).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ColoursKeepTheDesignersHexValues():
-        Assert:Equals(ColourMath:FromHex("7F8EA3"), AsteroidsLook:Colour({&C-ROCK-LARGE})).
-        Assert:Equals(ColourMath:FromHex("FFF4DC"), AsteroidsLook:Colour({&C-SHIP-CORE})).
-        Assert:Equals(ColourMath:FromHex("FF7A4D"), AsteroidsLook:Colour({&C-SAUCER-L-CORE})).
-        Assert:Equals(ColourMath:FromHex("FF4040"), AsteroidsLook:Colour({&C-SAUCER-S-CORE})).
-        Assert:Equals(ColourMath:FromHex("030508"), AsteroidsLook:Colour({&C-VOID-EDGE})).
-        Assert:Equals(ColourMath:FromHex("222831"), AsteroidsLook:Colour({&C-ROCK-DEBRIS-1} + 5)).
-        Assert:Equals(ColourMath:FromHex("5E4318"), AsteroidsLook:Colour({&C-EXHAUST-1} + 3)).
+        Assert:Equals(ColourMath:FromHex("7F8EA3"), AsteroidsLook:Colour(Palette:RockLarge)).
+        Assert:Equals(ColourMath:FromHex("FFF4DC"), AsteroidsLook:Colour(Palette:ShipCore)).
+        Assert:Equals(ColourMath:FromHex("FF7A4D"), AsteroidsLook:Colour(Palette:SaucerLCore)).
+        Assert:Equals(ColourMath:FromHex("FF4040"), AsteroidsLook:Colour(Palette:SaucerSCore)).
+        Assert:Equals(ColourMath:FromHex("030508"), AsteroidsLook:Colour(Palette:VoidEdge)).
+        Assert:Equals(ColourMath:FromHex("222831"), AsteroidsLook:RampColour(Ramp:RockDebris, 5)).
+        Assert:Equals(ColourMath:FromHex("5E4318"), AsteroidsLook:RampColour(Ramp:Exhaust, 3)).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID TheRocksGetBrighterAsTheyShrinkSoTheDangerousOnesShow():
-        Assert:IsTrue(ColourMath:Red(AsteroidsLook:Colour({&C-ROCK-LARGE})) < ColourMath:Red(AsteroidsLook:Colour({&C-ROCK-MEDIUM}))).
-        Assert:IsTrue(ColourMath:Red(AsteroidsLook:Colour({&C-ROCK-MEDIUM})) < ColourMath:Red(AsteroidsLook:Colour({&C-ROCK-SMALL}))).
+        Assert:IsTrue(ColourMath:Red(AsteroidsLook:Colour(Palette:RockLarge)) < ColourMath:Red(AsteroidsLook:Colour(Palette:RockMedium))).
+        Assert:IsTrue(ColourMath:Red(AsteroidsLook:Colour(Palette:RockMedium)) < ColourMath:Red(AsteroidsLook:Colour(Palette:RockSmall))).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID TheShipTheRocksAndTheSaucersAreThreeFamiliesOfColour():
         /* the ship is warm (red above blue), the rocks are cool (blue above red), the saucers are ember (red far above blue) */
-        Assert:IsTrue(ColourMath:Red(AsteroidsLook:Colour({&C-SHIP-CORE})) > ColourMath:Blue(AsteroidsLook:Colour({&C-SHIP-CORE}))).
-        Assert:IsTrue(ColourMath:Blue(AsteroidsLook:Colour({&C-ROCK-LARGE})) > ColourMath:Red(AsteroidsLook:Colour({&C-ROCK-LARGE}))).
-        Assert:IsTrue(ColourMath:Blue(AsteroidsLook:Colour({&C-ROCK-SMALL})) > ColourMath:Red(AsteroidsLook:Colour({&C-ROCK-SMALL}))).
-        Assert:IsTrue(ColourMath:Red(AsteroidsLook:Colour({&C-SAUCER-L-CORE})) - ColourMath:Blue(AsteroidsLook:Colour({&C-SAUCER-L-CORE})) > 100).
-        Assert:IsTrue(ColourMath:Red(AsteroidsLook:Colour({&C-SAUCER-S-CORE})) - ColourMath:Blue(AsteroidsLook:Colour({&C-SAUCER-S-CORE})) > 100).
-        Assert:IsTrue(AsteroidsLook:Colour({&C-SAUCER-L-CORE}) <> AsteroidsLook:Colour({&C-SAUCER-S-CORE})).
+        Assert:IsTrue(ColourMath:Red(AsteroidsLook:Colour(Palette:ShipCore)) > ColourMath:Blue(AsteroidsLook:Colour(Palette:ShipCore))).
+        Assert:IsTrue(ColourMath:Blue(AsteroidsLook:Colour(Palette:RockLarge)) > ColourMath:Red(AsteroidsLook:Colour(Palette:RockLarge))).
+        Assert:IsTrue(ColourMath:Blue(AsteroidsLook:Colour(Palette:RockSmall)) > ColourMath:Red(AsteroidsLook:Colour(Palette:RockSmall))).
+        Assert:IsTrue(ColourMath:Red(AsteroidsLook:Colour(Palette:SaucerLCore)) - ColourMath:Blue(AsteroidsLook:Colour(Palette:SaucerLCore)) > 100).
+        Assert:IsTrue(ColourMath:Red(AsteroidsLook:Colour(Palette:SaucerSCore)) - ColourMath:Blue(AsteroidsLook:Colour(Palette:SaucerSCore)) > 100).
+        Assert:IsTrue(AsteroidsLook:Colour(Palette:SaucerLCore) <> AsteroidsLook:Colour(Palette:SaucerSCore)).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID ThingsThatCanOverlapAreNotTheSameColour():
-        Assert:IsTrue(AsteroidsLook:Colour({&C-ROCK-SMALL}) <> AsteroidsLook:Colour({&C-TEXT-WHITE})).
-        Assert:IsTrue(AsteroidsLook:Colour({&C-ROCK-LARGE}) <> AsteroidsLook:Colour({&C-LABEL})).
-        Assert:IsTrue(AsteroidsLook:Colour({&C-SHIP-CORE}) <> AsteroidsLook:Colour({&C-SHOT-HEAD})).
-        Assert:IsTrue(AsteroidsLook:Colour({&C-SHIP-CORE}) <> AsteroidsLook:Colour({&C-TEXT-WHITE})).
-        Assert:IsTrue(AsteroidsLook:Colour({&C-DUST-BRIGHT}) <> AsteroidsLook:Colour({&C-ROCK-DEBRIS-1} + 5)).
-        Assert:IsTrue(AsteroidsLook:Colour({&C-SHIP-HALO}) <> AsteroidsLook:Colour({&C-SHIP-SPINE})).
+        Assert:IsTrue(AsteroidsLook:Colour(Palette:RockSmall) <> AsteroidsLook:Colour(Palette:TextWhite)).
+        Assert:IsTrue(AsteroidsLook:Colour(Palette:RockLarge) <> AsteroidsLook:Colour(Palette:Label)).
+        Assert:IsTrue(AsteroidsLook:Colour(Palette:ShipCore) <> AsteroidsLook:Colour(Palette:ShotHead)).
+        Assert:IsTrue(AsteroidsLook:Colour(Palette:ShipCore) <> AsteroidsLook:Colour(Palette:TextWhite)).
+        Assert:IsTrue(AsteroidsLook:Colour(Palette:DustBright) <> AsteroidsLook:RampColour(Ramp:RockDebris, 5)).
+        Assert:IsTrue(AsteroidsLook:Colour(Palette:ShipHalo) <> AsteroidsLook:Colour(Palette:ShipSpine)).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID ADebrisRampFadesFromBrightToDark():
         DEFINE VARIABLE i AS INTEGER NO-UNDO.
         DO i = 0 TO 4:
-            Assert:IsTrue(ColourMath:Red(AsteroidsLook:Colour({&C-ROCK-DEBRIS-1} + i)) >= ColourMath:Red(AsteroidsLook:Colour({&C-ROCK-DEBRIS-1} + i + 1))).
-            Assert:IsTrue(ColourMath:Red(AsteroidsLook:Colour({&C-SHIP-DEBRIS-1} + i)) >= ColourMath:Red(AsteroidsLook:Colour({&C-SHIP-DEBRIS-1} + i + 1))).
-            Assert:IsTrue(ColourMath:Red(AsteroidsLook:Colour({&C-EMBER-1} + i)) >= ColourMath:Red(AsteroidsLook:Colour({&C-EMBER-1} + i + 1))).
-            Assert:IsTrue(ColourMath:Red(AsteroidsLook:Colour({&C-RED-1} + i)) >= ColourMath:Red(AsteroidsLook:Colour({&C-RED-1} + i + 1))).
+            Assert:IsTrue(ColourMath:Red(AsteroidsLook:RampColour(Ramp:RockDebris, i)) >= ColourMath:Red(AsteroidsLook:RampColour(Ramp:RockDebris, i + 1))).
+            Assert:IsTrue(ColourMath:Red(AsteroidsLook:RampColour(Ramp:ShipDebris, i)) >= ColourMath:Red(AsteroidsLook:RampColour(Ramp:ShipDebris, i + 1))).
+            Assert:IsTrue(ColourMath:Red(AsteroidsLook:RampColour(Ramp:Ember, i)) >= ColourMath:Red(AsteroidsLook:RampColour(Ramp:Ember, i + 1))).
+            Assert:IsTrue(ColourMath:Red(AsteroidsLook:RampColour(Ramp:Red, i)) >= ColourMath:Red(AsteroidsLook:RampColour(Ramp:Red, i + 1))).
         END.
     END METHOD.
 
     @Test.
-    METHOD PUBLIC VOID ABadColourNumberIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DO ON ERROR UNDO, THROW:
-            AsteroidsLook:Colour(0).
-            CATCH e1 AS GridException:
-                thrown = thrown + 1.
-            END CATCH.
-        END.
-        DO ON ERROR UNDO, THROW:
-            AsteroidsLook:Colour(AsteroidsLook:Count() + 1).
-            CATCH e2 AS GridException:
-                thrown = thrown + 1.
-            END CATCH.
-        END.
+    METHOD PUBLIC VOID AnUnknownColourIsRefused():
+        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
         DO ON ERROR UNDO, THROW:
             AsteroidsLook:Colour(?).
-            CATCH e3 AS GridException:
-                thrown = thrown + 1.
+            CATCH e AS GridException:
+                thrown = TRUE.
             END CATCH.
         END.
-        Assert:Equals(3, thrown).
+        Assert:IsTrue(thrown).
     END METHOD.
 
 END CLASS.

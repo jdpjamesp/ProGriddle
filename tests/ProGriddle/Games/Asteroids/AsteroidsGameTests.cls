@@ -11,7 +11,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
-    {ProGriddle/Games/Asteroids/Colours.i}
 
     DEFINE PRIVATE VARIABLE mGame AS AsteroidsGame NO-UNDO.
 
@@ -91,10 +90,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         DEFINE VARIABLE edge   AS INTEGER NO-UNDO.
         /* a cell with no dust in it, near the middle and near the corner */
         DO x = 150 TO 170:
-            IF mGame:Canvas:BackAt(x, 120) = AsteroidsLook:Colour({&C-VOID-CENTRE}) THEN centre = centre + 1.
+            IF mGame:Canvas:BackAt(x, 120) = AsteroidsLook:Colour(Palette:VoidCentre) THEN centre = centre + 1.
         END.
         DO x = 0 TO 20:
-            IF mGame:Canvas:BackAt(x, 0) = AsteroidsLook:Colour({&C-VOID-EDGE}) THEN edge = edge + 1.
+            IF mGame:Canvas:BackAt(x, 0) = AsteroidsLook:Colour(Palette:VoidEdge) THEN edge = edge + 1.
         END.
         Assert:IsTrue(centre >= 19).
         Assert:IsTrue(edge >= 19).
@@ -110,9 +109,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         DO y = 0 TO 239:
             DO x = 0 TO 319:
                 CASE mGame:Canvas:BackAt(x, y):
-                    WHEN AsteroidsLook:Colour({&C-DUST-DIM}) THEN dim = dim + 1.
-                    WHEN AsteroidsLook:Colour({&C-DUST-MID}) THEN mid = mid + 1.
-                    WHEN AsteroidsLook:Colour({&C-DUST-BRIGHT}) THEN bright = bright + 1.
+                    WHEN AsteroidsLook:Colour(Palette:DustDim) THEN dim = dim + 1.
+                    WHEN AsteroidsLook:Colour(Palette:DustMid) THEN mid = mid + 1.
+                    WHEN AsteroidsLook:Colour(Palette:DustBright) THEN bright = bright + 1.
                 END CASE.
             END.
         END.
@@ -317,13 +316,13 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
     METHOD PUBLIC VOID TheShipIsDrawnAsAGlowingOutlineWithItsNoseUp():
         Play().
         /* nose at (160, 114), the base corners at (156, 123) and (164, 123) */
-        Assert:Equals(AsteroidsLook:Colour({&C-SHIP-CORE}), mGame:Canvas:ColourAt(160, 114)).
-        Assert:Equals(AsteroidsLook:Colour({&C-SHIP-CORE}), mGame:Canvas:ColourAt(164, 123)).
-        Assert:Equals(AsteroidsLook:Colour({&C-SHIP-CORE}), mGame:Canvas:ColourAt(156, 123)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShipCore), mGame:Canvas:ColourAt(160, 114)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShipCore), mGame:Canvas:ColourAt(164, 123)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShipCore), mGame:Canvas:ColourAt(156, 123)).
         /* a halo one cell outside the nose */
-        Assert:Equals(AsteroidsLook:Colour({&C-SHIP-HALO}), mGame:Canvas:ColourAt(160, 113)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShipHalo), mGame:Canvas:ColourAt(160, 113)).
         /* the spine down the middle */
-        Assert:Equals(AsteroidsLook:Colour({&C-SHIP-SPINE}), mGame:Canvas:ColourAt(160, 118)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShipSpine), mGame:Canvas:ColourAt(160, 118)).
     END METHOD.
 
     @Test.
@@ -336,7 +335,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Frames(1).
         /* the flame is below the ship's base (row 123) at the start, since the ship barely moved */
         DO y = 126 TO 130:
-            IF mGame:Canvas:ColourAt(160, y) = AsteroidsLook:Colour({&C-FLAME-OUTER}) OR mGame:Canvas:ColourAt(160, y) = AsteroidsLook:Colour({&C-FLAME-CORE}) THEN lit = lit + 1.
+            IF mGame:Canvas:ColourAt(160, y) = AsteroidsLook:Colour(Palette:FlameOuter) OR mGame:Canvas:ColourAt(160, y) = AsteroidsLook:Colour(Palette:FlameCore) THEN lit = lit + 1.
         END.
         Assert:IsTrue(lit > 0).
         mGame:ThrustHeld = FALSE.
@@ -344,7 +343,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         lit = 0.
         DO y = 120 TO 135:
             DO x = 150 TO 170:
-                IF mGame:Canvas:ColourAt(x, y) = AsteroidsLook:Colour({&C-FLAME-OUTER}) OR mGame:Canvas:ColourAt(x, y) = AsteroidsLook:Colour({&C-FLAME-CORE}) THEN lit = lit + 1.
+                IF mGame:Canvas:ColourAt(x, y) = AsteroidsLook:Colour(Palette:FlameOuter) OR mGame:Canvas:ColourAt(x, y) = AsteroidsLook:Colour(Palette:FlameCore) THEN lit = lit + 1.
             END.
         END.
         Assert:Equals(0, lit).
@@ -357,8 +356,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Frames(22).
         mGame:TurnDirection = 0.
         /* pointing right: the nose is now at (166, 120), a little right of where the middle has moved to */
-        Assert:Equals(AsteroidsLook:Colour({&C-SHIP-CORE}), mGame:Canvas:ColourAt(166, 120)).
-        Assert:IsFalse(mGame:Canvas:ColourAt(160, 114) = AsteroidsLook:Colour({&C-SHIP-CORE})).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShipCore), mGame:Canvas:ColourAt(166, 120)).
+        Assert:IsFalse(mGame:Canvas:ColourAt(160, 114) = AsteroidsLook:Colour(Palette:ShipCore)).
     END METHOD.
 
     @Test.
@@ -542,10 +541,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         EmptySky().
         mGame:FireHeld = TRUE.
         mGame:Advance().
-        Assert:Equals(AsteroidsLook:Colour({&C-SHOT-HEAD}), mGame:Canvas:ColourAt(160, 108)).
-        Assert:Equals(AsteroidsLook:Colour({&C-SHOT-HEAD}), mGame:Canvas:ColourAt(161, 108)).
-        Assert:Equals(AsteroidsLook:Colour({&C-SHOT-HEAD}), mGame:Canvas:ColourAt(160, 109)).
-        Assert:Equals(AsteroidsLook:Colour({&C-SHOT-HEAD}), mGame:Canvas:ColourAt(161, 109)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShotHead), mGame:Canvas:ColourAt(160, 108)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShotHead), mGame:Canvas:ColourAt(161, 108)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShotHead), mGame:Canvas:ColourAt(160, 109)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShotHead), mGame:Canvas:ColourAt(161, 109)).
     END METHOD.
 
     /* ---------------------------------- the rocks and the waves ---------------------------------- */
@@ -723,9 +722,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         /* a large rock with its first outline, not turned: a corner of it is at (100.9, 80.9), so cell (101, 81) */
         RockAt(1, 100, 100).
         mGame:Advance().
-        Assert:Equals(AsteroidsLook:Colour({&C-FLASH}), mGame:Canvas:ColourAt(101, 81)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:Flash), mGame:Canvas:ColourAt(101, 81)).
         Frames(8).
-        Assert:Equals(AsteroidsLook:Colour({&C-ROCK-LARGE}), mGame:Canvas:ColourAt(101, 81)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:RockLarge), mGame:Canvas:ColourAt(101, 81)).
     END METHOD.
 
     @Test.
@@ -740,7 +739,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Frames(8).
         DO y = 70 TO 130:
             DO x = 70 TO 130:
-                IF mGame:Canvas:ColourAt(x, y) = AsteroidsLook:Colour({&C-ATTRACT-LARGE}) THEN dimly = dimly + 1.
+                IF mGame:Canvas:ColourAt(x, y) = AsteroidsLook:Colour(Palette:AttractLarge) THEN dimly = dimly + 1.
             END.
         END.
         Assert:IsTrue(dimly > 30).
@@ -786,13 +785,13 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
     METHOD PUBLIC VOID TheShieldRingIsDrawnRoundANewShipAndTheShipBlinksInsideIt():
         mGame:StartGame().
         Assert:Equals(90, mGame:ShieldFrames).
-        Assert:Equals(AsteroidsLook:Colour({&C-SHIELD-RING}), mGame:Canvas:ColourAt(160, 106)).
-        Assert:Equals(AsteroidsLook:Colour({&C-SHIP-CORE}), mGame:Canvas:ColourAt(160, 114)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShieldRing), mGame:Canvas:ColourAt(160, 106)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShipCore), mGame:Canvas:ColourAt(160, 114)).
         Frames(5).
         /* hidden for five frames, and then back */
-        Assert:IsFalse(mGame:Canvas:ColourAt(160, 114) = AsteroidsLook:Colour({&C-SHIP-CORE})).
+        Assert:IsFalse(mGame:Canvas:ColourAt(160, 114) = AsteroidsLook:Colour(Palette:ShipCore)).
         Frames(5).
-        Assert:Equals(AsteroidsLook:Colour({&C-SHIP-CORE}), mGame:Canvas:ColourAt(160, 114)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShipCore), mGame:Canvas:ColourAt(160, 114)).
     END METHOD.
 
     @Test.
@@ -1028,7 +1027,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         EmptySky().
         mGame:LaunchSaucerAt(TRUE, 1, 30).
         UntilTheFirstSaucerShot(100).
-        Assert:Equals(AsteroidsLook:Colour({&C-SAUCER-SHOT-CENTRE}), mGame:Canvas:ColourAt(mGame:SaucerShotX(0), mGame:SaucerShotY(0))).
+        Assert:Equals(AsteroidsLook:Colour(Palette:SaucerShotCentre), mGame:Canvas:ColourAt(mGame:SaucerShotX(0), mGame:SaucerShotY(0))).
     END METHOD.
 
     @Test.
@@ -1128,8 +1127,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         mGame:Advance().
         DO y = 50 TO 70:
             DO x = 90 TO 112:
-                IF mGame:Canvas:ColourAt(x, y) = AsteroidsLook:Colour({&C-SAUCER-L-CORE}) THEN core = core + 1.
-                IF mGame:Canvas:ColourAt(x, y) = AsteroidsLook:Colour({&C-SAUCER-L-HALO}) THEN halo = halo + 1.
+                IF mGame:Canvas:ColourAt(x, y) = AsteroidsLook:Colour(Palette:SaucerLCore) THEN core = core + 1.
+                IF mGame:Canvas:ColourAt(x, y) = AsteroidsLook:Colour(Palette:SaucerLHalo) THEN halo = halo + 1.
             END.
         END.
         /* the body, the waist and the dome base make about forty cells; the glow is more than that */
@@ -1246,7 +1245,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         mGame:Hyperspace().
         Quiet(9).
         /* the fifth step: 320 percent along, so the nose is at 120 - 19.2, row 101, in the first colour of the wreckage */
-        Assert:Equals(AsteroidsLook:Colour({&C-SHIP-DEBRIS-1}), mGame:Canvas:ColourAt(160, 101)).
+        Assert:Equals(AsteroidsLook:Colour(Palette:ShipDebris1), mGame:Canvas:ColourAt(160, 101)).
     END METHOD.
 
     /* ---------------------------------- the score ---------------------------------- */

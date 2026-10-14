@@ -24,7 +24,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLEMENTS IRealTimeGame:
 
-    {ProGriddle/Games/Asteroids/Colours.i}
 
     /* the field: cells, and the 4096ths of a cell a unit is */
     &SCOPED-DEFINE WIDTH 320
@@ -130,7 +129,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     DEFINE PRIVATE VARIABLE mDustX     AS INTEGER     NO-UNDO EXTENT {&MOVING-DUST}.
     DEFINE PRIVATE VARIABLE mDustY     AS INTEGER     NO-UNDO EXTENT {&MOVING-DUST}.
     DEFINE PRIVATE VARIABLE mDustV     AS INTEGER     NO-UNDO EXTENT {&MOVING-DUST}.
-    DEFINE PRIVATE VARIABLE mDustC     AS INTEGER     NO-UNDO EXTENT {&MOVING-DUST}.
+    DEFINE PRIVATE VARIABLE mDustC     AS Palette     NO-UNDO EXTENT {&MOVING-DUST}.
 
     DEFINE PUBLIC PROPERTY Paused AS LOGICAL NO-UNDO
         GET.
@@ -304,7 +303,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mPen = NEW OutlinePen(mCanvas).
         mRocks = NEW RockField().
         DO i = 0 TO 64:
-            mVignette[i + 1] = ColourMath:Mix(AsteroidsLook:Colour({&C-VOID-CENTRE}), AsteroidsLook:Colour({&C-VOID-EDGE}), i, 64).
+            mVignette[i + 1] = ColourMath:Mix(AsteroidsLook:Colour(Palette:VoidCentre), AsteroidsLook:Colour(Palette:VoidEdge), i, 64).
         END.
         Initialise().
     END CONSTRUCTOR.
@@ -1073,7 +1072,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         DEFINE VARIABLE backLayer AS INTEGER NO-UNDO.
         DEFINE VARIABLE idx   AS INTEGER NO-UNDO.
         DEFINE VARIABLE tries AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE c     AS Palette NO-UNDO.
         cells = Grid:Store.
         backLayer = cells:LayerIndex("back").
         DO y = 0 TO {&HEIGHT} - 1:
@@ -1084,7 +1083,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         END.
         /* 40 dim, 20 mid and 10 bright dust cells, each in a cell of its own */
         DO n = 1 TO 70:
-            c = (IF n <= 40 THEN {&C-DUST-DIM} ELSE IF n <= 60 THEN {&C-DUST-MID} ELSE {&C-DUST-BRIGHT}).
+            c = (IF n <= 40 THEN Palette:DustDim ELSE IF n <= 60 THEN Palette:DustMid ELSE Palette:DustBright).
             DO tries = 1 TO 50:
                 idx = mRandom:NextInt({&WIDTH} * {&HEIGHT}).
                 IF LOOKUP(STRING(cells:GetCellAt(backLayer, idx)), DustColours()) = 0 THEN LEAVE.
@@ -1095,7 +1094,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* The colours of dust, as numbers in a comma list, to tell a dust cell from the vignette. */
     METHOD PRIVATE STATIC CHARACTER DustColours():
-        RETURN SUBSTITUTE("&1,&2,&3", AsteroidsLook:Colour({&C-DUST-DIM}), AsteroidsLook:Colour({&C-DUST-MID}), AsteroidsLook:Colour({&C-DUST-BRIGHT})).
+        RETURN SUBSTITUTE("&1,&2,&3", AsteroidsLook:Colour(Palette:DustDim), AsteroidsLook:Colour(Palette:DustMid), AsteroidsLook:Colour(Palette:DustBright)).
     END METHOD.
 
     /* 20 cells of dust that drift left and a little down, in three speeds. */
@@ -1105,9 +1104,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             mDustX[i] = mRandom:NextInt({&WIDTH-U}).
             mDustY[i] = mRandom:NextInt({&HEIGHT-U}).
             CASE i MODULO 3:
-                WHEN 0 THEN ASSIGN mDustV[i] = 164 mDustC[i] = {&C-DUST-DIM}.
-                WHEN 1 THEN ASSIGN mDustV[i] = 328 mDustC[i] = {&C-DUST-MID}.
-                OTHERWISE ASSIGN mDustV[i] = 573 mDustC[i] = {&C-DUST-BRIGHT}.
+                WHEN 0 THEN ASSIGN mDustV[i] = 164 mDustC[i] = Palette:DustDim.
+                WHEN 1 THEN ASSIGN mDustV[i] = 328 mDustC[i] = Palette:DustMid.
+                OTHERWISE ASSIGN mDustV[i] = 573 mDustC[i] = Palette:DustBright.
             END CASE.
         END.
     END METHOD.
@@ -1154,7 +1153,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         DEFINE VARIABLE halo AS INTEGER NO-UNDO.
         DEFINE VARIABLE px   AS INTEGER NO-UNDO.
         DEFINE VARIABLE py   AS INTEGER NO-UNDO.
-        halo = AsteroidsLook:Colour(IF mSaucLarge THEN {&C-SAUCER-L-HALO} ELSE {&C-SAUCER-S-HALO}).
+        halo = AsteroidsLook:Colour(IF mSaucLarge THEN Palette:SaucerLHalo ELSE Palette:SaucerSHalo).
         px = ToPen(mSaucX).
         py = ToPen(mSaucY).
         mPen:Draw(AsteroidsArt:Saucer(mSaucLarge), px, py, 0, 0, halo, -1, 0).
@@ -1165,7 +1164,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     METHOD PRIVATE VOID DrawSaucerCore():
         mPen:Draw(AsteroidsArt:Saucer(mSaucLarge), ToPen(mSaucX), ToPen(mSaucY), 0, 0,
-                  AsteroidsLook:Colour(IF mSaucLarge THEN {&C-SAUCER-L-CORE} ELSE {&C-SAUCER-S-CORE}), 0, 0).
+                  AsteroidsLook:Colour(IF mSaucLarge THEN Palette:SaucerLCore ELSE Palette:SaucerSCore), 0, 0).
     END METHOD.
 
     /* The saucers' shots: a plus and a cross of five cells that take turns every four frames, in the colour of the saucer
@@ -1181,7 +1180,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             IF mSsLife[i] <= 0 THEN NEXT.
             x = INTEGER(TRUNCATE(mSsX[i] / {&UNIT}, 0)).
             y = INTEGER(TRUNCATE(mSsY[i] / {&UNIT}, 0)).
-            arm = AsteroidsLook:Colour(IF mSsLarge[i] THEN {&C-SAUCER-L-CORE} ELSE {&C-SAUCER-S-CORE}).
+            arm = AsteroidsLook:Colour(IF mSsLarge[i] THEN Palette:SaucerLCore ELSE Palette:SaucerSCore).
             plus = INTEGER(TRUNCATE(mSsLife[i] / 4, 0)) MODULO 2 = 0.
             IF plus THEN DO:
                 mCanvas:Plot(x - 1, y, 0, arm).
@@ -1195,7 +1194,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
                 mCanvas:Plot(x - 1, y + 1, 0, arm).
                 mCanvas:Plot(x + 1, y + 1, 0, arm).
             END.
-            mCanvas:Plot(x, y, 0, AsteroidsLook:Colour({&C-SAUCER-SHOT-CENTRE})).
+            mCanvas:Plot(x, y, 0, AsteroidsLook:Colour(Palette:SaucerShotCentre)).
         END.
     END METHOD.
 
@@ -1207,9 +1206,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         DO size = 1 TO 3:
             DO r = 0 TO RockField:Capacity() - 1:
                 IF mRocks:SizeAt(r) <> size THEN NEXT.
-                IF mRocks:Flash(r) > 0 THEN colour = AsteroidsLook:Colour({&C-FLASH}).
-                ELSE IF Phase = GamePhase:Title THEN colour = AsteroidsLook:Colour({&C-ATTRACT-LARGE} + size - 1).
-                ELSE colour = AsteroidsLook:Colour({&C-ROCK-LARGE} + size - 1).
+                IF mRocks:Flash(r) > 0 THEN colour = AsteroidsLook:Colour(Palette:Flash).
+                ELSE IF Phase = GamePhase:Title THEN colour = AsteroidsLook:SizeColour(TRUE, size).
+                ELSE colour = AsteroidsLook:SizeColour(FALSE, size).
                 mPen:DrawWrapped(AsteroidsArt:Rock(size, mRocks:Variant(r)), ToPen(mRocks:X(r)), ToPen(mRocks:Y(r)), mRocks:HeadingAt(r),
                                  AsteroidsArt:RockExtent(size), 0, colour, 0, 0).
             END.
@@ -1240,7 +1239,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             y0 = INTEGER(TRUNCATE((cy + INTEGER(TRUNCATE(radius * Heading:DirY(h) / 1024, 0)) + 128) / 256, 0)).
             x1 = INTEGER(TRUNCATE((cx + INTEGER(TRUNCATE(radius * Heading:DirX(h + 4) / 1024, 0)) + 128) / 256, 0)).
             y1 = INTEGER(TRUNCATE((cy + INTEGER(TRUNCATE(radius * Heading:DirY(h + 4) / 1024, 0)) + 128) / 256, 0)).
-            mCanvas:DrawLine(x0, y0, x1, y1, 0, AsteroidsLook:Colour({&C-SHIELD-RING})).
+            mCanvas:DrawLine(x0, y0, x1, y1, 0, AsteroidsLook:Colour(Palette:ShieldRing)).
         END.
     END METHOD.
 
@@ -1253,13 +1252,13 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         DEFINE VARIABLE hy     AS INTEGER NO-UNDO.
         DEFINE VARIABLE tx     AS INTEGER NO-UNDO.
         DEFINE VARIABLE ty     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE head   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE head   AS Palette NO-UNDO.
         DEFINE VARIABLE trail  AS INTEGER NO-UNDO.
         DO i = 1 TO {&SHOTS}:
             IF mShLife[i] <= 0 THEN NEXT.
             hx = INTEGER(TRUNCATE(mShX[i] / {&UNIT}, 0)).
             hy = INTEGER(TRUNCATE(mShY[i] / {&UNIT}, 0)).
-            head = (IF mShLife[i] > 15 THEN {&C-SHOT-HEAD} ELSE {&C-SHOT-TRAIL-1}).
+            head = (IF mShLife[i] > 15 THEN Palette:ShotHead ELSE Palette:ShotTrail1).
             mCanvas:Plot(hx, hy, 0, AsteroidsLook:Colour(head)).
             mCanvas:Plot(hx + 1, hy, 0, AsteroidsLook:Colour(head)).
             mCanvas:Plot(hx, hy + 1, 0, AsteroidsLook:Colour(head)).
@@ -1268,8 +1267,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             DO k = 1 TO 3:
                 tx = INTEGER(TRUNCATE(WrapUnits(mShX[i] - INTEGER(TRUNCATE(Heading:DirX(mShHead[i]) * k * 1331 / 1024, 0)), {&WIDTH-U}) / {&UNIT}, 0)).
                 ty = INTEGER(TRUNCATE(WrapUnits(mShY[i] - INTEGER(TRUNCATE(Heading:DirY(mShHead[i]) * k * 1331 / 1024, 0)), {&HEIGHT-U}) / {&UNIT}, 0)).
-                trail = (IF mShLife[i] > 15 THEN {&C-SHOT-TRAIL-1} + k - 1 ELSE {&C-SHOT-TRAIL-3}).
-                IF mCanvas:ColourAt(tx, ty) = mCanvas:BackAt(tx, ty) THEN mCanvas:Plot(tx, ty, 0, AsteroidsLook:Colour(trail)).
+                trail = (IF mShLife[i] > 15 THEN AsteroidsLook:Colour(Palette:GetEnum(INTEGER(Palette:ShotTrail1) + k - 1)) ELSE AsteroidsLook:Colour(Palette:ShotTrail3)).
+                IF mCanvas:ColourAt(tx, ty) = mCanvas:BackAt(tx, ty) THEN mCanvas:Plot(tx, ty, 0, trail).
             END.
         END.
     END METHOD.
@@ -1279,13 +1278,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     METHOD PRIVATE VOID DrawHyperShip(INPUT piStep AS INTEGER):
         DEFINE VARIABLE colour AS INTEGER NO-UNDO.
         CASE piStep:
-            WHEN 0 OR WHEN 1 THEN colour = {&C-SHIP-CORE}.
-            WHEN 2 OR WHEN 3 THEN colour = {&C-FLASH}.
-            WHEN 4 THEN colour = {&C-SHIP-DEBRIS-1}.
-            OTHERWISE colour = {&C-SHIP-DEBRIS-1} + 1.
+            WHEN 0 OR WHEN 1 THEN colour = AsteroidsLook:Colour(Palette:ShipCore).
+            WHEN 2 OR WHEN 3 THEN colour = AsteroidsLook:Colour(Palette:Flash).
+            OTHERWISE colour = AsteroidsLook:RampColour(Ramp:ShipDebris, piStep - 4).
         END CASE.
         mPen:DrawScaled(AsteroidsArt:Ship(), ToPen(mSX), ToPen(mSY), mHeading, INTEGER(ENTRY(piStep + 1, "100,80,60,40,25,10")),
-                        INTEGER(ENTRY(piStep + 1, "100,140,190,250,320,400")), 0, AsteroidsLook:Colour(colour)).
+                        INTEGER(ENTRY(piStep + 1, "100,140,190,250,320,400")), 0, colour).
     END METHOD.
 
     /* The ship's glow: four dim copies one cell to each side. */
@@ -1295,7 +1293,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         DEFINE VARIABLE halo AS INTEGER NO-UNDO.
         px = ToPen(mSX).
         py = ToPen(mSY).
-        halo = AsteroidsLook:Colour({&C-SHIP-HALO}).
+        halo = AsteroidsLook:Colour(Palette:ShipHalo).
         mPen:DrawWrapped(AsteroidsArt:Ship(), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, halo, -1, 0).
         mPen:DrawWrapped(AsteroidsArt:Ship(), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, halo, 1, 0).
         mPen:DrawWrapped(AsteroidsArt:Ship(), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, halo, 0, -1).
@@ -1309,13 +1307,13 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         DEFINE VARIABLE flameFrame AS INTEGER NO-UNDO.
         px = ToPen(mSX).
         py = ToPen(mSY).
-        mPen:DrawWrapped(AsteroidsArt:Ship(), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, AsteroidsLook:Colour({&C-SHIP-CORE}), 0, 0).
-        mPen:DrawWrapped(AsteroidsArt:ShipSpine(), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, AsteroidsLook:Colour({&C-SHIP-SPINE}), 0, 0).
+        mPen:DrawWrapped(AsteroidsArt:Ship(), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, AsteroidsLook:Colour(Palette:ShipCore), 0, 0).
+        mPen:DrawWrapped(AsteroidsArt:ShipSpine(), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, AsteroidsLook:Colour(Palette:ShipSpine), 0, 0).
         IF mThrusting THEN DO:
             /* the flame cycles through frames 0, 1, 2, 1, three ticks to a frame */
             flameFrame = INTEGER(ENTRY((INTEGER(TRUNCATE(mFlameT / 3, 0)) MODULO 4) + 1, "0,1,2,1")).
-            mPen:DrawWrapped(AsteroidsArt:FlameOuter(flameFrame), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, AsteroidsLook:Colour({&C-FLAME-OUTER}), 0, 0).
-            mPen:DrawWrapped(AsteroidsArt:FlameCore(flameFrame), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, AsteroidsLook:Colour({&C-FLAME-CORE}), 0, 0).
+            mPen:DrawWrapped(AsteroidsArt:FlameOuter(flameFrame), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, AsteroidsLook:Colour(Palette:FlameOuter), 0, 0).
+            mPen:DrawWrapped(AsteroidsArt:FlameCore(flameFrame), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, AsteroidsLook:Colour(Palette:FlameCore), 0, 0).
         END.
     END METHOD.
 

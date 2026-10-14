@@ -1,5 +1,5 @@
 /* The colours of Asteroids, as 0xRRGGBB numbers (what a cell of the view holds): the designer's "Obsidian Line"
-   palette from docs/design/asteroids-art.md. Every colour has a number in Colours.i. They are read from hex text
+   palette from docs/design/asteroids-art.md. Every colour has a name in the Palette enum. They are read from hex text
    once, when the class is first used, so asking for one in a frame costs nothing. This is the one place to change
    the look of the colours, with AsteroidsArt for the shapes. */
 USING Progress.Lang.*.
@@ -95,11 +95,36 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsLook FINAL:
         END.
     END CONSTRUCTOR.
 
-    /* The colour with a number from Colours.i, as 0xRRGGBB. */
-    METHOD PUBLIC STATIC INTEGER Colour(INPUT piColour AS INTEGER):
-        IF piColour = ? OR piColour < 1 OR piColour > {&COLOURS} THEN
-            UNDO, THROW NEW GridException(SUBSTITUTE("A colour is 1 to &1, not &2", {&COLOURS}, piColour)).
-        RETURN sColours[piColour].
+    /* The colour of a palette entry, as 0xRRGGBB. */
+    METHOD PUBLIC STATIC INTEGER Colour(INPUT poColour AS Palette):
+        IF NOT VALID-OBJECT(poColour) THEN UNDO, THROW NEW GridException("A colour is a Palette entry, not unknown").
+        RETURN sColours[INTEGER(poColour) + 1].
+    END METHOD.
+
+    /* The colour of one step of a ramp that fades, counting from 0: the exhaust has 4 steps, the others 6. Throws
+       GridException for a step the ramp does not have. */
+    METHOD PUBLIC STATIC INTEGER RampColour(INPUT poRamp AS Ramp, INPUT piStep AS INTEGER):
+        DEFINE VARIABLE firstStep AS Palette NO-UNDO.
+        DEFINE VARIABLE steps AS INTEGER NO-UNDO.
+        IF NOT VALID-OBJECT(poRamp) THEN UNDO, THROW NEW GridException("A ramp is a Ramp entry, not unknown").
+        CASE poRamp:
+            WHEN Ramp:Exhaust THEN ASSIGN firstStep = Palette:Exhaust1 steps = 4.
+            WHEN Ramp:RockDebris THEN ASSIGN firstStep = Palette:RockDebris1 steps = 6.
+            WHEN Ramp:Ember THEN ASSIGN firstStep = Palette:Ember1 steps = 6.
+            WHEN Ramp:Red THEN ASSIGN firstStep = Palette:Red1 steps = 6.
+            OTHERWISE ASSIGN firstStep = Palette:ShipDebris1 steps = 6.
+        END CASE.
+        IF piStep = ? OR piStep < 0 OR piStep >= steps THEN
+            UNDO, THROW NEW GridException(SUBSTITUTE("The &1 ramp has steps 0 to &2, not &3", STRING(poRamp), steps - 1, piStep)).
+        RETURN sColours[INTEGER(firstStep) + 1 + piStep].
+    END METHOD.
+
+    /* The colour of a rock of a size (1 large, 2 medium, 3 small): grey stone that gets brighter as the rock gets
+       smaller, or, for plAttract TRUE, the dim colours of the rocks drifting behind the title. */
+    METHOD PUBLIC STATIC INTEGER SizeColour(INPUT plAttract AS LOGICAL, INPUT piSize AS INTEGER):
+        IF plAttract = ? THEN UNDO, THROW NEW GridException("Attract or not, not unknown").
+        IF piSize = ? OR piSize < 1 OR piSize > 3 THEN UNDO, THROW NEW GridException("A rock size is 1, 2 or 3, not " + STRING(piSize)).
+        RETURN sColours[INTEGER(IF plAttract THEN Palette:AttractLarge ELSE Palette:RockLarge) + piSize].
     END METHOD.
 
     /* How many colours there are. */
