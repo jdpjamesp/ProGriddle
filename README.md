@@ -418,6 +418,7 @@ Under `prowin -b` WinForms objects can be built and drawn to a bitmap, but there
 - [Contributing](CONTRIBUTING.md): how a change goes, the rules of the codebase and what a good pull request looks like.
 - [OpenEdge environment notes](docs/framework/environment.md): running and testing, language gotchas, the ABL keywords to avoid.
 - [Performance notes](docs/framework/performance.md): the measurements behind the storage and rendering design.
+- [Accessibility](docs/accessibility.md): what works today, the known gaps, and how to keep a new game accessible.
 - [Framework review](docs/framework/review.md): the Phase 7 review, what it found and fixed, and why the repository stays one piece.
 - `CLAUDE.md`: the coding conventions every change follows.
 
