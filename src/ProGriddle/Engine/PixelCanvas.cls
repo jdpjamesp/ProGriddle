@@ -170,6 +170,43 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
         mStore:SetCellAt(mView, idx, piColour).
     END METHOD.
 
+    /* Draws a straight line one cell thick from one cell to another, both ends included, with an integer
+       line algorithm (no blending, no anti-aliasing). The ends may be anywhere, even far off the board: the
+       cells outside it are skipped. Every cell takes piKind and piColour, so piKind 0 draws a picture
+       element that nothing can hit. */
+    METHOD PUBLIC VOID DrawLine(INPUT piX0 AS INTEGER, INPUT piY0 AS INTEGER, INPUT piX1 AS INTEGER, INPUT piY1 AS INTEGER,
+                                INPUT piKind AS INTEGER, INPUT piColour AS INTEGER):
+        DEFINE VARIABLE dx  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dy  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE sx  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE sy  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE err AS INTEGER NO-UNDO.
+        DEFINE VARIABLE e2  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE idx AS INTEGER NO-UNDO.
+        dx = ABSOLUTE(piX1 - piX0).
+        dy = - ABSOLUTE(piY1 - piY0).
+        sx = (IF piX0 < piX1 THEN 1 ELSE -1).
+        sy = (IF piY0 < piY1 THEN 1 ELSE -1).
+        err = dx + dy.
+        DO WHILE TRUE:
+            IF piX0 >= 0 AND piX0 < mWidth AND piY0 >= 0 AND piY0 < mHeight THEN DO:
+                idx = piY0 * mWidth + piX0.
+                mStore:SetCellAt(mKind, idx, piKind).
+                mStore:SetCellAt(mView, idx, piColour).
+            END.
+            IF piX0 = piX1 AND piY0 = piY1 THEN LEAVE.
+            e2 = 2 * err.
+            IF e2 >= dy THEN DO:
+                err = err + dy.
+                piX0 = piX0 + sx.
+            END.
+            IF e2 <= dx THEN DO:
+                err = err + dx.
+                piY0 = piY0 + sy.
+            END.
+        END.
+    END METHOD.
+
     /* Puts one cell back to empty space: its background colour and kind 0. */
     METHOD PUBLIC VOID Unplot(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
         DEFINE VARIABLE idx AS INTEGER NO-UNDO.

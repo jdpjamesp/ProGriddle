@@ -454,4 +454,102 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
         mCanvas:ShowBackRect(-5, -5, 100, 100).
     END METHOD.
 
+    /* ---- lines ---- */
+
+    @Test.
+    METHOD PUBLIC VOID AHorizontalLineColoursEveryCellFromEndToEnd():
+        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        mCanvas:DrawLine(1, 2, 6, 2, {&KIND-FX}, 777).
+        DO x = 1 TO 6:
+            Assert:Equals(777, mCanvas:ColourAt(x, 2)).
+            Assert:Equals({&KIND-FX}, mCanvas:KindAt(x, 2)).
+        END.
+        Assert:Equals(100, mCanvas:ColourAt(0, 2)).
+        Assert:Equals(100, mCanvas:ColourAt(7, 2)).
+        Assert:Equals(6, mCanvas:CountKind({&KIND-FX})).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ADiagonalLineStepsOneCellAcrossAndOneDown():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        mCanvas:DrawLine(2, 1, 6, 5, {&KIND-FX}, 777).
+        DO i = 0 TO 4:
+            Assert:Equals(777, mCanvas:ColourAt(2 + i, 1 + i)).
+        END.
+        Assert:Equals(5, mCanvas:CountKind({&KIND-FX})).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ALineGoingEitherWayTouchesBothEndsAndTheSameNumberOfCells():
+        mCanvas:DrawLine(1, 1, 9, 4, {&KIND-FX}, 777).
+        Assert:Equals(777, mCanvas:ColourAt(1, 1)).
+        Assert:Equals(777, mCanvas:ColourAt(9, 4)).
+        Assert:Equals(9, mCanvas:CountKind({&KIND-FX})).
+        mCanvas:Restore().
+        mCanvas:DrawLine(9, 4, 1, 1, {&KIND-FX}, 777).
+        Assert:Equals(777, mCanvas:ColourAt(1, 1)).
+        Assert:Equals(777, mCanvas:ColourAt(9, 4)).
+        Assert:Equals(9, mCanvas:CountKind({&KIND-FX})).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AShallowLineHasOneCellInEveryColumnAndASteepOneOneInEveryRow():
+        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE found AS INTEGER NO-UNDO.
+        mCanvas:DrawLine(0, 0, 10, 3, {&KIND-FX}, 777).
+        DO x = 0 TO 10:
+            found = 0.
+            DO y = 0 TO 9:
+                IF mCanvas:KindAt(x, y) = {&KIND-FX} THEN found = found + 1.
+            END.
+            Assert:Equals(1, found).
+        END.
+        mCanvas:Restore().
+        mCanvas:DrawLine(0, 0, 3, 9, {&KIND-FX}, 777).
+        DO y = 0 TO 9:
+            found = 0.
+            DO x = 0 TO 11:
+                IF mCanvas:KindAt(x, y) = {&KIND-FX} THEN found = found + 1.
+            END.
+            Assert:Equals(1, found).
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ALineWithTheSameEndsIsOneCell():
+        mCanvas:DrawLine(4, 4, 4, 4, {&KIND-FX}, 777).
+        Assert:Equals(1, mCanvas:CountKind({&KIND-FX})).
+        Assert:Equals(777, mCanvas:ColourAt(4, 4)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ALineThatRunsOffTheBoardIsClippedWithoutAnError():
+        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        mCanvas:DrawLine(-5, 3, 30, 3, {&KIND-FX}, 777).
+        DO x = 0 TO 11:
+            Assert:Equals(777, mCanvas:ColourAt(x, 3)).
+        END.
+        Assert:Equals(12, mCanvas:CountKind({&KIND-FX})).
+        mCanvas:DrawLine(-40, -40, -2, -2, {&KIND-FX}, 777).
+        mCanvas:DrawLine(100, 5, 200, 9, {&KIND-FX}, 777).
+        Assert:Equals(12, mCanvas:CountKind({&KIND-FX})).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ALineThatComesInFromOutsideDrawsTheRightCells():
+        mCanvas:DrawLine(-3, -3, 3, 3, {&KIND-FX}, 777).
+        Assert:Equals(777, mCanvas:ColourAt(0, 0)).
+        Assert:Equals(777, mCanvas:ColourAt(3, 3)).
+        Assert:Equals(4, mCanvas:CountKind({&KIND-FX})).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ALineOfKindZeroStillColoursItsCellsAndLeavesTheBackgroundAlone():
+        mCanvas:DrawLine(1, 1, 5, 1, {&KIND-NONE}, 777).
+        Assert:Equals(777, mCanvas:ColourAt(3, 1)).
+        Assert:Equals(100, mCanvas:BackAt(3, 1)).
+        Assert:Equals({&KIND-NONE}, mCanvas:KindAt(3, 1)).
+    END METHOD.
+
 END CLASS.
