@@ -267,6 +267,71 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvas FINAL:
         END.
     END METHOD.
 
+    /* Writes text over a picture that may have things in it: each cell of the font becomes piScale by piScale
+       cells, shaded from piTop on the top row to piBottom on the bottom row, and a one cell edge of piEdge
+       goes round the letters (piEdge below 0 for none) so they stay readable. Only cells with nothing in them
+       (kind 0) are touched, so an invader or a shield in front of the text stays whole, and ShowBackRect takes the
+       text off again without disturbing them. */
+    METHOD PUBLIC VOID DrawOverlay(INPUT pcText AS CHARACTER, INPUT piX AS INTEGER, INPUT piY AS INTEGER,
+                                   INPUT piTop AS INTEGER, INPUT piBottom AS INTEGER, INPUT piScale AS INTEGER, INPUT piEdge AS INTEGER):
+        DEFINE VARIABLE pass    AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE c       AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE x       AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE y       AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE dx      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE dy      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE ex      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE ey      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE glyph   AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE bitRow  AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE startX  AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE colour  AS INTEGER   NO-UNDO.
+        IF pcText = ? OR pcText = "" THEN RETURN.
+        piScale = MAXIMUM(1, piScale).
+        DO pass = (IF piEdge < 0 THEN 2 ELSE 1) TO 2:
+            DO c = 1 TO LENGTH(pcText):
+                glyph = PixelFont:Glyph(SUBSTRING(pcText, c, 1)).
+                startX = piX + (c - 1) * (PixelFont:GlyphWidth() + PixelFont:Gap()) * piScale.
+                DO y = 0 TO PixelFont:GlyphHeight() - 1:
+                    bitRow = ENTRY(y + 1, glyph, "/").
+                    colour = InvadersLook:Mix(piTop, piBottom, y, PixelFont:GlyphHeight() - 1).
+                    DO x = 0 TO PixelFont:GlyphWidth() - 1:
+                        IF SUBSTRING(bitRow, x + 1, 1) <> "#" THEN NEXT.
+                        DO dy = 0 TO piScale - 1:
+                            DO dx = 0 TO piScale - 1:
+                                IF pass = 2 THEN PlotIfEmpty(startX + x * piScale + dx, piY + y * piScale + dy, colour).
+                                ELSE DO ex = -1 TO 1:
+                                    DO ey = -1 TO 1:
+                                        PlotIfEmpty(startX + x * piScale + dx + ex, piY + y * piScale + dy + ey, piEdge).
+                                    END.
+                                END.
+                            END.
+                        END.
+                    END.
+                END.
+            END.
+        END.
+    END METHOD.
+
+    /* Shows the background in every empty cell (kind 0) of a rectangle and leaves the rest alone: it takes
+       DrawOverlay text off a picture. The part outside the board is ignored. */
+    METHOD PUBLIC VOID ShowBackRect(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER):
+        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        DO y = MAXIMUM(0, piY) TO MINIMUM(mHeight - 1, piY + piHeight - 1):
+            DO x = MAXIMUM(0, piX) TO MINIMUM(mWidth - 1, piX + piWidth - 1):
+                ShowBack(x, y).
+            END.
+        END.
+    END METHOD.
+
+    METHOD PRIVATE VOID PlotIfEmpty(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piColour AS INTEGER):
+        DEFINE VARIABLE idx AS INTEGER NO-UNDO.
+        IF NOT InBounds(piX, piY) THEN RETURN.
+        idx = piY * mWidth + piX.
+        IF mStore:GetCellAt(mKind, idx) = {&KIND-NONE} THEN mStore:SetCellAt(mView, idx, piColour).
+    END METHOD.
+
     METHOD PRIVATE VOID DrawCells(INPUT poSprite AS Sprite, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piKind AS INTEGER,
                                   INPUT piColour1 AS INTEGER, INPUT piColour2 AS INTEGER, INPUT piColour3 AS INTEGER,
                                   INPUT plOnlyEmpty AS LOGICAL):

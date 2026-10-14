@@ -392,4 +392,61 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvasTests:
         Assert:Equals(0, mCanvas:CountKind({&KIND-ALIEN})).
     END METHOD.
 
+    /* ---- overlay text: over a picture that has things in it ---- */
+
+    @Test.
+    METHOD PUBLIC VOID OverlayTextWritesOnEmptyCellsWithAnEdgeAroundTheLetters():
+        DEFINE VARIABLE lit  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE edge AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
+        mCanvas:DrawOverlay("I", 3, 1, 4000, 4000, 1, 7000).
+        DO y = 0 TO 9:
+            DO x = 0 TO 11:
+                IF mCanvas:ColourAt(x, y) = 4000 THEN lit = lit + 1.
+                IF mCanvas:ColourAt(x, y) = 7000 THEN edge = edge + 1.
+            END.
+        END.
+        Assert:IsTrue(lit > 8).
+        Assert:IsTrue(edge > lit).
+        Assert:Equals(0, mCanvas:CountKind({&KIND-ALIEN})).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID OverlayTextLeavesWhateverIsInACellAlone():
+        mCanvas:Plot(5, 4, {&KIND-ALIEN}, 555).
+        mCanvas:Plot(4, 3, {&KIND-SHIELD}, 666).
+        mCanvas:DrawOverlay("I", 3, 1, 4000, 4000, 1, 7000).
+        Assert:Equals(555, mCanvas:ColourAt(5, 4)).
+        Assert:Equals(666, mCanvas:ColourAt(4, 3)).
+        Assert:Equals({&KIND-ALIEN}, mCanvas:KindAt(5, 4)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID WithNoEdgeOnlyTheLettersAreWritten():
+        DEFINE VARIABLE edge AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
+        mCanvas:DrawOverlay("I", 3, 1, 4000, 4000, 1, -1).
+        DO y = 0 TO 9:
+            DO x = 0 TO 11:
+                IF mCanvas:ColourAt(x, y) = 7000 THEN edge = edge + 1.
+            END.
+        END.
+        Assert:Equals(0, edge).
+        Assert:IsTrue(mCanvas:ColourAt(5, 1) = 4000 OR mCanvas:ColourAt(4, 1) = 4000).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ShowBackRectTakesOverlayTextOffButLeavesPicturesAlone():
+        mCanvas:Plot(5, 4, {&KIND-ALIEN}, 555).
+        mCanvas:DrawOverlay("I", 3, 1, 4000, 4000, 1, 7000).
+        mCanvas:ShowBackRect(0, 0, 12, 10).
+        Assert:Equals(100, mCanvas:ColourAt(4, 1)).
+        Assert:Equals(100, mCanvas:ColourAt(2, 0)).
+        Assert:Equals(555, mCanvas:ColourAt(5, 4)).
+        Assert:Equals({&KIND-ALIEN}, mCanvas:KindAt(5, 4)).
+        mCanvas:ShowBackRect(-5, -5, 100, 100).
+    END METHOD.
+
 END CLASS.
