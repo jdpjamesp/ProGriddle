@@ -126,28 +126,36 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Assert:Equals(10, bright).
     END METHOD.
 
+    /* The cells below the HUD that are in a dust colour and not the background's: the drifting dust. */
+    METHOD PRIVATE INTEGER DriftingDust():
+        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        DO y = 50 TO 239:
+            DO x = 0 TO 319:
+                c = mGame:Canvas:ColourAt(x, y).
+                IF c <> mGame:Canvas:BackAt(x, y) AND (c = AsteroidsLook:Colour(Palette:DustDim) OR c = AsteroidsLook:Colour(Palette:DustMid) OR c = AsteroidsLook:Colour(Palette:DustBright)) THEN n = n + 1.
+            END.
+        END.
+        RETURN n.
+    END METHOD.
+
     @Test.
     METHOD PUBLIC VOID TheDustDriftsLeftAndDownAndWraps():
         DEFINE VARIABLE x      AS INTEGER NO-UNDO.
         DEFINE VARIABLE before AS INTEGER NO-UNDO.
         DEFINE VARIABLE after  AS INTEGER NO-UNDO.
         DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        /* with the rocks taken away, the picture on the title screen differs from the background only by the drifting dust */
+        /* with the rocks taken away, the cells of the dust colours that differ from the background are the drifting dust
+           (the title and its words are in other colours) */
         mGame:Rocks:Clear().
         mGame:Advance().
-        DO y = 50 TO 239:
-            DO x = 0 TO 319:
-                IF mGame:Canvas:ColourAt(x, y) <> mGame:Canvas:BackAt(x, y) THEN before = before + 1.
-            END.
-        END.
+        before = DriftingDust().
         Frames(2000).
         mGame:Rocks:Clear().
         mGame:Advance().
-        DO y = 50 TO 239:
-            DO x = 0 TO 319:
-                IF mGame:Canvas:ColourAt(x, y) <> mGame:Canvas:BackAt(x, y) THEN after = after + 1.
-            END.
-        END.
+        after = DriftingDust().
         /* of the 20 drifting cells, most are below the HUD; a few may sit on a baked dust cell of the same colour */
         Assert:IsTrue(before >= 5 AND before <= 20, SUBSTITUTE("before &1", before)).
         Assert:IsTrue(after >= 5 AND after <= 20, SUBSTITUTE("after &1", after)).
@@ -891,6 +899,35 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         x0 = mGame:Rocks:X(1).
         Frames(10).
         Assert:Equals(x0 + 20000, mGame:Rocks:X(1)).
+    END METHOD.
+
+    /* ---------------------------------- the title screen ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID TheTitleIsTracedLetterByLetterOverTheFirstSecondsOfTheTitleScreen():
+        DEFINE VARIABLE core AS INTEGER NO-UNDO.
+        core = AsteroidsLook:Colour(Palette:TitleCore).
+        Frames(10).
+        Assert:Equals(0, CellsOf(core, 0, 50, 320, 50)).
+        Frames(20).
+        Assert:IsTrue(CellsOf(core, 40, 58, 22, 30) > 5).
+        Assert:Equals(0, CellsOf(core, 260, 58, 22, 30)).
+        Frames(80).
+        Assert:IsTrue(CellsOf(core, 260, 58, 22, 30) > 15).
+        Assert:IsTrue(CellsOf(core, 40, 58, 22, 30) > 15).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID StartingAGameTakesTheTitleAwayAndANewTitleStartsAgainFromTheBeginning():
+        DEFINE VARIABLE core AS INTEGER NO-UNDO.
+        core = AsteroidsLook:Colour(Palette:TitleCore).
+        Frames(130).
+        Play().
+        Assert:Equals(0, CellsOf(core, 36, 54, 250, 40)).
+        mGame:Initialise().
+        Frames(2).
+        Assert:Equals(GamePhase:Title, mGame:Phase).
+        Assert:Equals(0, CellsOf(core, 36, 54, 250, 40)).
     END METHOD.
 
     /* ---------------------------------- the game over screen ---------------------------------- */

@@ -68,6 +68,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     DEFINE PRIVATE VARIABLE mAcc       AS INTEGER     NO-UNDO.
     DEFINE PRIVATE VARIABLE mFrames    AS INTEGER     NO-UNDO.
     DEFINE PRIVATE VARIABLE mPaused    AS LOGICAL     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mTitleT    AS INTEGER     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mTrace     AS TitleTrace  NO-UNDO.
     DEFINE PRIVATE VARIABLE mNotice    AS CHARACTER   NO-UNDO.
     /* the vignette: 65 colours from the middle of the screen to its edge */
     DEFINE PRIVATE VARIABLE mVignette  AS INTEGER     NO-UNDO EXTENT 65.
@@ -504,6 +506,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     METHOD PROTECTED OVERRIDE VOID OnInitialise():
         mAcc = 0.
         mFrames = 0.
+        mTitleT = 0.
         Phase = GamePhase:Title.
         Score = 0.
         mNewHi = FALSE.
@@ -531,6 +534,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     END METHOD.
 
     METHOD PRIVATE VOID FrameTitle():
+        mTitleT = mTitleT + 1.
         mRocks:Move().
         IF FireHeld AND NOT mFireWas THEN StartGame().
     END METHOD.
@@ -1179,6 +1183,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         DrawHud().
         IF Phase = GamePhase:Playing AND mWaveT <= 90 THEN DrawWaveBanner().
         IF Phase = GamePhase:GameOver THEN DrawGameOver().
+        IF Phase = GamePhase:Title THEN DrawTitle().
         mCanvas:EndBatch().
         DrawSaucerShots().
         DrawShots().
@@ -1213,6 +1218,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         bx = INTEGER(TRUNCATE((320 - PixelFont:WidthOf(words) * 3) / 2, 0)).
         IF mWaveT >= 70 THEN Stamp(words, 3, colour, colour, edge):DrawTo(mCanvas, bx, 64).
         ELSE Stamp(words, 3, AsteroidsLook:Colour(Palette:BannerTop), AsteroidsLook:Colour(Palette:BannerBottom), edge):DrawTo(mCanvas, bx, 64).
+    END METHOD.
+
+    /* The title screen over the attract rocks: ASTEROIDS traced stroke by stroke by a beam (see TitleTrace). */
+    METHOD PRIVATE VOID DrawTitle():
+        IF NOT VALID-OBJECT(mTrace) THEN mTrace = NEW TitleTrace().
+        mTrace:DrawTo(mCanvas, mTitleT).
     END METHOD.
 
     /* The game over screen over the drifting rocks: GAME OVER in a red gradient, one letter every 3 frames, the score, a
