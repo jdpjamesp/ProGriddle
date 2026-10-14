@@ -4,8 +4,9 @@
      Right or D         move the cannon right    (as long as the key is held)
      Space, Up, W or Z  fire                     (hold it to fire again the moment the shot is gone)
 
-   P pauses and R or F2 starts a new game (the window's own keys). The title screen and the game over screen
-   both wait for the fire key. There is nothing to click and no picker.
+   P pauses and R or F2 starts a new game (the window's own keys). + and - make the game faster and slower, in
+   steps of 10 percent of the arcade's speed (see SpaceInvadersGame:SpeedPercent), and the speed is kept. The
+   title screen and the game over screen both wait for the fire key. There is nothing to click and no picker.
 
    Movement and fire are STATES, not events: a key held down is a cannon that keeps moving, and the arcade
    needs the cannon to move and fire at the same time. The keyboard cannot be trusted to repeat a key while
@@ -13,7 +14,9 @@
    when one goes down, ReleaseKey when it comes up, and an empty name when the window loses focus) and gives
    the game the direction and the fire state each time. When both direction keys are down the one pressed last wins.
 
-   The best score is kept in the settings as spaceinvaders.hiscore, and the window saves it when it closes. */
+   The best score is kept in the settings as spaceinvaders.hiscore, and the window saves it when it closes. The
+   speed is kept as spaceinvaders.speed, and starts at 70 percent: the arcade's own speed is a lot to ask of a
+   first game. */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
@@ -42,7 +45,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInput FINAL IMPLEMENTS IGameIn
                 WHEN {&PHASE-TITLE} THEN RETURN SUBSTITUTE("Space Invaders   Hi &1   Press Space to play", mGame:HiScore).
                 WHEN {&PHASE-GAMEOVER} THEN RETURN SUBSTITUTE("Game over   Score &1   Hi &2   Press Space", mGame:Score, mGame:HiScore).
             END CASE.
-            RETURN SUBSTITUTE("Score &1   Hi &2   Lives &3   Wave &4", mGame:Score, mGame:HiScore, mGame:Lives, mGame:Wave).
+            RETURN SUBSTITUTE("Score &1   Hi &2   Lives &3   Wave &4   Speed &5%", mGame:Score, mGame:HiScore, mGame:Lives, mGame:Wave, mGame:SpeedPercent).
         END GET.
 
     DEFINE PUBLIC PROPERTY ChoiceLabel AS CHARACTER NO-UNDO
@@ -90,6 +93,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInput FINAL IMPLEMENTS IGameIn
         mSettings = poSettings.
         mSavedHi = MAXIMUM(0, mSettings:GetInteger("spaceinvaders.hiscore", 0)).
         mGame:HiScore = mSavedHi.
+        mGame:SpeedPercent = mSettings:GetInteger("spaceinvaders.speed", 70).
     END CONSTRUCTOR.
 
     /* The game's own notices: an extra cannon, a new wave. */
@@ -111,6 +115,14 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInput FINAL IMPLEMENTS IGameIn
             END.
             WHEN "Space" OR WHEN "Up" OR WHEN "W" OR WHEN "Z" THEN DO:
                 IF INDEX(mFireKeys, "," + pcKey + ",") = 0 THEN mFireKeys = mFireKeys + pcKey + ",".
+            END.
+            WHEN "Add" OR WHEN "Oemplus" THEN DO:
+                ChangeSpeed(10).
+                RETURN TRUE.
+            END.
+            WHEN "Subtract" OR WHEN "OemMinus" THEN DO:
+                ChangeSpeed(-10).
+                RETURN TRUE.
             END.
             OTHERWISE RETURN FALSE.
         END CASE.
@@ -153,6 +165,12 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInput FINAL IMPLEMENTS IGameIn
     METHOD PRIVATE VOID PassOn():
         mGame:MoveDirection = (IF mLeft AND mRight THEN mLatest ELSE IF mLeft THEN -1 ELSE IF mRight THEN 1 ELSE 0).
         mGame:FireHeld = (mFireKeys <> ",").
+    END METHOD.
+
+    /* Faster or slower by a number of percent, kept for next time. */
+    METHOD PRIVATE VOID ChangeSpeed(INPUT piBy AS INTEGER):
+        mGame:SpeedPercent = mGame:SpeedPercent + piBy.
+        mSettings:SetInteger("spaceinvaders.speed", mGame:SpeedPercent).
     END METHOD.
 
     /* A better hi-score goes into the settings at once, and is saved when the window closes. */

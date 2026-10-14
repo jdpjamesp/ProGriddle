@@ -404,6 +404,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter 
 | `tools/gui-smoke-tetris.ps1` | The same for Tetris: moving, turning, held key repeat, drops and score, gravity, pause, ghost, a game over, the start level picker, saved settings. Takes over the keyboard and mouse for a couple of minutes |
 | `tools/gui-smoke-2048.ps1` | The same for 2048: the arrow keys and W A S D, the score, a game played to GAME OVER, a new game, the best score saved and read back. Takes over the keyboard and mouse for a minute or two |
 | `tools/gui-smoke-snake.ps1` | The same for Snake: steering, pause, the snake crashing into the wall, a new game, the best score saved and read back. Takes over the keyboard for a minute or two |
+| `tools/gui-smoke-spaceinvaders.ps1` | The same for Space Invaders: the title, the wave and its colours, held keys steering the cannon, a shot, pause, a new game, the saved window size. Takes over the keyboard for about a minute |
+| `tools/look-spaceinvaders.ps1` | Saves a screenshot of the Space Invaders title screen to `build/screenshots`, sending no keys |
 
 Results go to `build/test-results/results.xml` (plain) and `build/test-results/gui/results.xml` (WinForms). Screenshots from the smoke test go to `build/screenshots`.
 
@@ -438,3 +440,4 @@ Start any of them from the **ProGriddle Cookoff**, one window with a button for 
 - [Tetris](docs/games/tetris.md): real time, seven bag pieces falling on a timer, held key repeat, ghost piece, next piece panel, pause, levels and scoring, a start level picker, a high score list. Playable now.
 - [2048](docs/games/2048.md): turn based, slide and join the tiles with the arrow keys, a best score, any board size from 2 x 2. Playable now.
 - [Snake](docs/games/snake.md): real time, steer with the arrow keys, eat to grow and speed up, two turns can wait for a quick corner, a best score, any board size from 5 x 5. Playable now.
+- [Space Invaders](docs/games/spaceinvaders.md): real time on the arcade's 224 x 256 grid in direct colour, one shot at a time, one invader moved a frame so the rack speeds up as it dies, crumbling shields, three bombs, the mystery saucer, a neon look, adjustable speed. Playable now.

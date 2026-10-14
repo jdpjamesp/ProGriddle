@@ -154,6 +154,15 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         GET.
         SET.
 
+    /* How fast the game runs, as a percentage of the arcade's 60 frames a second: 20 to 100, 100 being the
+       arcade's own speed. Everything slows together (the invaders, the shot, the bombs and the cannon), so the
+       game stays the same game and is only easier to play. */
+    DEFINE PUBLIC PROPERTY SpeedPercent AS INTEGER NO-UNDO INITIAL 100
+        GET.
+        SET(INPUT piValue AS INTEGER):
+            SpeedPercent = MINIMUM(100, MAXIMUM(20, piValue)).
+        END SET.
+
     /* Which phase of the game this is: the numbers in Phases.i. */
     DEFINE PUBLIC PROPERTY Phase AS INTEGER NO-UNDO
         GET.
@@ -289,12 +298,12 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         RETURN INTEGER(ENTRY(MINIMUM(8, MAXIMUM(1, piWave)), "80,88,96,104,112,120,128,136")).
     END METHOD.
 
-    /* Moves time on by piElapsedMs milliseconds and makes the frames that are due, up to 4. Returns true when a
+    /* Moves time on by piElapsedMs milliseconds and makes the frames that are due at the speed, up to 4. Returns true when a
        frame was made. Does nothing while Paused. */
     METHOD PUBLIC LOGICAL Tick(INPUT piElapsedMs AS INTEGER):
         DEFINE VARIABLE made AS INTEGER NO-UNDO.
         IF Paused OR piElapsedMs <= 0 THEN RETURN FALSE.
-        mAcc = mAcc + MINIMUM(piElapsedMs, {&MOST-MS}) * 60.
+        mAcc = mAcc + INTEGER(ROUND(MINIMUM(piElapsedMs, {&MOST-MS}) * 0.6 * SpeedPercent, 0)).
         DO WHILE mAcc >= 1000 AND made < {&MOST-FRAMES}:
             mAcc = mAcc - 1000.
             Advance().

@@ -160,7 +160,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInputTests:
         mGame:FireHeld = FALSE.
         mGame:SkipIntro().
         mGame:AddScore(120).
-        Assert:Equals("Score 120   Hi 120   Lives 3   Wave 1", mInput:StatusText).
+        Assert:Equals("Score 120   Hi 120   Lives 3   Wave 1   Speed 70%", mInput:StatusText).
     END METHOD.
 
     @Test.
@@ -249,6 +249,45 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInputTests:
         mGame:AddScore(20).
         mInput:StatusText.
         Assert:Equals(70, mSettings:GetInteger("spaceinvaders.hiscore", 0)).
+    END METHOD.
+
+    /* ---------------------------------- the speed ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID TheGameStartsAtSeventyPercentOfTheArcadesSpeed():
+        Assert:Equals(70, mGame:SpeedPercent).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ThePlusAndMinusKeysChangeTheSpeedByTenPercentAndItIsKept():
+        Assert:IsTrue(mInput:HandleKey("Add")).
+        Assert:Equals(80, mGame:SpeedPercent).
+        Assert:IsTrue(mInput:HandleKey("Oemplus")).
+        Assert:Equals(90, mGame:SpeedPercent).
+        Assert:Equals(90, mSettings:GetInteger("spaceinvaders.speed", 0)).
+        Assert:IsTrue(mInput:HandleKey("Subtract")).
+        Assert:IsTrue(mInput:HandleKey("OemMinus")).
+        Assert:Equals(70, mGame:SpeedPercent).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheSpeedStaysBetweenTwentyAndOneHundredPercent():
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        DO n = 1 TO 10:
+            mInput:HandleKey("Add").
+        END.
+        Assert:Equals(100, mGame:SpeedPercent).
+        DO n = 1 TO 12:
+            mInput:HandleKey("Subtract").
+        END.
+        Assert:Equals(20, mGame:SpeedPercent).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASavedSpeedIsPutBack():
+        mSettings:SetInteger("spaceinvaders.speed", 40).
+        mInput = NEW SpaceInvadersInput(mGame, mSettings).
+        Assert:Equals(40, mGame:SpeedPercent).
     END METHOD.
 
     /* ---------------------------------- contract errors ---------------------------------- */

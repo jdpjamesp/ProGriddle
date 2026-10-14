@@ -833,6 +833,18 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID ASlowerSpeedMakesProportionallyFewerFrames():
+        Assert:Equals(100, mGame:SpeedPercent).
+        mGame:SpeedPercent = 50.
+        mGame:Tick(100).
+        Assert:Equals(3, mGame:FrameCount).
+        mGame:SpeedPercent = 10.
+        Assert:Equals(20, mGame:SpeedPercent).
+        mGame:SpeedPercent = 500.
+        Assert:Equals(100, mGame:SpeedPercent).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID NothingHappensWhilePaused():
         mGame:Paused = TRUE.
         Assert:IsTrue(mGame:Paused).
