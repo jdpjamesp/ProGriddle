@@ -847,6 +847,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         END.
     END METHOD.
 
+    /* The saucer is destroyed, by a shot, the ship or a rock: it explodes where it is, and is gone. */
+    METHOD PRIVATE VOID DestroySaucer():
+        mDebris:SaucerBurst(mSaucLarge, mSaucX, mSaucY, mSaucVX, mSaucVY).
+        RemoveSaucer().
+    END METHOD.
+
     /* The saucer is gone, shot or crossed: the next one comes in 15 to 30 seconds. */
     METHOD PRIVATE VOID RemoveSaucer():
         mSaucOn = FALSE.
@@ -873,7 +879,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
                 mShLife[i] = 0.
                 AddScore(IF mSaucLarge THEN 200 ELSE 1000).
                 mPulseT = 20.
-                RemoveSaucer().
+                DestroySaucer().
                 RETURN.
             END.
         END.
@@ -885,7 +891,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         IF Near(mSX, mSY, mSaucX, mSaucY, (AsteroidsArt:SaucerRadius(mSaucLarge) + AsteroidsArt:ShipRadius()) * 16) THEN DO:
             AddScore(IF mSaucLarge THEN 200 ELSE 1000).
             mPulseT = 20.
-            RemoveSaucer().
+            DestroySaucer().
             KillShip().
         END.
     END METHOD.
@@ -910,7 +916,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         DO r = 0 TO RockField:Capacity() - 1:
             IF mRocks:SizeAt(r) = 0 THEN NEXT.
             IF Near(mSaucX, mSaucY, mRocks:X(r), mRocks:Y(r), (AsteroidsArt:RockRadius(mRocks:SizeAt(r)) + AsteroidsArt:SaucerRadius(mSaucLarge)) * 16) THEN DO:
-                RemoveSaucer().
+                DestroySaucer().
                 BreakRock(r, FALSE).
                 RETURN.
             END.

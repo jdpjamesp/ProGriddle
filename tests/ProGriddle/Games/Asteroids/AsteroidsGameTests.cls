@@ -944,6 +944,37 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID ADestroyedSaucerExplodesIntoTwentyTwoOrTwentyThreePiecesButOneThatFliesOffDoesNot():
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        EmptySky().
+        mGame:LaunchSaucerAt(TRUE, 1, 100).
+        mGame:PlaceSaucer(154, 60).
+        mGame:FireHeld = TRUE.
+        Quiet(14).
+        mGame:FireHeld = FALSE.
+        Assert:IsFalse(mGame:SaucerActive).
+        Assert:Equals(22, mGame:DebrisCount).
+        EmptySky().
+        mGame:LaunchSaucerAt(FALSE, 1, 100).
+        mGame:PlaceSaucer(151, 60).
+        mGame:FireHeld = TRUE.
+        Quiet(14).
+        mGame:FireHeld = FALSE.
+        Assert:Equals(23, mGame:DebrisCount).
+        /* a saucer that crosses the screen and leaves is not a kill: no explosion */
+        EmptySky().
+        mGame:LaunchSaucerAt(TRUE, 1, 100).
+        mGame:Drawing = FALSE.
+        DO WHILE mGame:SaucerActive AND n < 600:
+            Quiet(1).
+            n = n + 1.
+        END.
+        mGame:Drawing = TRUE.
+        Assert:IsFalse(mGame:SaucerActive).
+        Assert:Equals(0, mGame:DebrisCount).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ARockThatASaucerFliesIntoBurstsToo():
         EmptySky().
         mGame:LaunchSaucerAt(TRUE, 1, 100).
