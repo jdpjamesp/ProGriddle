@@ -132,6 +132,39 @@ CLASS ProGriddle.Engine.RealTimeControllerTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID AGameThatIsOverButStillAnimatingKeepsTheClockRunningAndBeingRedrawnUntilItStops():
+        DEFINE VARIABLE game       AS AnimatedRealTimeGame NO-UNDO.
+        DEFINE VARIABLE renderer   AS RecordingRenderer    NO-UNDO.
+        DEFINE VARIABLE clock      AS FakeClock            NO-UNDO.
+        DEFINE VARIABLE controller AS RealTimeController   NO-UNDO.
+        DEFINE VARIABLE before     AS INTEGER              NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            /* over at 500 ms, animating for 300 ms more */
+            game = NEW AnimatedRealTimeGame(NEW Grid(NEW ArrayStore(3, 3, "s")), 500, 300).
+            renderer = NEW RecordingRenderer().
+            clock = NEW FakeClock().
+            clock:Interval = 100.
+            controller = NEW RealTimeController(game, renderer, clock).
+            controller:Start().
+            clock:Advance(500).
+            Assert:IsTrue(game:IsOver).
+            Assert:IsTrue(controller:IsRunning).
+            before = renderer:RenderCount.
+            clock:Advance(100).
+            Assert:Equals(before + 1, renderer:RenderCount).
+            Assert:IsTrue(controller:IsRunning).
+            clock:Advance(200).
+            Assert:IsFalse(game:Animating).
+            Assert:IsFalse(controller:IsRunning).
+            Assert:Equals(800, game:TotalMs).
+            FINALLY:
+                IF VALID-OBJECT(controller) THEN controller:Dispose().
+                IF VALID-OBJECT(game) THEN game:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID StartDoesNothingOnceTheGameIsOver():
         mController:Start().
         mClock:Advance(5000).

@@ -1,7 +1,7 @@
 /* Binds a real time game to a renderer and a clock. Each clock tick passes the milliseconds that
    have elapsed to the game and redraws when the game says something changed. Start and PauseGame
    run and stop the clock and set the game's Paused flag. Reset starts a new game and runs it
-   straight away. The clock stops by itself when the game is over.
+   straight away. The clock stops by itself when the game is over (a game that is still animating, see IAnimated, keeps it running until the animation ends).
 
    The controller is built paused: call Start to begin. It does not dispose the game, the renderer
    or the clock: its owner does. Dispose unsubscribes from the clock. */
@@ -100,7 +100,8 @@ CLASS ProGriddle.Engine.RealTimeController FINAL IMPLEMENTS IGameController:
 
     METHOD PRIVATE VOID OnTick(INPUT piElapsedMs AS INTEGER):
         IF mGame:Tick(piElapsedMs) THEN Redraw().
-        IF mGame:IsOver THEN mClock:Stop().
+        /* a game that is over stops the clock, unless it is still showing an animation (IAnimated) */
+        IF mGame:IsOver AND NOT (TYPE-OF(mGame, IAnimated) AND CAST(mGame, IAnimated):Animating) THEN mClock:Stop().
     END METHOD.
 
     METHOD PRIVATE VOID Redraw():
