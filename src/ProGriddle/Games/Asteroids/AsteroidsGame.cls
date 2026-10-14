@@ -127,6 +127,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* frames until the rocks of a new wave appear, and frames since the last rock was shot */
     DEFINE PRIVATE VARIABLE mIntro     AS INTEGER     NO-UNDO.
     DEFINE PRIVATE VARIABLE mClearT    AS INTEGER     NO-UNDO.
+    /* frames since the wave began, for its banner */
+    DEFINE PRIVATE VARIABLE mWaveT     AS INTEGER     NO-UNDO.
     DEFINE PRIVATE VARIABLE mOverT     AS INTEGER     NO-UNDO.
     /* the score at which the next extra ship comes */
     DEFINE PRIVATE VARIABLE mNextExtra AS INTEGER     NO-UNDO.
@@ -557,10 +559,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     METHOD PRIVATE VOID StartWave():
         mIntro = {&INTRO-FRAMES}.
         mClearT = 0.
+        mWaveT = 0.
     END METHOD.
 
     /* The pause before the rocks, and when the last rock is gone, the pause before the next wave. */
     METHOD PRIVATE VOID RunWave():
+        mWaveT = mWaveT + 1.
         IF mIntro > 0 THEN DO:
             mIntro = mIntro - 1.
             IF mIntro = 0 THEN SpawnRocks().
@@ -1156,9 +1160,41 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         IF ShipAlive AND ShieldFrames > 0 THEN DrawShieldRing().
         DrawLivesIcons().
         DrawHud().
+        IF Phase = GamePhase:Playing AND mWaveT <= 90 THEN DrawWaveBanner().
         mCanvas:EndBatch().
         DrawSaucerShots().
         DrawShots().
+    END METHOD.
+
+    /* The banner of a new wave, for a second and a half: a line grows out from the middle over the first quarter of a
+       second, WAVE and its number appear in a shade from white to grey, and for the last third of a second both step
+       down through grey to nothing. All of it sits above the middle of the screen, so the ship stays in view. */
+    METHOD PRIVATE VOID DrawWaveBanner():
+        DEFINE VARIABLE half   AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE colour AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE halo   AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE words   AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE edge   AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE bx     AS INTEGER   NO-UNDO.
+        /* the colour of the line, and of the words once they fade: Dim, Label, Title Rule, then gone */
+        IF mWaveT < 77 THEN colour = AsteroidsLook:Colour(Palette:Dim).
+        ELSE IF mWaveT < 84 THEN colour = AsteroidsLook:Colour(Palette:Label).
+        ELSE colour = AsteroidsLook:Colour(Palette:TitleRule).
+        halo = AsteroidsLook:Colour(Palette:TitleHalo).
+        half = INTEGER(TRUNCATE(60 * MINIMUM(15, mWaveT) / 15, 0)).
+        IF half > 0 THEN DO:
+            mCanvas:DrawLine(160 - half - 1, 88, 160 + half - 1, 88, 0, halo).
+            mCanvas:DrawLine(160 - half + 1, 88, 160 + half + 1, 88, 0, halo).
+            mCanvas:DrawLine(160 - half, 87, 160 + half, 87, 0, halo).
+            mCanvas:DrawLine(160 - half, 89, 160 + half, 89, 0, halo).
+            mCanvas:DrawLine(160 - half, 88, 160 + half, 88, 0, colour).
+        END.
+        IF mWaveT < 8 THEN RETURN.
+        words = "WAVE " + STRING(Wave).
+        edge = AsteroidsLook:Colour(Palette:TextOutline).
+        bx = INTEGER(TRUNCATE((320 - PixelFont:WidthOf(words) * 3) / 2, 0)).
+        IF mWaveT >= 70 THEN Stamp(words, 3, colour, colour, edge):DrawTo(mCanvas, bx, 64).
+        ELSE Stamp(words, 3, AsteroidsLook:Colour(Palette:BannerTop), AsteroidsLook:Colour(Palette:BannerBottom), edge):DrawTo(mCanvas, bx, 64).
     END METHOD.
 
     /* One small ship, nine tenths of its size, for every spare ship, along the left under the score (at most six). While

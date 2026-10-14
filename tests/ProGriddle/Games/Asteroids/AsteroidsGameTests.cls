@@ -368,10 +368,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         DEFINE VARIABLE i     AS INTEGER NO-UNDO.
         Play().
         mGame:ThrustHeld = TRUE.
-        DO i = 1 TO 100:
-            mGame:Rocks:Clear().
-            mGame:Advance().
-        END.
+        Quiet(100).
         mGame:ThrustHeld = FALSE.
         mGame:Rocks:Clear().
         mGame:Advance().
@@ -1324,6 +1321,58 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Assert:IsTrue(CellsOf(gold, 12, 18, 70, 14) > 60).
         Quiet(20).
         Assert:Equals(0, CellsOf(gold, 12, 18, 70, 14)).
+    END METHOD.
+
+    /* ---------------------------------- the wave banner ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID AWaveBeginsWithALineGrowingFromTheMiddleAndTheWordsInAShadeFromWhiteToGrey():
+        DEFINE VARIABLE dimN AS INTEGER NO-UNDO.
+        mGame:StartGame().
+        Frames(4).
+        /* the line is about a quarter grown at the 4th frame (16 of 60 cells each side) and the words are not there yet */
+        dimN = CellsOf(AsteroidsLook:Colour(Palette:Dim), 90, 88, 140, 1).
+        Assert:IsTrue(dimN >= 28 AND dimN <= 36, STRING(dimN)).
+        Assert:Equals(0, CellsOf(AsteroidsLook:Colour(Palette:BannerTop), 90, 60, 140, 30)).
+        Frames(20).
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:Dim), 90, 88, 140, 1) >= 118).
+        /* WAVE 1 at three times the size: the top row in the top colour and the bottom row in the bottom colour */
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:BannerTop), 105, 64, 110, 1) > 5).
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:BannerBottom), 105, 84, 110, 1) > 5).
+        Assert:Equals(0, CellsOf(AsteroidsLook:Colour(Palette:BannerTop), 0, 90, 320, 150)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheBannerFadesInThreeStepsAndIsGoneAfterNinetyFrames():
+        mGame:StartGame().
+        Frames(40).
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:BannerTop), 105, 64, 110, 1) > 5).
+        Frames(32).
+        /* frames 72 to 76: grey words, the colour of the line */
+        Assert:Equals(0, CellsOf(AsteroidsLook:Colour(Palette:BannerTop), 105, 64, 110, 1)).
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:Dim), 105, 60, 110, 30) > 50).
+        Frames(8).
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:Label), 105, 60, 110, 30) > 50).
+        Frames(8).
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:TitleRule), 105, 60, 110, 30) > 50).
+        Frames(10).
+        Assert:Equals(0, CellsOf(AsteroidsLook:Colour(Palette:TitleRule), 0, 55, 320, 40)).
+        Assert:Equals(0, CellsOf(AsteroidsLook:Colour(Palette:Dim), 0, 55, 320, 40)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheNextWaveHasItsOwnBannerWithItsNumber():
+        mGame:StartGame().
+        mGame:SkipIntro().
+        mGame:Rocks:Clear().
+        Frames(59).
+        Assert:Equals(1, mGame:Wave).
+        Frames(1).
+        Assert:Equals(2, mGame:Wave).
+        Assert:Equals(0, CellsOf(AsteroidsLook:Colour(Palette:BannerTop), 0, 60, 320, 30)).
+        Frames(12).
+        mGame:Rocks:Clear().
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:BannerTop), 105, 64, 110, 1) > 5).
     END METHOD.
 
     /* ---------------------------------- the score ---------------------------------- */
