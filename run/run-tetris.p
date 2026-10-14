@@ -14,6 +14,7 @@
    The window also saves the chosen start level as tetris.choice, and its own size and position. */
 USING Progress.Lang.*.
 USING System.Windows.Forms.Application FROM ASSEMBLY.
+USING System.Windows.Forms.Screen FROM ASSEMBLY.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
 USING ProGriddle.Games.Tetris.*.
@@ -25,6 +26,8 @@ DEFINE VARIABLE iSeed         AS INT64              NO-UNDO.
 DEFINE VARIABLE oSettings     AS ISettings          NO-UNDO.
 DEFINE VARIABLE oGame         AS TetrisGame         NO-UNDO.
 DEFINE VARIABLE oView         AS GridView           NO-UNDO.
+DEFINE VARIABLE oPainter      AS TetrisPainter      NO-UNDO.
+DEFINE VARIABLE iCell         AS INTEGER            NO-UNDO.
 DEFINE VARIABLE oClock        AS WinFormsClock      NO-UNDO.
 DEFINE VARIABLE oController   AS RealTimeController NO-UNDO.
 DEFINE VARIABLE oWindow       AS GameWindow         NO-UNDO.
@@ -40,14 +43,26 @@ DO ON ERROR UNDO, THROW:
     IF cSettingsFile = "default" THEN cSettingsFile = JsonFileSettings:DefaultPath().
     oSettings = NEW JsonFileSettings(cSettingsFile).
 
-    /* a tick every 30 ms is smooth enough for 20 rows and light enough to redraw only when something moved */
-    oClock = NEW WinFormsClock().
-    oClock:Interval = 30.
-    oGame = TetrisFactory:Create(NEW SeededRandom(iSeed)).
+    /* a window the shape of the picture (17 x 20 cells of 16 pixels), so there is no dead space round it: 3 pixels to a pixel of the
+       picture when the screen is tall enough, else 2. The toolbar and the status bar take about 66 more. */
+    iCell = (IF Screen:PrimaryScreen:WorkingArea:Height >= 3 * 320 + 66 + 40 THEN 3 ELSE 2).
+    oSettings:SetInteger("tetris.window.width", 272 * iCell).
+    oSettings:SetInteger("tetris.window.height", 320 * iCell + 66).
 
+    /* a tick every 20 ms is smooth enough for the effects, and the picture is redrawn only when something moved or is moving */
+    oClock = NEW WinFormsClock().
+    oClock:Interval = 20.
+    oGame = TetrisFactory:Create(NEW SeededRandom(iSeed)).
+    /* the effects: the game keeps their clocks, and a line clear holds the rows for a third of a second so it can be shown */
+    oGame:Animated = TRUE.
+    oGame:ClearDelayMs = 300.
+
+    /* the picture is drawn by the painter on a canvas of its own, and the view shows that canvas in direct colour, with no grid lines */
     oView = NEW GridView().
-    oView:SetPalette(TetrisLook:Palette()).
-    oController = NEW RealTimeController(oGame, NEW WinFormsGridRenderer(oView, "view"), oClock).
+    oView:DirectColor = TRUE.
+    oView:ShowGridLines = FALSE.
+    oPainter = NEW TetrisPainter(NEW WinFormsGridRenderer(oView, "view"), oGame).
+    oController = NEW RealTimeController(oGame, oPainter, oClock).
     oWindow = NEW GameWindow("ProGriddle Tetris", oController, oView, NEW TetrisInput(oGame, oSettings),
                              oClock, oSettings, "tetris").
     IF iAutoClose > 0 THEN oWindow:AutoCloseSeconds = iAutoClose.
@@ -62,6 +77,7 @@ DO ON ERROR UNDO, THROW:
     END CATCH.
     FINALLY:
         IF VALID-OBJECT(oController) THEN oController:Dispose().
+        IF VALID-OBJECT(oPainter) THEN oPainter:Dispose().
         IF VALID-OBJECT(oGame) THEN oGame:Dispose().
         IF VALID-OBJECT(oClock) THEN oClock:Dispose().
     END FINALLY.
