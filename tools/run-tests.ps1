@@ -54,8 +54,20 @@ function Invoke-Suite([string]$Name, [string[]]$Classes, [string]$Exe, [string[]
     $logFile = Join-Path $root "build\client-$tag.log"
     Remove-Item $logFile -ErrorAction SilentlyContinue
     $allArgs = $ExeArgs + @('-T', "`"$(Get-ProgressTempDir)`"", '-p', 'tools/run-tests.p', '-param', "CFG=build/ablunit-$tag.json", '-clientlog', "build/client-$tag.log")
-    $p = Start-Process -FilePath $Exe -ArgumentList $allArgs -NoNewWindow -Wait -PassThru
+    Write-Host ("{0}: running {1} test classes..." -f $Name, $Classes.Count)
+    $p = Start-Process -FilePath $Exe -ArgumentList $allArgs -NoNewWindow -PassThru
+    $null = $p.Handle   # keeps the handle open, or ExitCode comes back empty once the process has gone
+    # ABLUnit writes its results only at the end, so say every 15 seconds that the run is alive: the clock and the
+    # CPU time the test process has used (a hung process stops using any).
+    $clock = [System.Diagnostics.Stopwatch]::StartNew()
+    while (-not $p.WaitForExit(15000)) {
+        $p.Refresh()
+        $cpu = $(try { [int]$p.TotalProcessorTime.TotalSeconds } catch { 0 })
+        Write-Host ("{0}: still running, {1} s elapsed, {2} s of CPU used" -f $Name, [int]$clock.Elapsed.TotalSeconds, $cpu)
+    }
+    $p.WaitForExit()
     $code = $p.ExitCode
+    Write-Host ("{0}: finished in {1} s" -f $Name, [int]$clock.Elapsed.TotalSeconds)
 
     # ABLUnit returns exit code 0 even when tests fail, so judge by the results file.
     if (-not (Test-Path $resultsFile)) {
