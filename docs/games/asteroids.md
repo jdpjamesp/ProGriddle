@@ -9,7 +9,7 @@ Fly, thrust and drift, and shoot the rocks into smaller rocks while saucers hunt
 From the repository root, or from the Cookoff (`cookoff.bat`), where it has a button of its own:
 
 ```
-"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-asteroids.p"
+"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -l 1024 -p tools/launch.p -param "run/run-asteroids.p"
 ```
 
 `tools/launch.p` sets the PROPATH and then runs the named program. Optional entries after the program name: a settings file (`default` for `%APPDATA%\ProGriddle\settings.json`) and a number of seconds after which the window closes by itself, which the automated checks use.

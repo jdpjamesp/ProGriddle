@@ -7,7 +7,7 @@ The classic: steer a snake round the board, eat the food, grow longer, and do no
 From the repository root, or from the Cookoff (`cookoff.bat`), where it has a green button of its own:
 
 ```
-"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-snake.p"
+"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -l 1024 -p tools/launch.p -param "run/run-snake.p"
 ```
 
 `tools/launch.p` sets the PROPATH and then runs the named program. Optional entries after the program name: a settings file (`default` for `%APPDATA%\ProGriddle\settings.json`), a number of seconds after which the window closes by itself, and a seed for the food. The automated checks use all three.

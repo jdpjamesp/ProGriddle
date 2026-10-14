@@ -101,7 +101,7 @@ function Check([string]$name, [bool]$ok, [string]$detail = '') {
 }
 
 function Start-Life([int]$autoClose = 150) {
-    $args = @('-T', "`"$(Get-ProgressTempDir)`"", '-p', 'tools/launch.p', '-param', "`"run/run-life.p,$settingsFile,$autoClose`"", '-clientlog', 'build/smoke-client.log')
+    $args = @('-T', "`"$(Get-ProgressTempDir)`"", '-l', '1024', '-p', 'tools/launch.p', '-param', "`"run/run-life.p,$settingsFile,$autoClose`"", '-clientlog', 'build/smoke-client.log')
     $p = Start-Process "$Dlc\bin\prowin.exe" -ArgumentList $args -PassThru
     $deadline = (Get-Date).AddSeconds(25)
     do { Start-Sleep -Milliseconds 300; $p.Refresh() } until ($p.MainWindowTitle -like 'ProGriddle Life*' -or (Get-Date) -gt $deadline -or $p.HasExited)

@@ -24,7 +24,7 @@ Remove-Item $settingsFile -ErrorAction SilentlyContinue
 
 . (Join-Path $PSScriptRoot 'gui-smoke-common.ps1')
 
-$args = @('-T', "`"$(Get-ProgressTempDir)`"", '-p', 'tools/launch.p', '-param', "`"run/run-spaceinvaders.p,$settingsFile,60,$Seed`"")
+$args = @('-T', "`"$(Get-ProgressTempDir)`"", '-l', '1024', '-p', 'tools/launch.p', '-param', "`"run/run-spaceinvaders.p,$settingsFile,60,$Seed`"")
 $p = Start-Process "$Dlc\bin\prowin.exe" -ArgumentList $args -PassThru
 $deadline = (Get-Date).AddSeconds(25)
 do { Start-Sleep -Milliseconds 300; $p.Refresh() } until ($p.MainWindowTitle -like 'ProGriddle Space Invaders*' -or (Get-Date) -gt $deadline -or $p.HasExited)

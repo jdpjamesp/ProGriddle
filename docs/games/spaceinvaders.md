@@ -7,7 +7,7 @@ The 1978 arcade game with its own rules, in a neon look: 55 invaders that speed 
 From the repository root, or from the Cookoff (`cookoff.bat`), where it has a button of its own:
 
 ```
-"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-spaceinvaders.p"
+"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -l 1024 -p tools/launch.p -param "run/run-spaceinvaders.p"
 ```
 
 `tools/launch.p` sets the PROPATH and then runs the named program. Optional entries after the program name: a settings file (`default` for `%APPDATA%\ProGriddle\settings.json`), a number of seconds after which the window closes by itself, and a seed for the sparks, the stars and the marks on the shields. The automated checks use them.

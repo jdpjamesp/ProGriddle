@@ -29,10 +29,12 @@ CLASS ProGriddle.UI.WinForms.ProcessGameLauncher FINAL IMPLEMENTS IGameLauncher:
         RETURN dir.
     END METHOD.
 
-    /* The startup parameters that run a program in a prowin of its own. */
+    /* The startup parameters that run a program in a prowin of its own. -l 1024 gives it a local buffer pool of a
+       megabyte: the program code of a game and the framework is more than the default, and prowin would otherwise grow
+       the pool in steps of 10 and show a warning (5408) for each step. */
     METHOD PUBLIC CHARACTER ArgumentsFor(INPUT pcProgram AS CHARACTER):
         IF pcProgram = ? OR pcProgram = "" THEN UNDO, THROW NEW GridException("There is no program to launch").
-        RETURN SUBSTITUTE('-T "&1" -p tools/launch.p -param "&2"', TempDirectory(), pcProgram).
+        RETURN SUBSTITUTE('-T "&1" -l 1024 -p tools/launch.p -param "&2"', TempDirectory(), pcProgram).
     END METHOD.
 
     METHOD PUBLIC VOID Launch(INPUT pcProgram AS CHARACTER):

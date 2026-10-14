@@ -31,7 +31,7 @@ if (Test-Path $settingsFile) { Remove-Item $settingsFile }
 
 # Starts the window. The seed makes the new tiles the same every run.
 function Start-Game([int]$autoClose = 300) {
-    $args = @('-T', "`"$(Get-ProgressTempDir)`"", '-p', 'tools/launch.p', '-param', "`"run/run-2048.p,$settingsFile,$autoClose,$Seed`"", '-clientlog', 'build/smoke-2048-client.log')
+    $args = @('-T', "`"$(Get-ProgressTempDir)`"", '-l', '1024', '-p', 'tools/launch.p', '-param', "`"run/run-2048.p,$settingsFile,$autoClose,$Seed`"", '-clientlog', 'build/smoke-2048-client.log')
     $p = Start-Process "$Dlc\bin\prowin.exe" -ArgumentList $args -PassThru
     $deadline = (Get-Date).AddSeconds(25)
     do { Start-Sleep -Milliseconds 300; $p.Refresh() } until ($p.MainWindowTitle -like 'ProGriddle 2048*' -or (Get-Date) -gt $deadline -or $p.HasExited)

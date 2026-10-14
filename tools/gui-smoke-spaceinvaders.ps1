@@ -53,7 +53,7 @@ $CANNONDEEP = @(0x1F, 0xA8, 0x60)
 $SHOT     = @(0xA8, 0xF6, 0xFF)
 
 function Start-Game([int]$autoClose = 300) {
-    $args = @('-T', "`"$(Get-ProgressTempDir)`"", '-p', 'tools/launch.p', '-param', "`"run/run-spaceinvaders.p,$settingsFile,$autoClose,$Seed`"", '-clientlog', 'build/smoke-spaceinvaders-client.log')
+    $args = @('-T', "`"$(Get-ProgressTempDir)`"", '-l', '1024', '-p', 'tools/launch.p', '-param', "`"run/run-spaceinvaders.p,$settingsFile,$autoClose,$Seed`"", '-clientlog', 'build/smoke-spaceinvaders-client.log')
     $p = Start-Process "$Dlc\bin\prowin.exe" -ArgumentList $args -PassThru
     $deadline = (Get-Date).AddSeconds(25)
     do { Start-Sleep -Milliseconds 300; $p.Refresh() } until ($p.MainWindowTitle -like 'ProGriddle Space Invaders*' -or (Get-Date) -gt $deadline -or $p.HasExited)

@@ -35,7 +35,7 @@ $WATER = @(46, 79, 110)   # 2E4F6E, unshot water on the computer's board (and a 
 
 # Starts the window. The seed makes the computer's fleet the one the layout helper reports.
 function Start-Game([int]$autoClose = 300) {
-    $args = @('-T', "`"$(Get-ProgressTempDir)`"", '-p', 'tools/launch.p', '-param', "`"run/run-battleships.p,$settingsFile,$autoClose,$Seed`"", '-clientlog', 'build/smoke-bs-client.log')
+    $args = @('-T', "`"$(Get-ProgressTempDir)`"", '-l', '1024', '-p', 'tools/launch.p', '-param', "`"run/run-battleships.p,$settingsFile,$autoClose,$Seed`"", '-clientlog', 'build/smoke-bs-client.log')
     $p = Start-Process "$Dlc\bin\prowin.exe" -ArgumentList $args -PassThru
     $deadline = (Get-Date).AddSeconds(25)
     do { Start-Sleep -Milliseconds 300; $p.Refresh() } until ($p.MainWindowTitle -like 'ProGriddle Battleships*' -or (Get-Date) -gt $deadline -or $p.HasExited)
@@ -91,7 +91,7 @@ function Near($c, [int[]]$rgb, [int]$tol = 4) {
 # The computer's ships for a seed: a 2D array [y][x] of ship numbers, 0 for water.
 function Get-Layout([int]$restarts, [string]$size = 'Classic') {
     if (Test-Path $layoutFile) { Remove-Item $layoutFile }
-    $args = @('-b', '-T', "`"$(Get-ProgressTempDir)`"", '-p', 'tools/launch.p', '-param', "`"tools/battleships-layout.p,$Seed,$restarts,$layoutFile,$size`"")
+    $args = @('-b', '-T', "`"$(Get-ProgressTempDir)`"", '-l', '1024', '-p', 'tools/launch.p', '-param', "`"tools/battleships-layout.p,$Seed,$restarts,$layoutFile,$size`"")
     Start-Process "$Dlc\bin\_progres.exe" -ArgumentList $args -PassThru -Wait -WindowStyle Hidden | Out-Null
     if (-not (Test-Path $layoutFile)) { throw 'Could not get the ship layout from tools/battleships-layout.p.' }
     $layout = @()

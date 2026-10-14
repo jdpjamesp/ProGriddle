@@ -26,7 +26,7 @@ CLASS ProGriddle.UI.WinForms.ProcessGameLauncherTests:
     @Test.
     METHOD PUBLIC VOID EveryGameIsStartedWithTheTempFolderParameter():
         DEFINE VARIABLE args AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE tail AS CHARACTER NO-UNDO INITIAL '-p tools/launch.p -param "run/run-tetris.p"'.
+        DEFINE VARIABLE tail AS CHARACTER NO-UNDO INITIAL '-l 1024 -p tools/launch.p -param "run/run-tetris.p"'.
         args = NEW ProcessGameLauncher():ArgumentsFor("run/run-tetris.p").
         Assert:IsTrue(args BEGINS '-T "').
         Assert:IsTrue(INDEX(args, "ProGriddle") > 0).

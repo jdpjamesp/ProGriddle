@@ -34,7 +34,7 @@ There is no build step: ABL source is compiled when it is run. Every launch pass
 
 ```
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -All
-"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-life.p"
+"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -l 1024 -p tools/launch.p -param "run/run-life.p"
 ```
 
 The first runs every test (plain and WinForms). The second opens the Life game. `tools/launch.p` sets the PROPATH and then runs the program you name, which is how every window program is started.
@@ -171,7 +171,7 @@ Mouse buttons are read as a gesture and acted on when the last one is released, 
 The ProGriddle Cookoff (`run/run-arcade.p`) is one window with a button for every game, so a single launch command reaches them all:
 
 ```
-"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-arcade.p"
+"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -l 1024 -p tools/launch.p -param "run/run-arcade.p"
 ```
 
 On Windows you can also double click `cookoff.bat` in the repository root, which does the same from any folder (it uses the install named by the `DLC` environment variable, or `C:\Progress\OpenEdge`).
@@ -196,7 +196,7 @@ Time to cook up a game on the griddle. The quick way is one command, which write
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/new-game.ps1 -Name Pong -Title "Pong" -Blurb "A bat, a ball and the first to eleven."
 ```
 
-[Adding a game](docs/adding-a-game.md) is the walk through from there, and [CONTRIBUTING.md](CONTRIBUTING.md) is how a change goes. What follows is the same game written out by hand, so you can see every piece: a complete, working game in three small files. It lights one cell and moves it along the board, so it shows every piece you need. (Run it with `prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-scanner.p"` once you create the files.) Replace the rules with your own.
+[Adding a game](docs/adding-a-game.md) is the walk through from there, and [CONTRIBUTING.md](CONTRIBUTING.md) is how a change goes. What follows is the same game written out by hand, so you can see every piece: a complete, working game in three small files. It lights one cell and moves it along the board, so it shows every piece you need. (Run it with `prowin.exe -T "%TEMP%\ProGriddle" -l 1024 -p tools/launch.p -param "run/run-scanner.p"` once you create the files.) Replace the rules with your own.
 
 ### 1. Decide what the game is
 
@@ -431,7 +431,7 @@ MIT, see `LICENSE`.
 Start any of them from the **ProGriddle Cookoff**, one window with a button for every game below (and for any game you add, with no list to edit):
 
 ```
-"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-arcade.p"
+"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -l 1024 -p tools/launch.p -param "run/run-arcade.p"
 ```
 
 [How the Cookoff finds games](#the-cookoff) and how to give yours a title and a line of description are covered above. Each game can also be started on its own with `-param "run/run-<game>.p"`, and each has its own page:

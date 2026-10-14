@@ -46,7 +46,7 @@ function Write-Settings([int]$width, [int]$height) {
 
 # Starts the window. The seed makes the food the same every run.
 function Start-Game([int]$autoClose = 300) {
-    $args = @('-T', "`"$(Get-ProgressTempDir)`"", '-p', 'tools/launch.p', '-param', "`"run/run-snake.p,$settingsFile,$autoClose,$Seed`"", '-clientlog', 'build/smoke-snake-client.log')
+    $args = @('-T', "`"$(Get-ProgressTempDir)`"", '-l', '1024', '-p', 'tools/launch.p', '-param', "`"run/run-snake.p,$settingsFile,$autoClose,$Seed`"", '-clientlog', 'build/smoke-snake-client.log')
     $p = Start-Process "$Dlc\bin\prowin.exe" -ArgumentList $args -PassThru
     $deadline = (Get-Date).AddSeconds(25)
     do { Start-Sleep -Milliseconds 300; $p.Refresh() } until ($p.MainWindowTitle -like 'ProGriddle Snake*' -or (Get-Date) -gt $deadline -or $p.HasExited)

@@ -20,5 +20,5 @@ if not exist "%DLC%\bin\prowin.exe" (
 )
 
 cd /d "%~dp0"
-start "" "%DLC%\bin\prowin.exe" -T "%PGTEMP%" -p tools/launch.p -param "run/run-arcade.p"
+start "" "%DLC%\bin\prowin.exe" -T "%PGTEMP%" -l 1024 -p tools/launch.p -param "run/run-arcade.p"
 endlocal
