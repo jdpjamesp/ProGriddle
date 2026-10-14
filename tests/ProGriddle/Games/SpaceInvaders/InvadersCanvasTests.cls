@@ -2,6 +2,7 @@
 USING OpenEdge.Core.*.
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
+USING ProGriddle.Engine.*.
 USING ProGriddle.Games.SpaceInvaders.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
@@ -355,10 +356,10 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvasTests:
         canvas = NEW InvadersCanvas(grid).
         DO ON ERROR UNDO, THROW:
             /* the colours mix part by part (red, green, blue), so halfway from black to 60, 120, 180 is 30, 60, 90 */
-            canvas:DrawTextScaled("I", 0, 0, 0, InvadersLook:Rgb(60, 120, 180), 1).
+            canvas:DrawTextScaled("I", 0, 0, 0, ColourMath:Rgb(60, 120, 180), 1).
             Assert:Equals(0, canvas:ColourAt(2, 0)).
-            Assert:Equals(InvadersLook:Rgb(60, 120, 180), canvas:ColourAt(2, 6)).
-            Assert:Equals(InvadersLook:Rgb(30, 60, 90), canvas:ColourAt(2, 3)).
+            Assert:Equals(ColourMath:Rgb(60, 120, 180), canvas:ColourAt(2, 6)).
+            Assert:Equals(ColourMath:Rgb(30, 60, 90), canvas:ColourAt(2, 3)).
             FINALLY:
                 canvas:Dispose().
                 grid:Dispose().

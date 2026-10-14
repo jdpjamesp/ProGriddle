@@ -304,7 +304,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         mCanvas = NEW InvadersCanvas(poGrid).
         mRack = NEW InvaderRack().
         DO i = 1 TO 16:
-            mShieldTone[i] = InvadersLook:Mix(InvadersLook:Colour({&C-SHIELD-TOP}), InvadersLook:Colour({&C-SHIELD-BOTTOM}), i - 1, 15).
+            mShieldTone[i] = ColourMath:Mix(InvadersLook:Colour({&C-SHIELD-TOP}), InvadersLook:Colour({&C-SHIELD-BOTTOM}), i - 1, 15).
         END.
         Initialise().
     END CONSTRUCTOR.
@@ -559,8 +559,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         DEFINE VARIABLE c AS INTEGER NO-UNDO.
         DEFINE VARIABLE v AS INTEGER NO-UNDO.
         DO c = piFrom TO piTo:
-            IF c <= 70 THEN v = InvadersLook:Mix(InvadersLook:Colour({&C-TITLE-TOP}), InvadersLook:Colour({&C-TITLE-BOTTOM}), c, 70).
-            ELSE v = InvadersLook:Mix(InvadersLook:Colour({&C-TITLE-BOTTOM}), InvadersLook:Colour({&C-LIGHT-BAR-END}), c - 70, 70).
+            IF c <= 70 THEN v = ColourMath:Mix(InvadersLook:Colour({&C-TITLE-TOP}), InvadersLook:Colour({&C-TITLE-BOTTOM}), c, 70).
+            ELSE v = ColourMath:Mix(InvadersLook:Colour({&C-TITLE-BOTTOM}), InvadersLook:Colour({&C-LIGHT-BAR-END}), c - 70, 70).
             mCanvas:Plot(41 + c, 95, {&KIND-NONE}, v).
             mCanvas:Plot(41 + c, 96, {&KIND-NONE}, InvadersLook:Colour({&C-LIGHT-BAR-SHADOW})).
         END.
@@ -775,7 +775,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         DEFINE VARIABLE y   AS INTEGER NO-UNDO.
         DEFINE VARIABLE i   AS INTEGER NO-UNDO.
         DO y = 0 TO {&HEIGHT} - 1:
-            IF y < {&GROUND-Y} - 3 THEN sky[y + 1] = InvadersLook:Mix(InvadersLook:Colour({&C-SKY-TOP}), InvadersLook:Colour({&C-SKY-BOTTOM}), y, {&GROUND-Y} - 1).
+            IF y < {&GROUND-Y} - 3 THEN sky[y + 1] = ColourMath:Mix(InvadersLook:Colour({&C-SKY-TOP}), InvadersLook:Colour({&C-SKY-BOTTOM}), y, {&GROUND-Y} - 1).
             ELSE IF y = {&GROUND-Y} - 3 THEN sky[y + 1] = InvadersLook:Colour({&C-GLOW3}).
             ELSE IF y = {&GROUND-Y} - 2 THEN sky[y + 1] = InvadersLook:Colour({&C-GLOW2}).
             ELSE IF y = {&GROUND-Y} - 1 THEN sky[y + 1] = InvadersLook:Colour({&C-GLOW1}).
@@ -1555,7 +1555,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
                 NEXT.
             END.
             IF mCanvas:KindAt(x, y) <> {&KIND-NONE} THEN NEXT.
-            c = InvadersLook:Mix(mPtColour[i], mSky[y + 1], mPtSpan[i] - mPtLife[i], mPtSpan[i]).
+            c = ColourMath:Mix(mPtColour[i], mSky[y + 1], mPtSpan[i] - mPtLife[i], mPtSpan[i]).
             mCanvas:Plot(x, y, {&KIND-FX}, c).
             mPtDrawn[i] = c.
             mPtDrawnAt[i] = y * {&WIDTH} + x.

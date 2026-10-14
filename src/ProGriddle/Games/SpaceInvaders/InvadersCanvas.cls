@@ -14,6 +14,7 @@
    block copy, which Dispose frees (a destructor does it as a safety net). It does not own the grid. */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
+USING ProGriddle.Engine.*.
 USING ProGriddle.Games.SpaceInvaders.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
@@ -253,7 +254,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvas FINAL:
             startX = piX + (c - 1) * (PixelFont:GlyphWidth() + PixelFont:Gap()) * piScale.
             DO y = 0 TO PixelFont:GlyphHeight() - 1:
                 bitRow = ENTRY(y + 1, glyph, "/").
-                colour = InvadersLook:Mix(piTop, piBottom, y, PixelFont:GlyphHeight() - 1).
+                colour = ColourMath:Mix(piTop, piBottom, y, PixelFont:GlyphHeight() - 1).
                 DO x = 0 TO PixelFont:GlyphWidth() - 1:
                     IF SUBSTRING(bitRow, x + 1, 1) <> "#" THEN NEXT.
                     DO dy = 0 TO piScale - 1:
@@ -294,7 +295,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCanvas FINAL:
                 startX = piX + (c - 1) * (PixelFont:GlyphWidth() + PixelFont:Gap()) * piScale.
                 DO y = 0 TO PixelFont:GlyphHeight() - 1:
                     bitRow = ENTRY(y + 1, glyph, "/").
-                    colour = InvadersLook:Mix(piTop, piBottom, y, PixelFont:GlyphHeight() - 1).
+                    colour = ColourMath:Mix(piTop, piBottom, y, PixelFont:GlyphHeight() - 1).
                     DO x = 0 TO PixelFont:GlyphWidth() - 1:
                         IF SUBSTRING(bitRow, x + 1, 1) <> "#" THEN NEXT.
                         DO dy = 0 TO piScale - 1:
