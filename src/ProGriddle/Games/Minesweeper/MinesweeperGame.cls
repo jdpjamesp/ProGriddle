@@ -5,7 +5,7 @@
      revealed   1 where the player has opened the cell
      flag       0 nothing, 1 flagged, 2 marked with a question mark
      adjacent   how many of the eight neighbours are mines
-     view       what to draw (see ViewCodes.i), kept up to date after every move
+     view       what to draw (see the ViewCode enum), kept up to date after every move
 
    The rules, as in Windows Minesweeper:
    - Reveal opens a cell. A flagged or already open cell is left alone. A cell with no mines
@@ -37,7 +37,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame IMPLEMENTS ITurnBasedGame:
 
-    {ProGriddle/Games/Minesweeper/ViewCodes.i}
 
     DEFINE PRIVATE VARIABLE mRandom    AS IRandom  NO-UNDO.
     DEFINE PRIVATE VARIABLE mClock     AS IClock   NO-UNDO.
@@ -224,7 +223,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
         END.
         ELSE flag = 0.
         Grid:Store:SetCellAt(mLFlag, idx, flag).
-        Grid:Store:SetCellAt(mLView, idx, (IF flag = 1 THEN {&VIEW-FLAG} ELSE IF flag = 2 THEN {&VIEW-QUESTION} ELSE {&VIEW-HIDDEN})).
+        Grid:Store:SetCellAt(mLView, idx, (IF flag = 1 THEN INTEGER(ViewCode:Flag) ELSE IF flag = 2 THEN INTEGER(ViewCode:Question) ELSE INTEGER(ViewCode:Hidden))).
         Generation = Generation + 1.
     END METHOD.
 
@@ -274,7 +273,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
         RETURN Grid:Store:GetCell(mLAdjacent, piX, piY).
     END METHOD.
 
-    /* What the cell shows, as in ViewCodes.i. */
+    /* What the cell shows, as in the ViewCode enum. */
     METHOD PUBLIC INTEGER ViewAt(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
         RETURN Grid:Store:GetCell(mLView, piX, piY).
     END METHOD.
@@ -293,7 +292,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
         Grid:Store:FillLayer(mLMine, 0).
         Grid:Store:FillLayer(mLRevealed, 0).
         Grid:Store:FillLayer(mLFlag, 0).
-        Grid:Store:FillLayer(mLView, {&VIEW-HIDDEN}).
+        Grid:Store:FillLayer(mLView, INTEGER(ViewCode:Hidden)).
         PlaceMines().
         ComputeAdjacent().
     END METHOD.
@@ -374,7 +373,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
         adj = Grid:Store:GetCellAt(mLAdjacent, piIdx).
         Grid:Store:SetCellAt(mLRevealed, piIdx, 1).
         IF Grid:Store:GetCellAt(mLFlag, piIdx) <> 0 THEN Grid:Store:SetCellAt(mLFlag, piIdx, 0).
-        Grid:Store:SetCellAt(mLView, piIdx, {&VIEW-OPEN} + adj).
+        Grid:Store:SetCellAt(mLView, piIdx, INTEGER(ViewCode:Open) + adj).
         mRevealed = mRevealed + 1.
         RETURN adj.
     END METHOD.
@@ -388,10 +387,10 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
         mClock:Stop().
         DO i = 0 TO Grid:CellCount - 1:
             IF Grid:Store:GetCellAt(mLMine, i) = 1 THEN DO:
-                IF i = piIdx THEN Grid:Store:SetCellAt(mLView, i, {&VIEW-EXPLODED}).
-                ELSE IF Grid:Store:GetCellAt(mLFlag, i) <> 1 THEN Grid:Store:SetCellAt(mLView, i, {&VIEW-MINE}).
+                IF i = piIdx THEN Grid:Store:SetCellAt(mLView, i, INTEGER(ViewCode:Exploded)).
+                ELSE IF Grid:Store:GetCellAt(mLFlag, i) <> 1 THEN Grid:Store:SetCellAt(mLView, i, INTEGER(ViewCode:Mine)).
             END.
-            ELSE IF Grid:Store:GetCellAt(mLFlag, i) = 1 THEN Grid:Store:SetCellAt(mLView, i, {&VIEW-WRONG-FLAG}).
+            ELSE IF Grid:Store:GetCellAt(mLFlag, i) = 1 THEN Grid:Store:SetCellAt(mLView, i, INTEGER(ViewCode:WrongFlag)).
         END.
     END METHOD.
 
@@ -404,7 +403,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
         DO i = 0 TO Grid:CellCount - 1:
             IF Grid:Store:GetCellAt(mLMine, i) = 1 AND Grid:Store:GetCellAt(mLFlag, i) <> 1 THEN DO:
                 Grid:Store:SetCellAt(mLFlag, i, 1).
-                Grid:Store:SetCellAt(mLView, i, {&VIEW-FLAG}).
+                Grid:Store:SetCellAt(mLView, i, INTEGER(ViewCode:Flag)).
                 mFlags = mFlags + 1.
             END.
         END.

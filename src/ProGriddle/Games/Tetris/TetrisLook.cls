@@ -1,4 +1,4 @@
-/* How a Tetris grid is drawn: a colour for each value of the "view" layer (see ViewCodes.i), in view
+/* How a Tetris grid is drawn: a colour for each value of the "view" layer (see the ViewCode enum), in view
    code order 0 to 10. The pieces use the familiar colours (I cyan, O yellow, T purple, S green, Z red,
    J blue, L orange), the ghost is a dim blue grey, and the panel beside the board is a shade lighter
    than the empty board. There are no glyphs: a piece is only colour. */

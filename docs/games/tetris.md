@@ -97,7 +97,7 @@ Source: `src/ProGriddle/Games/Tetris/`. The composition root is `run/run-tetris.
 | `TetrisHighScores` | The ten best scores in the settings: `Record` returns the place, `Best`, `ScoreAt`, `LinesAt` |
 | `TetrisLook` | The colour for each `view` code, and the symbols used to draw a board as text in tests |
 | `TetrisFactory` | Builds the grid, the playfield and the game, for the usual board or one of another size |
-| `ViewCodes.i` | The meaning of each `view` value: 0 empty, 1 to 7 a piece of I O T S Z J L, 8 ghost, 9 divider, 10 panel |
+| `ViewCode` (an enum) | The meaning of each `view` value: 0 empty, 1 to 7 a piece of I O T S Z J L, 8 ghost, 9 divider, 10 panel |
 
 ### What the framework had to learn
 

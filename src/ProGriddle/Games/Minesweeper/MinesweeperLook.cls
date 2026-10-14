@@ -1,5 +1,5 @@
 /* How a Minesweeper board is drawn: a colour and a glyph for each value of the "view" layer
-   (see ViewCodes.i). The lists are in view code order, 0 to 14, so a window gives them straight
+   (see the ViewCode enum). The lists are in view code order, 0 to 14, so a window gives them straight
    to its view. The look is a dark board with raised looking hidden cells, and the classic
    number colours (1 blue, 2 green, 3 red, 4 dark blue, 5 maroon, 6 teal, 7 black, 8 grey)
    brightened so they read on a dark background. */

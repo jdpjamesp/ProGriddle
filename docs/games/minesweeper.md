@@ -100,7 +100,7 @@ Source: `src/ProGriddle/Games/Minesweeper/`. The composition root is `run/run-mi
 | `MinesweeperBestTimes` | The high score lists in the settings |
 | `MinesweeperLook` | The colour, glyph and glyph colour for each `view` code, and the symbols used to draw a board as text in tests |
 | `MinesweeperFactory` | Builds the grid and the game |
-| `ViewCodes.i` | The meaning of each `view` value: 0 hidden, 1 flag, 2 question mark, 3 to 11 open with 0 to 8 around, 12 mine, 13 exploded mine, 14 wrong flag |
+| `ViewCode` (an enum) | The meaning of each `view` value: 0 hidden, 1 flag, 2 question mark, 3 to 11 open with 0 to 8 around, 12 mine, 13 exploded mine, 14 wrong flag |
 
 ### What the framework had to learn
 

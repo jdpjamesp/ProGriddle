@@ -70,7 +70,7 @@ Source: `src/ProGriddle/Games/Snake/`. The composition root is `run/run-snake.p`
 | `SnakeFactory` | Builds the grid (an `ArrayStore` of one layer) and a game on it, and `Rebuild` changes the board of a running game |
 | `SnakeSizes` | The sizes the Board list offers and the limits on a side, using the shared `BoardSizes` of `Engine` to write and read "30 x 20" |
 | `SnakeLook` | The palette and the text symbols the tests use |
-| `ViewCodes.i` | The numbers the `view` layer holds |
+| `ViewCode` (an enum) | The numbers the `view` layer holds |
 
 ## Tests
 

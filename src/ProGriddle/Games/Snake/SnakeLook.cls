@@ -1,4 +1,4 @@
-/* How a Snake board is drawn: a colour for each value of the "view" layer (see ViewCodes.i), in
+/* How a Snake board is drawn: a colour for each value of the "view" layer (see the ViewCode enum), in
    value order so a window gives the list straight to its view. A dark board, a green body, a
    lighter head so the way it is facing shows, and red food. */
 USING Progress.Lang.*.

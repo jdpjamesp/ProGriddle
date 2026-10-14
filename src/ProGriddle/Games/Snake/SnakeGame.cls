@@ -23,7 +23,7 @@
      it is facing does too, since it is only a way to say "go". A turn that would reverse it does not.
 
    The snake lives in a ring of cell indexes, tail to head, made once, so a step allocates
-   nothing. The grid shows one layer, "view" (see ViewCodes.i). The game owns its grid, and
+   nothing. The grid shows one layer, "view" (see the ViewCode enum). The game owns its grid, and
    Dispose releases it. */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
@@ -34,7 +34,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IRealTimeGame:
 
-    {ProGriddle/Games/Snake/ViewCodes.i}
 
     /* the slowest and the fastest step, and how much faster each piece of food makes it */
     &SCOPED-DEFINE SLOWEST-MS 150
@@ -268,13 +267,13 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
         Generation = 0.
         IsOver = FALSE.
         HasWon = FALSE.
-        Grid:Store:FillLayer(1, {&VIEW-EMPTY}).
+        Grid:Store:FillLayer(1, INTEGER(ViewCode:Empty)).
         mTail = 0.
         mHead = n - 1.
         mLength = n.
         DO i = 1 TO n:
             mBody[i] = ys[i] * mWidth + xs[i].
-            Grid:Store:SetCellAt(1, mBody[i], (IF i = n THEN {&VIEW-HEAD} ELSE {&VIEW-BODY})).
+            Grid:Store:SetCellAt(1, mBody[i], (IF i = n THEN INTEGER(ViewCode:Head) ELSE INTEGER(ViewCode:Body))).
         END.
         mDirection = dir.
         mQueued = 0.
@@ -292,11 +291,11 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
         IF piX < 0 OR piX >= mWidth OR piY < 0 OR piY >= mHeight THEN
             UNDO, THROW NEW GridException(SUBSTITUTE("The food cannot go at &1,&2, which is off the board", piX, piY)).
         target = piY * mWidth + piX.
-        IF target <> mFood AND Grid:Store:GetCellAt(1, target) <> {&VIEW-EMPTY} THEN
+        IF target <> mFood AND Grid:Store:GetCellAt(1, target) <> INTEGER(ViewCode:Empty) THEN
             UNDO, THROW NEW GridException(SUBSTITUTE("The food cannot go at &1,&2, where the snake is", piX, piY)).
-        IF mFood >= 0 THEN Grid:Store:SetCellAt(1, mFood, {&VIEW-EMPTY}).
+        IF mFood >= 0 THEN Grid:Store:SetCellAt(1, mFood, INTEGER(ViewCode:Empty)).
         mFood = target.
-        Grid:Store:SetCellAt(1, mFood, {&VIEW-FOOD}).
+        Grid:Store:SetCellAt(1, mFood, INTEGER(ViewCode:Food)).
     END METHOD.
 
     /* A new game: the snake of three cells in the middle of the board, facing right, and one piece of food. */
@@ -361,21 +360,21 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
         END.
         target = ny * mWidth + nx.
         v = Grid:Store:GetCellAt(1, target).
-        eating = (v = {&VIEW-FOOD}).
+        eating = (v = INTEGER(ViewCode:Food)).
         /* the snake's own body is deadly, except the tail cell, which is being left this step */
-        IF (v = {&VIEW-BODY} OR v = {&VIEW-HEAD}) AND target <> mBody[mTail + 1] THEN DO:
+        IF (v = INTEGER(ViewCode:Body) OR v = INTEGER(ViewCode:Head)) AND target <> mBody[mTail + 1] THEN DO:
             IsOver = TRUE.
             RETURN.
         END.
         Generation = Generation + 1.
-        Grid:Store:SetCellAt(1, mBody[mHead + 1], {&VIEW-BODY}).
+        Grid:Store:SetCellAt(1, mBody[mHead + 1], INTEGER(ViewCode:Body)).
         IF NOT eating THEN DO:
-            Grid:Store:SetCellAt(1, mBody[mTail + 1], {&VIEW-EMPTY}).
+            Grid:Store:SetCellAt(1, mBody[mTail + 1], INTEGER(ViewCode:Empty)).
             mTail = (mTail + 1) MODULO Grid:CellCount.
         END.
         mHead = (mHead + 1) MODULO Grid:CellCount.
         mBody[mHead + 1] = target.
-        Grid:Store:SetCellAt(1, target, {&VIEW-HEAD}).
+        Grid:Store:SetCellAt(1, target, INTEGER(ViewCode:Head)).
         IF eating THEN DO:
             mLength = mLength + 1.
             mEaten = mEaten + 1.
@@ -395,10 +394,10 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
         END.
         pick = mRandom:NextInt(Grid:CellCount - mLength).
         DO i = 0 TO Grid:CellCount - 1:
-            IF Grid:Store:GetCellAt(1, i) <> {&VIEW-EMPTY} THEN NEXT.
+            IF Grid:Store:GetCellAt(1, i) <> INTEGER(ViewCode:Empty) THEN NEXT.
             IF pick = 0 THEN DO:
                 mFood = i.
-                Grid:Store:SetCellAt(1, i, {&VIEW-FOOD}).
+                Grid:Store:SetCellAt(1, i, INTEGER(ViewCode:Food)).
                 RETURN.
             END.
             pick = pick - 1.

@@ -1,5 +1,5 @@
 /* Builds the pieces of a Snake game. The grid is an ArrayStore with the one layer "view" (see
-   ViewCodes.i): 0 empty, 1 the snake's body, 2 its head, 3 the food. The board is bounded, so
+   the ViewCode enum): 0 empty, 1 the snake's body, 2 its head, 3 the food. The board is bounded, so
    the walls are deadly, and any size from 5 x 5 will do. 20 x 20 is the usual one. Rebuild changes the
    size of a game that is running, which is how the window changes it. */
 USING Progress.Lang.*.

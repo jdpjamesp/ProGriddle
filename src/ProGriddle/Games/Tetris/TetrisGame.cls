@@ -7,7 +7,7 @@
    The state of play lives in a board sized field of its own, so the store's row operations work on exactly
    the board: layer "locked" (0 empty, else the number of the piece that settled there) and layer "active"
    (the falling piece, stamped each time it moves, 0 elsewhere). The grid the game shows has one layer,
-   "view" (what to draw, see ViewCodes.i), and is the board, a divider column and a panel six cells wide
+   "view" (what to draw, see the ViewCode enum), and is the board, a divider column and a panel six cells wide
    that shows the next piece.
 
    Rules and numbers:
@@ -32,7 +32,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS IRealTimeGame:
 
-    {ProGriddle/Games/Tetris/ViewCodes.i}
 
     DEFINE PRIVATE VARIABLE mBag        AS PieceBag NO-UNDO.
     /* the playfield: settled blocks and the falling piece, the size of the board */
@@ -295,7 +294,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
         RETURN mField:GetCell(mLActive, piX, piY) <> 0.
     END METHOD.
 
-    /* What a grid cell shows, as in ViewCodes.i. Grid coordinates: the board, the divider and the panel. */
+    /* What a grid cell shows, as in the ViewCode enum. Grid coordinates: the board, the divider and the panel. */
     METHOD PUBLIC INTEGER ViewAt(INPUT piGridX AS INTEGER, INPUT piY AS INTEGER):
         RETURN Grid:Store:GetCell(mLView, piGridX, piY).
     END METHOD.
@@ -463,9 +462,9 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
             DO x = 0 TO mBW - 1:
                 Grid:Store:SetCell(mLView, x, y, mField:GetCell(mLLocked, x, y)).
             END.
-            Grid:Store:SetCell(mLView, mBW, y, {&VIEW-DIVIDER}).
+            Grid:Store:SetCell(mLView, mBW, y, INTEGER(ViewCode:Divider)).
             DO x = mBW + 1 TO mBW + 6:
-                Grid:Store:SetCell(mLView, x, y, {&VIEW-PANEL}).
+                Grid:Store:SetCell(mLView, x, y, INTEGER(ViewCode:Panel)).
             END.
         END.
         IF mPiece > 0 THEN DO:
@@ -473,7 +472,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
             IF ShowGhost THEN DO:
                 ghost = GhostY().
                 DO i = 1 TO shape:Size:
-                    Grid:Store:SetCell(mLView, mX + shape:OffsetX(i), ghost + shape:OffsetY(i), {&VIEW-GHOST}).
+                    Grid:Store:SetCell(mLView, mX + shape:OffsetX(i), ghost + shape:OffsetY(i), INTEGER(ViewCode:Ghost)).
                 END.
             END.
             DO i = 1 TO shape:Size:

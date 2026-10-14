@@ -108,7 +108,7 @@ Source: `src/ProGriddle/Games/Battleships/`. The composition root is `run/run-ba
 | `IBattleshipsOpponent` and `HuntTargetOpponent` | The computer's side |
 | `BattleshipsLook` | The colour, glyph and glyph colour for each `view` code |
 | `BattleshipsFactory` | Builds the grid and the game |
-| `ViewCodes.i` | The meaning of each `view` value |
+| `ViewCode` (an enum) | The meaning of each `view` value |
 
 ### What the framework had to learn
 

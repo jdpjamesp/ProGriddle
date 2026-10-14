@@ -21,7 +21,7 @@
      ship   0 for water, else the number of the ship (its place in the fleet, longest first)
      shot   0 not fired at, 1 miss, 2 hit
      mark   1 for a cell the player has marked as water (the computer's side only)
-     view   what to draw (see ViewCodes.i), kept up to date after every move
+     view   what to draw (see the ViewCode enum), kept up to date after every move
 
    The opponent decides the computer's shots and learns only what each shot did. The game
    owns its grid; Dispose releases it. The opponent belongs to whoever built it. */
@@ -34,7 +34,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame IMPLEMENTS ITurnBasedGame:
 
-    {ProGriddle/Games/Battleships/ViewCodes.i}
 
     DEFINE PRIVATE VARIABLE mRandom     AS IRandom                NO-UNDO.
     DEFINE PRIVATE VARIABLE mOpponent   AS IBattleshipsOpponent   NO-UNDO.
@@ -289,7 +288,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
             DO x = 0 TO mBW - 1:
                 IF Grid:Store:GetCell(mLShip, OwnLeft + x, y) = id THEN DO:
                     Grid:Store:SetCell(mLShip, OwnLeft + x, y, 0).
-                    Grid:Store:SetCell(mLView, OwnLeft + x, y, {&VIEW-O-WATER}).
+                    Grid:Store:SetCell(mLView, OwnLeft + x, y, INTEGER(ViewCode:OwnWater)).
                 END.
             END.
         END.
@@ -353,7 +352,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
         IF IsOver OR Grid:Store:GetCell(mLShot, piX, piY) <> 0 THEN RETURN FALSE.
         marked = 1 - Grid:Store:GetCell(mLMark, piX, piY).
         Grid:Store:SetCell(mLMark, piX, piY, marked).
-        Grid:Store:SetCell(mLView, piX, piY, (IF marked = 1 THEN {&VIEW-E-MARK} ELSE {&VIEW-E-HIDDEN})).
+        Grid:Store:SetCell(mLView, piX, piY, (IF marked = 1 THEN INTEGER(ViewCode:EnemyMark) ELSE INTEGER(ViewCode:EnemyHidden))).
         RETURN TRUE.
     END METHOD.
 
@@ -382,7 +381,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
                         IF x + dx < 0 OR x + dx >= mBW OR y + dy < 0 OR y + dy >= mBH THEN NEXT.
                         IF Grid:Store:GetCell(mLShot, x + dx, y + dy) = 0 AND Grid:Store:GetCell(mLMark, x + dx, y + dy) = 0 THEN DO:
                             Grid:Store:SetCell(mLMark, x + dx, y + dy, 1).
-                            Grid:Store:SetCell(mLView, x + dx, y + dy, {&VIEW-E-MARK}).
+                            Grid:Store:SetCell(mLView, x + dx, y + dy, INTEGER(ViewCode:EnemyMark)).
                             newMarks = newMarks + 1.
                         END.
                     END.
@@ -429,7 +428,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
         RETURN Grid:Store:GetCell(mLMark, piX, piY).
     END METHOD.
 
-    /* What a grid cell shows, as in ViewCodes.i. Grid coordinates, both boards. */
+    /* What a grid cell shows, as in the ViewCode enum. Grid coordinates, both boards. */
     METHOD PUBLIC INTEGER ViewAt(INPUT piGridX AS INTEGER, INPUT piY AS INTEGER):
         RETURN Grid:Store:GetCell(mLView, piGridX, piY).
     END METHOD.
@@ -464,12 +463,12 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
         Grid:Store:FillLayer(mLShip, 0).
         Grid:Store:FillLayer(mLShot, 0).
         Grid:Store:FillLayer(mLMark, 0).
-        Grid:Store:FillLayer(mLView, {&VIEW-E-HIDDEN}).
+        Grid:Store:FillLayer(mLView, INTEGER(ViewCode:EnemyHidden)).
         DO y = 0 TO mBH - 1:
             DO i = 0 TO mBW - 1:
-                Grid:Store:SetCell(mLView, OwnLeft + i, y, {&VIEW-O-WATER}).
+                Grid:Store:SetCell(mLView, OwnLeft + i, y, INTEGER(ViewCode:OwnWater)).
             END.
-            Grid:Store:SetCell(mLView, mBW, y, {&VIEW-DIVIDER}).
+            Grid:Store:SetCell(mLView, mBW, y, INTEGER(ViewCode:Divider)).
         END.
         mOpponent:Reset(mBW, mBH).
         PlaceFleetAtRandom(0, FALSE).
@@ -511,7 +510,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
         DEFINE VARIABLE i AS INTEGER NO-UNDO.
         Grid:Store:Stamp(mLShip, poShape, piOffset + piX, piY, piShip).
         IF plShow THEN DO i = 1 TO poShape:Size:
-            Grid:Store:SetCell(mLView, piOffset + piX + poShape:OffsetX(i), piY + poShape:OffsetY(i), {&VIEW-O-SHIP}).
+            Grid:Store:SetCell(mLView, piOffset + piX + poShape:OffsetX(i), piY + poShape:OffsetY(i), INTEGER(ViewCode:OwnShip)).
         END.
     END METHOD.
 
@@ -523,7 +522,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
         DO y = 0 TO mBH - 1:
             DO x = 0 TO mBW - 1:
                 Grid:Store:SetCell(mLShip, piOffset + x, y, 0).
-                IF piOffset > 0 THEN Grid:Store:SetCell(mLView, piOffset + x, y, {&VIEW-O-WATER}).
+                IF piOffset > 0 THEN Grid:Store:SetCell(mLView, piOffset + x, y, INTEGER(ViewCode:OwnWater)).
             END.
         END.
         IF piOffset > 0 THEN DO x = 1 TO EXTENT(mFleet):
@@ -584,7 +583,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
         id = Grid:Store:GetCell(mLShip, colBase + piX, piY).
         IF id = 0 THEN DO:
             Grid:Store:SetCell(mLShot, colBase + piX, piY, 1).
-            Grid:Store:SetCell(mLView, colBase + piX, piY, (IF plEnemy THEN {&VIEW-E-MISS} ELSE {&VIEW-O-LAST-MISS})).
+            Grid:Store:SetCell(mLView, colBase + piX, piY, (IF plEnemy THEN INTEGER(ViewCode:EnemyMiss) ELSE INTEGER(ViewCode:OwnLastMiss))).
             RETURN 0.
         END.
         Grid:Store:SetCell(mLShot, colBase + piX, piY, 2).
@@ -597,13 +596,13 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
             hits = mOwnHits[id].
         END.
         IF hits < mFleet[id] THEN DO:
-            Grid:Store:SetCell(mLView, colBase + piX, piY, (IF plEnemy THEN {&VIEW-E-HIT} ELSE {&VIEW-O-LAST-HIT})).
+            Grid:Store:SetCell(mLView, colBase + piX, piY, (IF plEnemy THEN INTEGER(ViewCode:EnemyHit) ELSE INTEGER(ViewCode:OwnLastHit))).
             RETURN 1.
         END.
         DO y = 0 TO mBH - 1:
             DO x = 0 TO mBW - 1:
                 IF Grid:Store:GetCell(mLShip, colBase + x, y) = id THEN
-                    Grid:Store:SetCell(mLView, colBase + x, y, (IF plEnemy THEN {&VIEW-E-SUNK} ELSE {&VIEW-O-SUNK})).
+                    Grid:Store:SetCell(mLView, colBase + x, y, (IF plEnemy THEN INTEGER(ViewCode:EnemySunk) ELSE INTEGER(ViewCode:OwnSunk))).
             END.
         END.
         IF plEnemy THEN mEnemySunk = mEnemySunk + 1.
@@ -641,8 +640,8 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
         gx = mLastOwn MODULO Grid:Width.
         gy = INTEGER(TRUNCATE(mLastOwn / Grid:Width, 0)).
         code = Grid:Store:GetCell(mLView, gx, gy).
-        IF code = {&VIEW-O-LAST-MISS} THEN Grid:Store:SetCell(mLView, gx, gy, {&VIEW-O-MISS}).
-        ELSE IF code = {&VIEW-O-LAST-HIT} THEN Grid:Store:SetCell(mLView, gx, gy, {&VIEW-O-HIT}).
+        IF code = INTEGER(ViewCode:OwnLastMiss) THEN Grid:Store:SetCell(mLView, gx, gy, INTEGER(ViewCode:OwnMiss)).
+        ELSE IF code = INTEGER(ViewCode:OwnLastHit) THEN Grid:Store:SetCell(mLView, gx, gy, INTEGER(ViewCode:OwnHit)).
         mLastOwn = -1.
     END METHOD.
 
@@ -653,7 +652,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
         DO y = 0 TO mBH - 1:
             DO x = 0 TO mBW - 1:
                 IF Grid:Store:GetCell(mLShip, x, y) <> 0 AND Grid:Store:GetCell(mLShot, x, y) = 0 THEN
-                    Grid:Store:SetCell(mLView, x, y, {&VIEW-E-SHIP}).
+                    Grid:Store:SetCell(mLView, x, y, INTEGER(ViewCode:EnemyShip)).
             END.
         END.
     END METHOD.

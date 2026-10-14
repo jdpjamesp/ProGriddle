@@ -1,5 +1,5 @@
 /* How a Battleships grid is drawn: a colour and a glyph for each value of the "view" layer (see
-   ViewCodes.i). The lists are in view code order, 0 to 13. The computer's waters are a blue grey
+   the ViewCode enum). The lists are in view code order, 0 to 13. The computer's waters are a blue grey
    and the player's own sea a darker teal, so the two boards are told apart at a glance. A miss
    is a dot, a hit a cross, a marked cell a wave, and the computer's most recent shot is lit. */
 USING Progress.Lang.*.
