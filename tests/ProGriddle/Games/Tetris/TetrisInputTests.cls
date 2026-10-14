@@ -188,6 +188,26 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID TheGameIsToldTheBestScoreFromBeforeThisGameAndLearnsTheNewOneWhenTheNextGameBegins():
+        DEFINE VARIABLE scores AS TetrisHighScores NO-UNDO.
+        DEFINE VARIABLE line   AS CHARACTER        NO-UNDO.
+        scores = NEW TetrisHighScores(mSettings).
+        scores:Record(5000, 10).
+        mInput = NEW TetrisInput(mGame, mSettings).
+        Assert:Equals(5000, mGame:BestScore).
+        /* a game that ends with 0 points does not make the list's best any different, and the game keeps the old best */
+        PlayToTheEnd().
+        mGame:Tick(1).
+        line = mInput:StatusText.
+        Assert:Equals(5000, mGame:BestScore).
+        /* a new game: the best is asked for again, and a better score would now be the best */
+        scores:Record(7000, 12).
+        mGame:Initialise().
+        line = mInput:StatusText.
+        Assert:Equals(7000, mGame:BestScore).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ALaterGameSaysWhichPlaceItGot():
         DEFINE VARIABLE scores AS TetrisHighScores NO-UNDO.
         scores = NEW TetrisHighScores(mSettings).

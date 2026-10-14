@@ -136,6 +136,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
         mSettings = poSettings.
         mScores = NEW TetrisHighScores(poSettings).
         mGame:ShowGhost = mSettings:GetLogical("tetris.ghost", TRUE).
+        mGame:BestScore = mScores:Best().
     END CONSTRUCTOR.
 
     METHOD PUBLIC CHARACTER TakeNotice():
@@ -187,6 +188,8 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
         IF NOT mGame:IsOver THEN DO:
             mRecorded = FALSE.
             mPlace = 0.
+            /* the painter shows the best from before this game, so it can tell when this one beats it */
+            mGame:BestScore = mScores:Best().
         END.
         ELSE IF NOT mRecorded THEN DO:
             mRecorded = TRUE.
