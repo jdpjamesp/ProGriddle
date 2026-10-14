@@ -172,6 +172,99 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
         Assert:Equals(mCanvas:BackAt(95, 100), mCanvas:ColourAt(95, 100)).
     END METHOD.
 
+    /* ---------------------------------- the ship breaking up ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID TheShipBreaksIntoFivePiecesSixDebrisCellsAndARingOfEightAndTheyAllGoInTime():
+        mPool:ShipBreakup(160 * 4096, 120 * 4096, 0, 0, 0).
+        Assert:Equals(19, mPool:Count).
+        /* the ring (14 steps) goes first, then the debris cells (40), then the pieces (90) */
+        Steps(14).
+        Assert:Equals(11, mPool:Count).
+        Steps(26).
+        Assert:Equals(5, mPool:Count).
+        Steps(49).
+        Assert:Equals(5, mPool:Count).
+        Steps(1).
+        Assert:Equals(0, mPool:Count).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ThePiecesStartWhereTheShipsLinesWereAndAreDrawnInTheShipDebrisColour():
+        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        c = AsteroidsLook:RampColour(Ramp:ShipDebris, 0).
+        mPool:ShipBreakup(160 * 4096, 120 * 4096, 0, 0, 0).
+        Draw().
+        /* the nose is at 6 cells above the middle, the base corners are 3 cells below it */
+        Assert:Equals(c, mCanvas:ColourAt(160, 114)).
+        Assert:Equals(c, mCanvas:ColourAt(156, 123)).
+        Assert:Equals(c, mCanvas:ColourAt(164, 123)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ThePiecesAreTurnedWithTheShip():
+        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        c = AsteroidsLook:RampColour(Ramp:ShipDebris, 0).
+        /* heading 16: the nose points right, so it is 6 cells to the right of the middle */
+        mPool:ShipBreakup(160 * 4096, 120 * 4096, 0, 0, 16).
+        Draw().
+        Assert:Equals(c, mCanvas:ColourAt(166, 120)).
+        Assert:Equals(mCanvas:BackAt(160, 114), mCanvas:ColourAt(160, 114)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ThePiecesFlyAwayFromTheMiddleOfTheShip():
+        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE before AS DECIMAL NO-UNDO.
+        DEFINE VARIABLE after  AS DECIMAL NO-UNDO.
+        mPool:ShipBreakup(160 * 4096, 120 * 4096, 0, 0, 0).
+        DO i = 0 TO 4:
+            before = SQRT(DECIMAL((mPool:X(i) - 160) * (mPool:X(i) - 160) + (mPool:Y(i) - 120) * (mPool:Y(i) - 120))).
+            after = before.
+            Steps(10).
+            after = SQRT(DECIMAL((mPool:X(i) - 160) * (mPool:X(i) - 160) + (mPool:Y(i) - 120) * (mPool:Y(i) - 120))).
+            Assert:IsTrue(after >= before + 1.0, SUBSTITUTE("piece &1 went from &2 to &3", i, before, after)).
+            mPool:Clear().
+            mPool:ShipBreakup(160 * 4096, 120 * 4096, 0, 0, 0).
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ThePiecesTakeHalfTheShipsSpeedWithThem():
+        DEFINE VARIABLE still  AS DebrisPool NO-UNDO.
+        DEFINE VARIABLE moving AS DebrisPool NO-UNDO.
+        DEFINE VARIABLE i      AS INTEGER    NO-UNDO.
+        DEFINE VARIABLE gain   AS INTEGER    NO-UNDO.
+        still = NEW DebrisPool(NEW SeededRandom(3), 320, 240).
+        moving = NEW DebrisPool(NEW SeededRandom(3), 320, 240).
+        still:ShipBreakup(100 * 4096, 120 * 4096, 0, 0, 0).
+        moving:ShipBreakup(100 * 4096, 120 * 4096, 2 * 4096, 0, 0).
+        DO i = 1 TO 5:
+            still:Step().
+            moving:Step().
+        END.
+        /* the same luck, so only the ship's speed differs: 1 cell a step for 5 steps, a little less for the drag */
+        DO i = 0 TO 4:
+            gain = gain + moving:X(i) - still:X(i).
+        END.
+        Assert:IsTrue(gain >= 19 AND gain <= 30, STRING(gain)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheSixDebrisCellsAreInTheShipRampAndTheRingStartsThreeCellsOutInTheSparkColours():
+        mPool:ShipBreakup(160 * 4096, 120 * 4096, 0, 0, 0).
+        Assert:Equals(AsteroidsLook:RampColour(Ramp:ShipDebris, 0), mPool:ColourOf(5)).
+        Assert:Equals(AsteroidsLook:RampColour(Ramp:ShipDebris, 0), mPool:ColourOf(10)).
+        Assert:Equals(AsteroidsLook:RampColour(Ramp:Spark, 0), mPool:ColourOf(11)).
+        /* eight cells every 45 degrees from straight up, three cells from the middle */
+        Assert:Equals(160, mPool:X(11)).
+        Assert:Equals(117, mPool:Y(11)).
+        Assert:Equals(160, mPool:X(15)).
+        Assert:Equals(123, mPool:Y(15)).
+        Assert:Equals(163, mPool:X(13)).
+        Assert:Equals(120, mPool:Y(13)).
+    END METHOD.
+
     @Test.
     METHOD PUBLIC VOID AnAddRefusesNonsense():
         DEFINE VARIABLE thrown AS INTEGER NO-UNDO.

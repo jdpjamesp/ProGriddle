@@ -121,6 +121,66 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
         RETURN Admit({&CHIP}, piX, piY, piVX, piVY, piDrag, piLife, piAngle, piSpin, piHalf, poRamp).
     END METHOD.
 
+    /* The ship breaks up at (piX, piY) with the speed (piVX, piVY), pointing along heading piHeading: its five lines fly
+       apart, half the ship's speed plus 0.25 to 0.45 of a cell a step away from its middle, drifting and spinning for 90
+       steps in the ship debris colours, with six single cells flying off at random (40 steps) and a ring of eight sparks
+       leaving from three cells out (14 steps). 19 pieces. */
+    METHOD PUBLIC VOID ShipBreakup(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piVX AS INTEGER, INPUT piVY AS INTEGER, INPUT piHeading AS INTEGER):
+        DEFINE VARIABLE pieces AS Outline NO-UNDO.
+        DEFINE VARIABLE l      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE sn     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cs     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x1     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y1     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x2     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y2     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE mx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE my     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hy     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE away   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE speed  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE spin   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dir    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
+        pieces = AsteroidsArt:ShipPieces().
+        sn = Heading:Sin(piHeading).
+        cs = Heading:Cos(piHeading).
+        DO l = 1 TO pieces:LineCount:
+            /* the ends of the line in units: its points are 64ths of a cell and the turn is times 1024, so a sixteenth */
+            x1 = INTEGER(TRUNCATE((pieces:PointX(l, 1) * cs - pieces:PointY(l, 1) * sn) / 16, 0)).
+            y1 = INTEGER(TRUNCATE((pieces:PointX(l, 1) * sn + pieces:PointY(l, 1) * cs) / 16, 0)).
+            x2 = INTEGER(TRUNCATE((pieces:PointX(l, 2) * cs - pieces:PointY(l, 2) * sn) / 16, 0)).
+            y2 = INTEGER(TRUNCATE((pieces:PointX(l, 2) * sn + pieces:PointY(l, 2) * cs) / 16, 0)).
+            mx = INTEGER(TRUNCATE((x1 + x2) / 2, 0)).
+            my = INTEGER(TRUNCATE((y1 + y2) / 2, 0)).
+            hx = INTEGER(TRUNCATE((x2 - x1) / 2, 0)).
+            hy = INTEGER(TRUNCATE((y2 - y1) / 2, 0)).
+            away = Heading:Nearest(mx, my).
+            speed = 1024 + mRandom:NextInt(820).
+            spin = 6 + mRandom:NextInt(9).
+            IF mRandom:NextInt(2) = 0 THEN spin = - spin.
+            AddChip(piX + mx, piY + my,
+                    INTEGER(TRUNCATE(piVX / 2, 0)) + INTEGER(TRUNCATE(Heading:DirX(away) * speed / 1024, 0)),
+                    INTEGER(TRUNCATE(piVY / 2, 0)) + INTEGER(TRUNCATE(Heading:DirY(away) * speed / 1024, 0)),
+                    985, 90, Heading:Nearest(hx, hy) * 16, spin, INTEGER(ROUND(SQRT(DECIMAL(hx) * hx + DECIMAL(hy) * hy), 0)), Ramp:ShipDebris).
+        END.
+        /* six cells in any direction, 0.4 to 0.8 of a cell a step */
+        DO k = 1 TO 6:
+            dir = mRandom:NextInt(64).
+            speed = 1638 + mRandom:NextInt(1639).
+            AddCell(piX, piY, INTEGER(TRUNCATE(Heading:DirX(dir) * speed / 1024, 0)), INTEGER(TRUNCATE(Heading:DirY(dir) * speed / 1024, 0)),
+                    970, 40, Ramp:ShipDebris).
+        END.
+        /* the ring: eight cells 45 degrees apart from straight up, three cells out, moving out at 0.6 of a cell a step */
+        DO k = 0 TO 7:
+            dir = k * 8.
+            AddCell(piX + INTEGER(TRUNCATE(Heading:DirX(dir) * 3 * {&UNIT} / 1024, 0)), piY + INTEGER(TRUNCATE(Heading:DirY(dir) * 3 * {&UNIT} / 1024, 0)),
+                    INTEGER(TRUNCATE(Heading:DirX(dir) * 2458 / 1024, 0)), INTEGER(TRUNCATE(Heading:DirY(dir) * 2458 / 1024, 0)),
+                    1000, 14, Ramp:Spark).
+        END.
+    END METHOD.
+
     /* One step: every piece moves, slows, turns and ages, and the ones whose life is over go. */
     METHOD PUBLIC VOID Step():
         DEFINE VARIABLE i AS INTEGER NO-UNDO.
@@ -152,14 +212,17 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
             IF mKind[i] = {&FREE} THEN NEXT.
             steps = AsteroidsLook:RampSteps(mRamp[i]).
             colour = AsteroidsLook:RampColour(mRamp[i], MINIMUM(steps - 1, INTEGER(TRUNCATE(mAge[i] * steps / mLife[i], 0)))).
-            cx = INTEGER(TRUNCATE(mX[i] / {&UNIT}, 0)).
-            cy = INTEGER(TRUNCATE(mY[i] / {&UNIT}, 0)).
-            IF mKind[i] = {&CELL} THEN poCanvas:DrawLine(cx, cy, cx, cy, 0, colour).
+            IF mKind[i] = {&CELL} THEN DO:
+                cx = INTEGER(TRUNCATE(mX[i] / {&UNIT}, 0)).
+                cy = INTEGER(TRUNCATE(mY[i] / {&UNIT}, 0)).
+                poCanvas:DrawLine(cx, cy, cx, cy, 0, colour).
+            END.
             ELSE DO:
+                /* the two ends, each rounded to the nearest cell like the ship's lines (halves go up) */
                 h = INTEGER(TRUNCATE(mAngle[i] / 16, 0)).
-                ox = INTEGER(TRUNCATE(mHalf[i] * Heading:DirX(h) / 1024 / {&UNIT}, 0)).
-                oy = INTEGER(TRUNCATE(mHalf[i] * Heading:DirY(h) / 1024 / {&UNIT}, 0)).
-                poCanvas:DrawLine(cx - ox, cy - oy, cx + ox, cy + oy, 0, colour).
+                ox = INTEGER(TRUNCATE(mHalf[i] * Heading:DirX(h) / 1024, 0)).
+                oy = INTEGER(TRUNCATE(mHalf[i] * Heading:DirY(h) / 1024, 0)).
+                poCanvas:DrawLine(NearestCell(mX[i] - ox), NearestCell(mY[i] - oy), NearestCell(mX[i] + ox), NearestCell(mY[i] + oy), 0, colour).
             END.
         END.
     END METHOD.
@@ -189,6 +252,12 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
             RETURN TRUE.
         END.
         RETURN FALSE.
+    END METHOD.
+
+    /* The cell nearest a position in units, halves going up. A position may be a little off the screen, so it is lifted by
+       256 cells to keep the division exact. */
+    METHOD PRIVATE INTEGER NearestCell(INPUT piValue AS INTEGER):
+        RETURN INTEGER(TRUNCATE((piValue + 256 * {&UNIT} + {&UNIT} / 2) / {&UNIT}, 0)) - 256.
     END METHOD.
 
     /* A position brought back onto the screen. */
