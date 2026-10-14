@@ -1,5 +1,5 @@
 /* The colours of Space Invaders, as 0xRRGGBB numbers (what a cell of the view holds), with a way to mix two
-   of them. Every colour has a number in Colours.i. They are read from hex text once, when the class is first
+   of them. Every colour has a name in the Palette enum. They are read from hex text once, when the class is first
    used, so asking for one in a frame costs nothing.
 
    This is the other place to change the look, with InvadersArt: the palette is one list. ColourMath:Mix is for the
@@ -13,7 +13,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.SpaceInvaders.InvadersLook FINAL:
 
-    {ProGriddle/Games/SpaceInvaders/Colours.i}
 
     &SCOPED-DEFINE COLOURS 79
 
@@ -106,11 +105,10 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersLook FINAL:
         END.
     END CONSTRUCTOR.
 
-    /* The colour with a number from Colours.i, as 0xRRGGBB. */
-    METHOD PUBLIC STATIC INTEGER Colour(INPUT piColour AS INTEGER):
-        IF piColour = ? OR piColour < 1 OR piColour > {&COLOURS} THEN
-            UNDO, THROW NEW GridException(SUBSTITUTE("A colour is 1 to &1, not &2", {&COLOURS}, piColour)).
-        RETURN sColours[piColour].
+    /* The colour of a palette entry, as 0xRRGGBB. */
+    METHOD PUBLIC STATIC INTEGER Colour(INPUT poColour AS Palette):
+        IF NOT VALID-OBJECT(poColour) THEN UNDO, THROW NEW GridException("A colour is a Palette entry, not unknown").
+        RETURN sColours[INTEGER(poColour) + 1].
     END METHOD.
 
     /* A tone of an invader of a rack row (0 at the top to 4) in a wave (1 on): tone 1 the body, 2 the lit rim and
@@ -120,7 +118,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersLook FINAL:
         IF piRow = ? OR piRow < 0 OR piRow > 4 THEN UNDO, THROW NEW GridException("A rack row is 0 to 4, not " + STRING(piRow)).
         IF piWave = ? OR piWave < 1 THEN UNDO, THROW NEW GridException("A wave is 1 or more, not " + STRING(piWave)).
         IF piTone = ? OR piTone < 1 OR piTone > 3 THEN UNDO, THROW NEW GridException("A tone is 1 to 3, not " + STRING(piTone)).
-        RETURN sColours[{&C-INV1-MAIN} + ((piRow + piWave - 1) MODULO 5) * 3 + piTone - 1].
+        RETURN sColours[INTEGER(Palette:Inv1Main) + 1 + ((piRow + piWave - 1) MODULO 5) * 3 + piTone - 1].
     END METHOD.
 
     /* How many colours there are. */

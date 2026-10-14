@@ -37,7 +37,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGame IMPLEMENTS IRealTimeGame:
 
     {ProGriddle/Games/SpaceInvaders/Art.i}
-    {ProGriddle/Games/SpaceInvaders/Colours.i}
 
     /* the field and where things stand on it */
     &SCOPED-DEFINE WIDTH 224
@@ -302,7 +301,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         mCanvas = NEW PixelCanvas(poGrid).
         mRack = NEW InvaderRack().
         DO i = 1 TO 16:
-            mShieldTone[i] = ColourMath:Mix(InvadersLook:Colour({&C-SHIELD-TOP}), InvadersLook:Colour({&C-SHIELD-BOTTOM}), i - 1, 15).
+            mShieldTone[i] = ColourMath:Mix(InvadersLook:Colour(Palette:ShieldTop), InvadersLook:Colour(Palette:ShieldBottom), i - 1, 15).
         END.
         Initialise().
     END CONSTRUCTOR.
@@ -483,7 +482,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             SweepLightBar(c0, c1).
         END.
         IF t >= 110 AND t < 110 + 19 * 2 AND (t - 110) MODULO 2 = 0 THEN
-            mCanvas:DrawText(SUBSTRING("SCORE ADVANCE TABLE", 1, INTEGER(TRUNCATE((t - 110) / 2, 0)) + 1), 55, 108, InvadersLook:Colour({&C-TEXT-LABEL})).
+            mCanvas:DrawText(SUBSTRING("SCORE ADVANCE TABLE", 1, INTEGER(TRUNCATE((t - 110) / 2, 0)) + 1), 55, 108, InvadersLook:Colour(Palette:TextLabel)).
         DO rw = 0 TO 3:
             IF t = 150 + 18 * rw THEN DrawTableRow(rw, 0, TRUE).
             IF t = 153 + 18 * rw THEN DrawTableRow(rw, 0, FALSE).
@@ -529,7 +528,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
                          InvadersLook:InvaderColour(4, 1, 1), InvadersLook:InvaderColour(4, 1, 2), InvadersLook:InvaderColour(4, 1, 3)).
         ELSE IF kind = 2 THEN
             mCanvas:Draw(InvadersArt:Picture(IF pic = 0 THEN {&ART-SAUCER} ELSE {&ART-SAUCER1}), x, {&SAUCER-Y}, INTEGER(CellKind:Fx),
-                         InvadersLook:Colour({&C-SAUCER}), InvadersLook:Colour({&C-SAUCER-LIGHT}), InvadersLook:Colour({&C-SAUCER-DEEP})).
+                         InvadersLook:Colour(Palette:Saucer), InvadersLook:Colour(Palette:SaucerLight), InvadersLook:Colour(Palette:SaucerDeep)).
     END METHOD.
 
     /* One letter of SPACE INVADERS (0 to 12), with its shadow. */
@@ -547,9 +546,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             x = 41 + (piIndex - 5) * 18.
             y = 70.
         END.
-        mCanvas:DrawTextScaled(ch, x + 1, y + 1, InvadersLook:Colour({&C-TITLE-SHADOW}), InvadersLook:Colour({&C-TITLE-SHADOW}), 3).
-        IF plWhite THEN mCanvas:DrawTextScaled(ch, x, y, InvadersLook:Colour({&C-FLASH}), InvadersLook:Colour({&C-FLASH}), 3).
-        ELSE mCanvas:DrawTextScaled(ch, x, y, InvadersLook:Colour({&C-TITLE-TOP}), InvadersLook:Colour({&C-TITLE-BOTTOM}), 3).
+        mCanvas:DrawTextScaled(ch, x + 1, y + 1, InvadersLook:Colour(Palette:TitleShadow), InvadersLook:Colour(Palette:TitleShadow), 3).
+        IF plWhite THEN mCanvas:DrawTextScaled(ch, x, y, InvadersLook:Colour(Palette:Flash), InvadersLook:Colour(Palette:Flash), 3).
+        ELSE mCanvas:DrawTextScaled(ch, x, y, InvadersLook:Colour(Palette:TitleTop), InvadersLook:Colour(Palette:TitleBottom), 3).
     END METHOD.
 
     /* Columns piFrom to piTo (0 to 140) of the light bar under the title: pink to violet to cyan, with a shadow. */
@@ -557,10 +556,10 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         DEFINE VARIABLE c AS INTEGER NO-UNDO.
         DEFINE VARIABLE v AS INTEGER NO-UNDO.
         DO c = piFrom TO piTo:
-            IF c <= 70 THEN v = ColourMath:Mix(InvadersLook:Colour({&C-TITLE-TOP}), InvadersLook:Colour({&C-TITLE-BOTTOM}), c, 70).
-            ELSE v = ColourMath:Mix(InvadersLook:Colour({&C-TITLE-BOTTOM}), InvadersLook:Colour({&C-LIGHT-BAR-END}), c - 70, 70).
+            IF c <= 70 THEN v = ColourMath:Mix(InvadersLook:Colour(Palette:TitleTop), InvadersLook:Colour(Palette:TitleBottom), c, 70).
+            ELSE v = ColourMath:Mix(InvadersLook:Colour(Palette:TitleBottom), InvadersLook:Colour(Palette:LightBarEnd), c - 70, 70).
             mCanvas:Plot(41 + c, 95, INTEGER(CellKind:None), v).
-            mCanvas:Plot(41 + c, 96, INTEGER(CellKind:None), InvadersLook:Colour({&C-LIGHT-BAR-SHADOW})).
+            mCanvas:Plot(41 + c, 96, INTEGER(CellKind:None), InvadersLook:Colour(Palette:LightBarShadow)).
         END.
     END METHOD.
 
@@ -578,9 +577,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             WHEN 0 THEN DO:
                 x = 70.
                 sprite = InvadersArt:Picture(IF piPose = 0 THEN {&ART-SAUCER} ELSE {&ART-SAUCER1}).
-                c1 = InvadersLook:Colour({&C-SAUCER}).
-                c2 = InvadersLook:Colour({&C-SAUCER-LIGHT}).
-                c3 = InvadersLook:Colour({&C-SAUCER-DEEP}).
+                c1 = InvadersLook:Colour(Palette:Saucer).
+                c2 = InvadersLook:Colour(Palette:SaucerLight).
+                c3 = InvadersLook:Colour(Palette:SaucerDeep).
             END.
             WHEN 1 THEN DO:
                 x = 74.
@@ -605,20 +604,20 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             END.
         END CASE.
         mCanvas:ClearRect(x - 1, y, sprite:Width + 2, sprite:Height).
-        IF plWhite THEN mCanvas:Draw(sprite, x, y, INTEGER(CellKind:Fx), InvadersLook:Colour({&C-FLASH}), InvadersLook:Colour({&C-FLASH}), InvadersLook:Colour({&C-FLASH})).
+        IF plWhite THEN mCanvas:Draw(sprite, x, y, INTEGER(CellKind:Fx), InvadersLook:Colour(Palette:Flash), InvadersLook:Colour(Palette:Flash), InvadersLook:Colour(Palette:Flash)).
         ELSE DO:
             mCanvas:Draw(sprite, x, y, INTEGER(CellKind:Fx), c1, c2, c3).
-            mCanvas:DrawText("=", 94, y, InvadersLook:Colour({&C-TEXT-DIM})).
+            mCanvas:DrawText("=", 94, y, InvadersLook:Colour(Palette:TextDim)).
             CASE piRow:
                 WHEN 0 THEN DO:
-                    mCanvas:DrawText("?", 112, y, InvadersLook:Colour({&C-TEXT-GOLD})).
-                    mCanvas:DrawText("MYSTERY", 124, y, InvadersLook:Colour({&C-TEXT})).
+                    mCanvas:DrawText("?", 112, y, InvadersLook:Colour(Palette:TextGold)).
+                    mCanvas:DrawText("MYSTERY", 124, y, InvadersLook:Colour(Palette:Text)).
                 END.
                 WHEN 1 THEN mCanvas:DrawText("30", 106, y, c1).
                 WHEN 2 THEN mCanvas:DrawText("20", 106, y, c1).
                 OTHERWISE mCanvas:DrawText("10", 106, y, c1).
             END CASE.
-            IF piRow > 0 THEN mCanvas:DrawText("POINTS", 124, y, InvadersLook:Colour({&C-TEXT})).
+            IF piRow > 0 THEN mCanvas:DrawText("POINTS", 124, y, InvadersLook:Colour(Palette:Text)).
         END.
     END METHOD.
 
@@ -635,7 +634,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         IF t >= 10 AND t < 10 + InvaderRack:Total() THEN RevealAlien(t - 10, TRUE).
         IF t >= 13 AND t < 13 + InvaderRack:Total() THEN RevealAlien(t - 13, FALSE).
         IF t = 0 THEN DrawWaveBanner().
-        IF t MODULO 16 = 0 THEN mCanvas:DrawOverlay("GET READY", 85, 170, InvadersLook:Colour({&C-TEXT-GOLD}), InvadersLook:Colour({&C-TEXT-GOLD}), 1, InvadersLook:Colour({&C-TEXT-OUTLINE})).
+        IF t MODULO 16 = 0 THEN mCanvas:DrawOverlay("GET READY", 85, 170, InvadersLook:Colour(Palette:TextGold), InvadersLook:Colour(Palette:TextGold), 1, InvadersLook:Colour(Palette:TextOutline)).
         ELSE IF t MODULO 16 = 8 THEN mCanvas:ShowBackRect(84, 169, 56, 9).
         BlinkCannon().
         mTimer = mTimer + 1.
@@ -652,7 +651,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         DEFINE VARIABLE banner AS CHARACTER NO-UNDO.
         banner = "WAVE " + STRING(Wave).
         mCanvas:DrawOverlay(banner, INTEGER(TRUNCATE(({&WIDTH} - PixelCanvas:ScaledWidth(banner, 2)) / 2, 0)), 150,
-                            InvadersLook:Colour({&C-TITLE-TOP}), InvadersLook:Colour({&C-TITLE-BOTTOM}), 2, InvadersLook:Colour({&C-TEXT-OUTLINE})).
+                            InvadersLook:Colour(Palette:TitleTop), InvadersLook:Colour(Palette:TitleBottom), 2, InvadersLook:Colour(Palette:TextOutline)).
     END METHOD.
 
     METHOD PRIVATE VOID FramePlaying():
@@ -689,7 +688,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             EraseBlast().
             mBlast = art.
             mCanvas:Draw(InvadersArt:Picture(art), mPX - 1, {&PLAYER-Y}, INTEGER(CellKind:Fx),
-                         InvadersLook:Colour({&C-CANNON}), InvadersLook:Colour({&C-FLASH}), InvadersLook:Colour({&C-EMBER})).
+                         InvadersLook:Colour(Palette:Cannon), InvadersLook:Colour(Palette:Flash), InvadersLook:Colour(Palette:Ember)).
         END.
         mTimer = mTimer + 1.
         IF mTimer < {&DYING-FRAMES} THEN RETURN.
@@ -716,21 +715,21 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         IF t >= 20 AND (t - 20) MODULO 2 = 0 AND (t - 20) / 2 < 12 THEN
             IF SUBSTRING("WAVE CLEARED", INTEGER(TRUNCATE((t - 20) / 2, 0)) + 1, 1) <> " " THEN
                 mCanvas:DrawOverlay(SUBSTRING("WAVE CLEARED", INTEGER(TRUNCATE((t - 20) / 2, 0)) + 1, 1), 41 + INTEGER(TRUNCATE((t - 20) / 2, 0)) * 12, 100,
-                                    InvadersLook:Colour({&C-CLEAR-TOP}), InvadersLook:Colour({&C-CLEAR-BOTTOM}), 2, InvadersLook:Colour({&C-TEXT-OUTLINE})).
-        IF t = 20 THEN PaintGround(InvadersLook:Colour({&C-TEXT})).
-        IF t = 26 THEN PaintGround(InvadersLook:Colour({&C-GROUND-LINE})).
+                                    InvadersLook:Colour(Palette:ClearTop), InvadersLook:Colour(Palette:ClearBottom), 2, InvadersLook:Colour(Palette:TextOutline)).
+        IF t = 20 THEN PaintGround(InvadersLook:Colour(Palette:Text)).
+        IF t = 26 THEN PaintGround(InvadersLook:Colour(Palette:GroundLine)).
         IF t > 26 AND t <= 60 THEN DO:
             pos = (t - 26) * 8.
-            PaintGroundPart(pos - 16, pos - 9, InvadersLook:Colour({&C-GROUND-LINE})).
-            PaintGroundPart(pos - 8, pos - 1, InvadersLook:Colour({&C-TEXT})).
+            PaintGroundPart(pos - 16, pos - 9, InvadersLook:Colour(Palette:GroundLine)).
+            PaintGroundPart(pos - 8, pos - 1, InvadersLook:Colour(Palette:Text)).
         END.
         IF t = 50 THEN DO:
             nextText = "NEXT WAVE " + STRING(Wave + 1).
             mCanvas:DrawOverlay(nextText, INTEGER(TRUNCATE(({&WIDTH} - PixelFont:WidthOf(nextText)) / 2, 0)), 120,
-                                InvadersLook:Colour({&C-TEXT-LABEL}), InvadersLook:Colour({&C-TEXT-LABEL}), 1, InvadersLook:Colour({&C-TEXT-OUTLINE})).
+                                InvadersLook:Colour(Palette:TextLabel), InvadersLook:Colour(Palette:TextLabel), 1, InvadersLook:Colour(Palette:TextOutline)).
         END.
         IF t < {&CLEARED-FRAMES} THEN RETURN.
-        PaintGround(InvadersLook:Colour({&C-GROUND-LINE})).
+        PaintGround(InvadersLook:Colour(Palette:GroundLine)).
         mCanvas:ShowBackRect(38, 97, 150, 21).
         mCanvas:ShowBackRect(60, 118, 110, 11).
         Wave = Wave + 1.
@@ -746,18 +745,18 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             k = INTEGER(TRUNCATE(mTimer / 3, 0)) - 1.
             IF SUBSTRING("GAME OVER", k + 1, 1) <> " " THEN DO:
                 /* over the frozen rack, which the next screen wipes, so these go on whatever is there */
-                mCanvas:DrawTextScaled(SUBSTRING("GAME OVER", k + 1, 1), 60 + k * 12, 101, InvadersLook:Colour({&C-OVER-SHADOW}), InvadersLook:Colour({&C-OVER-SHADOW}), 2).
-                mCanvas:DrawTextScaled(SUBSTRING("GAME OVER", k + 1, 1), 59 + k * 12, 100, InvadersLook:Colour({&C-OVER-TOP}), InvadersLook:Colour({&C-OVER-BOTTOM}), 2).
+                mCanvas:DrawTextScaled(SUBSTRING("GAME OVER", k + 1, 1), 60 + k * 12, 101, InvadersLook:Colour(Palette:OverShadow), InvadersLook:Colour(Palette:OverShadow), 2).
+                mCanvas:DrawTextScaled(SUBSTRING("GAME OVER", k + 1, 1), 59 + k * 12, 100, InvadersLook:Colour(Palette:OverTop), InvadersLook:Colour(Palette:OverBottom), 2).
             END.
         END.
         IF mTimer = 30 THEN DO:
-            PaintGround(InvadersLook:Colour({&C-GROUND-LINE})).
-            mCanvas:DrawOverlay("SCORE ", 79, 124, InvadersLook:Colour({&C-TEXT-LABEL}), InvadersLook:Colour({&C-TEXT-LABEL}), 1, -1).
-            mCanvas:DrawOverlay(STRING(Score, "99999"), 115, 124, InvadersLook:Colour({&C-TEXT}), InvadersLook:Colour({&C-TEXT}), 1, -1).
+            PaintGround(InvadersLook:Colour(Palette:GroundLine)).
+            mCanvas:DrawOverlay("SCORE ", 79, 124, InvadersLook:Colour(Palette:TextLabel), InvadersLook:Colour(Palette:TextLabel), 1, -1).
+            mCanvas:DrawOverlay(STRING(Score, "99999"), 115, 124, InvadersLook:Colour(Palette:Text), InvadersLook:Colour(Palette:Text), 1, -1).
         END.
         IF mTimer >= 30 AND mNewHi THEN DO:
             IF (mTimer - 30) MODULO 20 = 0 THEN
-                mCanvas:DrawOverlay("NEW HI-SCORE", 76, 138, InvadersLook:Colour({&C-TEXT-GOLD}), InvadersLook:Colour({&C-TEXT-GOLD}), 1, -1).
+                mCanvas:DrawOverlay("NEW HI-SCORE", 76, 138, InvadersLook:Colour(Palette:TextGold), InvadersLook:Colour(Palette:TextGold), 1, -1).
             ELSE IF (mTimer - 30) MODULO 20 = 10 THEN mCanvas:ShowBackRect(76, 138, 72, 7).
         END.
         IF mTimer >= 90 THEN BlinkPrompt(164, mTimer - 90).
@@ -773,22 +772,22 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         DEFINE VARIABLE y   AS INTEGER NO-UNDO.
         DEFINE VARIABLE i   AS INTEGER NO-UNDO.
         DO y = 0 TO {&HEIGHT} - 1:
-            IF y < {&GROUND-Y} - 3 THEN sky[y + 1] = ColourMath:Mix(InvadersLook:Colour({&C-SKY-TOP}), InvadersLook:Colour({&C-SKY-BOTTOM}), y, {&GROUND-Y} - 1).
-            ELSE IF y = {&GROUND-Y} - 3 THEN sky[y + 1] = InvadersLook:Colour({&C-GLOW3}).
-            ELSE IF y = {&GROUND-Y} - 2 THEN sky[y + 1] = InvadersLook:Colour({&C-GLOW2}).
-            ELSE IF y = {&GROUND-Y} - 1 THEN sky[y + 1] = InvadersLook:Colour({&C-GLOW1}).
-            ELSE IF y = {&GROUND-Y} THEN sky[y + 1] = InvadersLook:Colour({&C-GROUND-LINE}).
-            ELSE IF y = {&GROUND-Y} + 1 THEN sky[y + 1] = InvadersLook:Colour({&C-GROUND-UNDER}).
-            ELSE sky[y + 1] = InvadersLook:Colour({&C-GROUND}).
+            IF y < {&GROUND-Y} - 3 THEN sky[y + 1] = ColourMath:Mix(InvadersLook:Colour(Palette:SkyTop), InvadersLook:Colour(Palette:SkyBottom), y, {&GROUND-Y} - 1).
+            ELSE IF y = {&GROUND-Y} - 3 THEN sky[y + 1] = InvadersLook:Colour(Palette:Glow3).
+            ELSE IF y = {&GROUND-Y} - 2 THEN sky[y + 1] = InvadersLook:Colour(Palette:Glow2).
+            ELSE IF y = {&GROUND-Y} - 1 THEN sky[y + 1] = InvadersLook:Colour(Palette:Glow1).
+            ELSE IF y = {&GROUND-Y} THEN sky[y + 1] = InvadersLook:Colour(Palette:GroundLine).
+            ELSE IF y = {&GROUND-Y} + 1 THEN sky[y + 1] = InvadersLook:Colour(Palette:GroundUnder).
+            ELSE sky[y + 1] = InvadersLook:Colour(Palette:Ground).
             mSky[y + 1] = sky[y + 1].
         END.
         mCanvas:SetBackRows(sky).
-        mGroundCol = InvadersLook:Colour({&C-GROUND-LINE}).
+        mGroundCol = InvadersLook:Colour(Palette:GroundLine).
         DO i = 1 TO {&STARS}:
             mStX[i] = mRandom:NextInt({&WIDTH}).
             mStY[i] = 24 + mRandom:NextInt({&GROUND-Y} - 28).
             mStPeriod[i] = (IF i MODULO 3 = 0 THEN 3 ELSE IF i MODULO 3 = 1 THEN 9 ELSE 5).
-            mStColour[i] = InvadersLook:Colour(IF mStPeriod[i] = 3 THEN {&C-STAR-BRIGHT} ELSE IF mStPeriod[i] = 5 THEN {&C-STAR-CYAN} ELSE {&C-STAR-DIM}).
+            mStColour[i] = InvadersLook:Colour(IF mStPeriod[i] = 3 THEN Palette:StarBright ELSE IF mStPeriod[i] = 5 THEN Palette:StarCyan ELSE Palette:StarDim).
             mCanvas:SetBack(mStX[i], mStY[i], mStColour[i]).
             mStShown[i] = mStColour[i].
         END.
@@ -809,7 +808,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         mPX = {&PLAYER-START}.
         ResetPicture().
         DrawHudFrame().
-        mCanvas:DrawText("PROGRIDDLE COOKOFF", 58, 241, InvadersLook:Colour({&C-TEXT-CREDIT})).
+        mCanvas:DrawText("PROGRIDDLE COOKOFF", 58, 241, InvadersLook:Colour(Palette:TextCredit)).
         mPromptOn = FALSE.
         mIdleKind = 0.
     END METHOD.
@@ -862,7 +861,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         mPromptOn = FALSE.
         mNewHi = (Score > mHiAtStart AND Score > 0).
         Lives = 0.
-        PaintGround(InvadersLook:Colour({&C-OVER-TOP})).
+        PaintGround(InvadersLook:Colour(Palette:OverTop)).
     END METHOD.
 
     /* The 13 cells of the ground line round a column take a colour for 6 frames, where a bomb landed. */
@@ -883,7 +882,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     /* While the rack is down within 8 cells of the shields the ground line pulses red twice a second. */
     METHOD PRIVATE VOID DangerPulse():
         DEFINE VARIABLE c AS INTEGER NO-UNDO.
-        c = (IF mRack:Bottom() >= 176 AND INTEGER(TRUNCATE(mFrames / 15, 0)) MODULO 2 = 1 THEN InvadersLook:Colour({&C-OVER-TOP}) ELSE InvadersLook:Colour({&C-GROUND-LINE})).
+        c = (IF mRack:Bottom() >= 176 AND INTEGER(TRUNCATE(mFrames / 15, 0)) MODULO 2 = 1 THEN InvadersLook:Colour(Palette:OverTop) ELSE InvadersLook:Colour(Palette:GroundLine)).
         IF c <> mGroundCol THEN PaintGround(c).
     END METHOD.
 
@@ -915,11 +914,11 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         END.
         /* the cannon goes white for 2 frames before it blows up */
         mCanvas:Draw(InvadersArt:Picture({&ART-CANNON}), mPX, {&PLAYER-Y}, INTEGER(CellKind:Player),
-                     InvadersLook:Colour({&C-FLASH}), InvadersLook:Colour({&C-FLASH}), InvadersLook:Colour({&C-FLASH})).
+                     InvadersLook:Colour(Palette:Flash), InvadersLook:Colour(Palette:Flash), InvadersLook:Colour(Palette:Flash)).
         mGhost = 0.
         Phase = GamePhase:Dying.
         mTimer = 0.
-        SpawnSparks(mPX + 6, {&PLAYER-Y} + 4, InvadersLook:Colour({&C-CANNON}), 14).
+        SpawnSparks(mPX + 6, {&PLAYER-Y} + 4, InvadersLook:Colour(Palette:Cannon), 14).
     END METHOD.
 
     /* ================================ the cannon and its shot ================================ */
@@ -957,11 +956,11 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     END METHOD.
 
     METHOD PRIVATE VOID MuzzleCell(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        IF mCanvas:KindAt(piX, piY) = INTEGER(CellKind:None) THEN mCanvas:Plot(piX, piY, INTEGER(CellKind:Fx), InvadersLook:Colour({&C-FLASH})).
+        IF mCanvas:KindAt(piX, piY) = INTEGER(CellKind:None) THEN mCanvas:Plot(piX, piY, INTEGER(CellKind:Fx), InvadersLook:Colour(Palette:Flash)).
     END METHOD.
 
     METHOD PRIVATE VOID UnmuzzleCell(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        IF mCanvas:KindAt(piX, piY) = INTEGER(CellKind:Fx) AND mCanvas:ColourAt(piX, piY) = InvadersLook:Colour({&C-FLASH}) THEN mCanvas:Unplot(piX, piY).
+        IF mCanvas:KindAt(piX, piY) = INTEGER(CellKind:Fx) AND mCanvas:ColourAt(piX, piY) = InvadersLook:Colour(Palette:Flash) THEN mCanvas:Unplot(piX, piY).
     END METHOD.
 
     METHOD PRIVATE VOID UpdateMuzzle():
@@ -987,8 +986,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             IF mShotY <= {&SHOT-TOP} THEN DO:
                 mShotOn = FALSE.
                 mCanvas:DrawOnEmpty(InvadersArt:Picture({&ART-SHOT-BURST}), mShotX - 4, mShotY - 4, INTEGER(CellKind:Fx),
-                                    InvadersLook:Colour({&C-SHOT}), InvadersLook:Colour({&C-FLASH}), InvadersLook:Colour({&C-SHOT})).
-                AddFx(mShotX - 4, mShotY - 4, {&ART-SHOT-BURST}, 6, {&ART-SHOT-BURST1}, 6, InvadersLook:Colour({&C-SHOT}), InvadersLook:Colour({&C-FLASH}), TRUE).
+                                    InvadersLook:Colour(Palette:Shot), InvadersLook:Colour(Palette:Flash), InvadersLook:Colour(Palette:Shot)).
+                AddFx(mShotX - 4, mShotY - 4, {&ART-SHOT-BURST}, 6, {&ART-SHOT-BURST1}, 6, InvadersLook:Colour(Palette:Shot), InvadersLook:Colour(Palette:Flash), TRUE).
                 RETURN.
             END.
             kind = mCanvas:KindAt(mShotX, mShotY).
@@ -1031,7 +1030,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         mRack:Kill(i).
         body = InvadersLook:InvaderColour(InvaderRack:RowOf(i), Wave, 1).
         AddFx(ax - INTEGER(TRUNCATE((13 - mRack:WidthOf(i)) / 2, 0)), ay, {&ART-ALIEN-BLAST0}, 5, {&ART-ALIEN-BLAST1}, 5,
-              body, InvadersLook:Colour({&C-FLASH}), FALSE).
+              body, InvadersLook:Colour(Palette:Flash), FALSE).
         SpawnSparks(ax + INTEGER(TRUNCATE(mRack:WidthOf(i) / 2, 0)), ay + 4, body, 10).
         AddScore(InvaderRack:PointsOfKind(kind)).
     END METHOD.
@@ -1040,7 +1039,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         DEFINE VARIABLE b AS INTEGER NO-UNDO.
         DO b = 0 TO 2:
             IF mBombOn[b + 1] AND piX >= mBombX[b + 1] AND piX < mBombX[b + 1] + 3 AND piY >= mBombY[b + 1] AND piY < mBombY[b + 1] + 7 THEN DO:
-                SpawnSparks(piX, piY, InvadersLook:Colour({&C-BOMB}), 6).
+                SpawnSparks(piX, piY, InvadersLook:Colour(Palette:Bomb), 6).
                 EraseBomb(b).
                 RETURN.
             END.
@@ -1054,8 +1053,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         sx = mSaucerX.
         EraseSaucer().
         AddFx(sx + 1, {&SAUCER-Y} - 1, {&ART-ALIEN-BLAST0}, 6, {&ART-ALIEN-BLAST1}, 6,
-              InvadersLook:Colour({&C-SAUCER}), InvadersLook:Colour({&C-SAUCER-LIGHT}), FALSE).
-        SpawnSparks(sx + 8, {&SAUCER-Y} + 3, InvadersLook:Colour({&C-SAUCER}), 14).
+              InvadersLook:Colour(Palette:Saucer), InvadersLook:Colour(Palette:SaucerLight), FALSE).
+        SpawnSparks(sx + 8, {&SAUCER-Y} + 3, InvadersLook:Colour(Palette:Saucer), 14).
         mPopText = STRING(points).
         mPopX = MINIMUM(sx, {&WIDTH} - 8 - PixelFont:WidthOf(mPopText)).
         mPopX = MAXIMUM(8, mPopX).
@@ -1063,7 +1062,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         mPopOn = TRUE.
         mPopY = {&SAUCER-Y}.
         mPulse = 24.
-        mCanvas:DrawOverlay(mPopText, mPopX, mPopY, InvadersLook:Colour({&C-TEXT-GOLD}), InvadersLook:Colour({&C-TEXT-GOLD}), 1, -1).
+        mCanvas:DrawOverlay(mPopText, mPopX, mPopY, InvadersLook:Colour(Palette:TextGold), InvadersLook:Colour(Palette:TextGold), 1, -1).
         AddScore(points).
     END METHOD.
 
@@ -1123,8 +1122,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             /* the ground: the bomb is spent and leaves a splash */
             IF mBombY[b + 1] + 7 >= {&GROUND-Y} THEN DO:
                 AddFx(mBombX[b + 1] - 3, {&GROUND-Y} - 4, {&ART-BOMB-SPLAT}, 4, {&ART-BOMB-SPLAT1}, 6,
-                      InvadersLook:Colour({&C-BOMB}), InvadersLook:Colour({&C-BOMB-TIP}), FALSE).
-                FlashGround(mBombX[b + 1] + 1, InvadersLook:Colour(IF b = 0 THEN {&C-BOMB-ROLL} ELSE IF b = 1 THEN {&C-BOMB-PLUNGER} ELSE {&C-BOMB})).
+                      InvadersLook:Colour(Palette:Bomb), InvadersLook:Colour(Palette:BombTip), FALSE).
+                FlashGround(mBombX[b + 1] + 1, InvadersLook:Colour(IF b = 0 THEN Palette:BombRoll ELSE IF b = 1 THEN Palette:BombPlunger ELSE Palette:Bomb)).
                 mBombOn[b + 1] = FALSE.
                 NEXT.
             END.
@@ -1152,7 +1151,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             END.
             IF hit = INTEGER(CellKind:Shot) THEN DO:
                 mBombOn[b + 1] = FALSE.
-                SpawnSparks(cx, cy, InvadersLook:Colour({&C-BOMB}), 6).
+                SpawnSparks(cx, cy, InvadersLook:Colour(Palette:Bomb), 6).
                 EraseShot().
                 mShotOn = FALSE.
                 NEXT.
@@ -1262,10 +1261,10 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     METHOD PRIVATE VOID DrawCannon():
         IF mGhost > 0 AND INTEGER(TRUNCATE(mGhost / 6, 0)) MODULO 2 = 1 THEN
             mCanvas:Draw(InvadersArt:Picture({&ART-CANNON-GHOST}), mPX, {&PLAYER-Y}, INTEGER(CellKind:Player),
-                         InvadersLook:Colour({&C-CANNON-GHOST}), InvadersLook:Colour({&C-CANNON-GHOST}), InvadersLook:Colour({&C-CANNON-GHOST})).
+                         InvadersLook:Colour(Palette:CannonGhost), InvadersLook:Colour(Palette:CannonGhost), InvadersLook:Colour(Palette:CannonGhost)).
         ELSE
             mCanvas:Draw(InvadersArt:Picture({&ART-CANNON}), mPX, {&PLAYER-Y}, INTEGER(CellKind:Player),
-                         InvadersLook:Colour({&C-CANNON}), InvadersLook:Colour({&C-CANNON-LIGHT}), InvadersLook:Colour({&C-CANNON-DEEP})).
+                         InvadersLook:Colour(Palette:Cannon), InvadersLook:Colour(Palette:CannonLight), InvadersLook:Colour(Palette:CannonDeep)).
     END METHOD.
 
     /* Counts down the blink and swaps the picture when its turn comes. */
@@ -1291,7 +1290,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     /* The shot: a bright head, a body and a two cell tail that only goes where the sky is empty. */
     METHOD PRIVATE VOID DrawShot():
         mCanvas:DrawOnEmpty(InvadersArt:Picture({&ART-SHOT-LONG}), mShotX, mShotY, INTEGER(CellKind:Shot),
-                            InvadersLook:Colour({&C-SHOT}), InvadersLook:Colour({&C-SHOT-TIP}), InvadersLook:Colour({&C-SHOT-TAIL})).
+                            InvadersLook:Colour(Palette:Shot), InvadersLook:Colour(Palette:ShotTip), InvadersLook:Colour(Palette:ShotTail)).
     END METHOD.
 
     /* Takes the shot off the screen and ends it. */
@@ -1304,9 +1303,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     METHOD PRIVATE VOID DrawBomb(INPUT piType AS INTEGER):
         /* each type has its own hue: rolling lemon, plunger red-orange, squiggly amber */
         mCanvas:Draw(InvadersArt:Bomb(piType, INTEGER(TRUNCATE(mBombAge[piType + 1] / 2, 0))), mBombX[piType + 1], mBombY[piType + 1], INTEGER(CellKind:Bomb),
-                     InvadersLook:Colour(IF piType = 0 THEN {&C-BOMB-ROLL} ELSE IF piType = 1 THEN {&C-BOMB-PLUNGER} ELSE {&C-BOMB}),
-                     InvadersLook:Colour(IF piType = 0 THEN {&C-BOMB-ROLL-TIP} ELSE IF piType = 1 THEN {&C-BOMB-PLUNGER-TIP} ELSE {&C-BOMB-TIP}),
-                     InvadersLook:Colour(IF piType = 0 THEN {&C-BOMB-ROLL-DEEP} ELSE IF piType = 1 THEN {&C-BOMB-PLUNGER-DEEP} ELSE {&C-BOMB-SQUIG-DEEP})).
+                     InvadersLook:Colour(IF piType = 0 THEN Palette:BombRoll ELSE IF piType = 1 THEN Palette:BombPlunger ELSE Palette:Bomb),
+                     InvadersLook:Colour(IF piType = 0 THEN Palette:BombRollTip ELSE IF piType = 1 THEN Palette:BombPlungerTip ELSE Palette:BombTip),
+                     InvadersLook:Colour(IF piType = 0 THEN Palette:BombRollDeep ELSE IF piType = 1 THEN Palette:BombPlungerDeep ELSE Palette:BombSquigDeep)).
     END METHOD.
 
     /* Takes a bomb off the screen and ends it. */
@@ -1321,8 +1320,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         DEFINE VARIABLE step AS INTEGER NO-UNDO.
         step = INTEGER(TRUNCATE(mFrames / 8, 0)).
         mCanvas:Draw(InvadersArt:Picture(IF step MODULO 2 = 0 THEN {&ART-SAUCER} ELSE {&ART-SAUCER1}), mSaucerX, {&SAUCER-Y}, INTEGER(CellKind:Saucer),
-                     InvadersLook:Colour(IF step MODULO 4 = 1 THEN {&C-SAUCER-PULSE1} ELSE IF step MODULO 4 = 3 THEN {&C-SAUCER-PULSE2} ELSE {&C-SAUCER}),
-                     InvadersLook:Colour({&C-SAUCER-LIGHT}), InvadersLook:Colour({&C-SAUCER-DEEP})).
+                     InvadersLook:Colour(IF step MODULO 4 = 1 THEN Palette:SaucerPulse1 ELSE IF step MODULO 4 = 3 THEN Palette:SaucerPulse2 ELSE Palette:Saucer),
+                     InvadersLook:Colour(Palette:SaucerLight), InvadersLook:Colour(Palette:SaucerDeep)).
     END METHOD.
 
     METHOD PRIVATE VOID EraseSaucer():
@@ -1409,7 +1408,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
                     mShmX[mShmNext] = piX + dx.
                     mShmY[mShmNext] = piY + dy.
                     mShmUntil[mShmNext] = mFrames + 3.
-                    mCanvas:Plot(piX + dx, piY + dy, INTEGER(CellKind:Shield), InvadersLook:Colour({&C-SHIELD-FLASH})).
+                    mCanvas:Plot(piX + dx, piY + dy, INTEGER(CellKind:Shield), InvadersLook:Colour(Palette:ShieldFlash)).
                     mShmNext = (mShmNext MODULO 128) + 1.
                 END.
             END.
@@ -1489,8 +1488,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
                 IF {&SAUCER-Y} - rise <> mPopY OR mPopTimer = 6 THEN DO:
                     mCanvas:ShowBackRect(mPopX, mPopY, PixelFont:WidthOf(mPopText), 7).
                     mPopY = {&SAUCER-Y} - rise.
-                    mCanvas:DrawOverlay(mPopText, mPopX, mPopY, InvadersLook:Colour(IF mPopTimer <= 6 THEN {&C-GOLD-FADE} ELSE {&C-TEXT-GOLD}),
-                                        InvadersLook:Colour(IF mPopTimer <= 6 THEN {&C-GOLD-FADE} ELSE {&C-TEXT-GOLD}), 1, -1).
+                    mCanvas:DrawOverlay(mPopText, mPopX, mPopY, InvadersLook:Colour(IF mPopTimer <= 6 THEN Palette:GoldFade ELSE Palette:TextGold),
+                                        InvadersLook:Colour(IF mPopTimer <= 6 THEN Palette:GoldFade ELSE Palette:TextGold), 1, -1).
                 END.
             END.
         END.
@@ -1604,7 +1603,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             IF mStY[i] >= {&GROUND-Y} - 4 THEN mStY[i] = 24.
             showing = (mCanvas:KindAt(mStX[i], mStY[i]) = INTEGER(CellKind:None) AND mCanvas:ColourAt(mStX[i], mStY[i]) = mCanvas:BackAt(mStX[i], mStY[i])).
             /* the bright stars flash white for a few steps every two seconds or so */
-            mStShown[i] = (IF mStPeriod[i] = 3 AND (mFrames + i * 13) MODULO 130 < 12 THEN InvadersLook:Colour({&C-STAR-TWINKLE}) ELSE mStColour[i]).
+            mStShown[i] = (IF mStPeriod[i] = 3 AND (mFrames + i * 13) MODULO 130 < 12 THEN InvadersLook:Colour(Palette:StarTwinkle) ELSE mStColour[i]).
             mCanvas:SetBack(mStX[i], mStY[i], mStShown[i]).
             IF showing THEN mCanvas:ShowBack(mStX[i], mStY[i]).
         END.
@@ -1614,9 +1613,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* The labels that do not change: SCORE, HI-SCORE, WAVE and the cannons left. The numbers follow in RefreshHud. */
     METHOD PRIVATE VOID DrawHudFrame():
-        mCanvas:DrawText("SCORE", 8, 6, InvadersLook:Colour({&C-TEXT-LABEL})).
-        mCanvas:DrawText("HI-SCORE", 88, 6, InvadersLook:Colour({&C-TEXT-LABEL})).
-        mCanvas:DrawText("WAVE", 193, 6, InvadersLook:Colour({&C-TEXT-LABEL})).
+        mCanvas:DrawText("SCORE", 8, 6, InvadersLook:Colour(Palette:TextLabel)).
+        mCanvas:DrawText("HI-SCORE", 88, 6, InvadersLook:Colour(Palette:TextLabel)).
+        mCanvas:DrawText("WAVE", 193, 6, InvadersLook:Colour(Palette:TextLabel)).
         mHudScore = -1.
         mHudHi = -1.
         mHudLives = -1.
@@ -1628,26 +1627,26 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         DEFINE VARIABLE i AS INTEGER NO-UNDO.
         IF Score <> mHudScore OR (mPulse > 0) <> mHudGold THEN DO:
             mCanvas:ClearRect(8, 16, 29, 7).
-            mCanvas:DrawText(STRING(Score, "99999"), 8, 16, InvadersLook:Colour(IF mPulse > 0 THEN {&C-TEXT-GOLD} ELSE {&C-TEXT})).
+            mCanvas:DrawText(STRING(Score, "99999"), 8, 16, InvadersLook:Colour(IF mPulse > 0 THEN Palette:TextGold ELSE Palette:Text)).
             mHudScore = Score.
             mHudGold = (mPulse > 0).
         END.
         IF HiScore <> mHudHi THEN DO:
             mCanvas:ClearRect(97, 16, 29, 7).
-            mCanvas:DrawText(STRING(HiScore, "99999"), 97, 16, InvadersLook:Colour({&C-TEXT})).
+            mCanvas:DrawText(STRING(HiScore, "99999"), 97, 16, InvadersLook:Colour(Palette:Text)).
             mHudHi = HiScore.
         END.
         IF Phase <> GamePhase:Title AND Wave <> mHudWave THEN DO:
             mCanvas:ClearRect(192, 16, 24, 7).
-            mCanvas:DrawText(STRING(Wave), 216 - PixelFont:WidthOf(STRING(Wave)), 16, InvadersLook:Colour({&C-TEXT})).
+            mCanvas:DrawText(STRING(Wave), 216 - PixelFont:WidthOf(STRING(Wave)), 16, InvadersLook:Colour(Palette:Text)).
             mHudWave = Wave.
         END.
         IF Phase <> GamePhase:Title AND Lives <> mHudLives THEN DO:
             mCanvas:ClearRect(8, 241, 200, 8).
-            mCanvas:DrawText(STRING(Lives), 8, 241, InvadersLook:Colour({&C-TEXT})).
+            mCanvas:DrawText(STRING(Lives), 8, 241, InvadersLook:Colour(Palette:Text)).
             DO i = 1 TO Lives - 1:
                 mCanvas:Draw(InvadersArt:Picture({&ART-LIVES}), 18 + (i - 1) * 16, 241, INTEGER(CellKind:Fx),
-                             InvadersLook:Colour({&C-CANNON}), InvadersLook:Colour({&C-CANNON-LIGHT}), InvadersLook:Colour({&C-CANNON-DEEP})).
+                             InvadersLook:Colour(Palette:Cannon), InvadersLook:Colour(Palette:CannonLight), InvadersLook:Colour(Palette:CannonDeep)).
             END.
             mHudLives = Lives.
         END.
@@ -1661,7 +1660,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         IF wanted = mPromptOn AND piElapsed > 0 THEN RETURN.
         mPromptOn = wanted.
         mCanvas:ShowBackRect(70, piY, 90, 7).
-        IF wanted THEN mCanvas:DrawOverlay("PRESS SPACE", 79, piY, InvadersLook:Colour({&C-TEXT-GOLD}), InvadersLook:Colour({&C-TEXT-GOLD}), 1, -1).
+        IF wanted THEN mCanvas:DrawOverlay("PRESS SPACE", 79, piY, InvadersLook:Colour(Palette:TextGold), InvadersLook:Colour(Palette:TextGold), 1, -1).
     END METHOD.
 
     METHOD PRIVATE VOID CheckType(INPUT piType AS INTEGER):

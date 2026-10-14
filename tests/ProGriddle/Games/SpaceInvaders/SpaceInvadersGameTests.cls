@@ -14,7 +14,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
-    {ProGriddle/Games/SpaceInvaders/Colours.i}
 
     DEFINE PRIVATE VARIABLE mGame AS SpaceInvadersGame NO-UNDO.
 
@@ -786,7 +785,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Assert:IsFalse(mGame:BombActive(2)).
         /* the cannon is white for two frames, and then gone */
         Assert:IsTrue(mGame:Canvas:CountKind(INTEGER(CellKind:Player)) > 30).
-        Assert:Equals(InvadersLook:Colour({&C-FLASH}), mGame:Canvas:ColourAt(mGame:PlayerX + 6, 221)).
+        Assert:Equals(InvadersLook:Colour(Palette:Flash), mGame:Canvas:ColourAt(mGame:PlayerX + 6, 221)).
         Frames(3).
         Assert:Equals(0, mGame:Canvas:CountKind(INTEGER(CellKind:Player))).
     END METHOD.
@@ -1169,13 +1168,13 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheGroundHasAGlowAboveItALineAndASlightlyLighterRowUnderIt():
-        Assert:Equals(InvadersLook:Colour({&C-GLOW3}), mGame:Canvas:ColourAt(5, 229)).
-        Assert:Equals(InvadersLook:Colour({&C-GLOW2}), mGame:Canvas:ColourAt(5, 230)).
-        Assert:Equals(InvadersLook:Colour({&C-GLOW1}), mGame:Canvas:ColourAt(5, 231)).
-        Assert:Equals(InvadersLook:Colour({&C-GROUND-LINE}), mGame:Canvas:ColourAt(0, 232)).
-        Assert:Equals(InvadersLook:Colour({&C-GROUND-LINE}), mGame:Canvas:ColourAt(223, 232)).
-        Assert:Equals(InvadersLook:Colour({&C-GROUND-UNDER}), mGame:Canvas:ColourAt(100, 233)).
-        Assert:Equals(InvadersLook:Colour({&C-GROUND}), mGame:Canvas:ColourAt(100, 240)).
+        Assert:Equals(InvadersLook:Colour(Palette:Glow3), mGame:Canvas:ColourAt(5, 229)).
+        Assert:Equals(InvadersLook:Colour(Palette:Glow2), mGame:Canvas:ColourAt(5, 230)).
+        Assert:Equals(InvadersLook:Colour(Palette:Glow1), mGame:Canvas:ColourAt(5, 231)).
+        Assert:Equals(InvadersLook:Colour(Palette:GroundLine), mGame:Canvas:ColourAt(0, 232)).
+        Assert:Equals(InvadersLook:Colour(Palette:GroundLine), mGame:Canvas:ColourAt(223, 232)).
+        Assert:Equals(InvadersLook:Colour(Palette:GroundUnder), mGame:Canvas:ColourAt(100, 233)).
+        Assert:Equals(InvadersLook:Colour(Palette:Ground), mGame:Canvas:ColourAt(100, 240)).
     END METHOD.
 
     @Test.
@@ -1200,11 +1199,11 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         bare = CountLit(59, 100, 108, 15).
         Frames(5).
         five = CountLit(59, 100, 108, 15).
-        Assert:Equals(InvadersLook:Colour({&C-OVER-TOP}), mGame:Canvas:ColourAt(100, 232)).
+        Assert:Equals(InvadersLook:Colour(Palette:OverTop), mGame:Canvas:ColourAt(100, 232)).
         Assert:IsTrue(five > bare, "one letter in").
         Frames(30).
         Assert:IsTrue(CountLit(59, 100, 108, 15) > five + 80, "all the letters").
-        Assert:Equals(InvadersLook:Colour({&C-GROUND-LINE}), mGame:Canvas:ColourAt(100, 232)).
+        Assert:Equals(InvadersLook:Colour(Palette:GroundLine), mGame:Canvas:ColourAt(100, 232)).
         Assert:IsTrue(CountLit(79, 124, 70, 7) > 40, "the score").
     END METHOD.
 
@@ -1254,14 +1253,14 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Assert:Equals(0, CountLit(41, 100, 142, 14)).
         Frames(11).
         /* frame 21: the ground is white and the first letter is up */
-        Assert:Equals(InvadersLook:Colour({&C-TEXT}), mGame:Canvas:ColourAt(100, 232)).
+        Assert:Equals(InvadersLook:Colour(Palette:Text), mGame:Canvas:ColourAt(100, 232)).
         Assert:IsTrue(CountLit(41, 100, 142, 14) > 20).
         Frames(15).
         Assert:IsTrue(CountLit(41, 100, 142, 14) > 120).
         Frames(25).
         /* frame 61: the sweep is over and the NEXT WAVE line is up */
-        Assert:Equals(InvadersLook:Colour({&C-GROUND-LINE}), mGame:Canvas:ColourAt(100, 232)).
-        Assert:Equals(InvadersLook:Colour({&C-GROUND-LINE}), mGame:Canvas:ColourAt(223, 232)).
+        Assert:Equals(InvadersLook:Colour(Palette:GroundLine), mGame:Canvas:ColourAt(100, 232)).
+        Assert:Equals(InvadersLook:Colour(Palette:GroundLine), mGame:Canvas:ColourAt(223, 232)).
         Assert:IsTrue(CountLit(70, 120, 90, 7) > 20).
     END METHOD.
 
@@ -1305,9 +1304,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         mGame:FireHeld = FALSE.
         /* the muzzle flash holds the last cell of the tail for its first frames */
         Assert:IsTrue(mGame:Canvas:CountKind(INTEGER(CellKind:Shot)) >= 5).
-        Assert:Equals(InvadersLook:Colour({&C-SHOT-TIP}), mGame:Canvas:ColourAt(mGame:ShotX, mGame:ShotY)).
-        Assert:Equals(InvadersLook:Colour({&C-SHOT}), mGame:Canvas:ColourAt(mGame:ShotX, mGame:ShotY + 2)).
-        Assert:Equals(InvadersLook:Colour({&C-SHOT-TAIL}), mGame:Canvas:ColourAt(mGame:ShotX, mGame:ShotY + 4)).
+        Assert:Equals(InvadersLook:Colour(Palette:ShotTip), mGame:Canvas:ColourAt(mGame:ShotX, mGame:ShotY)).
+        Assert:Equals(InvadersLook:Colour(Palette:Shot), mGame:Canvas:ColourAt(mGame:ShotX, mGame:ShotY + 2)).
+        Assert:Equals(InvadersLook:Colour(Palette:ShotTail), mGame:Canvas:ColourAt(mGame:ShotX, mGame:ShotY + 4)).
     END METHOD.
 
     @Test.
@@ -1327,9 +1326,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         mGame:FireHeld = TRUE.
         mGame:Advance().
         mGame:FireHeld = FALSE.
-        Assert:Equals(InvadersLook:Colour({&C-FLASH}), mGame:Canvas:ColourAt(111, 214)).
-        Assert:Equals(InvadersLook:Colour({&C-FLASH}), mGame:Canvas:ColourAt(110, 214)).
-        Assert:Equals(InvadersLook:Colour({&C-FLASH}), mGame:Canvas:ColourAt(112, 214)).
+        Assert:Equals(InvadersLook:Colour(Palette:Flash), mGame:Canvas:ColourAt(111, 214)).
+        Assert:Equals(InvadersLook:Colour(Palette:Flash), mGame:Canvas:ColourAt(110, 214)).
+        Assert:Equals(InvadersLook:Colour(Palette:Flash), mGame:Canvas:ColourAt(112, 214)).
         Frames(3).
         Assert:IsTrue(mGame:Canvas:KindAt(111, 214) <> INTEGER(CellKind:Fx)).
         Assert:Equals(INTEGER(CellKind:None), mGame:Canvas:KindAt(110, 214)).
@@ -1351,7 +1350,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         mGame:FireHeld = FALSE.
         DO y = 184 TO 199:
             DO x = 35 TO 56:
-                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour({&C-SHIELD-FLASH}) THEN flashed = flashed + 1.
+                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour(Palette:ShieldFlash) THEN flashed = flashed + 1.
             END.
         END.
         Assert:IsTrue(flashed > 5, "flashed " + STRING(flashed)).
@@ -1359,7 +1358,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         flashed = 0.
         DO y = 184 TO 199:
             DO x = 35 TO 56:
-                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour({&C-SHIELD-FLASH}) THEN flashed = flashed + 1.
+                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour(Palette:ShieldFlash) THEN flashed = flashed + 1.
             END.
         END.
         Assert:Equals(0, flashed).
@@ -1374,11 +1373,11 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
             mGame:Advance().
             IF NOT mGame:BombActive(2) THEN LEAVE.
         END.
-        Assert:Equals(InvadersLook:Colour({&C-BOMB}), mGame:Canvas:ColourAt(21, 232)).
-        Assert:Equals(InvadersLook:Colour({&C-BOMB}), mGame:Canvas:ColourAt(15, 232)).
-        Assert:Equals(InvadersLook:Colour({&C-GROUND-LINE}), mGame:Canvas:ColourAt(40, 232)).
+        Assert:Equals(InvadersLook:Colour(Palette:Bomb), mGame:Canvas:ColourAt(21, 232)).
+        Assert:Equals(InvadersLook:Colour(Palette:Bomb), mGame:Canvas:ColourAt(15, 232)).
+        Assert:Equals(InvadersLook:Colour(Palette:GroundLine), mGame:Canvas:ColourAt(40, 232)).
         Frames(7).
-        Assert:Equals(InvadersLook:Colour({&C-GROUND-LINE}), mGame:Canvas:ColourAt(21, 232)).
+        Assert:Equals(InvadersLook:Colour(Palette:GroundLine), mGame:Canvas:ColourAt(21, 232)).
     END METHOD.
 
     @Test.
@@ -1391,7 +1390,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         EmptyField(1).
         DO n = 1 TO 40:
             mGame:Advance().
-            IF mGame:Canvas:ColourAt(100, 232) = InvadersLook:Colour({&C-OVER-TOP}) THEN red = TRUE.
+            IF mGame:Canvas:ColourAt(100, 232) = InvadersLook:Colour(Palette:OverTop) THEN red = TRUE.
         END.
         Assert:IsFalse(red).
         DO WHILE mGame:Rack:Bottom() < 176:
@@ -1401,8 +1400,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
             IF mGame:Phase <> GamePhase:Playing THEN LEAVE.
             mGame:SetPlayerX(IF mGame:Rack:X(0) < 112 THEN 203 ELSE 8).
             mGame:Advance().
-            IF mGame:Canvas:ColourAt(100, 232) = InvadersLook:Colour({&C-OVER-TOP}) THEN red = TRUE.
-            IF mGame:Canvas:ColourAt(100, 232) = InvadersLook:Colour({&C-GROUND-LINE}) THEN grn = TRUE.
+            IF mGame:Canvas:ColourAt(100, 232) = InvadersLook:Colour(Palette:OverTop) THEN red = TRUE.
+            IF mGame:Canvas:ColourAt(100, 232) = InvadersLook:Colour(Palette:GroundLine) THEN grn = TRUE.
         END.
         Assert:IsTrue(red, "never red").
         Assert:IsTrue(grn, "never back to green").
@@ -1425,7 +1424,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Frames(2).
         DO y = 16 TO 22:
             DO x = 8 TO 36:
-                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour({&C-TEXT-GOLD}) THEN gold = gold + 1.
+                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour(Palette:TextGold) THEN gold = gold + 1.
             END.
         END.
         Assert:IsTrue(gold > 10, "gold score " + STRING(gold)).
@@ -1434,7 +1433,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         gold = 0.
         DO y = 16 TO 40:
             DO x = 0 TO 223:
-                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour({&C-TEXT-GOLD}) AND (x > 40 OR y > 22) THEN DO:
+                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour(Palette:TextGold) AND (x > 40 OR y > 22) THEN DO:
                     gold = gold + 1.
                     lowY = MINIMUM(lowY, y).
                 END.
@@ -1446,14 +1445,14 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         gold = 0.
         DO y = 16 TO 40:
             DO x = 41 TO 223:
-                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour({&C-TEXT-GOLD}) THEN gold = gold + 1.
+                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour(Palette:TextGold) THEN gold = gold + 1.
             END.
         END.
         Assert:Equals(0, gold).
         gold = 0.
         DO y = 16 TO 22:
             DO x = 8 TO 36:
-                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour({&C-TEXT-GOLD}) THEN gold = gold + 1.
+                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour(Palette:TextGold) THEN gold = gold + 1.
             END.
         END.
         Assert:Equals(0, gold).
@@ -1471,7 +1470,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
             Frames(18).
             DO y = 24 TO 228:
                 DO x = 0 TO 223:
-                    IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour({&C-STAR-TWINKLE}) THEN hit = hit + 1.
+                    IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour(Palette:StarTwinkle) THEN hit = hit + 1.
                 END.
             END.
         END.
