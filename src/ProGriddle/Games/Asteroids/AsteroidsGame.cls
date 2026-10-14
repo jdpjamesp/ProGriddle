@@ -99,6 +99,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     DEFINE PRIVATE VARIABLE mShHead    AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
     DEFINE PRIVATE VARIABLE mShLife    AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
     DEFINE PRIVATE VARIABLE mRocks     AS RockField   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mDebris    AS DebrisPool  NO-UNDO.
     /* the pieces of text that are ready to draw, and what each is (see Stamp) */
     DEFINE PRIVATE VARIABLE mStamp     AS TextStamp   NO-UNDO EXTENT {&STAMPS}.
     DEFINE PRIVATE VARIABLE mStampKey  AS CHARACTER   NO-UNDO EXTENT {&STAMPS}.
@@ -331,6 +332,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mCanvas = NEW PixelCanvas(poGrid).
         mPen = NEW OutlinePen(mCanvas).
         mRocks = NEW RockField().
+        mDebris = NEW DebrisPool(poRandom, {&WIDTH}, {&HEIGHT}).
         DO i = 0 TO 64:
             mVignette[i + 1] = ColourMath:Mix(AsteroidsLook:Colour(Palette:VoidCentre), AsteroidsLook:Colour(Palette:VoidEdge), i, 64).
         END.
@@ -368,6 +370,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mNextExtra = 10000.
         mNewHi = FALSE.
         mOverT = 0.
+        mDebris:Clear().
         mRocks:Clear().
         ClearShots().
         ClearSaucer().
@@ -436,6 +439,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mSaucX = piX * {&UNIT}.
         mSaucY = piY * {&UNIT}.
     END METHOD.
+
+    /* How many pieces of debris are flying (ship, rock and saucer break ups, rings and sparks). */
+    DEFINE PUBLIC PROPERTY DebrisCount AS INTEGER NO-UNDO
+        GET():
+            RETURN mDebris:Count.
+        END GET.
 
     /* How many saucer shots are in the air, and where one is, in whole cells (slots 0 to 3). */
     DEFINE PUBLIC PROPERTY SaucerShotCount AS INTEGER NO-UNDO
@@ -510,6 +519,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         Phase = GamePhase:Title.
         Score = 0.
         mNewHi = FALSE.
+        mDebris:Clear().
         ClearShots().
         ClearSaucer().
         BakeBackground().
@@ -525,6 +535,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         mFrames = mFrames + 1.
         IF mPulseT > 0 THEN mPulseT = mPulseT - 1.
         MoveDust().
+        mDebris:Step().
         CASE Phase:
             WHEN GamePhase:Title THEN FrameTitle().
             WHEN GamePhase:Playing THEN FramePlaying().
@@ -1033,6 +1044,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* The ship comes apart for a second and a half, drifting on. Then the next ship, or the end of the game. */
     METHOD PRIVATE VOID FrameDying():
         mShipTimer = mShipTimer + 1.
+        /* the ship has been white for three frames: now it comes apart */
+        IF mShipTimer = 3 THEN mDebris:ShipBreakup(mSX, mSY, mSVX, mSVY, mHeading).
         mSX = WrapUnits(mSX + mSVX, {&WIDTH-U}).
         mSY = WrapUnits(mSY + mSVY, {&HEIGHT-U}).
         IF mShipTimer >= {&DYING-FRAMES} THEN DO:
@@ -1183,6 +1196,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         DrawRocks().
         IF mSaucOn THEN DrawSaucerCore().
         IF ShipVisible() THEN DrawShipCore().
+        IF mShipMode = ShipMode:Dying AND mShipTimer < 3 THEN
+            mPen:DrawWrapped(AsteroidsArt:Ship(), ToPen(mSX), ToPen(mSY), mHeading, AsteroidsArt:ShipExtent(), 0, AsteroidsLook:Colour(Palette:Flash), 0, 0).
+        mDebris:DrawTo(mCanvas).
         IF mShipMode = ShipMode:HyperOut AND Phase = GamePhase:Playing THEN DrawHyperShip(MINIMUM(5, INTEGER(TRUNCATE(MAXIMUM(0, mShipTimer - 1) / 2, 0)))).
         IF mShipMode = ShipMode:HyperBack AND Phase = GamePhase:Playing THEN DrawHyperShip(5 - MINIMUM(5, INTEGER(TRUNCATE(MAXIMUM(0, mShipTimer - 1) / 2, 0)))).
         IF ShipAlive AND ShieldFrames > 0 THEN DrawShieldRing().

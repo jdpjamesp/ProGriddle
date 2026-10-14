@@ -901,6 +901,40 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Assert:Equals(x0 + 20000, mGame:Rocks:X(1)).
     END METHOD.
 
+    /* ---------------------------------- debris ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID TheShipFlashesWhiteForThreeFramesThenBreaksIntoNineteenPieces():
+        EmptySky().
+        Assert:Equals(0, mGame:DebrisCount).
+        Crash().
+        /* frames 0 to 2: the whole ship in white, nothing broken yet */
+        Assert:Equals(AsteroidsLook:Colour(Palette:Flash), mGame:Canvas:ColourAt(160, 114)).
+        Assert:Equals(0, mGame:DebrisCount).
+        Quiet(2).
+        Assert:Equals(AsteroidsLook:Colour(Palette:Flash), mGame:Canvas:ColourAt(160, 114)).
+        Assert:Equals(0, mGame:DebrisCount).
+        Quiet(1).
+        Assert:Equals(19, mGame:DebrisCount).
+        Assert:Equals(AsteroidsLook:RampColour(Ramp:ShipDebris, 0), mGame:Canvas:ColourAt(160, 114)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ShipDebrisIsGoneAfterNinetyMoreFramesAndANewGameClearsIt():
+        EmptySky().
+        Crash().
+        Quiet(3).
+        Assert:Equals(19, mGame:DebrisCount).
+        Quiet(14).
+        Assert:Equals(11, mGame:DebrisCount).
+        mGame:StartGame().
+        Assert:Equals(0, mGame:DebrisCount).
+        Crash().
+        Quiet(3).
+        Quiet(90).
+        Assert:Equals(0, mGame:DebrisCount).
+    END METHOD.
+
     /* ---------------------------------- the title screen ---------------------------------- */
 
     @Test.
