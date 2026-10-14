@@ -36,6 +36,15 @@ CLASS ProGriddle.Engine.ColourMath FINAL:
         RETURN piColour MODULO 256.
     END METHOD.
 
+    /* The six hex digits of a colour, capitals, the way FromHex reads them. */
+    METHOD PUBLIC STATIC CHARACTER ToHex(INPUT piColour AS INTEGER):
+        RETURN HexByte(Red(piColour)) + HexByte(Green(piColour)) + HexByte(Blue(piColour)).
+    END METHOD.
+
+    METHOD PRIVATE STATIC CHARACTER HexByte(INPUT piValue AS INTEGER):
+        RETURN SUBSTRING("0123456789ABCDEF", INTEGER(TRUNCATE(piValue / 16, 0)) + 1, 1) + SUBSTRING("0123456789ABCDEF", piValue MODULO 16 + 1, 1).
+    END METHOD.
+
     /* A colour from its three parts. A part outside 0 to 255 is brought back inside. */
     METHOD PUBLIC STATIC INTEGER Rgb(INPUT piRed AS INTEGER, INPUT piGreen AS INTEGER, INPUT piBlue AS INTEGER):
         RETURN MINIMUM(255, MAXIMUM(0, piRed)) * 65536 + MINIMUM(255, MAXIMUM(0, piGreen)) * 256 + MINIMUM(255, MAXIMUM(0, piBlue)).

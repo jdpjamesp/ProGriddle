@@ -20,6 +20,7 @@ CLASS ProGriddle.Games.Tetris.TetrisLook FINAL:
     &SCOPED-DEFINE COLOURS 24
 
     DEFINE PRIVATE STATIC VARIABLE sColours AS INTEGER   NO-UNDO EXTENT 24.
+    DEFINE PRIVATE STATIC VARIABLE sHexes   AS CHARACTER NO-UNDO EXTENT 24.
     /* the rows of tones: pieces 1 to 7 (I O T S Z J L), 8 the dead blocks, 9 gold */
     DEFINE PRIVATE STATIC VARIABLE sTones   AS CHARACTER NO-UNDO EXTENT 9.
 
@@ -51,6 +52,7 @@ CLASS ProGriddle.Games.Tetris.TetrisLook FINAL:
         sHex[23] = "E4503C".  /* the danger pulse of the walls, light */
         sHex[24] = "7A2A20".  /* the danger pulse of the walls, dark */
         DO i = 1 TO {&COLOURS}:
+            sHexes[i] = sHex[i].
             sColours[i] = ColourMath:FromHex(sHex[i]).
         END.
         sTones[1] = "BFEDE5,6BD6C2,2BC4A8,1F8877,134C46".   /* I teal */
@@ -68,6 +70,12 @@ CLASS ProGriddle.Games.Tetris.TetrisLook FINAL:
     METHOD PUBLIC STATIC INTEGER Colour(INPUT poTint AS Tint):
         IF NOT VALID-OBJECT(poTint) THEN UNDO, THROW NEW GridException("A colour is a Tint entry, not unknown").
         RETURN sColours[INTEGER(poTint) + 1].
+    END METHOD.
+
+    /* The six hex digits of a named colour, for a tile legend. */
+    METHOD PUBLIC STATIC CHARACTER Hex(INPUT poTint AS Tint):
+        IF NOT VALID-OBJECT(poTint) THEN UNDO, THROW NEW GridException("A colour is a Tint entry, not unknown").
+        RETURN sHexes[INTEGER(poTint) + 1].
     END METHOD.
 
     /* The five tones of a colour row, lightest first, as hex colours separated by commas. piRow is 1 to 7 for the pieces

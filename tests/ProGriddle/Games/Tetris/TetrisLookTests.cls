@@ -36,6 +36,12 @@ CLASS ProGriddle.Games.Tetris.TetrisLookTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID ANamedColourIsAlsoGivenAsHexForATileLegend():
+        Assert:Equals("FFA24A", TetrisLook:Hex(Tint:Accent)).
+        Assert:Equals(ColourMath:FromHex(TetrisLook:Hex(Tint:GhostLine)), TetrisLook:Colour(Tint:GhostLine)).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID EveryColourRowHasFiveTonesGettingDarkerAndTheBaseIsTheThirdOne():
         DEFINE VARIABLE row AS INTEGER NO-UNDO.
         DEFINE VARIABLE i   AS INTEGER NO-UNDO.

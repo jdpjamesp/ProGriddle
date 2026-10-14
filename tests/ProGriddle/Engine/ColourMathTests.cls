@@ -73,6 +73,15 @@ CLASS ProGriddle.Engine.ColourMathTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID ToHexIsTheSixDigitsFromHexBackAgain():
+        Assert:Equals("000000", ColourMath:ToHex(0)).
+        Assert:Equals("FFFFFF", ColourMath:ToHex(16777215)).
+        Assert:Equals("0A0E16", ColourMath:ToHex(ColourMath:FromHex("0A0E16"))).
+        Assert:Equals("FFA24A", ColourMath:ToHex(ColourMath:FromHex("ffa24a"))).
+        Assert:Equals("123456", ColourMath:ToHex(ColourMath:Rgb(18, 52, 86))).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ScaleMultipliesEachPartByAPercentage():
         Assert:Equals(ColourMath:Rgb(100, 50, 0), ColourMath:Scale(ColourMath:Rgb(200, 100, 0), 50)).
         Assert:Equals(ColourMath:Rgb(20, 40, 60), ColourMath:Scale(ColourMath:Rgb(20, 40, 60), 100)).
