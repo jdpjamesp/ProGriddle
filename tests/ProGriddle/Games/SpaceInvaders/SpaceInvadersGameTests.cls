@@ -559,14 +559,14 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     METHOD PUBLIC VOID ABombIsDroppedOnceTheReloadTimeIsUpStartingWithTheRollingOne():
         Play().
         mGame:SetPlayerX(40).
-        Frames(47).
+        Frames(59).
         Assert:IsFalse(mGame:BombActive(0)).
         Frames(2).
         Assert:IsTrue(mGame:BombActive(0)).
     END METHOD.
 
     @Test.
-    METHOD PUBLIC VOID ABombFallsAboutOneAndAHalfCellsAFrame():
+    METHOD PUBLIC VOID ABombFallsAboutOneAndAQuarterCellsAFrame():
         DEFINE VARIABLE y0 AS INTEGER NO-UNDO.
         Play().
         mGame:DropBomb(2, 20, 100).
@@ -574,7 +574,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Assert:Equals(100, mGame:BombY(2)).
         y0 = mGame:BombY(2).
         Frames(10).
-        Assert:Equals(15, mGame:BombY(2) - y0).
+        Assert:IsTrue(mGame:BombY(2) - y0 >= 12 AND mGame:BombY(2) - y0 <= 13, STRING(mGame:BombY(2) - y0)).
     END METHOD.
 
     @Test.
@@ -627,6 +627,45 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
             IF mGame:BombActive(2) THEN LEAVE.
         END.
         Assert:IsFalse(mGame:BombActive(2)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ANewBombWaitsForTheOnesInTheAirSoThereIsOneAtATimeAtTheStart():
+        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE t    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE out  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE most AS INTEGER NO-UNDO.
+        Play().
+        mGame:SetPlayerX(40).
+        DO n = 1 TO 600:
+            mGame:Advance().
+            out = 0.
+            DO t = 0 TO 2:
+                IF mGame:BombActive(t) THEN out = out + 1.
+            END.
+            most = MAXIMUM(most, out).
+        END.
+        Assert:Equals(1, most).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID OnceTheScoreHasRisenSeveralBombsAreInTheAirTogether():
+        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE t    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE out  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE most AS INTEGER NO-UNDO.
+        Play().
+        mGame:SetPlayerX(40).
+        mGame:AddScore(1200).
+        DO n = 1 TO 600:
+            mGame:Advance().
+            out = 0.
+            DO t = 0 TO 2:
+                IF mGame:BombActive(t) THEN out = out + 1.
+            END.
+            most = MAXIMUM(most, out).
+        END.
+        Assert:IsTrue(most >= 2, STRING(most)).
     END METHOD.
 
     @Test.

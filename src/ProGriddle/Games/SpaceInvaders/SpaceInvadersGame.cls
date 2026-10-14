@@ -10,9 +10,11 @@
      something or reached the top. A shot moves 4 cells a frame. Holding the fire key fires again at once when
      the shot is gone. A shot that meets an invader's bomb destroys both.
    - Three kinds of bomb, at most one of each in the air, 3 in all. The rolling one is dropped from the column
-     above the cannon, the other two from columns in a fixed pattern. They fall about 1.5 cells a frame. The
-     reload time between bombs shortens as the score goes up. The squiggly bomb is not dropped while the saucer is
-     out.
+     above the cannon, the other two from columns in a fixed pattern. They fall about 1.25 cells a frame. As in the
+     arcade the reload is not a timer: a new bomb is only dropped once every bomb already falling has come a
+     fair way down (3 frames for each reload step, see ReloadFor), and that distance shortens as the score goes
+     up, so at the start there is one bomb at a time and later two or three. The squiggly bomb is not dropped
+     while the saucer is out.
    - Four shields that wear away a mark at a time where a shot or a bomb hits them, and that the invaders eat
      as they pass through. They are rebuilt at the start of each wave.
    - The saucer crosses the top about every 25 seconds, never with fewer than 8 invaders left. It is worth 50,
@@ -578,7 +580,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             mDrawn[i] = FALSE.
             mDrawnPose[i] = 0.
         END.
-        mReload = ReloadFor(Score).
+        mReload = 60.
         mNextBomb = 0.
         mTable[1] = 0.
         mTable[2] = 0.
@@ -772,7 +774,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* ================================ the bombs ================================ */
 
-    /* Every bomb falls: 2 cells on the even frames and 1 on the odd ones, about 1.5 a frame. */
+    /* Every bomb falls: 2 cells every fourth frame and 1 on the others, 1.25 cells a frame. */
     METHOD PRIVATE VOID UpdateBombs():
         DEFINE VARIABLE b      AS INTEGER NO-UNDO.
         DEFINE VARIABLE i      AS INTEGER NO-UNDO.
@@ -786,7 +788,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             IF NOT mBombOn[b + 1] THEN NEXT.
             sprite = InvadersArt:Bomb(b, INTEGER(TRUNCATE(mBombAge[b + 1] / 2, 0))).
             mCanvas:Erase(sprite, mBombX[b + 1], mBombY[b + 1], {&KIND-BOMB}).
-            falls = (IF mFrames MODULO 2 = 0 THEN 2 ELSE 1).
+            falls = (IF mFrames MODULO 4 = 0 THEN 2 ELSE 1).
             mBombY[b + 1] = mBombY[b + 1] + falls.
             mBombAge[b + 1] = mBombAge[b + 1] + 1.
             /* the ground: the bomb is spent and leaves a splash */
@@ -837,6 +839,10 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         DEFINE VARIABLE shooter AS INTEGER NO-UNDO.
         IF mReload > 0 THEN mReload = mReload - 1.
         IF mReload > 0 THEN RETURN.
+        /* the arcade's reload: wait until every bomb in the air has come a fair way down */
+        DO b = 0 TO 2:
+            IF mBombOn[b + 1] AND mBombAge[b + 1] < ReloadFor(Score) * 3 THEN RETURN.
+        END.
         DO n = 0 TO 2:
             b = (mNextBomb + n) MODULO 3.
             IF mBombOn[b + 1] THEN NEXT.
@@ -848,7 +854,6 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         shooter = ShooterFor(chosen).
         IF shooter < 0 THEN RETURN.
         DropBomb(chosen, mRack:X(shooter) + INTEGER(TRUNCATE(mRack:WidthOf(shooter) / 2, 0)) - 1, mRack:Y(shooter) + InvaderRack:SpriteHeight()).
-        mReload = ReloadFor(Score).
         mNextBomb = (chosen + 1) MODULO 3.
     END METHOD.
 
