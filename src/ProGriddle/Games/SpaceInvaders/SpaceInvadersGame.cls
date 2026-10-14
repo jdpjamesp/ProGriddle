@@ -1,13 +1,30 @@
-/* Space Invaders: the starting point of a new game. A steppable game on one layer called "state": a
-   single lit cell moves along the board a cell at a time, row by row, and starts again at the top
-   left when it gets to the end. It is here to show every part a game needs, so replace the rules
-   with your own:
+/* Space Invaders, with the rules of the 1978 arcade game on the arcade's own 224 x 256 grid, one cell to a pixel.
+   It is a real time game that runs at 60 frames a second whatever the clock does: Tick adds up the time it is
+   given and makes a frame for every sixtieth of a second, so a test drives it frame by frame with Advance.
 
-     Step           what happens on each tick of the clock
-     OnInitialise   how a new game starts (Initialise has already put Generation back to 0)
-     IsOver         set it to true when the game ends, and the controller stops the clock
+   The rules, as the arcade had them:
+   - 55 invaders in 5 rows of 11, which move ONE a frame (see InvaderRack), so they speed up as they die. A
+     squid is worth 30 points, a crab 20 and an octopus 10. They drop 8 cells and turn at each edge. If the lowest
+     reaches the cannon's row the invaders have landed and the game is over, whatever lives are left.
+   - The cannon moves 1 cell a frame and has ONE shot at a time: it cannot fire again until its shot has hit
+     something or reached the top. A shot moves 4 cells a frame. Holding the fire key fires again at once when
+     the shot is gone. A shot that meets an invader's bomb destroys both.
+   - Three kinds of bomb, at most one of each in the air, 3 in all. The rolling one is dropped from the column
+     above the cannon, the other two from columns in a fixed pattern. They fall about 1.5 cells a frame. The
+     reload time between bombs shortens as the score goes up. The squiggly bomb is not dropped while the saucer is
+     out.
+   - Four shields that wear away a mark at a time where a shot or a bomb hits them, and that the invaders eat
+     as they pass through. They are rebuilt at the start of each wave.
+   - The saucer crosses the top about every 25 seconds, never with fewer than 8 invaders left. It is worth 50,
+     100, 150 or 300 points according to how many shots the cannon has fired (the arcade's table, so the 23rd
+     shot is worth 300, and every 15th after it).
+   - Three lives, and an extra one at 1500 points. Each new wave starts the rack lower down the screen.
+   - The cannon cannot move or fire while a wave is being drawn in, nor while it is exploding.
 
-   The game knows nothing about a window, a timer or any .NET type, so it is tested without one. */
+   The game is never "over" to its controller: a game ends in the GAMEOVER phase, which waits for the fire key and
+   goes back to the TITLE screen, so the clock keeps running and the stars keep drifting. The picture is drawn on
+   an InvadersCanvas: what a shot hits is decided by the kind layer, never by colour. The game owns its grid.
+   Dispose releases it. */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
@@ -15,36 +32,1188 @@ USING ProGriddle.Games.SpaceInvaders.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame INHERITS AbstractGame IMPLEMENTS ISteppableGame:
+CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGame IMPLEMENTS IRealTimeGame:
 
-    DEFINE PRIVATE VARIABLE mPosition AS INTEGER NO-UNDO.
+    {ProGriddle/Games/SpaceInvaders/Kinds.i}
+    {ProGriddle/Games/SpaceInvaders/Art.i}
+    {ProGriddle/Games/SpaceInvaders/Colours.i}
+    {ProGriddle/Games/SpaceInvaders/Phases.i}
 
-    /* The cell index the lit cell is on, 0 for the top left. */
-    DEFINE PUBLIC PROPERTY Position AS INTEGER NO-UNDO
+    /* the field and where things stand on it */
+    &SCOPED-DEFINE WIDTH 224
+    &SCOPED-DEFINE HEIGHT 256
+    &SCOPED-DEFINE PLAYER-Y 216
+    &SCOPED-DEFINE PLAYER-MIN 8
+    &SCOPED-DEFINE PLAYER-MAX 203
+    &SCOPED-DEFINE PLAYER-START 105
+    &SCOPED-DEFINE GROUND-Y 232
+    &SCOPED-DEFINE SHIELD-Y 184
+    &SCOPED-DEFINE SHIELD-X 35
+    &SCOPED-DEFINE SHIELD-PITCH 44
+    &SCOPED-DEFINE SAUCER-Y 32
+    &SCOPED-DEFINE SHOT-TOP 30
+    /* how long things take, in frames */
+    &SCOPED-DEFINE DYING-FRAMES 110
+    &SCOPED-DEFINE CLEARED-FRAMES 90
+    &SCOPED-DEFINE SAUCER-FRAMES 1536
+    &SCOPED-DEFINE POP-FRAMES 50
+    &SCOPED-DEFINE EXTRA-LIFE-AT 1500
+    /* the most frames one Tick will make, and the most time it will count: a stall must not make a burst */
+    &SCOPED-DEFINE MOST-FRAMES 4
+    &SCOPED-DEFINE MOST-MS 100
+    /* what the effects use */
+    &SCOPED-DEFINE FX-SLOTS 16
+    &SCOPED-DEFINE PARTICLES 64
+    &SCOPED-DEFINE STARS 48
+
+    DEFINE PRIVATE VARIABLE mRandom      AS IRandom         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mCanvas      AS InvadersCanvas  NO-UNDO.
+    DEFINE PRIVATE VARIABLE mRack        AS InvaderRack     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mFirst       AS LOGICAL         NO-UNDO INITIAL TRUE.
+    DEFINE PRIVATE VARIABLE mAcc         AS INTEGER         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mFrames      AS INTEGER         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mTimer       AS INTEGER         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mArmed       AS LOGICAL         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mInvaded     AS LOGICAL         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mExtraGiven  AS LOGICAL         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mNotice      AS CHARACTER       NO-UNDO.
+    DEFINE PRIVATE VARIABLE mMove        AS INTEGER         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mFire        AS LOGICAL         NO-UNDO.
+
+    /* the cannon, its shot and the pose each invader was last drawn in */
+    DEFINE PRIVATE VARIABLE mPX          AS INTEGER         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mShotOn      AS LOGICAL         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mShotX       AS INTEGER         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mShotY       AS INTEGER         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mShots       AS INTEGER         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mDrawnPose   AS INTEGER         NO-UNDO EXTENT 55.
+    DEFINE PRIVATE VARIABLE mDrawn       AS LOGICAL         NO-UNDO EXTENT 55.
+    /* the cannon's explosion on show, a picture number from Art.i, or 0 */
+    DEFINE PRIVATE VARIABLE mBlast       AS INTEGER         NO-UNDO.
+
+    /* the three bombs, by type: 0 rolling, 1 plunger, 2 squiggly */
+    DEFINE PRIVATE VARIABLE mBombOn      AS LOGICAL         NO-UNDO EXTENT 3.
+    DEFINE PRIVATE VARIABLE mBombX       AS INTEGER         NO-UNDO EXTENT 3.
+    DEFINE PRIVATE VARIABLE mBombY       AS INTEGER         NO-UNDO EXTENT 3.
+    DEFINE PRIVATE VARIABLE mBombAge     AS INTEGER         NO-UNDO EXTENT 3.
+    DEFINE PRIVATE VARIABLE mReload      AS INTEGER         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mNextBomb    AS INTEGER         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mTable       AS INTEGER         NO-UNDO EXTENT 3.
+
+    /* the saucer and the score that pops up where it was hit */
+    DEFINE PRIVATE VARIABLE mSaucerOn    AS LOGICAL         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mSaucerX     AS INTEGER         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mSaucerDir   AS INTEGER         NO-UNDO INITIAL 1.
+    DEFINE PRIVATE VARIABLE mSaucerTimer AS INTEGER         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPopOn       AS LOGICAL         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPopText     AS CHARACTER       NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPopX        AS INTEGER         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPopTimer    AS INTEGER         NO-UNDO.
+
+    /* explosions: a picture that is shown for a number of frames, and then another one for a number more */
+    DEFINE PRIVATE VARIABLE mFxOn        AS LOGICAL         NO-UNDO EXTENT 16.
+    DEFINE PRIVATE VARIABLE mFxX         AS INTEGER         NO-UNDO EXTENT 16.
+    DEFINE PRIVATE VARIABLE mFxY         AS INTEGER         NO-UNDO EXTENT 16.
+    DEFINE PRIVATE VARIABLE mFxArt       AS INTEGER         NO-UNDO EXTENT 16.
+    DEFINE PRIVATE VARIABLE mFxTimer     AS INTEGER         NO-UNDO EXTENT 16.
+    DEFINE PRIVATE VARIABLE mFxNextArt   AS INTEGER         NO-UNDO EXTENT 16.
+    DEFINE PRIVATE VARIABLE mFxNextTimer AS INTEGER         NO-UNDO EXTENT 16.
+    DEFINE PRIVATE VARIABLE mFxColour    AS INTEGER         NO-UNDO EXTENT 16.
+    DEFINE PRIVATE VARIABLE mFxAccent    AS INTEGER         NO-UNDO EXTENT 16.
+
+    /* sparks: positions and speeds in sixteenths of a cell */
+    DEFINE PRIVATE VARIABLE mPtOn        AS LOGICAL         NO-UNDO EXTENT 64.
+    DEFINE PRIVATE VARIABLE mPtX         AS INTEGER         NO-UNDO EXTENT 64.
+    DEFINE PRIVATE VARIABLE mPtY         AS INTEGER         NO-UNDO EXTENT 64.
+    DEFINE PRIVATE VARIABLE mPtVx        AS INTEGER         NO-UNDO EXTENT 64.
+    DEFINE PRIVATE VARIABLE mPtVy        AS INTEGER         NO-UNDO EXTENT 64.
+    DEFINE PRIVATE VARIABLE mPtLife      AS INTEGER         NO-UNDO EXTENT 64.
+    DEFINE PRIVATE VARIABLE mPtSpan      AS INTEGER         NO-UNDO EXTENT 64.
+    DEFINE PRIVATE VARIABLE mPtColour    AS INTEGER         NO-UNDO EXTENT 64.
+    DEFINE PRIVATE VARIABLE mPtDrawn     AS INTEGER         NO-UNDO EXTENT 64.
+    DEFINE PRIVATE VARIABLE mPtDrawnAt   AS INTEGER         NO-UNDO EXTENT 64.
+
+    /* the stars: where, how often they step down a cell, and the colour */
+    DEFINE PRIVATE VARIABLE mStX         AS INTEGER         NO-UNDO EXTENT 48.
+    DEFINE PRIVATE VARIABLE mStY         AS INTEGER         NO-UNDO EXTENT 48.
+    DEFINE PRIVATE VARIABLE mStPeriod    AS INTEGER         NO-UNDO EXTENT 48.
+    DEFINE PRIVATE VARIABLE mStColour    AS INTEGER         NO-UNDO EXTENT 48.
+    DEFINE PRIVATE VARIABLE mSky         AS INTEGER         NO-UNDO EXTENT 256.
+    DEFINE PRIVATE VARIABLE mShieldTone  AS INTEGER         NO-UNDO EXTENT 16.
+
+    /* what is drawn in the score panel now, so only what changed is written again */
+    DEFINE PRIVATE VARIABLE mHudScore    AS INTEGER         NO-UNDO INITIAL -1.
+    DEFINE PRIVATE VARIABLE mHudHi       AS INTEGER         NO-UNDO INITIAL -1.
+    DEFINE PRIVATE VARIABLE mHudLives    AS INTEGER         NO-UNDO INITIAL -1.
+    DEFINE PRIVATE VARIABLE mHudWave     AS INTEGER         NO-UNDO INITIAL -1.
+    DEFINE PRIVATE VARIABLE mPromptOn    AS LOGICAL         NO-UNDO.
+
+    DEFINE PUBLIC PROPERTY Paused AS LOGICAL NO-UNDO
+        GET.
+        SET.
+
+    /* Which phase of the game this is: the numbers in Phases.i. */
+    DEFINE PUBLIC PROPERTY Phase AS INTEGER NO-UNDO
+        GET.
+        PRIVATE SET.
+
+    DEFINE PUBLIC PROPERTY Score AS INTEGER NO-UNDO
+        GET.
+        PRIVATE SET.
+
+    /* The best score. The window gives it the saved one, and it goes up with the score. */
+    DEFINE PUBLIC PROPERTY HiScore AS INTEGER NO-UNDO
+        GET.
+        SET(INPUT piValue AS INTEGER):
+            HiScore = MAXIMUM(0, piValue).
+        END SET.
+
+    /* Cannons left, the one in play included. */
+    DEFINE PUBLIC PROPERTY Lives AS INTEGER NO-UNDO
+        GET.
+        PRIVATE SET.
+
+    DEFINE PUBLIC PROPERTY Wave AS INTEGER NO-UNDO
+        GET.
+        PRIVATE SET.
+
+    /* Which way the cannon is being steered: -1 left, 0 stopped, 1 right. The input sets it from the keys that
+       are held down. */
+    DEFINE PUBLIC PROPERTY MoveDirection AS INTEGER NO-UNDO
         GET():
-            RETURN mPosition.
+            RETURN mMove.
+        END GET.
+        SET(INPUT piValue AS INTEGER):
+            mMove = (IF piValue > 0 THEN 1 ELSE IF piValue < 0 THEN -1 ELSE 0).
+        END SET.
+
+    /* True while the fire key is held down. */
+    DEFINE PUBLIC PROPERTY FireHeld AS LOGICAL NO-UNDO
+        GET():
+            RETURN mFire.
+        END GET.
+        SET(INPUT plValue AS LOGICAL):
+            mFire = (plValue = TRUE).
+        END SET.
+
+    DEFINE PUBLIC PROPERTY PlayerX AS INTEGER NO-UNDO
+        GET():
+            RETURN mPX.
         END GET.
 
-    /* The grid must have exactly one layer, named "state". */
-    CONSTRUCTOR PUBLIC SpaceInvadersGame(INPUT poGrid AS Grid):
-        SUPER("SpaceInvaders", poGrid).
-        IF poGrid:Store:LayerCount <> 1 OR poGrid:Store:LayerName(1) <> "state" THEN
-            UNDO, THROW NEW GridException("A SpaceInvaders grid has exactly one layer, named state").
+    DEFINE PUBLIC PROPERTY ShotActive AS LOGICAL NO-UNDO
+        GET():
+            RETURN mShotOn.
+        END GET.
+
+    /* The column of the shot and the row of its head (its top cell). */
+    DEFINE PUBLIC PROPERTY ShotX AS INTEGER NO-UNDO
+        GET():
+            RETURN mShotX.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY ShotY AS INTEGER NO-UNDO
+        GET():
+            RETURN mShotY.
+        END GET.
+
+    /* Shots fired this game, which decides what the saucer is worth. */
+    DEFINE PUBLIC PROPERTY ShotsFired AS INTEGER NO-UNDO
+        GET():
+            RETURN mShots.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY SaucerActive AS LOGICAL NO-UNDO
+        GET():
+            RETURN mSaucerOn.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY SaucerX AS INTEGER NO-UNDO
+        GET():
+            RETURN mSaucerX.
+        END GET.
+
+    /* Frames made since the game was built. */
+    DEFINE PUBLIC PROPERTY FrameCount AS INTEGER NO-UNDO
+        GET():
+            RETURN mFrames.
+        END GET.
+
+    /* Frames spent in the phase now. */
+    DEFINE PUBLIC PROPERTY PhaseTimer AS INTEGER NO-UNDO
+        GET():
+            RETURN mTimer.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY Rack AS InvaderRack NO-UNDO
+        GET():
+            RETURN mRack.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY Canvas AS InvadersCanvas NO-UNDO
+        GET():
+            RETURN mCanvas.
+        END GET.
+
+    /* The grid must be 224 x 256 on an ArrayStore with the layers view, kind and back. */
+    CONSTRUCTOR PUBLIC SpaceInvadersGame(INPUT poGrid AS Grid, INPUT poRandom AS IRandom):
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        SUPER("Space Invaders", poGrid).
+        IF poGrid:Width <> {&WIDTH} OR poGrid:Height <> {&HEIGHT} THEN
+            UNDO, THROW NEW GridException("A Space Invaders grid is " + STRING({&WIDTH}) + " x " + STRING({&HEIGHT})).
+        IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("A Space Invaders game needs a random source").
+        mRandom = poRandom.
+        mCanvas = NEW InvadersCanvas(poGrid).
+        mRack = NEW InvaderRack().
+        DO i = 1 TO 16:
+            mShieldTone[i] = InvadersLook:Mix(InvadersLook:Colour({&C-SHIELD-TOP}), InvadersLook:Colour({&C-SHIELD-BOTTOM}), i - 1, 15).
+        END.
         Initialise().
     END CONSTRUCTOR.
 
-    /* Moves the lit cell on by one and counts the generation. */
-    METHOD PUBLIC VOID Step():
-        Grid:Store:SetCellAt(1, mPosition, 0).
-        mPosition = (mPosition + 1) MODULO Grid:CellCount.
-        Grid:Store:SetCellAt(1, mPosition, 1).
-        Generation = Generation + 1.
+    /* Points for each of the three kinds of invader's row: see InvaderRack. The table the saucer pays by: shot
+       number 0 to 14, repeating. The arcade's table: the 23rd shot (23 MODULO 15 is 8) is the 300. */
+    METHOD PUBLIC STATIC INTEGER SaucerPointsFor(INPUT piShots AS INTEGER):
+        RETURN INTEGER(ENTRY((MAXIMUM(0, piShots) MODULO 15) + 1, "100,50,50,100,150,100,100,50,300,100,100,100,50,150,100")).
     END METHOD.
 
+    /* Frames between one bomb and the next: the arcade's, shorter as the score goes up. */
+    METHOD PUBLIC STATIC INTEGER ReloadFor(INPUT piScore AS INTEGER):
+        RETURN (IF piScore < 200 THEN 48 ELSE IF piScore < 1000 THEN 16 ELSE IF piScore < 2000 THEN 11 ELSE IF piScore < 3000 THEN 8 ELSE 7).
+    END METHOD.
+
+    /* The row the top of the rack starts at in a wave (1 to 8, then it stays): lower each time. */
+    METHOD PUBLIC STATIC INTEGER RackTopFor(INPUT piWave AS INTEGER):
+        RETURN INTEGER(ENTRY(MINIMUM(8, MAXIMUM(1, piWave)), "80,88,96,104,112,120,128,136")).
+    END METHOD.
+
+    /* Moves time on by piElapsedMs milliseconds and makes the frames that are due, up to 4. Returns true when a
+       frame was made. Does nothing while Paused. */
+    METHOD PUBLIC LOGICAL Tick(INPUT piElapsedMs AS INTEGER):
+        DEFINE VARIABLE made AS INTEGER NO-UNDO.
+        IF Paused OR piElapsedMs <= 0 THEN RETURN FALSE.
+        mAcc = mAcc + MINIMUM(piElapsedMs, {&MOST-MS}) * 60.
+        DO WHILE mAcc >= 1000 AND made < {&MOST-FRAMES}:
+            mAcc = mAcc - 1000.
+            Advance().
+            made = made + 1.
+        END.
+        IF mAcc >= 1000 THEN mAcc = 0.
+        RETURN made > 0.
+    END METHOD.
+
+    /* One sixtieth of a second of the game. */
+    METHOD PUBLIC VOID Advance():
+        mFrames = mFrames + 1.
+        UpdateStars().
+        CASE Phase:
+            WHEN {&PHASE-TITLE} THEN FrameTitle().
+            WHEN {&PHASE-STARTING} THEN FrameStarting().
+            WHEN {&PHASE-PLAYING} THEN FramePlaying().
+            WHEN {&PHASE-DYING} THEN FrameDying().
+            WHEN {&PHASE-CLEARED} THEN FrameCleared().
+            WHEN {&PHASE-GAMEOVER} THEN FrameGameOver().
+        END CASE.
+        UpdateEffects().
+        RefreshHud().
+    END METHOD.
+
+    /* Starts a new game: no score, three cannons, the first wave. Works from any phase. */
+    METHOD PUBLIC VOID StartGame():
+        Score = 0.
+        Lives = 3.
+        Wave = 1.
+        mExtraGiven = FALSE.
+        mShots = 0.
+        mInvaded = FALSE.
+        mSaucerTimer = 0.
+        mSaucerDir = 1.
+        mNotice = "".
+        ResetPicture().
+        mPX = {&PLAYER-START}.
+        DrawCannon().
+        BeginWave().
+        DrawHudFrame().
+    END METHOD.
+
+    /* Finishes drawing a wave in at once, and starts play. For tests, and for anything that wants the game in play
+       without waiting a second. */
+    METHOD PUBLIC VOID SkipIntro():
+        DEFINE VARIABLE p AS INTEGER NO-UNDO.
+        IF Phase <> {&PHASE-STARTING} THEN RETURN.
+        DO p = mTimer TO InvaderRack:Total() - 1:
+            RevealAlien(p).
+        END.
+        Phase = {&PHASE-PLAYING}.
+        mTimer = 0.
+    END METHOD.
+
+    /* Puts the cannon at a column, between its two limits, taking it off where it was. */
+    METHOD PUBLIC VOID SetPlayerX(INPUT piX AS INTEGER):
+        IF Phase <> {&PHASE-PLAYING} AND Phase <> {&PHASE-STARTING} THEN RETURN.
+        EraseCannon().
+        mPX = MINIMUM({&PLAYER-MAX}, MAXIMUM({&PLAYER-MIN}, piX)).
+        DrawCannon().
+    END METHOD.
+
+    /* Drops a bomb of a type (0 rolling, 1 plunger, 2 squiggly) with its top left cell at piX, piY. Throws
+       GridException for a bomb of that type that is out already. The game calls this itself when it is time for one. */
+    METHOD PUBLIC VOID DropBomb(INPUT piType AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+        CheckType(piType).
+        IF mBombOn[piType + 1] THEN UNDO, THROW NEW GridException("Bomb " + STRING(piType) + " is out already").
+        mBombOn[piType + 1] = TRUE.
+        mBombX[piType + 1] = piX.
+        mBombY[piType + 1] = piY.
+        mBombAge[piType + 1] = 0.
+        DrawBomb(piType).
+    END METHOD.
+
+    METHOD PUBLIC LOGICAL BombActive(INPUT piType AS INTEGER):
+        CheckType(piType).
+        RETURN mBombOn[piType + 1].
+    END METHOD.
+
+    /* The column and row of a bomb's top left cell. */
+    METHOD PUBLIC INTEGER BombX(INPUT piType AS INTEGER):
+        CheckType(piType).
+        RETURN mBombX[piType + 1].
+    END METHOD.
+
+    METHOD PUBLIC INTEGER BombY(INPUT piType AS INTEGER):
+        CheckType(piType).
+        RETURN mBombY[piType + 1].
+    END METHOD.
+
+    /* Sends the saucer across the top, from the right when piDirection is -1 and from the left when it is 1. Does
+       nothing while it is out already. */
+    METHOD PUBLIC VOID LaunchSaucer(INPUT piDirection AS INTEGER):
+        IF mSaucerOn THEN RETURN.
+        mSaucerDir = (IF piDirection < 0 THEN -1 ELSE 1).
+        mSaucerX = (IF mSaucerDir > 0 THEN -16 ELSE {&WIDTH}).
+        mSaucerOn = TRUE.
+        DrawSaucer().
+    END METHOD.
+
+    /* What the game has to say, once: an extra life, a new wave. */
+    METHOD PUBLIC CHARACTER TakeNotice():
+        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        notice = mNotice.
+        mNotice = "".
+        RETURN notice.
+    END METHOD.
+
+    METHOD PUBLIC OVERRIDE VOID Dispose():
+        IF VALID-OBJECT(mCanvas) THEN mCanvas:Dispose().
+        SUPER:Dispose().
+    END METHOD.
+
+    /* A new game, or the title screen the first time. */
     METHOD PROTECTED OVERRIDE VOID OnInitialise():
-        Grid:Store:FillLayer(1, 0).
-        mPosition = 0.
-        Grid:Store:SetCellAt(1, 0, 1).
+        mAcc = 0.
+        IF mFirst THEN DO:
+            mFirst = FALSE.
+            ShowTitle().
+        END.
+        ELSE StartGame().
+    END METHOD.
+
+    /* ================================ the phases ================================ */
+
+    METHOD PRIVATE VOID FrameTitle():
+        mTimer = mTimer + 1.
+        BlinkPrompt(196).
+        IF NOT mFire THEN mArmed = TRUE.
+        ELSE IF mArmed THEN StartGame().
+    END METHOD.
+
+    /* The wave draws itself in, one invader a frame, bottom row first, and then play begins. */
+    METHOD PRIVATE VOID FrameStarting():
+        IF mTimer < InvaderRack:Total() THEN RevealAlien(mTimer).
+        mTimer = mTimer + 1.
+        IF mTimer >= InvaderRack:Total() THEN DO:
+            Phase = {&PHASE-PLAYING}.
+            mTimer = 0.
+        END.
+    END METHOD.
+
+    METHOD PRIVATE VOID FramePlaying():
+        mTimer = mTimer + 1.
+        MoveCannon().
+        FireCannon().
+        UpdateShot().
+        UpdateBombs().
+        IF Phase <> {&PHASE-PLAYING} THEN RETURN.
+        StepRack().
+        IF Phase <> {&PHASE-PLAYING} THEN RETURN.
+        MaybeDropBomb().
+        UpdateSaucer().
+        IF mRack:AliveCount = 0 THEN EndWave().
+    END METHOD.
+
+    /* The cannon is blowing up: two pictures that take turns, and then a new cannon or the end. */
+    METHOD PRIVATE VOID FrameDying():
+        DEFINE VARIABLE art AS INTEGER NO-UNDO.
+        IF mTimer MODULO 6 = 0 THEN DO:
+            EraseBlast().
+            art = (IF (mTimer / 6) MODULO 2 = 0 THEN {&ART-CANNON-BLAST0} ELSE {&ART-CANNON-BLAST1}).
+            mBlast = art.
+            mCanvas:Draw(InvadersArt:Picture(art), mPX - 1, {&PLAYER-Y}, {&KIND-FX},
+                         InvadersLook:Colour({&C-CANNON}), InvadersLook:Colour({&C-FLASH}), InvadersLook:Colour({&C-CANNON})).
+        END.
+        mTimer = mTimer + 1.
+        IF mTimer < {&DYING-FRAMES} THEN RETURN.
+        EraseBlast().
+        Lives = Lives - 1.
+        IF mInvaded OR Lives <= 0 THEN EnterGameOver().
+        ELSE DO:
+            mPX = {&PLAYER-START}.
+            DrawCannon().
+            Phase = {&PHASE-PLAYING}.
+            mTimer = 0.
+        END.
+    END METHOD.
+
+    METHOD PRIVATE VOID FrameCleared():
+        mTimer = mTimer + 1.
+        IF mTimer < {&CLEARED-FRAMES} THEN RETURN.
+        Wave = Wave + 1.
+        mNotice = "Wave " + STRING(Wave).
+        BeginWave().
+    END METHOD.
+
+    METHOD PRIVATE VOID FrameGameOver():
+        mTimer = mTimer + 1.
+        BlinkPrompt(150).
+        IF NOT mFire THEN mArmed = TRUE.
+        ELSE IF mArmed THEN ShowTitle().
+    END METHOD.
+
+    /* ================================ starting and ending ================================ */
+
+    /* Puts the picture back to the empty sky with the ground line and the stars. */
+    METHOD PRIVATE VOID ResetPicture():
+        DEFINE VARIABLE sky AS INTEGER NO-UNDO EXTENT 256.
+        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
+        DO y = 0 TO {&HEIGHT} - 1:
+            IF y < {&GROUND-Y} THEN sky[y + 1] = InvadersLook:Mix(InvadersLook:Colour({&C-SKY-TOP}), InvadersLook:Colour({&C-SKY-BOTTOM}), y, {&GROUND-Y} - 1).
+            ELSE sky[y + 1] = InvadersLook:Colour({&C-GROUND}).
+            mSky[y + 1] = sky[y + 1].
+        END.
+        mCanvas:SetBackRows(sky).
+        DO x = {&PLAYER-MIN} TO {&WIDTH} - {&PLAYER-MIN} - 1:
+            mCanvas:SetBack(x, {&GROUND-Y}, InvadersLook:Colour({&C-GROUND-LINE})).
+        END.
+        DO i = 1 TO {&STARS}:
+            mStX[i] = mRandom:NextInt({&WIDTH}).
+            mStY[i] = 24 + mRandom:NextInt({&GROUND-Y} - 26).
+            mStPeriod[i] = (IF i MODULO 3 = 0 THEN 3 ELSE IF i MODULO 3 = 1 THEN 9 ELSE 5).
+            mStColour[i] = InvadersLook:Colour(IF mStPeriod[i] = 3 THEN {&C-STAR-BRIGHT} ELSE IF mStPeriod[i] = 5 THEN {&C-STAR-CYAN} ELSE {&C-STAR-DIM}).
+            mCanvas:SetBack(mStX[i], mStY[i], mStColour[i]).
+        END.
+        mCanvas:Restore().
+        ClearEffects().
+        mHudScore = -1.
+        mHudHi = -1.
+        mHudLives = -1.
+        mHudWave = -1.
+    END METHOD.
+
+    /* The title screen: the name, what each invader is worth, and the prompt. */
+    METHOD PRIVATE VOID ShowTitle():
+        Phase = {&PHASE-TITLE}.
+        mTimer = 0.
+        mArmed = FALSE.
+        mPX = {&PLAYER-START}.
+        ResetPicture().
+        DrawHudFrame().
+        mCanvas:DrawTextScaled("SPACE", 68, 44, InvadersLook:Colour({&C-TITLE-TOP}), InvadersLook:Colour({&C-TITLE-BOTTOM}), 3).
+        mCanvas:DrawTextScaled("INVADERS", 41, 70, InvadersLook:Colour({&C-TITLE-TOP}), InvadersLook:Colour({&C-TITLE-BOTTOM}), 3).
+        mCanvas:DrawText("SCORE ADVANCE TABLE", 52, 108, InvadersLook:Colour({&C-TEXT-LABEL})).
+        mCanvas:Draw(InvadersArt:Picture({&ART-SAUCER}), 70, 124, {&KIND-FX}, InvadersLook:Colour({&C-SAUCER}), InvadersLook:Colour({&C-SAUCER-LIGHT}), InvadersLook:Colour({&C-SAUCER-DEEP})).
+        mCanvas:DrawText("= ? MYSTERY", 94, 123, InvadersLook:Colour({&C-TEXT})).
+        mCanvas:Draw(InvadersArt:Invader(0, 0), 74, 138, {&KIND-FX}, InvadersLook:InvaderColour(0, 1, 1), InvadersLook:InvaderColour(0, 1, 2), InvadersLook:InvaderColour(0, 1, 3)).
+        mCanvas:DrawText("= 30 POINTS", 94, 138, InvadersLook:Colour({&C-TEXT})).
+        mCanvas:Draw(InvadersArt:Invader(1, 0), 72, 152, {&KIND-FX}, InvadersLook:InvaderColour(1, 1, 1), InvadersLook:InvaderColour(1, 1, 2), InvadersLook:InvaderColour(1, 1, 3)).
+        mCanvas:DrawText("= 20 POINTS", 94, 152, InvadersLook:Colour({&C-TEXT})).
+        mCanvas:Draw(InvadersArt:Invader(2, 0), 72, 166, {&KIND-FX}, InvadersLook:InvaderColour(4, 1, 1), InvadersLook:InvaderColour(4, 1, 2), InvadersLook:InvaderColour(4, 1, 3)).
+        mCanvas:DrawText("= 10 POINTS", 94, 166, InvadersLook:Colour({&C-TEXT})).
+        mPromptOn = FALSE.
+    END METHOD.
+
+    /* Builds the shields, deals out the invaders and starts drawing them in. */
+    METHOD PRIVATE VOID BeginWave():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        EraseShot().
+        DO i = 0 TO 2:
+            EraseBomb(i).
+        END.
+        IF mSaucerOn THEN EraseSaucer().
+        EraseBlast().
+        /* the band the shields stand in, whatever is left of the old ones */
+        mCanvas:ClearRect(0, {&SHIELD-Y}, {&WIDTH}, 16).
+        DO i = 0 TO 3:
+            DrawShield(i).
+        END.
+        mRack:Reset(RackTopFor(Wave)).
+        DO i = 1 TO InvaderRack:Total():
+            mDrawn[i] = FALSE.
+            mDrawnPose[i] = 0.
+        END.
+        mReload = ReloadFor(Score).
+        mNextBomb = 0.
+        mTable[1] = 0.
+        mTable[2] = 0.
+        mTable[3] = 0.
+        mInvaded = FALSE.
+        Phase = {&PHASE-STARTING}.
+        mTimer = 0.
+        mHudWave = -1.
+        IF NOT mCanvas:KindAt(mPX, {&PLAYER-Y}) = {&KIND-PLAYER} THEN DrawCannon().
+    END METHOD.
+
+    /* The last invader is dead: nothing in the air can hurt the cannon any more, and a pause begins. */
+    METHOD PRIVATE VOID EndWave():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        EraseShot().
+        DO i = 0 TO 2:
+            EraseBomb(i).
+        END.
+        IF mSaucerOn THEN EraseSaucer().
+        Phase = {&PHASE-CLEARED}.
+        mTimer = 0.
+    END METHOD.
+
+    METHOD PRIVATE VOID EnterGameOver():
+        Phase = {&PHASE-GAMEOVER}.
+        mTimer = 0.
+        mArmed = FALSE.
+        mPromptOn = FALSE.
+        Lives = 0.
+        mCanvas:DrawTextScaled("GAME OVER", 61, 100, InvadersLook:Colour({&C-TEXT-WARN}), InvadersLook:Colour({&C-TITLE-BOTTOM}), 2).
+    END METHOD.
+
+    /* The cannon has been hit: whatever is in the air goes, and the explosion starts. */
+    METHOD PRIVATE VOID KillCannon():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        EraseShot().
+        DO i = 0 TO 2:
+            EraseBomb(i).
+        END.
+        EraseCannon().
+        Phase = {&PHASE-DYING}.
+        mTimer = 0.
+        SpawnSparks(mPX + 6, {&PLAYER-Y} + 4, InvadersLook:Colour({&C-CANNON}), 14).
+    END METHOD.
+
+    /* ================================ the cannon and its shot ================================ */
+
+    METHOD PRIVATE VOID MoveCannon():
+        DEFINE VARIABLE target AS INTEGER NO-UNDO.
+        IF mMove = 0 THEN RETURN.
+        target = MINIMUM({&PLAYER-MAX}, MAXIMUM({&PLAYER-MIN}, mPX + mMove)).
+        IF target = mPX THEN RETURN.
+        EraseCannon().
+        mPX = target.
+        DrawCannon().
+    END METHOD.
+
+    /* One shot at a time: a new one only when the last has gone. */
+    METHOD PRIVATE VOID FireCannon():
+        IF NOT mFire OR mShotOn THEN RETURN.
+        mShotOn = TRUE.
+        mShotX = mPX + 6.
+        mShotY = {&PLAYER-Y} - 4.
+        mShots = mShots + 1.
+        DrawShot().
+    END METHOD.
+
+    /* The shot goes up 4 cells, one at a time, and stops at the first thing it meets. */
+    METHOD PRIVATE VOID UpdateShot():
+        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE kind AS INTEGER NO-UNDO.
+        IF NOT mShotOn THEN RETURN.
+        EraseShot().
+        mShotOn = TRUE.
+        DO n = 1 TO 4:
+            mShotY = mShotY - 1.
+            IF mShotY <= {&SHOT-TOP} THEN DO:
+                mShotOn = FALSE.
+                mCanvas:DrawOnEmpty(InvadersArt:Picture({&ART-SHOT-BURST}), mShotX - 4, mShotY - 4, {&KIND-FX},
+                                    InvadersLook:Colour({&C-SHOT}), InvadersLook:Colour({&C-FLASH}), InvadersLook:Colour({&C-SHOT})).
+                AddFx(mShotX - 4, mShotY - 4, {&ART-SHOT-BURST}, 8, 0, 0, InvadersLook:Colour({&C-SHOT}), InvadersLook:Colour({&C-FLASH}), FALSE).
+                RETURN.
+            END.
+            kind = mCanvas:KindAt(mShotX, mShotY).
+            IF kind = {&KIND-ALIEN} THEN DO:
+                mShotOn = FALSE.
+                HitAlien(mShotX, mShotY).
+                RETURN.
+            END.
+            IF kind = {&KIND-SHIELD} THEN DO:
+                mShotOn = FALSE.
+                Erode(mShotX - 3, mShotY - 3, 0).
+                RETURN.
+            END.
+            IF kind = {&KIND-BOMB} THEN DO:
+                mShotOn = FALSE.
+                HitBomb(mShotX, mShotY).
+                RETURN.
+            END.
+            IF kind = {&KIND-SAUCER} THEN DO:
+                mShotOn = FALSE.
+                HitSaucer().
+                RETURN.
+            END.
+        END.
+        DrawShot().
+    END METHOD.
+
+    METHOD PRIVATE VOID HitAlien(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE kind  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ax    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ay    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE body  AS INTEGER NO-UNDO.
+        i = mRack:At(piX, piY).
+        IF i < 0 THEN RETURN.
+        kind = InvaderRack:KindOf(i).
+        ax = mRack:X(i).
+        ay = mRack:Y(i).
+        EraseAlien(i).
+        mRack:Kill(i).
+        body = InvadersLook:InvaderColour(InvaderRack:RowOf(i), Wave, 1).
+        AddFx(ax - INTEGER(TRUNCATE((13 - mRack:WidthOf(i)) / 2, 0)), ay, {&ART-ALIEN-BLAST0}, 5, {&ART-ALIEN-BLAST1}, 5,
+              body, InvadersLook:Colour({&C-FLASH}), FALSE).
+        SpawnSparks(ax + INTEGER(TRUNCATE(mRack:WidthOf(i) / 2, 0)), ay + 4, body, 10).
+        AddScore(InvaderRack:PointsOfKind(kind)).
+    END METHOD.
+
+    METHOD PRIVATE VOID HitBomb(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+        DEFINE VARIABLE b AS INTEGER NO-UNDO.
+        DO b = 0 TO 2:
+            IF mBombOn[b + 1] AND piX >= mBombX[b + 1] AND piX < mBombX[b + 1] + 3 AND piY >= mBombY[b + 1] AND piY < mBombY[b + 1] + 7 THEN DO:
+                SpawnSparks(piX, piY, InvadersLook:Colour({&C-BOMB}), 6).
+                EraseBomb(b).
+                RETURN.
+            END.
+        END.
+    END METHOD.
+
+    METHOD PRIVATE VOID HitSaucer():
+        DEFINE VARIABLE points AS INTEGER NO-UNDO.
+        DEFINE VARIABLE sx     AS INTEGER NO-UNDO.
+        points = SaucerPointsFor(mShots).
+        sx = mSaucerX.
+        EraseSaucer().
+        AddFx(sx + 1, {&SAUCER-Y} - 1, {&ART-ALIEN-BLAST0}, 6, {&ART-ALIEN-BLAST1}, 6,
+              InvadersLook:Colour({&C-SAUCER}), InvadersLook:Colour({&C-SAUCER-LIGHT}), FALSE).
+        SpawnSparks(sx + 8, {&SAUCER-Y} + 3, InvadersLook:Colour({&C-SAUCER}), 14).
+        mPopText = STRING(points).
+        mPopX = MINIMUM(sx, {&WIDTH} - 8 - PixelFont:WidthOf(mPopText)).
+        mPopX = MAXIMUM(8, mPopX).
+        mPopTimer = {&POP-FRAMES}.
+        mPopOn = TRUE.
+        mCanvas:DrawText(mPopText, mPopX, {&SAUCER-Y}, InvadersLook:Colour({&C-TEXT-GOLD})).
+        AddScore(points).
+    END METHOD.
+
+    /* ================================ the invaders ================================ */
+
+    /* Moves the next invader along, and decides whether the invasion has landed. */
+    METHOD PRIVATE VOID StepRack():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        i = mRack:Step().
+        IF i < 0 THEN RETURN.
+        EraseAlienAt(i, mRack:OldX, mRack:OldY).
+        EatShields(i).
+        DrawAlien(i).
+        IF mRack:Bottom() >= {&PLAYER-Y} THEN DO:
+            mInvaded = TRUE.
+            KillCannon().
+        END.
+    END METHOD.
+
+    /* Draws one invader in as the wave starts, in the order the rack moves them. */
+    METHOD PRIVATE VOID RevealAlien(INPUT piPlace AS INTEGER):
+        DrawAlien(({&HEIGHT} * 0) + (InvaderRack:Rows() - 1 - INTEGER(TRUNCATE(piPlace / InvaderRack:Columns(), 0))) * InvaderRack:Columns()
+                  + piPlace MODULO InvaderRack:Columns()).
+    END METHOD.
+
+    /* An invader that walks into a shield eats the part it overlaps. */
+    METHOD PRIVATE VOID EatShields(INPUT piIndex AS INTEGER):
+        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        IF mRack:Y(piIndex) + InvaderRack:SpriteHeight() <= {&SHIELD-Y} OR mRack:Y(piIndex) >= {&SHIELD-Y} + 16 THEN RETURN.
+        DO y = mRack:Y(piIndex) TO mRack:Y(piIndex) + InvaderRack:SpriteHeight() - 1:
+            DO x = mRack:X(piIndex) TO mRack:X(piIndex) + mRack:WidthOf(piIndex) - 1:
+                IF mCanvas:KindAt(x, y) = {&KIND-SHIELD} THEN mCanvas:Unplot(x, y).
+            END.
+        END.
+    END METHOD.
+
+    /* ================================ the bombs ================================ */
+
+    /* Every bomb falls: 2 cells on the even frames and 1 on the odd ones, about 1.5 a frame. */
+    METHOD PRIVATE VOID UpdateBombs():
+        DEFINE VARIABLE b      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE falls  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE kind   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cy     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE sprite AS Sprite  NO-UNDO.
+        DEFINE VARIABLE hit    AS INTEGER NO-UNDO.
+        DO b = 0 TO 2:
+            IF NOT mBombOn[b + 1] THEN NEXT.
+            sprite = InvadersArt:Bomb(b, INTEGER(TRUNCATE(mBombAge[b + 1] / 2, 0))).
+            mCanvas:Erase(sprite, mBombX[b + 1], mBombY[b + 1], {&KIND-BOMB}).
+            falls = (IF mFrames MODULO 2 = 0 THEN 2 ELSE 1).
+            mBombY[b + 1] = mBombY[b + 1] + falls.
+            mBombAge[b + 1] = mBombAge[b + 1] + 1.
+            /* the ground: the bomb is spent and leaves a splash */
+            IF mBombY[b + 1] + 7 >= {&GROUND-Y} THEN DO:
+                AddFx(mBombX[b + 1] - 3, {&GROUND-Y} - 4, {&ART-BOMB-SPLAT}, 8, 0, 0,
+                      InvadersLook:Colour({&C-BOMB}), InvadersLook:Colour({&C-BOMB-TIP}), FALSE).
+                mBombOn[b + 1] = FALSE.
+                NEXT.
+            END.
+            /* what is in the cells the bomb now covers */
+            hit = 0.
+            sprite = InvadersArt:Bomb(b, INTEGER(TRUNCATE(mBombAge[b + 1] / 2, 0))).
+            DO i = 0 TO sprite:Count - 1:
+                cx = mBombX[b + 1] + sprite:CellX(i).
+                cy = mBombY[b + 1] + sprite:CellY(i).
+                kind = mCanvas:KindAt(cx, cy).
+                IF kind = {&KIND-PLAYER} OR kind = {&KIND-SHIELD} OR kind = {&KIND-SHOT} THEN DO:
+                    hit = kind.
+                    LEAVE.
+                END.
+            END.
+            IF hit = {&KIND-PLAYER} THEN DO:
+                mBombOn[b + 1] = FALSE.
+                KillCannon().
+                RETURN.
+            END.
+            IF hit = {&KIND-SHIELD} THEN DO:
+                mBombOn[b + 1] = FALSE.
+                Erode(cx - 3, cy - 1, 1).
+                NEXT.
+            END.
+            IF hit = {&KIND-SHOT} THEN DO:
+                mBombOn[b + 1] = FALSE.
+                SpawnSparks(cx, cy, InvadersLook:Colour({&C-BOMB}), 6).
+                EraseShot().
+                mShotOn = FALSE.
+                NEXT.
+            END.
+            DrawBomb(b).
+        END.
+    END METHOD.
+
+    /* When the reload time is up and a type of bomb is free, one is dropped from under an invader. */
+    METHOD PRIVATE VOID MaybeDropBomb():
+        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE b      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE chosen AS INTEGER NO-UNDO INITIAL -1.
+        DEFINE VARIABLE shooter AS INTEGER NO-UNDO.
+        IF mReload > 0 THEN mReload = mReload - 1.
+        IF mReload > 0 THEN RETURN.
+        DO n = 0 TO 2:
+            b = (mNextBomb + n) MODULO 3.
+            IF mBombOn[b + 1] THEN NEXT.
+            IF b = 2 AND mSaucerOn THEN NEXT.
+            chosen = b.
+            LEAVE.
+        END.
+        IF chosen < 0 THEN RETURN.
+        shooter = ShooterFor(chosen).
+        IF shooter < 0 THEN RETURN.
+        DropBomb(chosen, mRack:X(shooter) + INTEGER(TRUNCATE(mRack:WidthOf(shooter) / 2, 0)) - 1, mRack:Y(shooter) + InvaderRack:SpriteHeight()).
+        mReload = ReloadFor(Score).
+        mNextBomb = (chosen + 1) MODULO 3.
+    END METHOD.
+
+    /* The invader that drops a bomb of a type: the rolling bomb comes from above the cannon, the others from the
+       columns of the arcade's pattern. Where a column is empty the next one is tried. -1 when no invader is left. */
+    METHOD PRIVATE INTEGER ShooterFor(INPUT piType AS INTEGER):
+        DEFINE VARIABLE cols   AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE n      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE d      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE target AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE found  AS INTEGER   NO-UNDO.
+        IF piType = 0 THEN DO:
+            target = MINIMUM(InvaderRack:Columns() - 1, MAXIMUM(0, INTEGER(TRUNCATE((mPX + 6 - InvaderRack:FirstSlotX()) / InvaderRack:Pitch(), 0)))).
+            DO d = 0 TO InvaderRack:Columns() - 1:
+                IF target - d >= 0 THEN DO:
+                    found = mRack:LowestInColumn(target - d).
+                    IF found >= 0 THEN RETURN found.
+                END.
+                IF d > 0 AND target + d < InvaderRack:Columns() THEN DO:
+                    found = mRack:LowestInColumn(target + d).
+                    IF found >= 0 THEN RETURN found.
+                END.
+            END.
+            RETURN -1.
+        END.
+        cols = (IF piType = 1 THEN "1,7,1,1,1,4,11,1,6,3,1,1,11,9,2,8,2,11,4,7,10" ELSE "11,1,6,3,1,1,11,9,2,8,2,11,4,7,10,1,7,1,1,1,4").
+        DO n = 1 TO NUM-ENTRIES(cols):
+            found = mRack:LowestInColumn(INTEGER(ENTRY((mTable[piType + 1] MODULO NUM-ENTRIES(cols)) + 1, cols)) - 1).
+            mTable[piType + 1] = mTable[piType + 1] + 1.
+            IF found >= 0 THEN RETURN found.
+        END.
+        RETURN -1.
+    END METHOD.
+
+    /* ================================ the saucer ================================ */
+
+    METHOD PRIVATE VOID UpdateSaucer():
+        IF mSaucerOn THEN DO:
+            EraseSaucer().
+            mSaucerOn = TRUE.
+            mSaucerX = mSaucerX + mSaucerDir.
+            IF mSaucerX < -16 OR mSaucerX > {&WIDTH} THEN DO:
+                mSaucerOn = FALSE.
+                mSaucerTimer = 0.
+                RETURN.
+            END.
+            DrawSaucer().
+            RETURN.
+        END.
+        mSaucerTimer = mSaucerTimer + 1.
+        IF mSaucerTimer >= {&SAUCER-FRAMES} AND mRack:AliveCount >= 8 THEN DO:
+            LaunchSaucer(- mSaucerDir).
+            mSaucerTimer = 0.
+        END.
+    END METHOD.
+
+    /* ================================ scoring ================================ */
+
+    /* Gives points: what the rules award for a kill, and a way for a test or a bonus to move the score along. The
+       hi-score follows the score, and the extra cannon comes at 1500, once. Throws GridException for a negative number. */
+    METHOD PUBLIC VOID AddScore(INPUT piPoints AS INTEGER):
+        IF piPoints = ? OR piPoints < 0 THEN UNDO, THROW NEW GridException("Points cannot be negative: " + STRING(piPoints)).
+        Score = Score + piPoints.
+        IF Score > HiScore THEN HiScore = Score.
+        IF NOT mExtraGiven AND Score >= {&EXTRA-LIFE-AT} THEN DO:
+            mExtraGiven = TRUE.
+            Lives = Lives + 1.
+            mNotice = "Extra cannon".
+        END.
+    END METHOD.
+
+    /* ================================ drawing and erasing ================================ */
+
+    METHOD PRIVATE VOID DrawCannon():
+        mCanvas:Draw(InvadersArt:Picture({&ART-CANNON}), mPX, {&PLAYER-Y}, {&KIND-PLAYER},
+                     InvadersLook:Colour({&C-CANNON}), InvadersLook:Colour({&C-CANNON-LIGHT}), InvadersLook:Colour({&C-CANNON-DEEP})).
+    END METHOD.
+
+    METHOD PRIVATE VOID EraseCannon():
+        mCanvas:Erase(InvadersArt:Picture({&ART-CANNON}), mPX, {&PLAYER-Y}, {&KIND-PLAYER}).
+    END METHOD.
+
+    METHOD PRIVATE VOID EraseBlast():
+        IF mBlast = 0 THEN RETURN.
+        mCanvas:Erase(InvadersArt:Picture(mBlast), mPX - 1, {&PLAYER-Y}, {&KIND-FX}).
+        mBlast = 0.
+    END METHOD.
+
+    METHOD PRIVATE VOID DrawShot():
+        mCanvas:Draw(InvadersArt:Picture({&ART-SHOT}), mShotX, mShotY, {&KIND-SHOT},
+                     InvadersLook:Colour({&C-SHOT}), InvadersLook:Colour({&C-SHOT-TIP}), InvadersLook:Colour({&C-SHOT})).
+    END METHOD.
+
+    /* Takes the shot off the screen and ends it. */
+    METHOD PRIVATE VOID EraseShot():
+        IF NOT mShotOn THEN RETURN.
+        mCanvas:Erase(InvadersArt:Picture({&ART-SHOT}), mShotX, mShotY, {&KIND-SHOT}).
+        mShotOn = FALSE.
+    END METHOD.
+
+    METHOD PRIVATE VOID DrawBomb(INPUT piType AS INTEGER):
+        /* each type has its own hue: rolling lemon, plunger red-orange, squiggly amber */
+        mCanvas:Draw(InvadersArt:Bomb(piType, INTEGER(TRUNCATE(mBombAge[piType + 1] / 2, 0))), mBombX[piType + 1], mBombY[piType + 1], {&KIND-BOMB},
+                     InvadersLook:Colour(IF piType = 0 THEN {&C-BOMB-ROLL} ELSE IF piType = 1 THEN {&C-BOMB-PLUNGER} ELSE {&C-BOMB}),
+                     InvadersLook:Colour(IF piType = 0 THEN {&C-BOMB-ROLL-TIP} ELSE IF piType = 1 THEN {&C-BOMB-PLUNGER-TIP} ELSE {&C-BOMB-TIP}),
+                     InvadersLook:Colour(IF piType = 0 THEN {&C-BOMB-ROLL-DEEP} ELSE IF piType = 1 THEN {&C-BOMB-PLUNGER-DEEP} ELSE {&C-BOMB-SQUIG-DEEP})).
+    END METHOD.
+
+    /* Takes a bomb off the screen and ends it. */
+    METHOD PRIVATE VOID EraseBomb(INPUT piType AS INTEGER):
+        IF NOT mBombOn[piType + 1] THEN RETURN.
+        mCanvas:Erase(InvadersArt:Bomb(piType, INTEGER(TRUNCATE(mBombAge[piType + 1] / 2, 0))), mBombX[piType + 1], mBombY[piType + 1], {&KIND-BOMB}).
+        mBombOn[piType + 1] = FALSE.
+    END METHOD.
+
+    METHOD PRIVATE VOID DrawSaucer():
+        mCanvas:Draw(InvadersArt:Picture({&ART-SAUCER}), mSaucerX, {&SAUCER-Y}, {&KIND-SAUCER},
+                     InvadersLook:Colour({&C-SAUCER}), InvadersLook:Colour({&C-SAUCER-LIGHT}), InvadersLook:Colour({&C-SAUCER-DEEP})).
+    END METHOD.
+
+    METHOD PRIVATE VOID EraseSaucer():
+        mCanvas:Erase(InvadersArt:Picture({&ART-SAUCER}), mSaucerX, {&SAUCER-Y}, {&KIND-SAUCER}).
+        mSaucerOn = FALSE.
+    END METHOD.
+
+    /* Draws an invader where the rack has it, in the pose the rack is in. */
+    METHOD PRIVATE VOID DrawAlien(INPUT piIndex AS INTEGER):
+        DEFINE VARIABLE kind AS INTEGER NO-UNDO.
+        DEFINE VARIABLE row  AS INTEGER NO-UNDO.
+        kind = InvaderRack:KindOf(piIndex).
+        row = InvaderRack:RowOf(piIndex).
+        mCanvas:Draw(InvadersArt:Invader(kind, mRack:Pose), mRack:X(piIndex), mRack:Y(piIndex), {&KIND-ALIEN},
+                     InvadersLook:InvaderColour(row, Wave, 1), InvadersLook:InvaderColour(row, Wave, 2), InvadersLook:InvaderColour(row, Wave, 3)).
+        mDrawn[piIndex + 1] = TRUE.
+        mDrawnPose[piIndex + 1] = mRack:Pose.
+    END METHOD.
+
+    /* Takes an invader off at the place and in the pose it was last drawn in. */
+    METHOD PRIVATE VOID EraseAlienAt(INPUT piIndex AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+        IF NOT mDrawn[piIndex + 1] THEN RETURN.
+        mCanvas:Erase(InvadersArt:Invader(InvaderRack:KindOf(piIndex), mDrawnPose[piIndex + 1]), piX, piY, {&KIND-ALIEN}).
+    END METHOD.
+
+    METHOD PRIVATE VOID EraseAlien(INPUT piIndex AS INTEGER):
+        EraseAlienAt(piIndex, mRack:X(piIndex), mRack:Y(piIndex)).
+        mDrawn[piIndex + 1] = FALSE.
+    END METHOD.
+
+    /* A shield, cell by cell, each row a little darker than the one above. */
+    METHOD PRIVATE VOID DrawShield(INPUT piShield AS INTEGER):
+        DEFINE VARIABLE sprite AS Sprite  NO-UNDO.
+        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        sprite = InvadersArt:Picture({&ART-SHIELD}).
+        DO i = 0 TO sprite:Count - 1:
+            mCanvas:Plot({&SHIELD-X} + piShield * {&SHIELD-PITCH} + sprite:CellX(i), {&SHIELD-Y} + sprite:CellY(i), {&KIND-SHIELD}, mShieldTone[sprite:CellY(i) + 1]).
+        END.
+    END METHOD.
+
+    /* Eats a mark out of the shields, with its top left cell at piX, piY: kind 0 is the mark a shot leaves, 1 the
+       mark of a bomb. Only shield cells are taken, and a spark flies from each of a few of them. */
+    METHOD PRIVATE VOID Erode(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piKind AS INTEGER):
+        DEFINE VARIABLE chip AS Sprite  NO-UNDO.
+        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
+        chip = InvadersArt:Chip(piKind, mRandom:NextInt(3)).
+        DO i = 0 TO chip:Count - 1:
+            x = piX + chip:CellX(i).
+            y = piY + chip:CellY(i).
+            IF mCanvas:KindAt(x, y) = {&KIND-SHIELD} THEN DO:
+                IF i MODULO 5 = 0 THEN SpawnSpark(x, y, mCanvas:ColourAt(x, y)).
+                mCanvas:Unplot(x, y).
+            END.
+        END.
+    END METHOD.
+
+    /* ================================ effects ================================ */
+
+    /* Starts an explosion: a picture for piFrames frames, then (if piNextArt is not 0) another for piNextFrames
+       more. It is drawn only on empty cells, so it never paints over anything. */
+    METHOD PRIVATE VOID AddFx(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piArt AS INTEGER, INPUT piFrames AS INTEGER,
+                              INPUT piNextArt AS INTEGER, INPUT piNextFrames AS INTEGER,
+                              INPUT piColour AS INTEGER, INPUT piAccent AS INTEGER, INPUT plAlreadyDrawn AS LOGICAL):
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO {&FX-SLOTS}:
+            IF NOT mFxOn[i] THEN DO:
+                mFxOn[i] = TRUE.
+                mFxX[i] = piX.
+                mFxY[i] = piY.
+                mFxArt[i] = piArt.
+                mFxTimer[i] = piFrames.
+                mFxNextArt[i] = piNextArt.
+                mFxNextTimer[i] = piNextFrames.
+                mFxColour[i] = piColour.
+                mFxAccent[i] = piAccent.
+                IF NOT plAlreadyDrawn THEN
+                    mCanvas:DrawOnEmpty(InvadersArt:Picture(piArt), piX, piY, {&KIND-FX}, piColour, piAccent, piColour).
+                RETURN.
+            END.
+        END.
+    END METHOD.
+
+    /* Counts down every effect: explosions change picture and go, the saucer's score fades, sparks fly. */
+    METHOD PRIVATE VOID UpdateEffects():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO {&FX-SLOTS}:
+            IF NOT mFxOn[i] THEN NEXT.
+            mFxTimer[i] = mFxTimer[i] - 1.
+            IF mFxTimer[i] > 0 THEN NEXT.
+            mCanvas:Erase(InvadersArt:Picture(mFxArt[i]), mFxX[i], mFxY[i], {&KIND-FX}).
+            IF mFxNextArt[i] <> 0 THEN DO:
+                mFxArt[i] = mFxNextArt[i].
+                mFxTimer[i] = mFxNextTimer[i].
+                mFxNextArt[i] = 0.
+                mCanvas:DrawOnEmpty(InvadersArt:Picture(mFxArt[i]), mFxX[i], mFxY[i], {&KIND-FX}, mFxColour[i], mFxAccent[i], mFxColour[i]).
+            END.
+            ELSE mFxOn[i] = FALSE.
+        END.
+        IF mPopOn THEN DO:
+            mPopTimer = mPopTimer - 1.
+            IF mPopTimer <= 0 THEN DO:
+                mCanvas:ClearRect(mPopX, {&SAUCER-Y}, PixelFont:WidthOf(mPopText), 7).
+                mPopOn = FALSE.
+            END.
+        END.
+        UpdateSparks().
+    END METHOD.
+
+    /* A few sparks flying out from a point, in a colour. */
+    METHOD PRIVATE VOID SpawnSparks(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piColour AS INTEGER, INPUT piCount AS INTEGER):
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        DO n = 1 TO piCount:
+            SpawnSpark(piX, piY, piColour).
+        END.
+    END METHOD.
+
+    METHOD PRIVATE VOID SpawnSpark(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piColour AS INTEGER):
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO {&PARTICLES}:
+            IF NOT mPtOn[i] THEN DO:
+                mPtOn[i] = TRUE.
+                mPtX[i] = piX * 16.
+                mPtY[i] = piY * 16.
+                mPtVx[i] = mRandom:NextInt(41) - 20.
+                mPtVy[i] = mRandom:NextInt(33) - 28.
+                mPtSpan[i] = 14 + mRandom:NextInt(14).
+                mPtLife[i] = mPtSpan[i].
+                mPtColour[i] = piColour.
+                mPtDrawnAt[i] = -1.
+                RETURN.
+            END.
+        END.
+    END METHOD.
+
+    /* Each spark moves on, falls a little faster each frame, dims, and goes out when its life is spent. */
+    METHOD PRIVATE VOID UpdateSparks():
+        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE c   AS INTEGER NO-UNDO.
+        DO i = 1 TO {&PARTICLES}:
+            IF NOT mPtOn[i] THEN NEXT.
+            /* take it off where it was drawn, if it is still there */
+            IF mPtDrawnAt[i] >= 0 THEN DO:
+                x = mPtDrawnAt[i] MODULO {&WIDTH}.
+                y = INTEGER(TRUNCATE(mPtDrawnAt[i] / {&WIDTH}, 0)).
+                IF mCanvas:KindAt(x, y) = {&KIND-FX} AND mCanvas:ColourAt(x, y) = mPtDrawn[i] THEN mCanvas:Unplot(x, y).
+                mPtDrawnAt[i] = -1.
+            END.
+            mPtLife[i] = mPtLife[i] - 1.
+            IF mPtLife[i] <= 0 THEN DO:
+                mPtOn[i] = FALSE.
+                NEXT.
+            END.
+            mPtX[i] = mPtX[i] + mPtVx[i].
+            mPtY[i] = mPtY[i] + mPtVy[i].
+            mPtVy[i] = mPtVy[i] + 2.
+            x = INTEGER(TRUNCATE(mPtX[i] / 16, 0)).
+            y = INTEGER(TRUNCATE(mPtY[i] / 16, 0)).
+            IF x < 0 OR x >= {&WIDTH} OR y < 0 OR y >= {&GROUND-Y} THEN DO:
+                mPtOn[i] = FALSE.
+                NEXT.
+            END.
+            IF mCanvas:KindAt(x, y) <> {&KIND-NONE} THEN NEXT.
+            c = InvadersLook:Mix(mPtColour[i], mSky[y + 1], mPtSpan[i] - mPtLife[i], mPtSpan[i]).
+            mCanvas:Plot(x, y, {&KIND-FX}, c).
+            mPtDrawn[i] = c.
+            mPtDrawnAt[i] = y * {&WIDTH} + x.
+        END.
+    END METHOD.
+
+    /* Takes every explosion, spark and pop-up off, for a new screen. The picture has been wiped already. */
+    METHOD PRIVATE VOID ClearEffects():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO {&FX-SLOTS}:
+            mFxOn[i] = FALSE.
+        END.
+        DO i = 1 TO {&PARTICLES}:
+            mPtOn[i] = FALSE.
+            mPtDrawnAt[i] = -1.
+        END.
+        DO i = 0 TO 2:
+            mBombOn[i + 1] = FALSE.
+        END.
+        mShotOn = FALSE.
+        mSaucerOn = FALSE.
+        mPopOn = FALSE.
+        mBlast = 0.
+        DO i = 1 TO InvaderRack:Total():
+            mDrawn[i] = FALSE.
+        END.
+    END METHOD.
+
+    /* The stars drift down, the far ones slowly, and come back at the top. */
+    METHOD PRIVATE VOID UpdateStars():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO {&STARS}:
+            IF mFrames MODULO mStPeriod[i] <> 0 THEN NEXT.
+            mCanvas:SetBack(mStX[i], mStY[i], mSky[mStY[i] + 1]).
+            mCanvas:ShowBack(mStX[i], mStY[i]).
+            mStY[i] = mStY[i] + 1.
+            IF mStY[i] >= {&GROUND-Y} - 2 THEN mStY[i] = 24.
+            mCanvas:SetBack(mStX[i], mStY[i], mStColour[i]).
+            mCanvas:ShowBack(mStX[i], mStY[i]).
+        END.
+    END METHOD.
+
+    /* ================================ the score panel ================================ */
+
+    /* The labels that do not change: SCORE, HI-SCORE, WAVE and the cannons left. The numbers follow in RefreshHud. */
+    METHOD PRIVATE VOID DrawHudFrame():
+        mCanvas:DrawText("SCORE", 8, 6, InvadersLook:Colour({&C-TEXT-LABEL})).
+        mCanvas:DrawText("HI-SCORE", 88, 6, InvadersLook:Colour({&C-TEXT-LABEL})).
+        mCanvas:DrawText("WAVE", 179, 6, InvadersLook:Colour({&C-TEXT-LABEL})).
+        mHudScore = -1.
+        mHudHi = -1.
+        mHudLives = -1.
+        mHudWave = -1.
+    END METHOD.
+
+    /* Writes the numbers that have changed since they were last written. */
+    METHOD PRIVATE VOID RefreshHud():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        IF Score <> mHudScore THEN DO:
+            mCanvas:ClearRect(8, 16, 29, 7).
+            mCanvas:DrawText(STRING(Score, "99999"), 8, 16, InvadersLook:Colour({&C-TEXT})).
+            mHudScore = Score.
+        END.
+        IF HiScore <> mHudHi THEN DO:
+            mCanvas:ClearRect(97, 16, 29, 7).
+            mCanvas:DrawText(STRING(HiScore, "99999"), 97, 16, InvadersLook:Colour({&C-TEXT})).
+            mHudHi = HiScore.
+        END.
+        IF Phase <> {&PHASE-TITLE} AND Wave <> mHudWave THEN DO:
+            mCanvas:ClearRect(192, 16, 17, 7).
+            mCanvas:DrawText(STRING(Wave), 192, 16, InvadersLook:Colour({&C-TEXT})).
+            mHudWave = Wave.
+        END.
+        IF Phase <> {&PHASE-TITLE} AND Lives <> mHudLives THEN DO:
+            mCanvas:ClearRect(8, 241, 200, 8).
+            mCanvas:DrawText(STRING(Lives), 8, 241, InvadersLook:Colour({&C-TEXT})).
+            DO i = 1 TO Lives - 1:
+                mCanvas:Draw(InvadersArt:Picture({&ART-CANNON}), 18 + (i - 1) * 16, 240, {&KIND-FX},
+                             InvadersLook:Colour({&C-CANNON}), InvadersLook:Colour({&C-CANNON-LIGHT}), InvadersLook:Colour({&C-CANNON-DEEP})).
+            END.
+            mHudLives = Lives.
+        END.
+    END METHOD.
+
+    /* The prompt that blinks on the title and game over screens: half a second on, half a second off. */
+    METHOD PRIVATE VOID BlinkPrompt(INPUT piY AS INTEGER):
+        DEFINE VARIABLE wanted AS LOGICAL NO-UNDO.
+        wanted = (mTimer MODULO 60 < 36).
+        IF wanted = mPromptOn THEN RETURN.
+        mPromptOn = wanted.
+        mCanvas:ClearRect(70, piY, 90, 7).
+        IF wanted THEN mCanvas:DrawText("PRESS SPACE", 79, piY, InvadersLook:Colour({&C-TEXT})).
+    END METHOD.
+
+    METHOD PRIVATE VOID CheckType(INPUT piType AS INTEGER):
+        IF piType = ? OR piType < 0 OR piType > 2 THEN
+            UNDO, THROW NEW GridException("A bomb type is 0, 1 or 2, not " + STRING(piType)).
     END METHOD.
 
 END CLASS.
