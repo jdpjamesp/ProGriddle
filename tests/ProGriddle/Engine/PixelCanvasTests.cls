@@ -666,6 +666,46 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID PutCellsColoursAListOfCellsFromAPlaceAndSkipsWhatIsOffTheBoard():
+        DEFINE VARIABLE cells  AS MEMPTR NO-UNDO.
+        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        SET-SIZE(cells) = 36.
+        PUT-LONG(cells, 1) = 0.
+        PUT-LONG(cells, 5) = 0.
+        PUT-LONG(cells, 9) = 501.
+        PUT-LONG(cells, 13) = 2.
+        PUT-LONG(cells, 17) = 1.
+        PUT-LONG(cells, 21) = 502.
+        PUT-LONG(cells, 25) = 50.
+        PUT-LONG(cells, 29) = 50.
+        PUT-LONG(cells, 33) = 503.
+        mCanvas:PutCells(cells, 3, 3, 4).
+        Assert:Equals(501, mCanvas:ColourAt(3, 4)).
+        Assert:Equals(502, mCanvas:ColourAt(5, 5)).
+        Assert:Equals(100, mCanvas:ColourAt(4, 4)).
+        /* the kind is not touched */
+        mCanvas:Plot(3, 4, {&KIND-ALIEN}, 9).
+        mCanvas:PutCells(cells, 3, 3, 4).
+        Assert:Equals({&KIND-ALIEN}, mCanvas:KindAt(3, 4)).
+        /* in a batch it shows when the batch ends */
+        mCanvas:Restore().
+        mCanvas:BeginBatch().
+        mCanvas:PutCells(cells, 3, 3, 4).
+        Assert:Equals(100, mCanvas:ColourAt(3, 4)).
+        mCanvas:EndBatch().
+        Assert:Equals(501, mCanvas:ColourAt(3, 4)).
+        /* a list that says it is longer than the memory it has is refused */
+        DO ON ERROR UNDO, THROW:
+            mCanvas:PutCells(cells, 4, 0, 0).
+            CATCH e AS GridException:
+                thrown = TRUE.
+            END CATCH.
+        END.
+        SET-SIZE(cells) = 0.
+        Assert:IsTrue(thrown).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ALineOfKindZeroStillColoursItsCellsAndLeavesTheBackgroundAlone():
         mCanvas:DrawLine(1, 1, 5, 1, {&KIND-NONE}, 777).
         Assert:Equals(777, mCanvas:ColourAt(3, 1)).

@@ -54,6 +54,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     &SCOPED-DEFINE HYPER-OUT-FRAMES 12
     &SCOPED-DEFINE HYPER-GAP-FRAMES 30
     &SCOPED-DEFINE HYPER-BACK-FRAMES 12
+    /* how many pieces of text the game keeps ready to draw */
+    &SCOPED-DEFINE STAMPS 48
     /* the most frames one Tick will make, and the most time it will count: a stall must not make a burst */
     &SCOPED-DEFINE MOST-FRAMES 4
     &SCOPED-DEFINE MOST-MS 100
@@ -94,6 +96,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     DEFINE PRIVATE VARIABLE mShHead    AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
     DEFINE PRIVATE VARIABLE mShLife    AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
     DEFINE PRIVATE VARIABLE mRocks     AS RockField   NO-UNDO.
+    /* the pieces of text that are ready to draw, and what each is (see Stamp) */
+    DEFINE PRIVATE VARIABLE mStamp     AS TextStamp   NO-UNDO EXTENT {&STAMPS}.
+    DEFINE PRIVATE VARIABLE mStampKey  AS CHARACTER   NO-UNDO EXTENT {&STAMPS}.
+    DEFINE PRIVATE VARIABLE mStampNext AS INTEGER     NO-UNDO.
     /* the saucer: there is at most one. Place and velocity in units, which size, how long it has been out, frames to its
        next shot and to its next change of height */
     DEFINE PRIVATE VARIABLE mSaucOn    AS LOGICAL     NO-UNDO.
@@ -125,6 +131,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* the score at which the next extra ship comes */
     DEFINE PRIVATE VARIABLE mNextExtra AS INTEGER     NO-UNDO.
     DEFINE PRIVATE VARIABLE mNewHi     AS LOGICAL     NO-UNDO.
+    /* frames the score still shows gold after a saucer or an extra ship */
+    DEFINE PRIVATE VARIABLE mPulseT    AS INTEGER     NO-UNDO.
     /* the dust that drifts: position and velocity in units, and the colour number */
     DEFINE PRIVATE VARIABLE mDustX     AS INTEGER     NO-UNDO EXTENT {&MOVING-DUST}.
     DEFINE PRIVATE VARIABLE mDustY     AS INTEGER     NO-UNDO EXTENT {&MOVING-DUST}.
@@ -377,6 +385,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             mNextExtra = mNextExtra + 10000.
             Lives = Lives + 1.
             mNotice = "Extra ship".
+            mPulseT = 20.
         END.
         IF Score > HiScore THEN DO:
             HiScore = Score.
@@ -464,6 +473,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     END METHOD.
 
     METHOD PUBLIC OVERRIDE VOID Dispose():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO {&STAMPS}:
+            IF VALID-OBJECT(mStamp[i]) THEN mStamp[i]:Dispose().
+        END.
         IF VALID-OBJECT(mCanvas) THEN mCanvas:Dispose().
         SUPER:Dispose().
     END METHOD.
@@ -488,6 +501,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     METHOD PRIVATE VOID Step():
         mFrames = mFrames + 1.
+        IF mPulseT > 0 THEN mPulseT = mPulseT - 1.
         MoveDust().
         CASE Phase:
             WHEN GamePhase:Title THEN FrameTitle().
@@ -809,6 +823,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             IF Near(mShX[i], mShY[i], mSaucX, mSaucY, AsteroidsArt:SaucerRadius(mSaucLarge) * 16 + {&UNIT}) THEN DO:
                 mShLife[i] = 0.
                 AddScore(IF mSaucLarge THEN 200 ELSE 1000).
+                mPulseT = 20.
                 RemoveSaucer().
                 RETURN.
             END.
@@ -820,6 +835,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         IF NOT mSaucOn THEN RETURN.
         IF Near(mSX, mSY, mSaucX, mSaucY, (AsteroidsArt:SaucerRadius(mSaucLarge) + AsteroidsArt:ShipRadius()) * 16) THEN DO:
             AddScore(IF mSaucLarge THEN 200 ELSE 1000).
+            mPulseT = 20.
             RemoveSaucer().
             KillShip().
         END.
@@ -1138,9 +1154,64 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         IF mShipMode = ShipMode:HyperOut AND Phase = GamePhase:Playing THEN DrawHyperShip(MINIMUM(5, INTEGER(TRUNCATE(MAXIMUM(0, mShipTimer - 1) / 2, 0)))).
         IF mShipMode = ShipMode:HyperBack AND Phase = GamePhase:Playing THEN DrawHyperShip(5 - MINIMUM(5, INTEGER(TRUNCATE(MAXIMUM(0, mShipTimer - 1) / 2, 0)))).
         IF ShipAlive AND ShieldFrames > 0 THEN DrawShieldRing().
+        DrawLivesIcons().
+        DrawHud().
         mCanvas:EndBatch().
         DrawSaucerShots().
         DrawShots().
+    END METHOD.
+
+    /* One small ship, nine tenths of its size, for every spare ship, along the left under the score (at most six). While
+       a ship is flying the one in play is not a spare. */
+    METHOD PRIVATE VOID DrawLivesIcons():
+        DEFINE VARIABLE spare AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k     AS INTEGER NO-UNDO.
+        spare = (IF mShipMode = ShipMode:Alive OR Hyperspacing THEN Lives - 1 ELSE Lives).
+        IF Phase = GamePhase:GameOver THEN spare = 0.
+        spare = MINIMUM(6, MAXIMUM(0, spare)).
+        DO k = 0 TO spare - 1:
+            mPen:DrawScaled(AsteroidsArt:Ship(), (17 + 11 * k) * 256, 44 * 256, 0, 90, 90, 0, AsteroidsLook:Colour(Palette:ShipIcon)).
+        END.
+    END METHOD.
+
+    /* The score at the top left, the best score in the middle and the wave at the right, in the pixel font with a dark
+       edge so that a rock drifting under a letter does not cut it. The words are stamps made once and kept (see
+       Stamp), so a frame only copies them. */
+    METHOD PRIVATE VOID DrawHud():
+        DEFINE VARIABLE edge   AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE labelCol AS INTEGER NO-UNDO.
+        DEFINE VARIABLE white  AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE dimCol AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE waveTx AS CHARACTER NO-UNDO.
+        edge = AsteroidsLook:Colour(Palette:TextOutline).
+        labelCol = AsteroidsLook:Colour(Palette:Label).
+        white = AsteroidsLook:Colour(Palette:TextWhite).
+        dimCol = AsteroidsLook:Colour(Palette:Dim).
+        Stamp("SCORE", 1, labelCol, labelCol, edge):DrawTo(mCanvas, 12, 8).
+        IF mPulseT > 0 THEN white = AsteroidsLook:Colour(Palette:Gold).
+        Stamp(STRING(MINIMUM(Score, 999999), "999999"), 2, white, white, edge):DrawTo(mCanvas, 12, 18).
+        Stamp("HI-SCORE", 1, labelCol, labelCol, edge):DrawTo(mCanvas, 136, 8).
+        Stamp(STRING(MINIMUM(HiScore, 999999), "999999"), 1, dimCol, dimCol, edge):DrawTo(mCanvas, 142, 18).
+        waveTx = STRING(Wave).
+        Stamp("WAVE", 1, labelCol, labelCol, edge):DrawTo(mCanvas, 285, 8).
+        white = AsteroidsLook:Colour(Palette:TextWhite).
+        Stamp(waveTx, 2, white, white, edge):DrawTo(mCanvas, 307 - (LENGTH(waveTx) * 12 - 2), 18).
+    END METHOD.
+
+    /* A stamp of some text, made the first time it is asked for and kept: the last 48 are remembered, and the oldest
+       goes when a new one needs the room. The game frees them all in Dispose. */
+    METHOD PRIVATE TextStamp Stamp(INPUT pcText AS CHARACTER, INPUT piScale AS INTEGER, INPUT piTop AS INTEGER, INPUT piBottom AS INTEGER, INPUT piEdge AS INTEGER):
+        DEFINE VARIABLE key AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE i   AS INTEGER   NO-UNDO.
+        key = SUBSTITUTE("&1|&2|&3|&4|&5", pcText, piScale, piTop, piBottom, piEdge).
+        DO i = 1 TO {&STAMPS}:
+            IF mStampKey[i] = key AND VALID-OBJECT(mStamp[i]) THEN RETURN mStamp[i].
+        END.
+        mStampNext = mStampNext MODULO {&STAMPS} + 1.
+        IF VALID-OBJECT(mStamp[mStampNext]) THEN mStamp[mStampNext]:Dispose().
+        mStamp[mStampNext] = NEW TextStamp(pcText, piScale, piTop, piBottom, piEdge).
+        mStampKey[mStampNext] = key.
+        RETURN mStamp[mStampNext].
     END METHOD.
 
     /* True when the ship is on the screen: flying, and not in the blink of a new ship's protection. */

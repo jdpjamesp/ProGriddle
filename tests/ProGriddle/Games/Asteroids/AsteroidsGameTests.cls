@@ -129,7 +129,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         /* with the rocks taken away, the picture on the title screen differs from the background only by the drifting dust */
         mGame:Rocks:Clear().
         mGame:Advance().
-        DO y = 0 TO 239:
+        DO y = 50 TO 239:
             DO x = 0 TO 319:
                 IF mGame:Canvas:ColourAt(x, y) <> mGame:Canvas:BackAt(x, y) THEN before = before + 1.
             END.
@@ -137,14 +137,14 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Frames(2000).
         mGame:Rocks:Clear().
         mGame:Advance().
-        DO y = 0 TO 239:
+        DO y = 50 TO 239:
             DO x = 0 TO 319:
                 IF mGame:Canvas:ColourAt(x, y) <> mGame:Canvas:BackAt(x, y) THEN after = after + 1.
             END.
         END.
-        /* 20 drifting cells are on the screen all the time, a few may sit on a baked dust cell of the same colour */
-        Assert:IsTrue(before >= 15 AND before <= 20, SUBSTITUTE("before &1", before)).
-        Assert:IsTrue(after >= 15 AND after <= 20, SUBSTITUTE("after &1", after)).
+        /* of the 20 drifting cells, most are below the HUD; a few may sit on a baked dust cell of the same colour */
+        Assert:IsTrue(before >= 5 AND before <= 20, SUBSTITUTE("before &1", before)).
+        Assert:IsTrue(after >= 5 AND after <= 20, SUBSTITUTE("after &1", after)).
     END METHOD.
 
     /* ---------------------------------- starting ---------------------------------- */
@@ -376,7 +376,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         mGame:Rocks:Clear().
         mGame:Advance().
         /* every cell is either the background, a drifting dust cell, or part of the ship (within 12 cells of its middle) */
-        DO y = 0 TO 239:
+        DO y = 50 TO 239:
             DO x = 0 TO 319:
                 IF mGame:Canvas:ColourAt(x, y) <> mGame:Canvas:BackAt(x, y) THEN DO:
                     IF NOT ((ABSOLUTE(x - mGame:ShipX) <= 12 OR ABSOLUTE(x - mGame:ShipX) >= 308) AND (ABSOLUTE(y - mGame:ShipY) <= 12 OR ABSOLUTE(y - mGame:ShipY) >= 228)) THEN other = other + 1.
@@ -1246,6 +1246,84 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Quiet(9).
         /* the fifth step: 320 percent along, so the nose is at 120 - 19.2, row 101, in the first colour of the wreckage */
         Assert:Equals(AsteroidsLook:Colour(Palette:ShipDebris1), mGame:Canvas:ColourAt(160, 101)).
+    END METHOD.
+
+    /* ---------------------------------- the HUD ---------------------------------- */
+
+    /* How many cells of a colour there are in a rectangle of the picture. */
+    METHOD PRIVATE INTEGER CellsOf(INPUT piColour AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER):
+        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        DO y = piY TO piY + piH - 1:
+            DO x = piX TO piX + piW - 1:
+                IF mGame:Canvas:ColourAt(x, y) = piColour THEN n = n + 1.
+            END.
+        END.
+        RETURN n.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheScoreHiScoreAndWaveAreWrittenAtTheTopOfTheScreenInPlayAndOnTheTitle():
+        mGame:HiScore = 1234.
+        mGame:Advance().
+        /* on the title: SCORE, its six digits at twice the size, HI-SCORE and its digits, and WAVE and its digit */
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:Label), 12, 8, 30, 7) > 20).
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:TextWhite), 12, 18, 70, 14) > 60).
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:Label), 136, 8, 48, 7) > 20).
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:Dim), 142, 18, 36, 7) > 15).
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:Label), 285, 8, 24, 7) > 15).
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:TextWhite), 295, 18, 12, 14) > 10).
+        mGame:StartGame().
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:TextWhite), 12, 18, 70, 14) > 60).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheScoreDigitsChangeWithTheScoreAndTheWaveMovesLeftAsItGetsMoreDigits():
+        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        DEFINE VARIABLE one    AS INTEGER NO-UNDO.
+        mGame:StartGame().
+        before = CellsOf(AsteroidsLook:Colour(Palette:TextWhite), 12, 18, 70, 14).
+        mGame:AddScore(88).
+        mGame:Advance().
+        Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:TextWhite), 12, 18, 70, 14) <> before).
+        /* a one digit wave sits at 297 to 307, and a two digit one starts at 285 */
+        one = CellsOf(AsteroidsLook:Colour(Palette:TextWhite), 285, 18, 12, 14).
+        Assert:Equals(0, one).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASmallShipIsShownForEverySpareShipUpToSix():
+        DEFINE VARIABLE icon AS INTEGER NO-UNDO.
+        icon = AsteroidsLook:Colour(Palette:ShipIcon).
+        EmptySky().
+        /* three ships, one flying: two spares at (17, 44) and (28, 44), and none at (39, 44) */
+        Assert:IsTrue(CellsOf(icon, 10, 38, 14, 12) > 6).
+        Assert:IsTrue(CellsOf(icon, 21, 38, 14, 12) > 6).
+        Assert:Equals(0, CellsOf(icon, 32, 38, 14, 12)).
+        mGame:AddScore(10000).
+        mGame:AddScore(10000).
+        mGame:AddScore(10000).
+        mGame:AddScore(10000).
+        mGame:AddScore(10000).
+        mGame:AddScore(10000).
+        Quiet(1).
+        /* eight ships, but only six icons are shown */
+        Assert:IsTrue(CellsOf(icon, 65, 38, 14, 12) > 6).
+        Assert:Equals(0, CellsOf(icon, 79, 38, 14, 12)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheScoreTurnsGoldForTwentyFramesAfterASaucerOrAnExtraShip():
+        DEFINE VARIABLE gold AS INTEGER NO-UNDO.
+        gold = AsteroidsLook:Colour(Palette:Gold).
+        EmptySky().
+        Assert:Equals(0, CellsOf(gold, 12, 18, 70, 14)).
+        mGame:AddScore(10000).
+        Quiet(1).
+        Assert:IsTrue(CellsOf(gold, 12, 18, 70, 14) > 60).
+        Quiet(20).
+        Assert:Equals(0, CellsOf(gold, 12, 18, 70, 14)).
     END METHOD.
 
     /* ---------------------------------- the score ---------------------------------- */

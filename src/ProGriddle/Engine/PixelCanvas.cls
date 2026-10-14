@@ -271,6 +271,26 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
         END.
     END METHOD.
 
+    /* Colours a list of cells in one quick loop, which is how a TextStamp is drawn. pmCells holds piCount cells of three
+       whole numbers each (4 bytes each): across and down from (piX, piY), and the colour. Only the colour of a cell is
+       set, its kind stays as it was. Cells outside the board are skipped. In a batch it goes into the batch. */
+    METHOD PUBLIC VOID PutCells(INPUT pmCells AS MEMPTR, INPUT piCount AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+        DEFINE VARIABLE i        AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x        AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y        AS INTEGER NO-UNDO.
+        DEFINE VARIABLE viewBase AS INTEGER NO-UNDO.
+        IF piCount > 0 AND GET-SIZE(pmCells) < piCount * 12 THEN
+            UNDO, THROW NEW GridException(SUBSTITUTE("&1 cells need &2 bytes, not &3", piCount, piCount * 12, GET-SIZE(pmCells))).
+        viewBase = (mView - 1) * mWidth * mHeight * 4 + 1.
+        DO i = 0 TO piCount - 1:
+            x = piX + GET-LONG(pmCells, i * 12 + 1).
+            y = piY + GET-LONG(pmCells, i * 12 + 5).
+            IF x < 0 OR x >= mWidth OR y < 0 OR y >= mHeight THEN NEXT.
+            IF mBatch THEN PUT-LONG(mWork, viewBase + (y * mWidth + x) * 4) = GET-LONG(pmCells, i * 12 + 9).
+            ELSE mStore:SetCellAt(mView, y * mWidth + x, GET-LONG(pmCells, i * 12 + 9)).
+        END.
+    END METHOD.
+
     /* Puts one cell back to empty space: its background colour and kind 0. */
     METHOD PUBLIC VOID Unplot(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
         DEFINE VARIABLE idx AS INTEGER NO-UNDO.
