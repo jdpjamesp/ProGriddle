@@ -181,6 +181,64 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
         END.
     END METHOD.
 
+    /* A rock of a size (1 large, 2 medium, 3 small) bursts at (piX, piY), turned to heading piHeading and of outline
+       variant piVariant. Large: ten cells at random angles (0.35 to 0.9 of a cell a step, 30 to 44 steps) and three
+       chips of 3 cells that start on a vertex of the outline and move outward. Medium: eight cells (to 0.8, 24 to 36
+       steps) and two chips of 2.4 cells (28 steps). Small: eight cells in an even ring from a random start, 0.75 of a
+       cell a step, 16 to 22 steps. All in the rock debris colours. Throws GridException for any other size. */
+    METHOD PUBLIC VOID RockBurst(INPUT piSize AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piHeading AS INTEGER, INPUT piVariant AS INTEGER):
+        DEFINE VARIABLE rock   AS Outline NO-UNDO.
+        DEFINE VARIABLE cells  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE chips  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE fastest AS INTEGER NO-UNDO.
+        DEFINE VARIABLE lifeLow AS INTEGER NO-UNDO.
+        DEFINE VARIABLE lifeSpan AS INTEGER NO-UNDO.
+        DEFINE VARIABLE chipHalf AS INTEGER NO-UNDO.
+        DEFINE VARIABLE chipLife AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dir    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE speed  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE sn     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cs     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE v      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE vx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE vy     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE spin   AS INTEGER NO-UNDO.
+        IF piSize = ? OR piSize < 1 OR piSize > 3 THEN UNDO, THROW NEW GridException("A rock size is 1, 2 or 3, not " + STRING(piSize)).
+        IF piSize = 3 THEN DO:
+            dir = mRandom:NextInt(8).
+            DO k = 0 TO 7:
+                AddCell(piX, piY, INTEGER(TRUNCATE(Heading:DirX(dir + k * 8) * 3072 / 1024, 0)), INTEGER(TRUNCATE(Heading:DirY(dir + k * 8) * 3072 / 1024, 0)),
+                        960, 16 + mRandom:NextInt(7), Ramp:RockDebris).
+            END.
+            RETURN.
+        END.
+        IF piSize = 1 THEN ASSIGN cells = 10 chips = 3 fastest = 2253 lifeLow = 30 lifeSpan = 15 chipHalf = 6144 chipLife = 36.
+        ELSE ASSIGN cells = 8 chips = 2 fastest = 1844 lifeLow = 24 lifeSpan = 13 chipHalf = 4915 chipLife = 28.
+        DO k = 1 TO cells:
+            dir = mRandom:NextInt(64).
+            speed = 1434 + mRandom:NextInt(fastest).
+            AddCell(piX, piY, INTEGER(TRUNCATE(Heading:DirX(dir) * speed / 1024, 0)), INTEGER(TRUNCATE(Heading:DirY(dir) * speed / 1024, 0)),
+                    970, lifeLow + mRandom:NextInt(lifeSpan), Ramp:RockDebris).
+        END.
+        /* the chips: from a vertex of the rock's outline (its points are 64ths of a cell, the turn is times 1024),
+           moving outward, turning 2 to 4 degrees a step */
+        rock = AsteroidsArt:Rock(piSize, piVariant).
+        sn = Heading:Sin(piHeading).
+        cs = Heading:Cos(piHeading).
+        DO k = 1 TO chips:
+            v = 1 + mRandom:NextInt(rock:PointCount(1)).
+            vx = INTEGER(TRUNCATE((rock:PointX(1, v) * cs - rock:PointY(1, v) * sn) / 16, 0)).
+            vy = INTEGER(TRUNCATE((rock:PointX(1, v) * sn + rock:PointY(1, v) * cs) / 16, 0)).
+            dir = Heading:Nearest(vx, vy).
+            speed = 1638 + mRandom:NextInt(1230).
+            spin = 6 + mRandom:NextInt(6).
+            IF mRandom:NextInt(2) = 0 THEN spin = - spin.
+            AddChip(piX + vx, piY + vy, INTEGER(TRUNCATE(Heading:DirX(dir) * speed / 1024, 0)), INTEGER(TRUNCATE(Heading:DirY(dir) * speed / 1024, 0)),
+                    985, chipLife, 256, spin, chipHalf, Ramp:RockDebris).
+        END.
+    END METHOD.
+
     /* One step: every piece moves, slows, turns and ages, and the ones whose life is over go. */
     METHOD PUBLIC VOID Step():
         DEFINE VARIABLE i AS INTEGER NO-UNDO.

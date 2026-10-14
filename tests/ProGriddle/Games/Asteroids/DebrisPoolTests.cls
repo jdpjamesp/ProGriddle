@@ -265,6 +265,86 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
         Assert:Equals(120, mPool:Y(13)).
     END METHOD.
 
+    /* ---------------------------------- rocks bursting ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID ABurstHasThirteenPiecesForALargeRockTenForAMediumAndEightForASmallOne():
+        mPool:RockBurst(1, 160 * 4096, 120 * 4096, 0, 0).
+        Assert:Equals(13, mPool:Count).
+        mPool:Clear().
+        mPool:RockBurst(2, 160 * 4096, 120 * 4096, 0, 0).
+        Assert:Equals(10, mPool:Count).
+        mPool:Clear().
+        mPool:RockBurst(3, 160 * 4096, 120 * 4096, 0, 0).
+        Assert:Equals(8, mPool:Count).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheBurstsFadeAwayInTheirOwnTime():
+        /* large: cells live 30 to 44 steps and the chips 36 */
+        mPool:RockBurst(1, 160 * 4096, 120 * 4096, 0, 0).
+        Steps(29).
+        Assert:Equals(13, mPool:Count).
+        Steps(16).
+        Assert:Equals(0, mPool:Count).
+        /* medium: cells 24 to 36, chips 28 */
+        mPool:RockBurst(2, 160 * 4096, 120 * 4096, 0, 0).
+        Steps(23).
+        Assert:Equals(10, mPool:Count).
+        Steps(13).
+        Assert:Equals(0, mPool:Count).
+        /* small: 16 to 22 */
+        mPool:RockBurst(3, 160 * 4096, 120 * 4096, 0, 0).
+        Steps(15).
+        Assert:Equals(8, mPool:Count).
+        Steps(7).
+        Assert:Equals(0, mPool:Count).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASmallRocksEightCellsLeaveInAnEvenRingAtThreeQuartersOfACellAStep():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DEFINE VARIABLE d AS DECIMAL NO-UNDO.
+        mPool:RockBurst(3, 160 * 4096, 120 * 4096, 0, 0).
+        Steps(4).
+        DO i = 0 TO 7:
+            d = SQRT(DECIMAL((mPool:X(i) - 160) * (mPool:X(i) - 160) + (mPool:Y(i) - 120) * (mPool:Y(i) - 120))).
+            Assert:IsTrue(d >= 1.5 AND d <= 4.5, SUBSTITUTE("cell &1 is &2 cells out", i, d)).
+        END.
+        Assert:Equals(AsteroidsLook:RampColour(Ramp:RockDebris, 1), mPool:ColourOf(0)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ALargeRocksChipsStartOnItsOutlineAndTheCellsAreInTheRockDebrisRamp():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DEFINE VARIABLE d AS DECIMAL NO-UNDO.
+        mPool:RockBurst(1, 160 * 4096, 120 * 4096, 0, 0).
+        Assert:Equals(AsteroidsLook:RampColour(Ramp:RockDebris, 0), mPool:ColourOf(0)).
+        /* slots 0 to 9 are the cells, 10 to 12 the chips, each on a vertex of the rock */
+        DO i = 10 TO 12:
+            d = SQRT(DECIMAL((mPool:X(i) - 160) * (mPool:X(i) - 160) + (mPool:Y(i) - 120) * (mPool:Y(i) - 120))).
+            Assert:IsTrue(d >= 4 AND d <= AsteroidsArt:RockExtent(1) + 1, SUBSTITUTE("chip &1 is &2 cells out", i, d)).
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ARockBurstRefusesASizeThatIsNotOneTwoOrThree():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            mPool:RockBurst(0, 0, 0, 0, 0).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mPool:RockBurst(4, 0, 0, 0, 0).
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(2, thrown).
+    END METHOD.
+
     @Test.
     METHOD PUBLIC VOID AnAddRefusesNonsense():
         DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
