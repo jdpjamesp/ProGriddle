@@ -36,6 +36,14 @@ CLASS ProGriddle.Engine.OutlinePen FINAL:
         poOutline:DrawTo(mCanvas, piX, piY, piHeading, piKind, piColour, piOffsetX, piOffsetY).
     END METHOD.
 
+    /* Draws an outline stretched: piScaleAcross percent of its width and piScaleAlong percent of its length (see
+       Outline:DrawScaledTo). It is not drawn again over the edges. */
+    METHOD PUBLIC VOID DrawScaled(INPUT poOutline AS Outline, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piHeading AS INTEGER,
+                                  INPUT piScaleAcross AS INTEGER, INPUT piScaleAlong AS INTEGER, INPUT piKind AS INTEGER, INPUT piColour AS INTEGER):
+        IF NOT VALID-OBJECT(poOutline) THEN UNDO, THROW NEW GridException("There is no outline to draw").
+        poOutline:DrawScaledTo(mCanvas, piX, piY, piHeading, piScaleAcross, piScaleAlong, piKind, piColour).
+    END METHOD.
+
     /* The same, and again on the far side of every edge it comes within piExtent cells of (the board wraps).
        Give the extent as a distance that covers the whole shape from its origin. */
     METHOD PUBLIC VOID DrawWrapped(INPUT poOutline AS Outline, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piHeading AS INTEGER,

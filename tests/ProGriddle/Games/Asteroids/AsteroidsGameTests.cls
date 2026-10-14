@@ -1138,6 +1138,118 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Assert:IsTrue(halo >= core, SUBSTITUTE("&1 glow, &2 core", halo, core)).
     END METHOD.
 
+    /* ---------------------------------- hyperspace ---------------------------------- */
+
+    /* A game whose luck is fixed: with 99 the hyperspace never fails and the ship comes back at (119, 129), with 0 it always
+       fails and the ship comes back at (20, 30). */
+    METHOD PRIVATE VOID LuckyGame(INPUT piLuck AS INTEGER):
+        mGame:Dispose().
+        mGame = AsteroidsFactory:Create(NEW FixedRandom(piLuck)).
+        EmptySky().
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID HyperspaceTakesTheShipAwayForFiftyFourFramesAndBringsItBackSomewhereElseAtRest():
+        LuckyGame(99).
+        mGame:ThrustHeld = TRUE.
+        Frames(10).
+        mGame:ThrustHeld = FALSE.
+        mGame:Hyperspace().
+        Assert:IsTrue(mGame:Hyperspacing).
+        Assert:IsFalse(mGame:ShipAlive).
+        Quiet(53).
+        Assert:IsTrue(mGame:Hyperspacing).
+        Quiet(1).
+        Assert:IsFalse(mGame:Hyperspacing).
+        Assert:IsTrue(mGame:ShipAlive).
+        Assert:Equals(119, mGame:ShipX).
+        Assert:Equals(129, mGame:ShipY).
+        Assert:Equals(0, mGame:ShipVX).
+        Assert:Equals(0, mGame:ShipVY).
+        Assert:Equals(3, mGame:Lives).
+        Assert:Equals(0, mGame:ShieldFrames).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheShipIsNotHurtWhileItIsAwayButCanBeOnTheWayBack():
+        LuckyGame(99).
+        mGame:Hyperspace().
+        Quiet(20).
+        /* a rock where the ship will come back: nothing happens while it is gone */
+        mGame:Rocks:Clear().
+        RockAt(1, 119, 129).
+        mGame:Advance().
+        Assert:Equals(3, mGame:Lives).
+        mGame:Rocks:Clear().
+        RockAt(1, 119, 129).
+        Frames(10).
+        Assert:Equals(3, mGame:Lives).
+        mGame:Rocks:Clear().
+        RockAt(1, 119, 129).
+        Frames(30).
+        Assert:Equals(2, mGame:Lives).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AFailedJumpBreaksTheShipWhereItComesBack():
+        LuckyGame(0).
+        mGame:Hyperspace().
+        Quiet(53).
+        Assert:Equals(3, mGame:Lives).
+        Quiet(1).
+        Assert:Equals(2, mGame:Lives).
+        Assert:IsFalse(mGame:ShipAlive).
+        Assert:IsFalse(mGame:Hyperspacing).
+        Assert:Equals(20, mGame:ShipX).
+        Assert:Equals(30, mGame:ShipY).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheChanceOfAFailureGrowsWithTheRocksOnTheScreen():
+        /* a roll of 10: no failure with no rocks (6 percent), a failure among 10 rocks (11 percent) */
+        LuckyGame(10).
+        mGame:Hyperspace().
+        Quiet(54).
+        Assert:IsTrue(mGame:ShipAlive).
+        LuckyGame(10).
+        DO WHILE mGame:Rocks:Count < 10:
+            RockAt(3, 5 + mGame:Rocks:Count * 20, 5).
+        END.
+        mGame:Hyperspace().
+        DO WHILE mGame:Hyperspacing:
+            mGame:Advance().
+        END.
+        Assert:IsFalse(mGame:ShipAlive).
+        Assert:Equals(2, mGame:Lives).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheShipCannotFireOrJumpAgainWhileItIsAwayOrBreakingUp():
+        LuckyGame(99).
+        mGame:Hyperspace().
+        mGame:FireHeld = TRUE.
+        Quiet(20).
+        Assert:Equals(0, mGame:ShotCount).
+        mGame:Hyperspace().
+        Quiet(34).
+        Assert:IsTrue(mGame:ShipAlive).
+        mGame:FireHeld = FALSE.
+        RockAt(1, mGame:ShipX, mGame:ShipY).
+        mGame:Advance().
+        Assert:IsFalse(mGame:ShipAlive).
+        mGame:Hyperspace().
+        Assert:IsFalse(mGame:Hyperspacing).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheShipStretchesAndFadesAsItLeaves():
+        LuckyGame(99).
+        mGame:Hyperspace().
+        Quiet(9).
+        /* the fifth step: 320 percent along, so the nose is at 120 - 19.2, row 101, in the first colour of the wreckage */
+        Assert:Equals(AsteroidsLook:Colour({&C-SHIP-DEBRIS-1}), mGame:Canvas:ColourAt(160, 101)).
+    END METHOD.
+
     /* ---------------------------------- the score ---------------------------------- */
 
     @Test.

@@ -145,6 +145,58 @@ CLASS ProGriddle.Engine.Outline FINAL:
         END.
     END METHOD.
 
+    /* The same, with the shape stretched before it is turned: piScaleAcross percent of its width and piScaleAlong
+       percent of its length (100 and 100 draw it as it is, 100 and 400 make it four times as long and no wider, 0
+       squeezes it flat). Along and across are the shape's own, so they turn with it. For a ship stretching into
+       hyperspace. */
+    METHOD PUBLIC VOID DrawScaledTo(INPUT poCanvas AS PixelCanvas, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piHeading AS INTEGER,
+                                    INPUT piScaleAcross AS INTEGER, INPUT piScaleAlong AS INTEGER,
+                                    INPUT piKind AS INTEGER, INPUT piColour AS INTEGER):
+        DEFINE VARIABLE sn     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cs     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE baseX  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE baseY  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE l      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE p      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE origin AS INTEGER NO-UNDO.
+        DEFINE VARIABLE lx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ly     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE v      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE prevX  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE prevY  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE startX AS INTEGER NO-UNDO.
+        DEFINE VARIABLE startY AS INTEGER NO-UNDO.
+        IF NOT VALID-OBJECT(poCanvas) THEN UNDO, THROW NEW GridException("There is no canvas to draw on").
+        IF piScaleAcross = ? OR piScaleAcross < 0 OR piScaleAlong = ? OR piScaleAlong < 0 THEN
+            UNDO, THROW NEW GridException("A scale is 0 percent or more").
+        sn = Heading:Sin(piHeading).
+        cs = Heading:Cos(piHeading).
+        baseX = piX * 256 + 32768 + 67108864.
+        baseY = piY * 256 + 32768 + 67108864.
+        DO l = 1 TO LineCount:
+            n = mCount[l].
+            IF n > 64 THEN UNDO, THROW NEW GridException("A line is drawn up to 64 points, not " + STRING(n)).
+            origin = mStart[l].
+            DO p = 1 TO n:
+                lx = INTEGER(TRUNCATE(mXs[origin + p] * piScaleAcross / 100, 0)).
+                ly = INTEGER(TRUNCATE(mYs[origin + p] * piScaleAlong / 100, 0)).
+                v = baseX + lx * cs - ly * sn.
+                x = (v - v MODULO 65536) / 65536 - 1024.
+                v = baseY + lx * sn + ly * cs.
+                y = (v - v MODULO 65536) / 65536 - 1024.
+                IF p = 1 THEN ASSIGN startX = x
+                                     startY = y.
+                ELSE poCanvas:DrawLine(prevX, prevY, x, y, piKind, piColour).
+                ASSIGN prevX = x
+                       prevY = y.
+            END.
+            IF mClosed[l] THEN poCanvas:DrawLine(prevX, prevY, startX, startY, piKind, piColour).
+        END.
+    END METHOD.
+
     /* True when the last point of line piLine (1 to LineCount) joins back to the first. */
     METHOD PUBLIC LOGICAL IsClosed(INPUT piLine AS INTEGER):
         CheckLine(piLine).

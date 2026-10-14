@@ -146,6 +146,62 @@ CLASS ProGriddle.Engine.OutlineTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID DrawScaledToStretchesTheShapeAlongAndAcrossBeforeTurningIt():
+        DEFINE VARIABLE grid   AS Grid        NO-UNDO.
+        DEFINE VARIABLE canvas AS PixelCanvas NO-UNDO.
+        grid = NEW Grid(NEW ArrayStore(30, 20, "view,kind,back")).
+        canvas = NEW PixelCanvas(grid).
+        /* a line of 4 along the nose, drawn at 100 percent across and 200 along, is 8 long */
+        NEW Outline("open 0,0 0,-4"):DrawScaledTo(canvas, 10 * 256, 10 * 256, 0, 100, 200, 1, 777).
+        Assert:Equals(777, canvas:ColourAt(10, 10)).
+        Assert:Equals(777, canvas:ColourAt(10, 2)).
+        Assert:Equals(9, canvas:CountKind(1)).
+        canvas:Restore().
+        /* turned a quarter, the length runs across the screen */
+        NEW Outline("open 0,0 0,-4"):DrawScaledTo(canvas, 10 * 256, 10 * 256, 16, 100, 200, 1, 777).
+        Assert:Equals(777, canvas:ColourAt(18, 10)).
+        canvas:Restore().
+        /* squeezed to nothing across, a flat line is a single cell, 100 percent is the plain shape */
+        NEW Outline("open -2,0 2,0"):DrawScaledTo(canvas, 10 * 256, 10 * 256, 0, 0, 100, 1, 777).
+        Assert:Equals(1, canvas:CountKind(1)).
+        canvas:Restore().
+        NEW Outline("open -2,0 2,0"):DrawScaledTo(canvas, 10 * 256, 10 * 256, 0, 100, 100, 1, 777).
+        Assert:Equals(5, canvas:CountKind(1)).
+        canvas:Dispose().
+        grid:Dispose().
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID DrawScaledToRefusesNoCanvasAndANegativeScale():
+        DEFINE VARIABLE grid   AS Grid        NO-UNDO.
+        DEFINE VARIABLE canvas AS PixelCanvas NO-UNDO.
+        DEFINE VARIABLE thrown AS INTEGER     NO-UNDO.
+        grid = NEW Grid(NEW ArrayStore(30, 20, "view,kind,back")).
+        canvas = NEW PixelCanvas(grid).
+        DO ON ERROR UNDO, THROW:
+            NEW Outline("open 0,0 1,1"):DrawScaledTo(?, 0, 0, 0, 100, 100, 1, 1).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            NEW Outline("open 0,0 1,1"):DrawScaledTo(canvas, 0, 0, 0, -1, 100, 1, 1).
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            NEW Outline("open 0,0 1,1"):DrawScaledTo(canvas, 0, 0, 0, 100, ?, 1, 1).
+            CATCH e3 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(3, thrown).
+        canvas:Dispose().
+        grid:Dispose().
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID DrawToRefusesNoCanvasAndALineOfMoreThan64Points():
         DEFINE VARIABLE grid   AS Grid        NO-UNDO.
         DEFINE VARIABLE canvas AS PixelCanvas NO-UNDO.

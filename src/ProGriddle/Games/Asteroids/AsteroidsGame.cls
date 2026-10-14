@@ -48,6 +48,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     &SCOPED-DEFINE SHIP-ALIVE 0
     &SCOPED-DEFINE SHIP-DYING 1
     &SCOPED-DEFINE SHIP-WAITING 2
+    &SCOPED-DEFINE SHIP-HYPER-OUT 3
+    &SCOPED-DEFINE SHIP-HYPER-GAP 4
+    &SCOPED-DEFINE SHIP-HYPER-BACK 5
     /* the saucers: how fast they cross, how fast their shots fly (cells a frame), and how long a shot lives */
     &SCOPED-DEFINE SAUCER-SHOTS 4
     &SCOPED-DEFINE SAUCER-SHOT-LIFE 80
@@ -57,6 +60,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     &SCOPED-DEFINE SHIELD-FRAMES 90
     &SCOPED-DEFINE CLEARED-FRAMES 60
     &SCOPED-DEFINE OVER-FRAMES 90
+    &SCOPED-DEFINE HYPER-OUT-FRAMES 12
+    &SCOPED-DEFINE HYPER-GAP-FRAMES 30
+    &SCOPED-DEFINE HYPER-BACK-FRAMES 12
     /* the most frames one Tick will make, and the most time it will count: a stall must not make a burst */
     &SCOPED-DEFINE MOST-FRAMES 4
     &SCOPED-DEFINE MOST-MS 100
@@ -85,6 +91,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* frames since the ship last appeared: it is protected and blinks while this is under 90 */
     DEFINE PRIVATE VARIABLE mShieldT   AS INTEGER     NO-UNDO.
     DEFINE PRIVATE VARIABLE mFireGap   AS INTEGER     NO-UNDO.
+    /* whether the jump through hyperspace in progress will go wrong when the ship comes back */
+    DEFINE PRIVATE VARIABLE mHyperFail AS LOGICAL     NO-UNDO.
     /* whether the fire key was down a frame ago */
     DEFINE PRIVATE VARIABLE mFireWas   AS LOGICAL     NO-UNDO.
     /* the shots in the air: place and velocity in units, the heading they were fired at, and the frames they have left */
@@ -221,6 +229,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     DEFINE PUBLIC PROPERTY ShipAlive AS LOGICAL NO-UNDO
         GET():
             RETURN mShipMode = {&SHIP-ALIVE} AND Phase = {&PHASE-PLAYING}.
+        END GET.
+
+    /* True while the ship is away in hyperspace: leaving, gone, or coming back. */
+    DEFINE PUBLIC PROPERTY Hyperspacing AS LOGICAL NO-UNDO
+        GET():
+            RETURN mShipMode >= {&SHIP-HYPER-OUT} AND Phase = {&PHASE-PLAYING}.
         END GET.
 
     /* Frames of protection the ship has left: it cannot be hit while this is above 0. */
@@ -442,7 +456,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* The ship jumps to a random place and comes back a moment later, with a small chance of blowing up. Does
        nothing outside a game, or when the ship is not flying. */
     METHOD PUBLIC VOID Hyperspace():
-        IF Phase <> {&PHASE-PLAYING} THEN RETURN.
+        IF Phase <> {&PHASE-PLAYING} OR mShipMode <> {&SHIP-ALIVE} THEN RETURN.
+        mShipMode = {&SHIP-HYPER-OUT}.
+        mShipTimer = 0.
+        mThrusting = FALSE.
+        /* a 6 percent chance of trouble, and half a percent more for every rock there is to come back among */
+        mHyperFail = mRandom:NextInt(100) < 6 + INTEGER(TRUNCATE(mRocks:Count / 2, 0)).
     END METHOD.
 
     /* What the game has to say, once: an extra life, a new wave. */
@@ -499,6 +518,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             WHEN {&SHIP-ALIVE} THEN FlyShip().
             WHEN {&SHIP-DYING} THEN FrameDying().
             WHEN {&SHIP-WAITING} THEN FrameWaiting().
+            WHEN {&SHIP-HYPER-OUT} THEN FrameHyperOut().
+            WHEN {&SHIP-HYPER-GAP} THEN FrameHyperGap().
+            WHEN {&SHIP-HYPER-BACK} THEN FrameHyperBack().
         END CASE.
         MoveShots().
         MoveSaucerShots().
@@ -922,6 +944,45 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         END.
     END METHOD.
 
+    /* Leaving: the ship drifts on and stretches away. */
+    METHOD PRIVATE VOID FrameHyperOut():
+        mShipTimer = mShipTimer + 1.
+        mSX = WrapUnits(mSX + mSVX, {&WIDTH-U}).
+        mSY = WrapUnits(mSY + mSVY, {&HEIGHT-U}).
+        IF mShipTimer >= {&HYPER-OUT-FRAMES} THEN DO:
+            mShipMode = {&SHIP-HYPER-GAP}.
+            mShipTimer = 0.
+            /* it comes back somewhere else, at rest, away from the very edge */
+            mSX = (20 + mRandom:NextInt(281)) * {&UNIT}.
+            mSY = (30 + mRandom:NextInt(181)) * {&UNIT}.
+            mSVX = 0.
+            mSVY = 0.
+        END.
+    END METHOD.
+
+    /* Gone: nothing can touch the ship. */
+    METHOD PRIVATE VOID FrameHyperGap():
+        mShipTimer = mShipTimer + 1.
+        IF mShipTimer >= {&HYPER-GAP-FRAMES} THEN DO:
+            mShipMode = {&SHIP-HYPER-BACK}.
+            mShipTimer = 0.
+        END.
+    END METHOD.
+
+    /* Coming back: the ship draws itself in again, and then it either flies or, if the jump went wrong, breaks up
+       where it came back. It has no shield: it may come back among the rocks. */
+    METHOD PRIVATE VOID FrameHyperBack():
+        mShipTimer = mShipTimer + 1.
+        IF mShipTimer >= {&HYPER-BACK-FRAMES} THEN DO:
+            IF mHyperFail THEN KillShip().
+            ELSE DO:
+                mShipMode = {&SHIP-ALIVE}.
+                mShieldT = {&SHIELD-FRAMES}.
+                mFireGap = 0.
+            END.
+        END.
+    END METHOD.
+
     /* The ship breaks up and a ship is gone. */
     METHOD PRIVATE VOID KillShip():
         Lives = Lives - 1.
@@ -1083,6 +1144,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         DrawRocks().
         IF mSaucOn THEN DrawSaucerCore().
         IF ShipVisible() THEN DrawShipCore().
+        IF mShipMode = {&SHIP-HYPER-OUT} AND Phase = {&PHASE-PLAYING} THEN DrawHyperShip(MINIMUM(5, INTEGER(TRUNCATE(MAXIMUM(0, mShipTimer - 1) / 2, 0)))).
+        IF mShipMode = {&SHIP-HYPER-BACK} AND Phase = {&PHASE-PLAYING} THEN DrawHyperShip(5 - MINIMUM(5, INTEGER(TRUNCATE(MAXIMUM(0, mShipTimer - 1) / 2, 0)))).
         IF ShipAlive AND ShieldFrames > 0 THEN DrawShieldRing().
         mCanvas:EndBatch().
         DrawSaucerShots().
@@ -1217,6 +1280,20 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
                 IF mCanvas:ColourAt(tx, ty) = mCanvas:BackAt(tx, ty) THEN mCanvas:Plot(tx, ty, 0, AsteroidsLook:Colour(trail)).
             END.
         END.
+    END METHOD.
+
+    /* The ship as it stretches into hyperspace or back out of it, in one of 6 steps: thinner and longer each step, white
+       in the middle of the jump and fading to the colours of its wreckage at the end. No glow. */
+    METHOD PRIVATE VOID DrawHyperShip(INPUT piStep AS INTEGER):
+        DEFINE VARIABLE colour AS INTEGER NO-UNDO.
+        CASE piStep:
+            WHEN 0 OR WHEN 1 THEN colour = {&C-SHIP-CORE}.
+            WHEN 2 OR WHEN 3 THEN colour = {&C-FLASH}.
+            WHEN 4 THEN colour = {&C-SHIP-DEBRIS-1}.
+            OTHERWISE colour = {&C-SHIP-DEBRIS-1} + 1.
+        END CASE.
+        mPen:DrawScaled(AsteroidsArt:Ship(), ToPen(mSX), ToPen(mSY), mHeading, INTEGER(ENTRY(piStep + 1, "100,80,60,40,25,10")),
+                        INTEGER(ENTRY(piStep + 1, "100,140,190,250,320,400")), 0, AsteroidsLook:Colour(colour)).
     END METHOD.
 
     /* The ship's glow: four dim copies one cell to each side. */
