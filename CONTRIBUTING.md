@@ -26,7 +26,7 @@ The first runs every test, plain and WinForms. The second opens the Cookoff, one
    | `tools/run-tests.ps1 -All` | Every test, plain (`_progres -b`) and WinForms (`prowin -b`) |
    | `tools/check-layering.ps1` | That each layer only uses the layers below it (below) |
    | `tools/compile.ps1` | That everything compiles, listing every error at once |
-   | `tools/audit-conventions.ps1` | The rules of the codebase that a script can check: a header comment and `BLOCK-LEVEL` on every class, wildcard `USING`, no dashes, `MEMPTR` freed, every public member in some test |
+   | `tools/audit-conventions.ps1` | The rules of the codebase that a script can check: a header comment and `BLOCK-LEVEL` on every class, wildcard `USING`, no dashes, `MEMPTR` freed, every public member in some test, no include file holding a list of constants (use an `ENUM`) |
    | `tools/check-template.ps1` | After a change to the framework interfaces or to `templates/game`: that a game made from the template still compiles and passes its tests |
    | `tools/gui-smoke-<game>.ps1` | The real window, for a game you changed (see the warning below) |
 

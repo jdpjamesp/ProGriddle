@@ -9,6 +9,8 @@
       - a USING that is not the wildcard form (a .NET type FROM ASSEMBLY may be named)
       - a MEMPTR in a file that never uses SET-SIZE, so cannot be freeing it
       - a public method or property whose name no test, run file or tool mentions
+      - an include file under src that holds a list of &GLOBAL-DEFINE or &SCOPED-DEFINE constants (two or
+        more): named values are an ENUM in a file of its own, see CLAUDE.md
       - a dash character (the long and the medium one) in code, tests, docs, scripts or run files
 
     The last check is the rule about no em dashes. The "name no test mentions" check is a net with
@@ -32,6 +34,14 @@ $dash2 = [string][char]0x2013
 $usage = ''
 foreach ($f in @(Get-ChildItem tests -Recurse -Filter *.cls) + @(Get-ChildItem run -Filter *.p) + @(Get-ChildItem tools -Include *.p, *.ps1 -Recurse) + @(Get-ChildItem bench -Filter *.p -ErrorAction SilentlyContinue)) {
     $usage += (Get-Content $f.FullName -Raw) + "`n"
+}
+
+# a list of constants in an include is an enum waiting to happen (an include of shared code, such as a temp-table
+# definition, has no such lines and is fine)
+foreach ($f in Get-ChildItem src -Recurse -Filter *.i) {
+    $rel = $f.FullName.Substring($root.Length + 1).Replace('\', '/')
+    $defines = @(Select-String -Path $f.FullName -Pattern '^\s*&(GLOBAL|SCOPED)-DEFINE\s').Count
+    if ($defines -ge 2) { Report 'include holds a list of constants, make it an ENUM' "$rel ($defines definitions)" }
 }
 
 foreach ($f in Get-ChildItem src -Recurse -Filter *.cls) {

@@ -31,7 +31,7 @@ Core depends on nothing. Engine depends on Core. UI.Text depends on Core and Eng
 ## Commands
 - Tests: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 [-Filter "Grid*"] [-Gui] [-All]`. The default runs everything except `tests/**/UI/WinForms`, under `_progres -b`. `-Gui` runs only the WinForms tests, under `prowin -b` (results in `build/test-results/gui/results.xml`). `-All` runs both.
 - Layering: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/check-layering.ps1`
-- Conventions audit (header comments, BLOCK-LEVEL, wildcard USING, no dashes, MEMPTR freed, public members tested; needs no OpenEdge): `powershell -NoProfile -ExecutionPolicy Bypass -File tools/audit-conventions.ps1`
+- Conventions audit (header comments, BLOCK-LEVEL, wildcard USING, no dashes, MEMPTR freed, public members tested, no include files that hold lists of constants; needs no OpenEdge): `powershell -NoProfile -ExecutionPolicy Bypass -File tools/audit-conventions.ps1`
 - New game from the template: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/new-game.ps1 -Name Snake -Title "Snake" -Blurb "..."`. After changing `templates/game` or the interfaces a game implements, run `tools/check-template.ps1` (it makes a game, tests it and deletes it)
 - Compile everything and list every error at once: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/compile.ps1 [-SourceOnly]`
 - Run the real window and check it: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/gui-smoke-life.ps1` (it takes over the keyboard and mouse for about 40 seconds, so warn the user first)
