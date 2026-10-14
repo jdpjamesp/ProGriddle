@@ -15,6 +15,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     {ProGriddle/Games/SpaceInvaders/Kinds.i}
     {ProGriddle/Games/SpaceInvaders/Phases.i}
+    {ProGriddle/Games/SpaceInvaders/Colours.i}
 
     DEFINE PRIVATE VARIABLE mGame AS SpaceInvadersGame NO-UNDO.
 
@@ -176,6 +177,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheTitleScreenDrawsTheNameAndTheScoreTable():
+        /* the title builds itself over the first four seconds: wait for all of it */
+        Frames(262).
         /* the big letters (text has no kind, it is only colour) and the table of invaders, which are effects cells */
         Assert:IsTrue(CountLit(40, 40, 150, 60) > 400).
         Assert:IsTrue(CountLit(70, 120, 130, 60) > 150).
@@ -1004,9 +1007,120 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     @Test.
     METHOD PUBLIC VOID TheStarsDriftBehindTheTitleLettersWithoutWipingThem():
         DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        Frames(262).
         before = CountLit(40, 40, 150, 60).
         Frames(400).
         Assert:Equals(before, CountLit(40, 40, 150, 60)).
+    END METHOD.
+
+    /* ---------------------------------- the screens ---------------------------------- */
+
+    METHOD PRIVATE VOID LoseEverything():
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        DO n = 1 TO 3:
+            BombTheCannon().
+            WaitForTheBlast().
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheTitleBuildsItselfLetterByLetterAndThePromptComesLast():
+        /* nothing of the name or the table on the first frames */
+        Frames(10).
+        Assert:Equals(0, CountLit(40, 40, 150, 60)).
+        Assert:Equals(0, CountLit(40, 100, 150, 80)).
+        /* the letters are in by about frame 90, and the table by 222 */
+        Frames(85).
+        Assert:IsTrue(CountLit(40, 40, 150, 60) > 300).
+        Assert:Equals(0, CountLit(40, 120, 150, 60)).
+        Frames(120).
+        Assert:IsTrue(CountLit(40, 120, 150, 60) > 150).
+        Assert:Equals(0, CountLit(70, 200, 90, 7)).
+        /* PRESS SPACE blinks on from frame 222 */
+        Frames(10).
+        Assert:IsTrue(CountLit(70, 200, 90, 7) > 20).
+        Frames(40).
+        Assert:Equals(0, CountLit(70, 200, 90, 7)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheTitleKeepsTheCreditAtTheFootOfTheScreen():
+        Assert:IsTrue(CountLit(58, 241, 110, 7) > 40).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheGroundHasAGlowAboveItALineAndASlightlyLighterRowUnderIt():
+        Assert:Equals(InvadersLook:Colour({&C-GLOW3}), mGame:Canvas:ColourAt(5, 229)).
+        Assert:Equals(InvadersLook:Colour({&C-GLOW2}), mGame:Canvas:ColourAt(5, 230)).
+        Assert:Equals(InvadersLook:Colour({&C-GLOW1}), mGame:Canvas:ColourAt(5, 231)).
+        Assert:Equals(InvadersLook:Colour({&C-GROUND-LINE}), mGame:Canvas:ColourAt(0, 232)).
+        Assert:Equals(InvadersLook:Colour({&C-GROUND-LINE}), mGame:Canvas:ColourAt(223, 232)).
+        Assert:Equals(InvadersLook:Colour({&C-GROUND-UNDER}), mGame:Canvas:ColourAt(100, 233)).
+        Assert:Equals(InvadersLook:Colour({&C-GROUND}), mGame:Canvas:ColourAt(100, 240)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheWaveNumberIsRightAlignedUnderItsLabel():
+        Play().
+        Frames(2).
+        /* the label starts at 193, and a one digit number ends at cell 215 */
+        Assert:IsTrue(CountLit(193, 6, 22, 7) > 20).
+        Assert:IsTrue(CountLit(211, 16, 5, 7) > 5).
+        Assert:Equals(0, CountLit(192, 16, 18, 7)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheGameOverScreenPopsInItsLettersShowsTheScoreAndWaitsForTheFireKey():
+        DEFINE VARIABLE bare AS INTEGER NO-UNDO.
+        DEFINE VARIABLE five AS INTEGER NO-UNDO.
+        Play().
+        mGame:AddScore(120).
+        LoseEverything().
+        Assert:Equals({&PHASE-GAMEOVER}, mGame:Phase).
+        /* the frozen rack is lit too, so the letters are what the count gains */
+        bare = CountLit(59, 100, 108, 15).
+        Frames(5).
+        five = CountLit(59, 100, 108, 15).
+        Assert:Equals(InvadersLook:Colour({&C-OVER-TOP}), mGame:Canvas:ColourAt(100, 232)).
+        Assert:IsTrue(five > bare, "one letter in").
+        Frames(30).
+        Assert:IsTrue(CountLit(59, 100, 108, 15) > five + 80, "all the letters").
+        Assert:Equals(InvadersLook:Colour({&C-GROUND-LINE}), mGame:Canvas:ColourAt(100, 232)).
+        Assert:IsTrue(CountLit(79, 124, 70, 7) > 40, "the score").
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ANewRecordIsAnnouncedOnTheGameOverScreenAndAnOldOneIsNot():
+        Play().
+        mGame:AddScore(120).
+        LoseEverything().
+        Frames(35).
+        Assert:IsTrue(CountLit(76, 138, 72, 6) > 25, "record").
+        mGame:FireHeld = FALSE.
+        Frames(2).
+        mGame:FireHeld = TRUE.
+        mGame:Advance().
+        Assert:Equals({&PHASE-TITLE}, mGame:Phase).
+        mGame:FireHeld = FALSE.
+        Frames(2).
+        mGame:FireHeld = TRUE.
+        mGame:Advance().
+        Assert:Equals({&PHASE-STARTING}, mGame:Phase).
+        mGame:FireHeld = FALSE.
+        mGame:SkipIntro().
+        LoseEverything().
+        Frames(35).
+        Assert:Equals(0, CountLit(76, 138, 72, 6)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ThePressSpacePromptComesBackOnTheGameOverScreenAfterAWhile():
+        Play().
+        LoseEverything().
+        Frames(80).
+        Assert:Equals(0, CountLit(70, 164, 90, 7)).
+        Frames(20).
+        Assert:IsTrue(CountLit(70, 164, 90, 7) > 20).
     END METHOD.
 
     /* ---------------------------------- contract errors ---------------------------------- */
