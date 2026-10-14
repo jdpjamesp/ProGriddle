@@ -206,19 +206,37 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
     END METHOD.
 
     @Test.
-    METHOD PUBLIC VOID TheWindowGrowsARowForEveryTwoGamesMoreUpToFourRows():
-        Assert:Equals(736, HeightFor(5)).
-        Assert:Equals(736, HeightFor(6)).
-        Assert:Equals(822, HeightFor(7)).
-        Assert:Equals(822, HeightFor(8)).
+    METHOD PUBLIC VOID UpToEightGamesFitTheUsualWindowInFourRowsOfSmallChips():
+        Assert:Equals(650, HeightFor(5)).
+        Assert:Equals(650, HeightFor(6)).
+        Assert:Equals(650, HeightFor(7)).
+        Assert:Equals(650, HeightFor(8)).
     END METHOD.
 
     @Test.
-    METHOD PUBLIC VOID MoreThanEightGamesStopGrowingTheWindowAndScrollInsteadOfLosingAny():
+    METHOD PUBLIC VOID TheChipsAreSmallAndSitTwoToARowFiftySixPixelsApart():
+        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(Games(4)), mLauncher).
+            Assert:Equals(232, w:ButtonFor("run/run-g1.p"):Width).
+            Assert:Equals(46, w:ButtonFor("run/run-g1.p"):Height).
+            Assert:Equals(w:ButtonFor("run/run-g1.p"):Height + 10, w:ButtonFor("run/run-g3.p"):Top - w:ButtonFor("run/run-g1.p"):Top).
+            Assert:Equals(w:ButtonFor("run/run-g1.p"):Top, w:ButtonFor("run/run-g2.p"):Top).
+            FINALLY:
+                IF VALID-OBJECT(w) THEN DO:
+                    w:ReleaseResources().
+                    w:Dispose().
+                END.
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID MoreThanEightGamesScrollInTheListInsteadOfLosingAny():
         DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
         DO ON ERROR UNDO, THROW:
             w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(Games(12)), mLauncher).
-            Assert:Equals(822, w:ClientSize:Height).
+            Assert:Equals(650, w:ClientSize:Height).
             Assert:Equals(12, w:GameCount).
             Assert:Equals("G12", w:ButtonFor("run/run-g12.p"):Text).
             FINALLY:

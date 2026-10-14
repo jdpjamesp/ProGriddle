@@ -6,7 +6,7 @@
    Everything except the caption is drawn once into a bitmap and then copied, so a repaint costs one
    copy and one line of text. The window places its game buttons on top of this control, at the
    places the layout below leaves free: the buttons go at 48, 372 and the board is at 590, 50. The
-   window may be taller than 650 when there are more games, and the footer follows the bottom.
+   window is 650 tall and holds eight small chips, and the footer follows the bottom if it is ever taller.
    Call ReleaseResources when the window closes. */
 USING Progress.Lang.*.
 USING System.Drawing.Drawing2D.* FROM ASSEMBLY.

@@ -85,14 +85,14 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
         THIS-OBJECT:StartPosition = FormStartPosition:CenterScreen.
         THIS-OBJECT:FormBorderStyle = FormBorderStyle:FixedSingle.
         THIS-OBJECT:MaximizeBox = FALSE.
-        /* two chips to a row, 86 pixels a row. The window shows at least two rows and grows to four to
-           fit the games, and a catalog with more than eight scrolls inside the list */
+        /* two small chips to a row, 56 pixels a row, so the usual window holds four rows (eight games) without growing;
+           a catalog with more than eight scrolls inside the list */
         rowsShown = MINIMUM(4, MAXIMUM(2, INTEGER(TRUNCATE((mCatalog:Count + 1) / 2, 0)))).
-        THIS-OBJECT:ClientSize = NEW Size(1120, 650 + (rowsShown - 2) * 86).
+        THIS-OBJECT:ClientSize = NEW Size(1120, 650).
         THIS-OBJECT:BackColor = Color:FromArgb(10, 14, 22).
         THIS-OBJECT:ForeColor = Color:FromArgb(245, 239, 230).
 
-        mChipFont = NEW Font("Consolas", System.Convert:ToSingle(17), FontStyle:Bold, GraphicsUnit:Pixel).
+        mChipFont = NEW Font("Consolas", System.Convert:ToSingle(15), FontStyle:Bold, GraphicsUnit:Pixel).
         mTagFont = NEW Font("Consolas", System.Convert:ToSingle(11), FontStyle:Bold, GraphicsUnit:Pixel).
 
         mStatus = NEW Label().
@@ -111,7 +111,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
         /* the chips sit in a panel that wraps them two to a row and scrolls when there are more */
         flow = NEW FlowLayoutPanel().
         flow:Location = NEW Point(46, 372).
-        flow:Size = NEW Size(540, rowsShown * 86 + 6).
+        flow:Size = NEW Size(510, rowsShown * 56 + 6).
         flow:FlowDirection = FlowDirection:LeftToRight.
         flow:WrapContents = TRUE.
         flow:AutoScroll = TRUE.
@@ -278,13 +278,13 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
     METHOD PRIVATE Button NewChip(INPUT piPlace AS INTEGER):
         DEFINE VARIABLE btn AS Button NO-UNDO.
         btn = NEW Button().
-        btn:Size = NEW Size(250, 74).
-        btn:Margin = NEW Padding(0, 0, 12, 12).
+        btn:Size = NEW Size(232, 46).
+        btn:Margin = NEW Padding(0, 0, 10, 10).
         btn:Name = mCatalog:ProgramAt(piPlace).
         btn:Text = mTitles[piPlace].
         btn:AccessibleName = mTitles[piPlace].
         btn:TextAlign = ContentAlignment:MiddleLeft.
-        btn:Padding = NEW Padding(44, 0, 0, 0).
+        btn:Padding = NEW Padding(40, 0, 0, 0).
         btn:Font = mChipFont.
         btn:ForeColor = Color:FromArgb(245, 239, 230).
         btn:BackColor = Color:FromArgb(15, 20, 29).
@@ -355,7 +355,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
             END.
             IF mLauncher:IsRunning(btn:Name) THEN DO:
                 live = NEW SolidBrush(Color:FromArgb(255, 61, 214, 140)).
-                e:Graphics:DrawString("PLAYING", mTagFont, live, System.Convert:ToSingle(btn:Width - 74), System.Convert:ToSingle(cy - 7)).
+                e:Graphics:DrawString("PLAYING", mTagFont, live, System.Convert:ToSingle(btn:Width - 64), System.Convert:ToSingle(cy - 7)).
             END.
             FINALLY:
                 IF VALID-OBJECT(live) THEN live:Dispose().
