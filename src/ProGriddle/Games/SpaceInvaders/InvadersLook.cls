@@ -27,7 +27,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersLook FINAL:
         sHex[4] = "3CE6A0".  /* the ground line */
         sHex[5] = "4A5088".  /* a faint star */
         sHex[6] = "C9D2FF".  /* a bright star */
-        sHex[7] = "7FE7FF".  /* a cyan star */
+        sHex[7] = "6CD2EC".  /* a cyan star: not the cyan of the labels, or a star falling through a word would be taken for part of it */
         sHex[8] = "FF4FA8".  /* the squid, hot pink */
         sHex[9] = "FFE0F2".  /* the squid eyes */
         sHex[10] = "A06BFF".  /* the crab, violet */
@@ -84,7 +84,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersLook FINAL:
         sHex[61] = "FF9A3D".  /* embers of the cannon blast */
         sHex[62] = "A8872A".  /* the last frames of a score pop-up */
         sHex[63] = "7F8DB0".  /* the equals signs and secondary words */
-        sHex[64] = "4A5088".  /* the credit line */
+        sHex[64] = "4C5490".  /* the credit line: near the faint star colour but not the same */
         sHex[65] = "2A1470".  /* the drop shadow of the title */
         sHex[66] = "3DE8FF".  /* the right end of the light bar */
         sHex[67] = "2A2A6A".  /* under the light bar */
@@ -98,7 +98,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersLook FINAL:
         sHex[75] = "13454F".  /* the ground glow at y 230 */
         sHex[76] = "1C2150".  /* the ground glow at y 229 */
         sHex[77] = "0E3A38".  /* the cell under the ground line */
-        sHex[78] = "FFFFFF".  /* the twinkle frame of a bright star */
+        sHex[78] = "FFFFFE".  /* the twinkle frame of a bright star: white, but not the exact white of the text */
         sHex[79] = "2A2060".  /* a hairline under the HUD */
         DO i = 1 TO {&COLOURS}:
             sColours[i] = FromHex(sHex[i]).

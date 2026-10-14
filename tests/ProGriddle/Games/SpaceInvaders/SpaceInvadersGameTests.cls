@@ -1099,6 +1099,37 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID NoStarFallingThroughTheHeadingOrTheCreditEatsAnyOfTheirCells():
+        DEFINE VARIABLE words    AS CHARACTER NO-UNDO INITIAL "SCORE ADVANCE TABLE".
+        DEFINE VARIABLE credit   AS CHARACTER NO-UNDO INITIAL "PROGRIDDLE COOKOFF".
+        DEFINE VARIABLE c        AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE y        AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE x        AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE bits     AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE want     AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE wantCred AS INTEGER   NO-UNDO.
+        Frames(900).
+        DO c = 1 TO LENGTH(words):
+            DO y = 0 TO 6:
+                bits = ENTRY(y + 1, PixelFont:Glyph(SUBSTRING(words, c, 1)), "/").
+                DO x = 1 TO 5:
+                    IF SUBSTRING(bits, x, 1) = "#" THEN want = want + 1.
+                END.
+            END.
+        END.
+        DO c = 1 TO LENGTH(credit):
+            DO y = 0 TO 6:
+                bits = ENTRY(y + 1, PixelFont:Glyph(SUBSTRING(credit, c, 1)), "/").
+                DO x = 1 TO 5:
+                    IF SUBSTRING(bits, x, 1) = "#" THEN wantCred = wantCred + 1.
+                END.
+            END.
+        END.
+        Assert:Equals(want, CountLit(55, 108, 114, 7)).
+        Assert:Equals(wantCred, CountLit(58, 241, 107, 7)).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID TheTitleKeepsTheCreditAtTheFootOfTheScreen():
         Assert:IsTrue(CountLit(58, 241, 110, 7) > 40).
     END METHOD.
@@ -1228,6 +1259,190 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         END.
         Assert:IsTrue(LOOKUP(STRING(InvadersLook:InvaderColour(0, 1, 1)), seen) > 0, seen).
         Assert:IsTrue(LOOKUP(STRING(InvadersLook:InvaderColour(0, 1, 2)), seen) > 0, seen).
+    END METHOD.
+
+    /* ---------------------------------- effects ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID TheShotIsAHeadABodyAndATwoCellTailAndTheHeadIsWhatHits():
+        Play().
+        EmptyField(1).
+        mGame:FireHeld = TRUE.
+        mGame:Advance().
+        mGame:FireHeld = FALSE.
+        /* the muzzle flash holds the last cell of the tail for its first frames */
+        Assert:IsTrue(mGame:Canvas:CountKind({&KIND-SHOT}) >= 5).
+        Assert:Equals(InvadersLook:Colour({&C-SHOT-TIP}), mGame:Canvas:ColourAt(mGame:ShotX, mGame:ShotY)).
+        Assert:Equals(InvadersLook:Colour({&C-SHOT}), mGame:Canvas:ColourAt(mGame:ShotX, mGame:ShotY + 2)).
+        Assert:Equals(InvadersLook:Colour({&C-SHOT-TAIL}), mGame:Canvas:ColourAt(mGame:ShotX, mGame:ShotY + 4)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheShotLeavesNothingBehindWhenItIsGone():
+        Play().
+        EmptyField(1).
+        FireAndWait(100).
+        Frames(5).
+        Assert:Equals(0, mGame:Canvas:CountKind({&KIND-SHOT})).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID FiringPutsAWhitePlusAtTheBarrelForThreeFrames():
+        DEFINE VARIABLE white AS INTEGER NO-UNDO.
+        Play().
+        EmptyField(1).
+        mGame:FireHeld = TRUE.
+        mGame:Advance().
+        mGame:FireHeld = FALSE.
+        Assert:Equals(InvadersLook:Colour({&C-FLASH}), mGame:Canvas:ColourAt(111, 214)).
+        Assert:Equals(InvadersLook:Colour({&C-FLASH}), mGame:Canvas:ColourAt(110, 214)).
+        Assert:Equals(InvadersLook:Colour({&C-FLASH}), mGame:Canvas:ColourAt(112, 214)).
+        Frames(3).
+        Assert:IsTrue(mGame:Canvas:KindAt(111, 214) <> {&KIND-FX}).
+        Assert:Equals({&KIND-NONE}, mGame:Canvas:KindAt(110, 214)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AShieldShimmersAroundABiteAndThenSettlesBackToItsColours():
+        DEFINE VARIABLE n       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE flashed AS INTEGER NO-UNDO.
+        Play().
+        AimAt(35 + 10).
+        mGame:FireHeld = TRUE.
+        DO n = 1 TO 60:
+            mGame:Advance().
+            IF NOT mGame:ShotActive THEN LEAVE.
+        END.
+        mGame:FireHeld = FALSE.
+        DO y = 184 TO 199:
+            DO x = 35 TO 56:
+                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour({&C-SHIELD-FLASH}) THEN flashed = flashed + 1.
+            END.
+        END.
+        Assert:IsTrue(flashed > 5, "flashed " + STRING(flashed)).
+        Frames(5).
+        flashed = 0.
+        DO y = 184 TO 199:
+            DO x = 35 TO 56:
+                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour({&C-SHIELD-FLASH}) THEN flashed = flashed + 1.
+            END.
+        END.
+        Assert:Equals(0, flashed).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheGroundFlashesWhereABombLandsThenGoesBack():
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        Play().
+        mGame:DropBomb(2, 20, 215).
+        DO n = 1 TO 30:
+            mGame:Advance().
+            IF NOT mGame:BombActive(2) THEN LEAVE.
+        END.
+        Assert:Equals(InvadersLook:Colour({&C-BOMB}), mGame:Canvas:ColourAt(21, 232)).
+        Assert:Equals(InvadersLook:Colour({&C-BOMB}), mGame:Canvas:ColourAt(15, 232)).
+        Assert:Equals(InvadersLook:Colour({&C-GROUND-LINE}), mGame:Canvas:ColourAt(40, 232)).
+        Frames(7).
+        Assert:Equals(InvadersLook:Colour({&C-GROUND-LINE}), mGame:Canvas:ColourAt(21, 232)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheGroundLinePulsesRedWhileTheRackIsLowAndOnlyThen():
+        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE red AS LOGICAL NO-UNDO.
+        DEFINE VARIABLE grn AS LOGICAL NO-UNDO.
+        Play().
+        mGame:SetPlayerX(8).
+        EmptyField(1).
+        DO n = 1 TO 40:
+            mGame:Advance().
+            IF mGame:Canvas:ColourAt(100, 232) = InvadersLook:Colour({&C-OVER-TOP}) THEN red = TRUE.
+        END.
+        Assert:IsFalse(red).
+        DO WHILE mGame:Rack:Bottom() < 176:
+            mGame:Rack:Step().
+        END.
+        DO n = 1 TO 40:
+            IF mGame:Phase <> {&PHASE-PLAYING} THEN LEAVE.
+            mGame:SetPlayerX(IF mGame:Rack:X(0) < 112 THEN 203 ELSE 8).
+            mGame:Advance().
+            IF mGame:Canvas:ColourAt(100, 232) = InvadersLook:Colour({&C-OVER-TOP}) THEN red = TRUE.
+            IF mGame:Canvas:ColourAt(100, 232) = InvadersLook:Colour({&C-GROUND-LINE}) THEN grn = TRUE.
+        END.
+        Assert:IsTrue(red, "never red").
+        Assert:IsTrue(grn, "never back to green").
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASaucerKillTurnsTheScoreGoldForAWhileAndThePopUpRisesAndFades():
+        DEFINE VARIABLE gold  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE lowY  AS INTEGER NO-UNDO INITIAL 999.
+        Play().
+        EmptyField(1).
+        ClearShields().
+        mGame:LaunchSaucer(1).
+        Frames(40).
+        AimAt(mGame:SaucerX + 44 + 9).
+        FireAndWait(80).
+        Assert:Equals(50, mGame:Score).
+        Frames(2).
+        DO y = 16 TO 22:
+            DO x = 8 TO 36:
+                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour({&C-TEXT-GOLD}) THEN gold = gold + 1.
+            END.
+        END.
+        Assert:IsTrue(gold > 10, "gold score " + STRING(gold)).
+        /* the pop-up is gold text in the saucer lane and climbs */
+        Frames(30).
+        gold = 0.
+        DO y = 16 TO 40:
+            DO x = 0 TO 223:
+                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour({&C-TEXT-GOLD}) AND (x > 40 OR y > 22) THEN DO:
+                    gold = gold + 1.
+                    lowY = MINIMUM(lowY, y).
+                END.
+            END.
+        END.
+        Assert:IsTrue(gold > 5, "pop-up " + STRING(gold)).
+        Assert:IsTrue(lowY < 32, "risen to " + STRING(lowY)).
+        Frames(30).
+        gold = 0.
+        DO y = 16 TO 40:
+            DO x = 41 TO 223:
+                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour({&C-TEXT-GOLD}) THEN gold = gold + 1.
+            END.
+        END.
+        Assert:Equals(0, gold).
+        gold = 0.
+        DO y = 16 TO 22:
+            DO x = 8 TO 36:
+                IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour({&C-TEXT-GOLD}) THEN gold = gold + 1.
+            END.
+        END.
+        Assert:Equals(0, gold).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheBrightStarsFlashWhiteNowAndThen():
+        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hit AS INTEGER NO-UNDO.
+        Play().
+        mGame:SetPlayerX(40).
+        DO n = 1 TO 8:
+            Frames(18).
+            DO y = 24 TO 228:
+                DO x = 0 TO 223:
+                    IF mGame:Canvas:ColourAt(x, y) = InvadersLook:Colour({&C-STAR-TWINKLE}) THEN hit = hit + 1.
+                END.
+            END.
+        END.
+        Assert:IsTrue(hit > 0).
     END METHOD.
 
     /* ---------------------------------- contract errors ---------------------------------- */
