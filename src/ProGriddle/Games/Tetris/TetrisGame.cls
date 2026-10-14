@@ -30,7 +30,7 @@ USING ProGriddle.Games.Tetris.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS IRealTimeGame:
+CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS IRealTimeGame, IAnimated:
 
 
     DEFINE PRIVATE VARIABLE mBag        AS PieceBag NO-UNDO.
@@ -55,6 +55,29 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
     DEFINE PRIVATE VARIABLE mLLocked    AS INTEGER  NO-UNDO.
     DEFINE PRIVATE VARIABLE mLActive    AS INTEGER  NO-UNDO.
     DEFINE PRIVATE VARIABLE mLView      AS INTEGER  NO-UNDO.
+    /* what a painter that draws effects is told: the time, the last lock and clear, the level up, the end of the game */
+    DEFINE PRIVATE VARIABLE mElapsed      AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mAnimUntil    AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mSerial       AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mBest         AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mClearDelay   AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mClearing     AS LOGICAL   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mClearRows    AS CHARACTER NO-UNDO.
+    DEFINE PRIVATE VARIABLE mClearStart   AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mClearLength  AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mLastClearMs  AS INTEGER   NO-UNDO INITIAL -1.
+    DEFINE PRIVATE VARIABLE mLastClearCount AS INTEGER NO-UNDO.
+    DEFINE PRIVATE VARIABLE mLevelUpMs    AS INTEGER   NO-UNDO INITIAL -1.
+    DEFINE PRIVATE VARIABLE mOverMs       AS INTEGER   NO-UNDO INITIAL -1.
+    DEFINE PRIVATE VARIABLE mDropFrom     AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mHard         AS LOGICAL   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mLockPiece    AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mLockTurn     AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mLockX        AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mLockY        AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mLockFromY    AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mLockHard     AS LOGICAL   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mLockMs       AS INTEGER   NO-UNDO INITIAL -1.
 
     DEFINE PUBLIC PROPERTY Paused AS LOGICAL NO-UNDO
         GET.
@@ -67,6 +90,142 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
             ShowGhost = plValue.
             IF VALID-OBJECT(Grid) AND mPiece > 0 THEN RefreshView().
         END SET.
+
+    /* True when the game keeps the clocks of the effects (see Animating). Off by default, so a test of the rules sees the game
+       go quiet as soon as nothing is happening. */
+    DEFINE PUBLIC PROPERTY Animated AS LOGICAL NO-UNDO INITIAL FALSE
+        GET.
+        SET.
+
+    /* How long a line clear holds the game still so it can be shown, in milliseconds, 0 to 2000: 0 clears at once (the
+       default). Four rows at once hold it 1.4 times as long. While it holds, the rows are still there, the score and the
+       lines are counted, and nothing can move; Tick ends it. */
+    DEFINE PUBLIC PROPERTY ClearDelayMs AS INTEGER NO-UNDO
+        GET():
+            RETURN mClearDelay.
+        END GET.
+        SET(INPUT piValue AS INTEGER):
+            IF piValue = ? OR piValue < 0 OR piValue > 2000 THEN UNDO, THROW NEW GridException("The clear delay is 0 to 2000 milliseconds, not " + STRING(piValue)).
+            mClearDelay = piValue.
+        END SET.
+
+    /* The best score so far, shown beside the score: the game does not keep it (the input does) and only holds it for the
+       painter. */
+    DEFINE PUBLIC PROPERTY BestScore AS INTEGER NO-UNDO
+        GET():
+            RETURN mBest.
+        END GET.
+        SET(INPUT piValue AS INTEGER):
+            IF piValue = ? OR piValue < 0 THEN UNDO, THROW NEW GridException("The best score is 0 or more, not " + STRING(piValue)).
+            mBest = piValue.
+        END SET.
+
+    /* Milliseconds of play the game has been given, not counting time while paused. Never goes back, not even for a new game. */
+    DEFINE PUBLIC PROPERTY ElapsedMs AS INTEGER NO-UNDO
+        GET():
+            RETURN mElapsed.
+        END GET.
+
+    /* A number that goes up with every new game, so a painter knows to start again. */
+    DEFINE PUBLIC PROPERTY GameSerial AS INTEGER NO-UNDO
+        GET():
+            RETURN mSerial.
+        END GET.
+
+    /* True while rows are being held for the line clear. */
+    DEFINE PUBLIC PROPERTY Clearing AS LOGICAL NO-UNDO
+        GET():
+            RETURN mClearing.
+        END GET.
+
+    /* The rows (0 at the top) of the last line clear, ascending, as "18,19", from the moment it is found until the next one
+       ("" before the first). */
+    DEFINE PUBLIC PROPERTY ClearRows AS CHARACTER NO-UNDO
+        GET():
+            RETURN mClearRows.
+        END GET.
+
+    /* When the last line clear began (ElapsedMs, -1 for none) and how many rows it cleared. */
+    DEFINE PUBLIC PROPERTY LastClearMs AS INTEGER NO-UNDO
+        GET():
+            RETURN mLastClearMs.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY LastClearCount AS INTEGER NO-UNDO
+        GET():
+            RETURN mLastClearCount.
+        END GET.
+
+    /* When the level last went up (ElapsedMs, -1 for none this game). */
+    DEFINE PUBLIC PROPERTY LevelUpMs AS INTEGER NO-UNDO
+        GET():
+            RETURN mLevelUpMs.
+        END GET.
+
+    /* When the game ended (ElapsedMs, -1 while it is going). */
+    DEFINE PUBLIC PROPERTY OverMs AS INTEGER NO-UNDO
+        GET():
+            RETURN mOverMs.
+        END GET.
+
+    /* The piece that last settled: which (1 to 7, 0 for none yet), its turn and the place of its top left cell, the row it
+       started falling from if it was hard dropped (else where it settled), whether it was hard dropped, and when. */
+    DEFINE PUBLIC PROPERTY LastLockPiece AS INTEGER NO-UNDO
+        GET():
+            RETURN mLockPiece.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY LastLockTurn AS INTEGER NO-UNDO
+        GET():
+            RETURN mLockTurn.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY LastLockX AS INTEGER NO-UNDO
+        GET():
+            RETURN mLockX.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY LastLockY AS INTEGER NO-UNDO
+        GET():
+            RETURN mLockY.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY LastLockFromY AS INTEGER NO-UNDO
+        GET():
+            RETURN mLockFromY.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY LastLockHard AS LOGICAL NO-UNDO
+        GET():
+            RETURN mLockHard.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY LastLockMs AS INTEGER NO-UNDO
+        GET():
+            RETURN mLockMs.
+        END GET.
+
+    /* True while a settled block is in the top four rows of the board, and the game is going: the stack is dangerously high. */
+    DEFINE PUBLIC PROPERTY Danger AS LOGICAL NO-UNDO
+        GET():
+            DEFINE VARIABLE x AS INTEGER NO-UNDO.
+            DEFINE VARIABLE y AS INTEGER NO-UNDO.
+            IF IsOver THEN RETURN FALSE.
+            DO y = 0 TO 3:
+                DO x = 0 TO mBW - 1:
+                    IF mField:GetCell(mLLocked, x, y) <> 0 THEN RETURN TRUE.
+                END.
+            END.
+            RETURN FALSE.
+        END GET.
+
+    /* True while an animated game has something on the screen that is not play: a short time after the start, a lock, a clear,
+       a level up, the end of the game, and for as long as the stack is dangerously high. A controller that sees it keeps the
+       clock running, and Tick says something changed. Always false unless Animated. */
+    DEFINE PUBLIC PROPERTY Animating AS LOGICAL NO-UNDO
+        GET():
+            RETURN Animated AND (mElapsed < mAnimUntil OR Danger).
+        END GET.
 
     DEFINE PUBLIC PROPERTY BoardWidth AS INTEGER NO-UNDO
         GET():
@@ -192,8 +351,11 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
         IF NOT Active() THEN RETURN FALSE.
         landing = GhostY().
         mScore = mScore + 2 * (landing - mY).
+        mDropFrom = mY.
+        mHard = TRUE.
         MovePiece(mTurn, mX, landing).
         LockPiece().
+        mHard = FALSE.
         RefreshView().
         RETURN TRUE.
     END METHOD.
@@ -206,19 +368,25 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
         RETURN Rotate(-1).
     END METHOD.
 
-    /* Adds up the time and lets gravity step as many times as it is due. Returns true when anything
-       changed. */
+    /* Adds up the time and lets gravity step as many times as it is due. A line clear that is being held (ClearDelayMs) ends
+       when its time is up. Returns true when anything changed, or when an animated game has an animation going. */
     METHOD PUBLIC LOGICAL Tick(INPUT piElapsedMs AS INTEGER):
         DEFINE VARIABLE changed AS LOGICAL NO-UNDO.
-        IF NOT Active() OR piElapsedMs = ? OR piElapsedMs <= 0 THEN RETURN FALSE.
+        IF Paused OR piElapsedMs = ? OR piElapsedMs <= 0 THEN RETURN FALSE.
+        mElapsed = mElapsed + piElapsedMs.
+        IF mClearing THEN DO:
+            IF mElapsed - mClearStart >= mClearLength THEN FinishClear().
+            RETURN TRUE.
+        END.
+        IF NOT Active() THEN RETURN Animating.
         mAcc = mAcc + piElapsedMs.
-        DO WHILE mAcc >= GravityMs AND NOT IsOver:
+        DO WHILE mAcc >= GravityMs AND NOT IsOver AND NOT mClearing:
             mAcc = mAcc - GravityMs.
             IF NOT TryMove(0, 1) THEN LockPiece().
             changed = TRUE.
         END.
         IF changed THEN RefreshView().
-        RETURN changed.
+        RETURN changed OR Animating.
     END METHOD.
 
     /* The row the piece would land on if dropped straight down now. */
@@ -316,6 +484,17 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
         mAcc = 0.
         mPlaced = 0.
         mPiece = 0.
+        mSerial = mSerial + 1.
+        mClearing = FALSE.
+        mClearRows = "".
+        mLastClearMs = -1.
+        mLastClearCount = 0.
+        mLevelUpMs = -1.
+        mOverMs = -1.
+        mLockPiece = 0.
+        mLockMs = -1.
+        mAnimUntil = 0.
+        SetAnimation(400).
         mNext = mBag:Next().
         Spawn().
         RefreshView().
@@ -415,37 +594,83 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
         IF Collides(0, mX, 0) THEN DO:
             IsOver = TRUE.
             mPiece = 0.
+            mOverMs = mElapsed.
+            SetAnimation(3600).
             RETURN.
         END.
         StampPiece().
     END METHOD.
 
-    /* The falling piece settles where it is: its cells join the settled blocks, full rows are cleared
-       and the score is worked out, and the next piece appears. */
+    /* The falling piece settles where it is: its cells join the settled blocks, full rows are found, scored and, after the
+       clear delay if there is one, cleared, and the next piece appears. */
     METHOD PRIVATE VOID LockPiece():
-        DEFINE VARIABLE shape   AS Shape   NO-UNDO.
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cleared AS INTEGER NO-UNDO.
+        DEFINE VARIABLE shape    AS Shape     NO-UNDO.
+        DEFINE VARIABLE i        AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE y        AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE cleared  AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE rowList  AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE oldLevel AS INTEGER   NO-UNDO.
         shape = mShapes[(mPiece - 1) * 4 + mTurn + 1].
         mPlaced = mPlaced + 1.
+        mLockPiece = mPiece.
+        mLockTurn = mTurn.
+        mLockX = mX.
+        mLockY = mY.
+        mLockFromY = (IF mHard THEN mDropFrom ELSE mY).
+        mLockHard = mHard.
+        mLockMs = mElapsed.
+        SetAnimation(500).
         DO i = 1 TO shape:Size:
             mField:SetCell(mLLocked, mX + shape:OffsetX(i), mY + shape:OffsetY(i), mPiece).
         END.
         mField:Erase(mLActive, shape, mX, mY).
+        DO y = 0 TO mBH - 1:
+            IF mField:IsRowFull(mLLocked, y) THEN DO:
+                cleared = cleared + 1.
+                rowList = rowList + (IF rowList = "" THEN "" ELSE ",") + STRING(y).
+            END.
+        END.
+        IF cleared = 0 THEN DO:
+            Spawn().
+            RETURN.
+        END.
+        oldLevel = Level.
+        mScore = mScore + INTEGER(ENTRY(cleared, "100,300,500,800")) * Level.
+        mLines = mLines + cleared.
+        IF Level > oldLevel THEN DO:
+            mLevelUpMs = mElapsed.
+            SetAnimation(700).
+        END.
+        mClearRows = rowList.
+        mLastClearCount = cleared.
+        mLastClearMs = mElapsed.
+        IF mClearDelay > 0 THEN DO:
+            /* hold the rows still so they can be shown: nothing moves until Tick has run the time out */
+            mClearing = TRUE.
+            mClearStart = mElapsed.
+            mClearLength = (IF cleared = 4 THEN INTEGER(mClearDelay * 1.4) ELSE mClearDelay).
+            mPiece = 0.
+            SetAnimation(mClearLength + 1000).
+        END.
+        ELSE FinishClear().
+    END METHOD.
+
+    /* The full rows go and the rows above drop, and the next piece appears. */
+    METHOD PRIVATE VOID FinishClear():
+        DEFINE VARIABLE y AS INTEGER NO-UNDO.
         y = mBH - 1.
         DO WHILE y >= 0:
-            IF mField:IsRowFull(mLLocked, y) THEN DO:
-                mField:ShiftRowsDown(mLLocked, y).
-                cleared = cleared + 1.
-            END.
+            IF mField:IsRowFull(mLLocked, y) THEN mField:ShiftRowsDown(mLLocked, y).
             ELSE y = y - 1.
         END.
-        IF cleared > 0 THEN DO:
-            mScore = mScore + INTEGER(ENTRY(cleared, "100,300,500,800")) * Level.
-            mLines = mLines + cleared.
-        END.
+        mClearing = FALSE.
         Spawn().
+        RefreshView().
+    END METHOD.
+
+    /* An animated game is animating for at least this many more milliseconds. */
+    METHOD PRIVATE VOID SetAnimation(INPUT piMs AS INTEGER):
+        mAnimUntil = MAXIMUM(mAnimUntil, mElapsed + piMs).
     END METHOD.
 
     /* Brings the view layer up to date: settled blocks, then the ghost, then the falling piece, and
