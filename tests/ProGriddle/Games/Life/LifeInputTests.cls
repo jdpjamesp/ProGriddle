@@ -94,6 +94,38 @@ CLASS ProGriddle.Games.Life.LifeInputTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID ADragBringsEachCellItPassesToLifeAndDoesNotToggleThemBack():
+        CAST(mInput, IDragInput):DragAction(2, 3).
+        CAST(mInput, IDragInput):DragAction(3, 3).
+        CAST(mInput, IDragInput):DragAction(4, 3).
+        Assert:IsTrue(mGame:IsAlive(2, 3)).
+        Assert:IsTrue(mGame:IsAlive(3, 3)).
+        Assert:IsTrue(mGame:IsAlive(4, 3)).
+        /* going back over a cell leaves it alive */
+        CAST(mInput, IDragInput):DragAction(3, 3).
+        Assert:IsTrue(mGame:IsAlive(3, 3)).
+        Assert:Equals(3, mGame:AliveCount).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ADragOffTheBoardIsIgnored():
+        CAST(mInput, IDragInput):DragAction(-1, 0).
+        CAST(mInput, IDragInput):DragAction(12, 0).
+        CAST(mInput, IDragInput):DragAction(0, 8).
+        CAST(mInput, IDragInput):DragAction(0, -1).
+        Assert:Equals(0, mGame:AliveCount).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheLifeInputIsADragInputForTheWindow():
+        DEFINE VARIABLE drag AS IDragInput NO-UNDO.
+        Assert:IsTrue(TYPE-OF(mInput, IDragInput)).
+        drag = CAST(mInput, IDragInput).
+        drag:DragAction(1, 1).
+        Assert:IsTrue(mGame:IsAlive(1, 1)).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ALeftClickOffTheBoardIsIgnored():
         mInput:PrimaryAction(-1, 0).
         mInput:PrimaryAction(12, 0).

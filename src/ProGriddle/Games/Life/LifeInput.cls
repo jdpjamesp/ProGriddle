@@ -1,5 +1,6 @@
-/* What a Life window can do besides stepping: left click toggles a cell, right click places
-   the chosen pattern, and the Random and Clear commands start a new board. Both commands go
+/* What a Life window can do besides stepping: left click toggles a cell, left click and drag brings
+   every cell the mouse passes over to life (IDragInput), right click places the chosen pattern, and the
+   Random and Clear commands start a new board. Both commands go
    back to generation 0 first, so the new board becomes the start that Reset returns to.
 
    A pattern that would hang off the board is moved back so it fits; a pattern bigger than
@@ -18,7 +19,7 @@ USING ProGriddle.Games.Life.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS ProGriddle.Games.Life.LifeInput FINAL IMPLEMENTS IGameInput, IGameOptions:
+CLASS ProGriddle.Games.Life.LifeInput FINAL IMPLEMENTS IGameInput, IGameOptions, IDragInput:
 
     DEFINE PRIVATE VARIABLE mGame    AS LifeGame NO-UNDO.
     DEFINE PRIVATE VARIABLE mRandom  AS IRandom  NO-UNDO.
@@ -121,6 +122,13 @@ CLASS ProGriddle.Games.Life.LifeInput FINAL IMPLEMENTS IGameInput, IGameOptions:
     METHOD PUBLIC VOID PrimaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
         IF NOT mGame:Grid:InBounds(piX, piY) THEN RETURN.
         mGame:ToggleCell(piX, piY).
+    END METHOD.
+
+    /* Dragging with the left button brings a cell to life, whatever it was (a toggle would flicker as the mouse
+       crossed cells it had already passed). A cell off the board is ignored. */
+    METHOD PUBLIC VOID DragAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+        IF NOT mGame:Grid:InBounds(piX, piY) THEN RETURN.
+        mGame:SetAlive(piX, piY, TRUE).
     END METHOD.
 
     METHOD PUBLIC VOID SecondaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):

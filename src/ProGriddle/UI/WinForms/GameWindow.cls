@@ -24,8 +24,10 @@
    pointer: left alone is PrimaryAction, right alone is SecondaryAction, and a middle click or
    left and right together is TertiaryAction. A double click is a PrimaryAction followed by a
    TertiaryAction, so a game that treats a double click on a number as a chord gets it while a
-   game that toggles on every click (Life) still sees both clicks. The window title also carries the status text
-   (and the speed when stepping), so a script can read them from outside.
+   game that toggles on every click (Life) still sees both clicks. A game input that also implements
+   IDragInput is told about every cell the pointer passes over with the left button down, so a click and
+   drag paints a line of cells; the drag then takes the place of the click. The window title also carries the
+   status text (and the speed when stepping), so a script can read them from outside.
 
    Settings: the window size, position and maximised state, the speed and the picker choice
    are restored when the window is built and saved when it closes. The window keys come in two
@@ -69,6 +71,14 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     DEFINE PRIVATE VARIABLE mHeld       AS LOGICAL        NO-UNDO EXTENT 3.
     DEFINE PRIVATE VARIABLE mGesture    AS LOGICAL        NO-UNDO EXTENT 3.
     DEFINE PRIVATE VARIABLE mDouble     AS LOGICAL        NO-UNDO.
+    /* a drag with the left button, for a game that wants one (IDragInput): the cell the button went down on, whether
+       it was on the board, the last cell the drag reached and whether the pointer has left the first cell yet */
+    DEFINE PRIVATE VARIABLE mDrag       AS IDragInput     NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPath       AS CellPath       NO-UNDO.
+    DEFINE PRIVATE VARIABLE mDownHit    AS LOGICAL        NO-UNDO.
+    DEFINE PRIVATE VARIABLE mDragging   AS LOGICAL        NO-UNDO.
+    DEFINE PRIVATE VARIABLE mLastX      AS INTEGER        NO-UNDO.
+    DEFINE PRIVATE VARIABLE mLastY      AS INTEGER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mInfoButton AS Button         NO-UNDO.
 
     DEFINE PRIVATE VARIABLE mToolbar    AS FlowLayoutPanel NO-UNDO.
@@ -111,6 +121,10 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         mView = poView.
         mInput = poInput.
         IF TYPE-OF(poInput, IGameOptions) THEN mOptions = CAST(poInput, IGameOptions).
+        IF TYPE-OF(poInput, IDragInput) THEN DO:
+            mDrag = CAST(poInput, IDragInput).
+            mPath = NEW CellPath().
+        END.
         mClock = poClock.
         mSettings = poSettings.
         mPrefix = pcPrefix.
@@ -131,6 +145,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
 
         mView:MouseDown:Subscribe(OnViewMouseDown).
         mView:MouseUp:Subscribe(OnViewMouseUp).
+        mView:MouseMove:Subscribe(OnViewMouseMove).
         THIS-OBJECT:Deactivate:Subscribe(OnDeactivate).
         THIS-OBJECT:KeyDown:Subscribe(OnKeyDown).
         THIS-OBJECT:KeyUp:Subscribe(OnKeyUp).
@@ -513,6 +528,36 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         mHeld[b] = TRUE.
         mGesture[b] = TRUE.
         IF b = 1 AND e:Clicks >= 2 THEN mDouble = TRUE.
+        IF b = 1 AND VALID-OBJECT(mDrag) THEN DO:
+            mDownHit = mView:HitTest(e:X, e:Y, OUTPUT mLastX, OUTPUT mLastY).
+            mDragging = FALSE.
+        END.
+    END METHOD.
+
+    /* With the left button down on its own, and a game that wants drags, every cell the pointer reaches is
+       passed on, the cells it jumped over included. The cell the drag started on is passed on first, when the
+       pointer first leaves it. */
+    METHOD PRIVATE VOID OnViewMouseMove(INPUT poSender AS System.Object, INPUT e AS MouseEventArgs):
+        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
+        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n  AS INTEGER NO-UNDO.
+        IF NOT VALID-OBJECT(mDrag) OR NOT mDownHit THEN RETURN.
+        IF NOT mHeld[1] OR mHeld[2] OR mHeld[3] THEN RETURN.
+        IF NOT mView:HitTest(e:X, e:Y, OUTPUT cx, OUTPUT cy) THEN RETURN.
+        IF cx = mLastX AND cy = mLastY THEN RETURN.
+        IF NOT mDragging THEN DO:
+            mDragging = TRUE.
+            mDrag:DragAction(mLastX, mLastY).
+        END.
+        n = mPath:Plan(mLastX, mLastY, cx, cy).
+        DO i = 0 TO n - 1:
+            mDrag:DragAction(mPath:X(i), mPath:Y(i)).
+        END.
+        mLastX = cx.
+        mLastY = cy.
+        mController:Refresh().
+        UpdateStatus().
     END METHOD.
 
     /* Acts once the last button of the gesture is up, on the cell under the pointer. */
@@ -525,6 +570,11 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         IF b = 0 THEN RETURN.
         mHeld[b] = FALSE.
         IF mHeld[1] OR mHeld[2] OR mHeld[3] THEN RETURN.
+        /* a drag has done its work already: it is not also a click */
+        IF mDragging THEN DO:
+            ResetGesture().
+            RETURN.
+        END.
         IF mView:HitTest(e:X, e:Y, OUTPUT cx, OUTPUT cy) THEN DO:
             acted = TRUE.
             IF mGesture[3] OR (mGesture[1] AND mGesture[2]) THEN mInput:TertiaryAction(cx, cy).
@@ -550,6 +600,8 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
             mGesture[i] = FALSE.
         END.
         mDouble = FALSE.
+        mDragging = FALSE.
+        mDownHit = FALSE.
     END METHOD.
 
     /* A button released while another window had the mouse would leave the gesture stuck. */
@@ -661,6 +713,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         mClock:Tick:Unsubscribe(OnClockTick).
         mView:MouseDown:Unsubscribe(OnViewMouseDown).
         mView:MouseUp:Unsubscribe(OnViewMouseUp).
+        mView:MouseMove:Unsubscribe(OnViewMouseMove).
         THIS-OBJECT:Deactivate:Unsubscribe(OnDeactivate).
         THIS-OBJECT:KeyDown:Unsubscribe(OnKeyDown).
         THIS-OBJECT:KeyUp:Unsubscribe(OnKeyUp).

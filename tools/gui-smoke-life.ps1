@@ -179,6 +179,20 @@ function Get-Board($p, [string]$name, [int]$cols, [int]$rows) {
     } finally { $bmp.Dispose() }
 }
 
+# Click and drag: the left button goes down at one point, the pointer moves to the other in the given
+# number of jumps (a fast drag skips cells between events) and the button comes up there.
+function Drag-Screen([int]$x1, [int]$y1, [int]$x2, [int]$y2, [int]$jumps = 6) {
+    Ensure-Foreground
+    [Native]::SetCursorPos($x1, $y1) | Out-Null; Start-Sleep -Milliseconds 80
+    [Native]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero); Start-Sleep -Milliseconds 80
+    for ($i = 1; $i -le $jumps; $i++) {
+        [Native]::SetCursorPos([int]($x1 + ($x2 - $x1) * $i / $jumps), [int]($y1 + ($y2 - $y1) * $i / $jumps)) | Out-Null
+        Start-Sleep -Milliseconds 70
+    }
+    [Native]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero)
+    Start-Sleep -Milliseconds 350
+}
+
 function Cell-Centre($board, [int]$cx, [int]$cy) {
     return @([int]($board.Left + ($cx + 0.5) * $board.Cell), [int]($board.Top + ($cy + 0.5) * $board.Cell))
 }
@@ -228,6 +242,20 @@ try {
     $shotRandom = Take-Shot $proc 'smoke-3-random'; $shotRandom.Dispose()
     Send-Keys 'c'
     Check 'C clears the board' ((Get-Alive $proc) -eq 0) (Get-Title $proc)
+
+    # click and drag brings every cell the mouse passes over to life, and it is not also a click
+    $from = Cell-Centre $board 20 10
+    $to = Cell-Centre $board 30 10
+    Drag-Screen $from[0] $from[1] $to[0] $to[1] 3
+    Check 'dragging along a row fills every cell it passes over, 11 of them, even in 3 big jumps' ((Get-Alive $proc) -eq 11) (Get-Title $proc)
+    Drag-Screen $to[0] $to[1] $from[0] $from[1] 5
+    Check 'dragging back over them leaves them alive (a drag paints, it does not toggle)' ((Get-Alive $proc) -eq 11) (Get-Title $proc)
+    $down = Cell-Centre $board 25 14
+    Drag-Screen $from[0] $from[1] $down[0] $down[1] 4
+    Check 'a drag that bends fills a line across the board too' ((Get-Alive $proc) -ge 16) (Get-Title $proc)
+    $shotDrag = Take-Shot $proc 'smoke-3b-drag'; $shotDrag.Dispose()
+    Send-Keys 'c'
+    Check 'C clears the dragged cells' ((Get-Alive $proc) -eq 0) (Get-Title $proc)
 
     # right click places the chosen pattern (a glider at the start)
     $c = Cell-Centre $board 30 30

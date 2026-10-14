@@ -19,6 +19,7 @@ From the repository root:
 | Input | What it does |
 |---|---|
 | Left click on the board | Toggle a cell |
+| Left click and drag on the board | Bring every cell the mouse passes over to life, in a straight line between the points the window was told about, so a fast drag leaves no gaps. A drag paints, it does not toggle (going back over a cell leaves it alive), and it is not also a click |
 | Right click on the board | Place the chosen pattern with its top left corner at that cell (moved back if it would hang off the edge) |
 | Space | Start, or pause when running |
 | S or Right arrow | One generation |
@@ -93,7 +94,7 @@ Source: `src/ProGriddle/Games/Life/`. The composition root, the only place that 
 | `SparseLifeEngine` | For a `SparseStore`. Exports the live cells, adds one to the count of each neighbour in a second temp table, decides only the counted cells, and imports the survivors. Its cost follows the number of live cells. It refuses rules with a birth on zero neighbours (`B0`). |
 | `LifeGame` | The game. Single layer `state`. Reset (`Initialise`) returns to the board as it was when the first step was taken. |
 | `LifeFactory` | Builds a game with the right store and engine for the expected crowding, and `Rebuild` changes the rules and size of a running game. |
-| `LifeInput` | Left click toggles, right click places the chosen pattern, Random and Clear start a new board. It also implements `IGameOptions` for the Rules and Board boxes. |
+| `LifeInput` | Left click toggles, left click and drag paints, right click places the chosen pattern, Random and Clear start a new board. It also implements `IGameOptions` for the Rules and Board boxes and `IDragInput` for the painting. |
 
 ## Performance
 
@@ -124,7 +125,7 @@ All under `tests/ProGriddle/Games/Life/`.
 | `LifeEngineTests` | The Life behaviour itself, run on both engines: still lifes, oscillators, gliders (including the torus return after 4 x width generations), the Gosper gun, HighLife, S0 rules, and every generation of random boards against a slow independent reference |
 | `LifeGameTests` | Editing cells, placing patterns, randomising, reset behaviour, validation, replacing the grid and engine |
 | `LifeFactoryTests` | The 5% switch over, what it builds, and rebuilding a running game: cells kept or lost, generation, wrapping, the engine chosen again |
-| `LifeInputTests` | The status text, the pattern picker, clicks, the extra commands and the Rules and Board options |
+| `LifeInputTests` | The status text, the pattern picker, clicks and drags, the extra commands and the Rules and Board options |
 | `GameWindowOptionsTests` (WinForms) | The window puts back saved options and ignores ones that are not on offer |
 | `LifeSessionTests` | Whole keyboard sessions through `GameController`, `FakeClock` and `TextGridRenderer`, with no window |
 
@@ -132,7 +133,7 @@ Run them with `powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tes
 
 ## Checking the window
 
-`tools/gui-smoke-life.ps1` launches the real window with a throwaway settings file and drives it like a user. It finds the board from a screenshot, clicks and types, drives the pattern, rules and board lists with a real mouse and the arrow keys (HighLife, Seeds, back to Conway, then a bigger, a smaller and the usual board), reads the state back from the window title, resizes the window, closes it, checks that the process exits and the settings were saved, then starts it again to see them restored. It sends real keystrokes and mouse clicks to the foreground, so leave the keyboard and mouse alone for the minute or so it takes. Screenshots go to `build/screenshots`.
+`tools/gui-smoke-life.ps1` launches the real window with a throwaway settings file and drives it like a user. It finds the board from a screenshot, clicks and types, drives the pattern, rules and board lists with a real mouse and the arrow keys (HighLife, Seeds, back to Conway, then a bigger, a smaller and the usual board), reads the state back from the window title, resizes the window, closes it, checks that the process exits and the settings were saved, drags the mouse across the board (in a few big jumps, to check no cell is skipped), then starts it again to see them restored. It sends real keystrokes and mouse clicks to the foreground, so leave the keyboard and mouse alone for the minute or so it takes. Screenshots go to `build/screenshots`.
 
 ```
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/gui-smoke-life.ps1
