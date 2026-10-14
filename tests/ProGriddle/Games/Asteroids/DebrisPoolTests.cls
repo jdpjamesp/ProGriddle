@@ -327,6 +327,78 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
         END.
     END METHOD.
 
+    /* ---------------------------------- saucers exploding ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID ASaucerBreaksIntoItsOwnLinesAndARingOfTwelve():
+        mPool:SaucerBurst(TRUE, 160 * 4096, 100 * 4096, 0, 0).
+        Assert:Equals(10 + 12, mPool:Count).
+        mPool:Clear().
+        mPool:SaucerBurst(FALSE, 160 * 4096, 100 * 4096, 0, 0).
+        Assert:Equals(11 + 12, mPool:Count).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheLargeSaucerFadesThroughEmberAndTheSmallOneThroughRed():
+        mPool:SaucerBurst(TRUE, 160 * 4096, 100 * 4096, 0, 0).
+        Assert:Equals(AsteroidsLook:RampColour(Ramp:Ember, 0), mPool:ColourOf(0)).
+        Assert:Equals(AsteroidsLook:RampColour(Ramp:Ember, 0), mPool:ColourOf(10)).
+        mPool:Clear().
+        mPool:SaucerBurst(FALSE, 160 * 4096, 100 * 4096, 0, 0).
+        Assert:Equals(AsteroidsLook:RampColour(Ramp:Red, 0), mPool:ColourOf(0)).
+        Assert:Equals(AsteroidsLook:RampColour(Ramp:Red, 0), mPool:ColourOf(11)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheRingGoesAfterTwentyTwoStepsAndTheLinesAfterSixty():
+        mPool:SaucerBurst(TRUE, 160 * 4096, 100 * 4096, 0, 0).
+        Steps(21).
+        Assert:Equals(22, mPool:Count).
+        Steps(1).
+        Assert:Equals(10, mPool:Count).
+        Steps(37).
+        Assert:Equals(10, mPool:Count).
+        Steps(1).
+        Assert:Equals(0, mPool:Count).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheLinesFlyOutwardAndTheRingStartsTwoCellsOutFromStraightUp():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DEFINE VARIABLE d AS DECIMAL NO-UNDO.
+        mPool:SaucerBurst(TRUE, 160 * 4096, 100 * 4096, 0, 0).
+        Assert:Equals(160, mPool:X(10)).
+        Assert:Equals(98, mPool:Y(10)).
+        Assert:Equals(160, mPool:X(16)).
+        Assert:Equals(102, mPool:Y(16)).
+        Steps(10).
+        DO i = 0 TO 9:
+            d = SQRT(DECIMAL((mPool:X(i) - 160) * (mPool:X(i) - 160) + (mPool:Y(i) - 100) * (mPool:Y(i) - 100))).
+            Assert:IsTrue(d >= 1.0, SUBSTITUTE("line &1 is only &2 cells out", i, d)).
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheLinesTakeHalfTheSaucersSpeedWithThem():
+        DEFINE VARIABLE still  AS DebrisPool NO-UNDO.
+        DEFINE VARIABLE moving AS DebrisPool NO-UNDO.
+        DEFINE VARIABLE i      AS INTEGER    NO-UNDO.
+        DEFINE VARIABLE gain   AS INTEGER    NO-UNDO.
+        still = NEW DebrisPool(NEW SeededRandom(5), 320, 240).
+        moving = NEW DebrisPool(NEW SeededRandom(5), 320, 240).
+        still:SaucerBurst(TRUE, 100 * 4096, 100 * 4096, 0, 0).
+        moving:SaucerBurst(TRUE, 100 * 4096, 100 * 4096, 2 * 4096, 0).
+        DO i = 1 TO 5:
+            still:Step().
+            moving:Step().
+        END.
+        /* ten lines, each about 1 cell a step further for 5 steps less the drag */
+        DO i = 0 TO 9:
+            gain = gain + moving:X(i) - still:X(i).
+        END.
+        Assert:IsTrue(gain >= 38 AND gain <= 60, STRING(gain)).
+    END METHOD.
+
     @Test.
     METHOD PUBLIC VOID ARockBurstRefusesASizeThatIsNotOneTwoOrThree():
         DEFINE VARIABLE thrown AS INTEGER NO-UNDO.

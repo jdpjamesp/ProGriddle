@@ -239,6 +239,65 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
         END.
     END METHOD.
 
+    /* A saucer explodes at (piX, piY), flying at (piVX, piVY): each line of its outline (10 for the large saucer, 11 for the
+       small one) flies outward from its middle at 0.3 to 0.7 of a cell a step on top of half the saucer's speed, slowing
+       a little, spinning 2 to 5 degrees a step, for 60 steps, and a ring of twelve cells leaves from two cells out (0.9
+       of a cell a step, 22 steps). Ember colours for the large saucer, red for the small one. 22 or 23 pieces. */
+    METHOD PUBLIC VOID SaucerBurst(INPUT plLarge AS LOGICAL, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piVX AS INTEGER, INPUT piVY AS INTEGER):
+        DEFINE VARIABLE shape  AS Outline NO-UNDO.
+        DEFINE VARIABLE fade   AS Ramp    NO-UNDO.
+        DEFINE VARIABLE l      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE s      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE q      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x1     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y1     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x2     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y2     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE mx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE my     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hy     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE away   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE speed  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE spin   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dir    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
+        IF plLarge = ? THEN UNDO, THROW NEW GridException("A saucer is large or small, not unknown").
+        shape = AsteroidsArt:Saucer(plLarge).
+        fade = (IF plLarge THEN Ramp:Ember ELSE Ramp:Red).
+        DO l = 1 TO shape:LineCount:
+            n = shape:PointCount(l).
+            DO s = 1 TO (IF shape:IsClosed(l) THEN n ELSE n - 1):
+                q = (IF s = n THEN 1 ELSE s + 1).
+                /* the points are 64ths of a cell and a unit is 64 of those, so the points times 64 are units */
+                x1 = shape:PointX(l, s) * 64.
+                y1 = shape:PointY(l, s) * 64.
+                x2 = shape:PointX(l, q) * 64.
+                y2 = shape:PointY(l, q) * 64.
+                mx = INTEGER(TRUNCATE((x1 + x2) / 2, 0)).
+                my = INTEGER(TRUNCATE((y1 + y2) / 2, 0)).
+                hx = INTEGER(TRUNCATE((x2 - x1) / 2, 0)).
+                hy = INTEGER(TRUNCATE((y2 - y1) / 2, 0)).
+                away = Heading:Nearest(mx, my).
+                speed = 1229 + mRandom:NextInt(1639).
+                spin = 6 + mRandom:NextInt(9).
+                IF mRandom:NextInt(2) = 0 THEN spin = - spin.
+                AddChip(piX + mx, piY + my,
+                        INTEGER(TRUNCATE(piVX / 2, 0)) + INTEGER(TRUNCATE(Heading:DirX(away) * speed / 1024, 0)),
+                        INTEGER(TRUNCATE(piVY / 2, 0)) + INTEGER(TRUNCATE(Heading:DirY(away) * speed / 1024, 0)),
+                        980, 60, Heading:Nearest(hx, hy) * 16, spin, INTEGER(ROUND(SQRT(DECIMAL(hx) * hx + DECIMAL(hy) * hy), 0)), fade).
+            END.
+        END.
+        /* twelve cells, 30 degrees apart from straight up (64 headings do not divide by 12, so the nearest heading) */
+        DO k = 0 TO 11:
+            dir = INTEGER(TRUNCATE(k * 64 / 12, 0)).
+            AddCell(piX + INTEGER(TRUNCATE(Heading:DirX(dir) * 2 * {&UNIT} / 1024, 0)), piY + INTEGER(TRUNCATE(Heading:DirY(dir) * 2 * {&UNIT} / 1024, 0)),
+                    INTEGER(TRUNCATE(Heading:DirX(dir) * 3686 / 1024, 0)), INTEGER(TRUNCATE(Heading:DirY(dir) * 3686 / 1024, 0)),
+                    1000, 22, fade).
+        END.
+    END METHOD.
+
     /* One step: every piece moves, slows, turns and ages, and the ones whose life is over go. */
     METHOD PUBLIC VOID Step():
         DEFINE VARIABLE i AS INTEGER NO-UNDO.
