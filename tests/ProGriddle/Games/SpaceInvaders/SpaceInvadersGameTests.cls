@@ -14,7 +14,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
-    {ProGriddle/Games/SpaceInvaders/Kinds.i}
     {ProGriddle/Games/SpaceInvaders/Colours.i}
 
     DEFINE PRIVATE VARIABLE mGame AS SpaceInvadersGame NO-UNDO.
@@ -182,8 +181,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         /* the big letters (text has no kind, it is only colour) and the table of invaders, which are effects cells */
         Assert:IsTrue(CountLit(40, 40, 150, 60) > 400).
         Assert:IsTrue(CountLit(70, 120, 130, 60) > 150).
-        Assert:IsTrue(mGame:Canvas:CountKind({&KIND-FX}) > 50).
-        Assert:Equals(0, mGame:Canvas:CountKind({&KIND-ALIEN})).
+        Assert:IsTrue(mGame:Canvas:CountKind(INTEGER(CellKind:Fx)) > 50).
+        Assert:Equals(0, mGame:Canvas:CountKind(INTEGER(CellKind:Alien))).
     END METHOD.
 
     @Test.
@@ -229,13 +228,13 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     METHOD PUBLIC VOID TheWaveDrawsInOneInvaderAFrameBottomRowFirstFromFrameTen():
         StartTheGame().
         Frames(10).
-        Assert:Equals(0, mGame:Canvas:CountKind({&KIND-ALIEN})).
+        Assert:Equals(0, mGame:Canvas:CountKind(INTEGER(CellKind:Alien))).
         mGame:Advance().
         /* invader 44 is the bottom left octopus; 33 is the one above it, and comes eleven frames later */
-        Assert:Equals({&KIND-ALIEN}, mGame:Canvas:KindAt(mGame:Rack:X(44) + 4, mGame:Rack:Y(44) + 1)).
-        Assert:Equals({&KIND-NONE}, mGame:Canvas:KindAt(mGame:Rack:X(33) + 4, mGame:Rack:Y(33) + 1)).
+        Assert:Equals(INTEGER(CellKind:Alien), mGame:Canvas:KindAt(mGame:Rack:X(44) + 4, mGame:Rack:Y(44) + 1)).
+        Assert:Equals(INTEGER(CellKind:None), mGame:Canvas:KindAt(mGame:Rack:X(33) + 4, mGame:Rack:Y(33) + 1)).
         Frames(11).
-        Assert:Equals({&KIND-ALIEN}, mGame:Canvas:KindAt(mGame:Rack:X(33) + 4, mGame:Rack:Y(33) + 1)).
+        Assert:Equals(INTEGER(CellKind:Alien), mGame:Canvas:KindAt(mGame:Rack:X(33) + 4, mGame:Rack:Y(33) + 1)).
     END METHOD.
 
     @Test.
@@ -251,12 +250,12 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     METHOD PUBLIC VOID TheShieldsGrowFromTheFootUpOneShieldEveryFourFrames():
         StartTheGame().
         Frames(3).
-        Assert:Equals({&KIND-SHIELD}, mGame:Canvas:KindAt(35, 199)).
-        Assert:Equals({&KIND-NONE}, mGame:Canvas:KindAt(45, 184)).
-        Assert:Equals({&KIND-NONE}, mGame:Canvas:KindAt(79, 199)).
+        Assert:Equals(INTEGER(CellKind:Shield), mGame:Canvas:KindAt(35, 199)).
+        Assert:Equals(INTEGER(CellKind:None), mGame:Canvas:KindAt(45, 184)).
+        Assert:Equals(INTEGER(CellKind:None), mGame:Canvas:KindAt(79, 199)).
         Frames(30).
-        Assert:Equals({&KIND-SHIELD}, mGame:Canvas:KindAt(45, 184)).
-        Assert:Equals({&KIND-SHIELD}, mGame:Canvas:KindAt(35 + 132 + 10, 184)).
+        Assert:Equals(INTEGER(CellKind:Shield), mGame:Canvas:KindAt(45, 184)).
+        Assert:Equals(INTEGER(CellKind:Shield), mGame:Canvas:KindAt(35 + 132 + 10, 184)).
     END METHOD.
 
     @Test.
@@ -281,13 +280,13 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         StartTheGame().
         DO n = 1 TO 129:
             mGame:Advance().
-            fewest = MINIMUM(fewest, mGame:Canvas:CountKind({&KIND-PLAYER})).
-            most = MAXIMUM(most, mGame:Canvas:CountKind({&KIND-PLAYER})).
+            fewest = MINIMUM(fewest, mGame:Canvas:CountKind(INTEGER(CellKind:Player))).
+            most = MAXIMUM(most, mGame:Canvas:CountKind(INTEGER(CellKind:Player))).
         END.
         Assert:IsTrue(fewest < most).
         mGame:Advance().
         Assert:Equals(GamePhase:Playing, mGame:Phase).
-        Assert:Equals(most, mGame:Canvas:CountKind({&KIND-PLAYER})).
+        Assert:Equals(most, mGame:Canvas:CountKind(INTEGER(CellKind:Player))).
     END METHOD.
 
     @Test.
@@ -319,8 +318,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Play().
         Assert:Equals(GamePhase:Playing, mGame:Phase).
         Assert:Equals(55, mGame:Rack:AliveCount).
-        Assert:IsTrue(mGame:Canvas:CountKind({&KIND-ALIEN}) > 1000).
-        Assert:IsTrue(mGame:Canvas:CountKind({&KIND-SHIELD}) > 600).
+        Assert:IsTrue(mGame:Canvas:CountKind(INTEGER(CellKind:Alien)) > 1000).
+        Assert:IsTrue(mGame:Canvas:CountKind(INTEGER(CellKind:Shield)) > 600).
         mGame:SkipIntro().
         Assert:Equals(GamePhase:Playing, mGame:Phase).
     END METHOD.
@@ -329,13 +328,13 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     METHOD PUBLIC VOID TheWaveStartsWithFourShieldsAndTheCannonInTheMiddle():
         Play().
         Assert:Equals(105, mGame:PlayerX).
-        Assert:Equals({&KIND-PLAYER}, mGame:Canvas:KindAt(105, 223)).
-        Assert:Equals({&KIND-SHIELD}, mGame:Canvas:KindAt(35 + 10, 184 + 4)).
-        Assert:Equals({&KIND-SHIELD}, mGame:Canvas:KindAt(35 + 44 + 10, 184 + 4)).
-        Assert:Equals({&KIND-SHIELD}, mGame:Canvas:KindAt(35 + 88 + 10, 184 + 4)).
-        Assert:Equals({&KIND-SHIELD}, mGame:Canvas:KindAt(35 + 132 + 10, 184 + 4)).
+        Assert:Equals(INTEGER(CellKind:Player), mGame:Canvas:KindAt(105, 223)).
+        Assert:Equals(INTEGER(CellKind:Shield), mGame:Canvas:KindAt(35 + 10, 184 + 4)).
+        Assert:Equals(INTEGER(CellKind:Shield), mGame:Canvas:KindAt(35 + 44 + 10, 184 + 4)).
+        Assert:Equals(INTEGER(CellKind:Shield), mGame:Canvas:KindAt(35 + 88 + 10, 184 + 4)).
+        Assert:Equals(INTEGER(CellKind:Shield), mGame:Canvas:KindAt(35 + 132 + 10, 184 + 4)).
         /* the arch cut out of the foot of a shield */
-        Assert:Equals({&KIND-NONE}, mGame:Canvas:KindAt(35 + 10, 184 + 14)).
+        Assert:Equals(INTEGER(CellKind:None), mGame:Canvas:KindAt(35 + 10, 184 + 14)).
     END METHOD.
 
     /* ---------------------------------- the cannon ---------------------------------- */
@@ -381,15 +380,15 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         mGame:MoveDirection = 1.
         Frames(5).
         Assert:Equals(203, mGame:PlayerX).
-        Assert:Equals({&KIND-PLAYER}, mGame:Canvas:KindAt(203 + 12, 223)).
+        Assert:Equals(INTEGER(CellKind:Player), mGame:Canvas:KindAt(203 + 12, 223)).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID SettingTheCannonDownTakesItOffWhereItWas():
         Play().
         mGame:SetPlayerX(60).
-        Assert:Equals({&KIND-NONE}, mGame:Canvas:KindAt(105, 223)).
-        Assert:Equals({&KIND-PLAYER}, mGame:Canvas:KindAt(60, 223)).
+        Assert:Equals(INTEGER(CellKind:None), mGame:Canvas:KindAt(105, 223)).
+        Assert:Equals(INTEGER(CellKind:Player), mGame:Canvas:KindAt(60, 223)).
     END METHOD.
 
     /* ---------------------------------- the shot ---------------------------------- */
@@ -402,7 +401,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Assert:IsTrue(mGame:ShotActive).
         Assert:Equals(111, mGame:ShotX).
         Assert:Equals(1, mGame:ShotsFired).
-        Assert:Equals({&KIND-SHOT}, mGame:Canvas:KindAt(mGame:ShotX, mGame:ShotY)).
+        Assert:Equals(INTEGER(CellKind:Shot), mGame:Canvas:KindAt(mGame:ShotX, mGame:ShotY)).
     END METHOD.
 
     @Test.
@@ -459,7 +458,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Assert:IsFalse(mGame:ShotActive).
         Assert:Equals(GamePhase:Playing, mGame:Phase).
         Assert:Equals(0, mGame:Score).
-        Assert:Equals(0, mGame:Canvas:CountKind({&KIND-SHOT})).
+        Assert:Equals(0, mGame:Canvas:CountKind(INTEGER(CellKind:Shot))).
     END METHOD.
 
     @Test.
@@ -513,24 +512,24 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         DEFINE VARIABLE before AS INTEGER NO-UNDO.
         Play().
         mGame:Canvas:ClearRect(0, 184, 224, 16).
-        before = mGame:Canvas:CountKind({&KIND-FX}).
+        before = mGame:Canvas:CountKind(INTEGER(CellKind:Fx)).
         AimAt(mGame:Rack:X(44) + 4).
         FireAndWait(60).
-        Assert:IsTrue(mGame:Canvas:CountKind({&KIND-FX}) > before).
+        Assert:IsTrue(mGame:Canvas:CountKind(INTEGER(CellKind:Fx)) > before).
         EmptyField(1).
         Frames(80).
-        Assert:Equals(before, mGame:Canvas:CountKind({&KIND-FX})).
+        Assert:Equals(before, mGame:Canvas:CountKind(INTEGER(CellKind:Fx))).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID AShotThatHitsAShieldEatsPartOfItAndIsGone():
         DEFINE VARIABLE before AS INTEGER NO-UNDO.
         Play().
-        before = mGame:Canvas:CountKind({&KIND-SHIELD}).
+        before = mGame:Canvas:CountKind(INTEGER(CellKind:Shield)).
         AimAt(35 + 10).
         FireAndWait(60).
         Assert:IsFalse(mGame:ShotActive).
-        Assert:IsTrue(mGame:Canvas:CountKind({&KIND-SHIELD}) < before).
+        Assert:IsTrue(mGame:Canvas:CountKind(INTEGER(CellKind:Shield)) < before).
         Assert:Equals(55, mGame:Rack:AliveCount).
     END METHOD.
 
@@ -669,14 +668,14 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         DEFINE VARIABLE before AS INTEGER NO-UNDO.
         DEFINE VARIABLE n      AS INTEGER NO-UNDO.
         Play().
-        before = mGame:Canvas:CountKind({&KIND-SHIELD}).
+        before = mGame:Canvas:CountKind(INTEGER(CellKind:Shield)).
         mGame:DropBomb(0, 45, 170).
         DO n = 1 TO 30:
             mGame:Advance().
             IF NOT mGame:BombActive(0) THEN LEAVE.
         END.
         Assert:IsFalse(mGame:BombActive(0)).
-        Assert:IsTrue(mGame:Canvas:CountKind({&KIND-SHIELD}) < before).
+        Assert:IsTrue(mGame:Canvas:CountKind(INTEGER(CellKind:Shield)) < before).
         Assert:Equals(GamePhase:Playing, mGame:Phase).
     END METHOD.
 
@@ -786,10 +785,10 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Assert:IsFalse(mGame:BombActive(1)).
         Assert:IsFalse(mGame:BombActive(2)).
         /* the cannon is white for two frames, and then gone */
-        Assert:IsTrue(mGame:Canvas:CountKind({&KIND-PLAYER}) > 30).
+        Assert:IsTrue(mGame:Canvas:CountKind(INTEGER(CellKind:Player)) > 30).
         Assert:Equals(InvadersLook:Colour({&C-FLASH}), mGame:Canvas:ColourAt(mGame:PlayerX + 6, 221)).
         Frames(3).
-        Assert:Equals(0, mGame:Canvas:CountKind({&KIND-PLAYER})).
+        Assert:Equals(0, mGame:Canvas:CountKind(INTEGER(CellKind:Player))).
     END METHOD.
 
     @Test.
@@ -813,7 +812,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Assert:Equals(GamePhase:Playing, mGame:Phase).
         Assert:Equals(2, mGame:Lives).
         Assert:Equals(105, mGame:PlayerX).
-        Assert:Equals({&KIND-PLAYER}, mGame:Canvas:KindAt(105, 223)).
+        Assert:Equals(INTEGER(CellKind:Player), mGame:Canvas:KindAt(105, 223)).
     END METHOD.
 
     @Test.
@@ -893,11 +892,11 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     METHOD PUBLIC VOID TheShieldsAreRebuiltForANewWave():
         Play().
         mGame:Canvas:ClearRect(0, 184, 224, 16).
-        Assert:Equals(0, mGame:Canvas:CountKind({&KIND-SHIELD})).
+        Assert:Equals(0, mGame:Canvas:CountKind(INTEGER(CellKind:Shield))).
         EmptyField(0).
         Frames(100).
         mGame:SkipIntro().
-        Assert:IsTrue(mGame:Canvas:CountKind({&KIND-SHIELD}) > 600).
+        Assert:IsTrue(mGame:Canvas:CountKind(INTEGER(CellKind:Shield)) > 600).
     END METHOD.
 
     @Test.
@@ -985,15 +984,15 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     METHOD PUBLIC VOID TheStarsDriftButNeverCoverTheInvaders():
         Play().
         Frames(100).
-        Assert:IsTrue(mGame:Canvas:CountKind({&KIND-ALIEN}) > 1000).
+        Assert:IsTrue(mGame:Canvas:CountKind(INTEGER(CellKind:Alien)) > 1000).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID ADroppedBombIsDrawnAsCellsOfTheBombKind():
         Play().
         mGame:DropBomb(1, 20, 100).
-        Assert:IsTrue(mGame:Canvas:CountKind({&KIND-BOMB}) > 5).
-        Assert:Equals({&KIND-BOMB}, mGame:Canvas:KindAt(21, 103)).
+        Assert:IsTrue(mGame:Canvas:CountKind(INTEGER(CellKind:Bomb)) > 5).
+        Assert:Equals(INTEGER(CellKind:Bomb), mGame:Canvas:KindAt(21, 103)).
     END METHOD.
 
     @Test.
@@ -1017,13 +1016,13 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         mGame:SetPlayerX(40).
         DO n = 1 TO 80:
             mGame:Advance().
-            cells = mGame:Canvas:CountKind({&KIND-PLAYER}).
+            cells = mGame:Canvas:CountKind(INTEGER(CellKind:Player)).
             fewest = MINIMUM(fewest, cells).
             most = MAXIMUM(most, cells).
         END.
         Assert:IsTrue(fewest < most, "fewest " + STRING(fewest) + " most " + STRING(most)).
         Frames(20).
-        Assert:Equals(most, mGame:Canvas:CountKind({&KIND-PLAYER})).
+        Assert:Equals(most, mGame:Canvas:CountKind(INTEGER(CellKind:Player))).
     END METHOD.
 
     @Test.
@@ -1035,11 +1034,11 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         mGame:SetPlayerX(40).
         BombTheCannon().
         Frames(3).
-        flash = mGame:Canvas:CountKind({&KIND-FX}).
+        flash = mGame:Canvas:CountKind(INTEGER(CellKind:Fx)).
         Frames(20).
-        middle = mGame:Canvas:CountKind({&KIND-FX}).
+        middle = mGame:Canvas:CountKind(INTEGER(CellKind:Fx)).
         Frames(40).
-        rubble = mGame:Canvas:CountKind({&KIND-FX}).
+        rubble = mGame:Canvas:CountKind(INTEGER(CellKind:Fx)).
         Assert:IsTrue(flash > 20).
         Assert:IsTrue(middle > 20).
         Assert:IsTrue(rubble > 5).
@@ -1305,7 +1304,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         mGame:Advance().
         mGame:FireHeld = FALSE.
         /* the muzzle flash holds the last cell of the tail for its first frames */
-        Assert:IsTrue(mGame:Canvas:CountKind({&KIND-SHOT}) >= 5).
+        Assert:IsTrue(mGame:Canvas:CountKind(INTEGER(CellKind:Shot)) >= 5).
         Assert:Equals(InvadersLook:Colour({&C-SHOT-TIP}), mGame:Canvas:ColourAt(mGame:ShotX, mGame:ShotY)).
         Assert:Equals(InvadersLook:Colour({&C-SHOT}), mGame:Canvas:ColourAt(mGame:ShotX, mGame:ShotY + 2)).
         Assert:Equals(InvadersLook:Colour({&C-SHOT-TAIL}), mGame:Canvas:ColourAt(mGame:ShotX, mGame:ShotY + 4)).
@@ -1317,7 +1316,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         EmptyField(1).
         FireAndWait(100).
         Frames(5).
-        Assert:Equals(0, mGame:Canvas:CountKind({&KIND-SHOT})).
+        Assert:Equals(0, mGame:Canvas:CountKind(INTEGER(CellKind:Shot))).
     END METHOD.
 
     @Test.
@@ -1332,8 +1331,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Assert:Equals(InvadersLook:Colour({&C-FLASH}), mGame:Canvas:ColourAt(110, 214)).
         Assert:Equals(InvadersLook:Colour({&C-FLASH}), mGame:Canvas:ColourAt(112, 214)).
         Frames(3).
-        Assert:IsTrue(mGame:Canvas:KindAt(111, 214) <> {&KIND-FX}).
-        Assert:Equals({&KIND-NONE}, mGame:Canvas:KindAt(110, 214)).
+        Assert:IsTrue(mGame:Canvas:KindAt(111, 214) <> INTEGER(CellKind:Fx)).
+        Assert:Equals(INTEGER(CellKind:None), mGame:Canvas:KindAt(110, 214)).
     END METHOD.
 
     @Test.

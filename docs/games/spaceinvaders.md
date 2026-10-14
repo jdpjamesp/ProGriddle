@@ -53,7 +53,7 @@ The window saves its position (`spaceinvaders.window.x` and `.y`) and whether it
 | Part | Used here |
 |---|---|
 | Archetype | Real time: `SpaceInvadersGame` implements `IRealTimeGame` on `AbstractGame` |
-| Grid | `ArrayStore` 224 x 256 with three layers: `view` (the colour of a cell, 0xRRGGBB), `kind` (what is in it, `Kinds.i`) and `back` (what shows when nothing is on it) |
+| Grid | `ArrayStore` 224 x 256 with three layers: `view` (the colour of a cell, 0xRRGGBB), `kind` (what is in it, the `CellKind` enum) and `back` (what shows when nothing is on it) |
 | Controller | `RealTimeController` with a `WinFormsClock` ticking as often as Windows allows |
 | View | `GridView` in direct colour with the grid lines off |
 | Window | The generic `GameWindow`, told about the game through `SpaceInvadersInput` |

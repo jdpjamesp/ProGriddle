@@ -1,5 +1,5 @@
 /* Builds the pieces of a Space Invaders game. The grid is the arcade's 224 x 256, an ArrayStore with three layers:
-   "view" (the colour of each cell, 0xRRGGBB), "kind" (what is in it, see Kinds.i) and "back" (what shows when
+   "view" (the colour of each cell, 0xRRGGBB), "kind" (what is in it, see the CellKind enum) and "back" (what shows when
    nothing is on it). The window shows the view layer in direct colour. */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
