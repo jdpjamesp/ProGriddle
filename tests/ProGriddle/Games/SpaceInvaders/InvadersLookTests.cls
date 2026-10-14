@@ -100,6 +100,39 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersLookTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID TheFiveRowColoursRotateByOneEachWave():
+        Assert:Equals(InvadersLook:Colour({&C-INV1-MAIN}), InvadersLook:InvaderColour(0, 1, 1)).
+        Assert:Equals(InvadersLook:Colour({&C-INV5-MAIN}), InvadersLook:InvaderColour(4, 1, 1)).
+        Assert:Equals(InvadersLook:Colour({&C-INV2-LIGHT}), InvadersLook:InvaderColour(0, 2, 2)).
+        Assert:Equals(InvadersLook:Colour({&C-INV1-DEEP}), InvadersLook:InvaderColour(4, 2, 3)).
+        Assert:Equals(InvadersLook:InvaderColour(0, 1, 1), InvadersLook:InvaderColour(0, 6, 1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ABadRowWaveOrToneOfAnInvaderIsRefused():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            InvadersLook:InvaderColour(5, 1, 1).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            InvadersLook:InvaderColour(0, 0, 1).
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            InvadersLook:InvaderColour(0, 1, 4).
+            CATCH e3 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(3, thrown).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ABadColourNumberIsRefused():
         DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
         DO ON ERROR UNDO, THROW:
