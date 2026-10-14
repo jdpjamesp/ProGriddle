@@ -8,7 +8,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersFactoryTests:
 
-    {ProGriddle/Games/SpaceInvaders/Phases.i}
 
     @Test.
     METHOD PUBLIC VOID TheLayersAreViewKindAndBackInThatOrder():
@@ -32,7 +31,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersFactoryTests:
     METHOD PUBLIC VOID ANewGameShowsTheTitleScreen():
         DEFINE VARIABLE game AS SpaceInvadersGame NO-UNDO.
         game = SpaceInvadersFactory:Create(NEW SeededRandom(1)).
-        Assert:Equals({&PHASE-TITLE}, game:Phase).
+        Assert:Equals(GamePhase:Title, game:Phase).
         Assert:Equals(224, game:Grid:Width).
         game:Dispose().
     END METHOD.

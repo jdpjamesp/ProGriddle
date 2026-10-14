@@ -27,7 +27,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Asteroids.AsteroidsInput FINAL IMPLEMENTS IGameInput:
 
-    {ProGriddle/Games/Asteroids/Phases.i}
 
     DEFINE PRIVATE VARIABLE mGame     AS AsteroidsGame NO-UNDO.
     DEFINE PRIVATE VARIABLE mSettings AS ISettings     NO-UNDO.
@@ -44,8 +43,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsInput FINAL IMPLEMENTS IGameInput:
         GET():
             SaveHiScore().
             CASE mGame:Phase:
-                WHEN {&PHASE-TITLE} THEN RETURN SUBSTITUTE("Asteroids   Hi &1   Press Space to play", mGame:HiScore).
-                WHEN {&PHASE-GAMEOVER} THEN RETURN SUBSTITUTE("Game over   Score &1   Hi &2   Press Space", mGame:Score, mGame:HiScore).
+                WHEN GamePhase:Title THEN RETURN SUBSTITUTE("Asteroids   Hi &1   Press Space to play", mGame:HiScore).
+                WHEN GamePhase:GameOver THEN RETURN SUBSTITUTE("Game over   Score &1   Hi &2   Press Space", mGame:Score, mGame:HiScore).
             END CASE.
             RETURN SUBSTITUTE("Score &1   Hi &2   Ships &3   Wave &4   Speed &5%", mGame:Score, mGame:HiScore, mGame:Lives, mGame:Wave, mGame:SpeedPercent).
         END GET.

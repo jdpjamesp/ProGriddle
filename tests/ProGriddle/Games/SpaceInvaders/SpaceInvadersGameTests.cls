@@ -15,7 +15,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     {ProGriddle/Games/SpaceInvaders/Kinds.i}
-    {ProGriddle/Games/SpaceInvaders/Phases.i}
     {ProGriddle/Games/SpaceInvaders/Colours.i}
 
     DEFINE PRIVATE VARIABLE mGame AS SpaceInvadersGame NO-UNDO.
@@ -109,7 +108,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         DEFINE VARIABLE n AS INTEGER NO-UNDO.
         mGame:DropBomb(FreeBombType(), mGame:PlayerX, 205).
         DO n = 1 TO 40:
-            IF mGame:Phase <> {&PHASE-PLAYING} THEN LEAVE.
+            IF mGame:Phase <> GamePhase:Playing THEN LEAVE.
             mGame:Advance().
         END.
     END METHOD.
@@ -134,7 +133,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     METHOD PRIVATE VOID WaitForTheBlast():
         DEFINE VARIABLE n AS INTEGER NO-UNDO.
         DO n = 1 TO 130:
-            IF mGame:Phase <> {&PHASE-DYING} THEN LEAVE.
+            IF mGame:Phase <> GamePhase:Dying THEN LEAVE.
             mGame:Advance().
         END.
     END METHOD.
@@ -167,7 +166,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID AGameStartsOnTheTitleScreenWithNothingScoredAndNothingMoving():
-        Assert:Equals({&PHASE-TITLE}, mGame:Phase).
+        Assert:Equals(GamePhase:Title, mGame:Phase).
         Assert:Equals(0, mGame:Score).
         Assert:IsFalse(mGame:ShotActive).
         Assert:IsFalse(mGame:SaucerActive).
@@ -192,13 +191,13 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         /* a fire key that was down before the title appeared does not start the game */
         mGame:FireHeld = TRUE.
         Frames(5).
-        Assert:Equals({&PHASE-TITLE}, mGame:Phase).
+        Assert:Equals(GamePhase:Title, mGame:Phase).
         mGame:FireHeld = FALSE.
         Frames(2).
-        Assert:Equals({&PHASE-TITLE}, mGame:Phase).
+        Assert:Equals(GamePhase:Title, mGame:Phase).
         mGame:FireHeld = TRUE.
         mGame:Advance().
-        Assert:Equals({&PHASE-STARTING}, mGame:Phase).
+        Assert:Equals(GamePhase:Starting, mGame:Phase).
         Assert:Equals(3, mGame:Lives).
         Assert:Equals(1, mGame:Wave).
     END METHOD.
@@ -287,7 +286,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         END.
         Assert:IsTrue(fewest < most).
         mGame:Advance().
-        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Playing, mGame:Phase).
         Assert:Equals(most, mGame:Canvas:CountKind({&KIND-PLAYER})).
     END METHOD.
 
@@ -295,9 +294,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     METHOD PUBLIC VOID PlayBeginsOneHundredAndThirtyFramesAfterTheWaveStarts():
         StartTheGame().
         Frames(129).
-        Assert:Equals({&PHASE-STARTING}, mGame:Phase).
+        Assert:Equals(GamePhase:Starting, mGame:Phase).
         mGame:Advance().
-        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Playing, mGame:Phase).
     END METHOD.
 
     @Test.
@@ -307,7 +306,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         mGame:Advance().
         mGame:MoveDirection = 1.
         Frames(10).
-        Assert:Equals({&PHASE-STARTING}, mGame:Phase).
+        Assert:Equals(GamePhase:Starting, mGame:Phase).
         Assert:Equals(105, mGame:PlayerX).
         Assert:Equals(0, mGame:ShotsFired).
         Assert:IsFalse(mGame:ShotActive).
@@ -316,14 +315,14 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     @Test.
     METHOD PUBLIC VOID SkipIntroFinishesTheWaveAtOnceAndDoesNothingOutsideTheStartingPhase():
         mGame:SkipIntro().
-        Assert:Equals({&PHASE-TITLE}, mGame:Phase).
+        Assert:Equals(GamePhase:Title, mGame:Phase).
         Play().
-        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Playing, mGame:Phase).
         Assert:Equals(55, mGame:Rack:AliveCount).
         Assert:IsTrue(mGame:Canvas:CountKind({&KIND-ALIEN}) > 1000).
         Assert:IsTrue(mGame:Canvas:CountKind({&KIND-SHIELD}) > 600).
         mGame:SkipIntro().
-        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Playing, mGame:Phase).
     END METHOD.
 
     @Test.
@@ -458,7 +457,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         EmptyField(1).
         FireAndWait(100).
         Assert:IsFalse(mGame:ShotActive).
-        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Playing, mGame:Phase).
         Assert:Equals(0, mGame:Score).
         Assert:Equals(0, mGame:Canvas:CountKind({&KIND-SHOT})).
     END METHOD.
@@ -548,7 +547,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         END.
         Assert:IsFalse(mGame:BombActive(1)).
         Assert:IsFalse(mGame:ShotActive).
-        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Playing, mGame:Phase).
     END METHOD.
 
     /* ---------------------------------- the saucer ---------------------------------- */
@@ -661,7 +660,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
             IF NOT mGame:BombActive(2) THEN LEAVE.
         END.
         Assert:IsFalse(mGame:BombActive(2)).
-        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Playing, mGame:Phase).
         Assert:Equals(3, mGame:Lives).
     END METHOD.
 
@@ -678,7 +677,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         END.
         Assert:IsFalse(mGame:BombActive(0)).
         Assert:IsTrue(mGame:Canvas:CountKind({&KIND-SHIELD}) < before).
-        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Playing, mGame:Phase).
     END METHOD.
 
     @Test.
@@ -781,7 +780,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         mGame:Advance().
         mGame:FireHeld = FALSE.
         BombTheCannon().
-        Assert:Equals({&PHASE-DYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Dying, mGame:Phase).
         Assert:IsFalse(mGame:ShotActive).
         Assert:IsFalse(mGame:BombActive(0)).
         Assert:IsFalse(mGame:BombActive(1)).
@@ -800,7 +799,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         mGame:MoveDirection = 1.
         mGame:FireHeld = TRUE.
         Frames(20).
-        Assert:Equals({&PHASE-DYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Dying, mGame:Phase).
         Assert:Equals(0, mGame:ShotsFired).
         Assert:Equals(105, mGame:PlayerX).
     END METHOD.
@@ -811,7 +810,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         mGame:SetPlayerX(40).
         BombTheCannon().
         WaitForTheBlast().
-        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Playing, mGame:Phase).
         Assert:Equals(2, mGame:Lives).
         Assert:Equals(105, mGame:PlayerX).
         Assert:Equals({&KIND-PLAYER}, mGame:Canvas:KindAt(105, 223)).
@@ -825,16 +824,16 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
             BombTheCannon().
             WaitForTheBlast().
         END.
-        Assert:Equals({&PHASE-GAMEOVER}, mGame:Phase).
+        Assert:Equals(GamePhase:GameOver, mGame:Phase).
         Assert:Equals(0, mGame:Lives).
         mGame:FireHeld = TRUE.
         Frames(3).
-        Assert:Equals({&PHASE-GAMEOVER}, mGame:Phase).
+        Assert:Equals(GamePhase:GameOver, mGame:Phase).
         mGame:FireHeld = FALSE.
         Frames(2).
         mGame:FireHeld = TRUE.
         mGame:Advance().
-        Assert:Equals({&PHASE-TITLE}, mGame:Phase).
+        Assert:Equals(GamePhase:Title, mGame:Phase).
     END METHOD.
 
     @Test.
@@ -846,7 +845,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Assert:Equals(3, mGame:Lives).
         Assert:Equals(1, mGame:Wave).
         Assert:Equals(0, mGame:ShotsFired).
-        Assert:Equals({&PHASE-STARTING}, mGame:Phase).
+        Assert:Equals(GamePhase:Starting, mGame:Phase).
     END METHOD.
 
     /* ---------------------------------- the invaders land ---------------------------------- */
@@ -862,13 +861,13 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         END.
         /* the cannon keeps to the far side from the invader, out of the way of the bombs */
         DO n = 1 TO 600:
-            IF mGame:Phase <> {&PHASE-PLAYING} THEN LEAVE.
+            IF mGame:Phase <> GamePhase:Playing THEN LEAVE.
             mGame:SetPlayerX(IF mGame:Rack:X(0) < 112 THEN 203 ELSE 8).
             mGame:Advance().
         END.
         Assert:IsTrue(mGame:Rack:Bottom() >= 216, "bottom " + STRING(mGame:Rack:Bottom())).
         WaitForTheBlast().
-        Assert:Equals({&PHASE-GAMEOVER}, mGame:Phase).
+        Assert:Equals(GamePhase:GameOver, mGame:Phase).
         Assert:Equals(0, mGame:Lives).
     END METHOD.
 
@@ -879,9 +878,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Play().
         EmptyField(0).
         mGame:Advance().
-        Assert:Equals({&PHASE-CLEARED}, mGame:Phase).
+        Assert:Equals(GamePhase:Cleared, mGame:Phase).
         Frames(100).
-        Assert:Equals({&PHASE-STARTING}, mGame:Phase).
+        Assert:Equals(GamePhase:Starting, mGame:Phase).
         Assert:Equals(2, mGame:Wave).
         Assert:Equals("Wave 2", mGame:TakeNotice()).
         Assert:Equals("", mGame:TakeNotice()).
@@ -1160,7 +1159,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Frames(2).
         mGame:FireHeld = TRUE.
         mGame:Advance().
-        Assert:Equals({&PHASE-STARTING}, mGame:Phase).
+        Assert:Equals(GamePhase:Starting, mGame:Phase).
         Assert:Equals(0, CountLit(0, 207, 224, 6)).
     END METHOD.
 
@@ -1197,7 +1196,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Play().
         mGame:AddScore(120).
         LoseEverything().
-        Assert:Equals({&PHASE-GAMEOVER}, mGame:Phase).
+        Assert:Equals(GamePhase:GameOver, mGame:Phase).
         /* the frozen rack is lit too, so the letters are what the count gains */
         bare = CountLit(59, 100, 108, 15).
         Frames(5).
@@ -1221,12 +1220,12 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Frames(2).
         mGame:FireHeld = TRUE.
         mGame:Advance().
-        Assert:Equals({&PHASE-TITLE}, mGame:Phase).
+        Assert:Equals(GamePhase:Title, mGame:Phase).
         mGame:FireHeld = FALSE.
         Frames(2).
         mGame:FireHeld = TRUE.
         mGame:Advance().
-        Assert:Equals({&PHASE-STARTING}, mGame:Phase).
+        Assert:Equals(GamePhase:Starting, mGame:Phase).
         mGame:FireHeld = FALSE.
         mGame:SkipIntro().
         LoseEverything().
@@ -1251,7 +1250,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         Play().
         EmptyField(0).
         mGame:Advance().
-        Assert:Equals({&PHASE-CLEARED}, mGame:Phase).
+        Assert:Equals(GamePhase:Cleared, mGame:Phase).
         Frames(10).
         Assert:Equals(0, CountLit(41, 100, 142, 14)).
         Frames(11).
@@ -1273,7 +1272,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
         EmptyField(0).
         mGame:Advance().
         Frames(91).
-        Assert:Equals({&PHASE-STARTING}, mGame:Phase).
+        Assert:Equals(GamePhase:Starting, mGame:Phase).
         Assert:Equals(0, CountLit(41, 100, 142, 14)).
         Assert:Equals(0, CountLit(70, 120, 90, 7)).
     END METHOD.
@@ -1400,7 +1399,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
             mGame:Rack:Step().
         END.
         DO n = 1 TO 40:
-            IF mGame:Phase <> {&PHASE-PLAYING} THEN LEAVE.
+            IF mGame:Phase <> GamePhase:Playing THEN LEAVE.
             mGame:SetPlayerX(IF mGame:Rack:X(0) < 112 THEN 203 ELSE 8).
             mGame:Advance().
             IF mGame:Canvas:ColourAt(100, 232) = InvadersLook:Colour({&C-OVER-TOP}) THEN red = TRUE.

@@ -26,7 +26,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInput FINAL IMPLEMENTS IGameInput:
 
-    {ProGriddle/Games/SpaceInvaders/Phases.i}
 
     DEFINE PRIVATE VARIABLE mGame     AS SpaceInvadersGame NO-UNDO.
     DEFINE PRIVATE VARIABLE mSettings AS ISettings         NO-UNDO.
@@ -42,8 +41,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInput FINAL IMPLEMENTS IGameIn
         GET():
             SaveHiScore().
             CASE mGame:Phase:
-                WHEN {&PHASE-TITLE} THEN RETURN SUBSTITUTE("Space Invaders   Hi &1   Press Space to play", mGame:HiScore).
-                WHEN {&PHASE-GAMEOVER} THEN RETURN SUBSTITUTE("Game over   Score &1   Hi &2   Press Space", mGame:Score, mGame:HiScore).
+                WHEN GamePhase:Title THEN RETURN SUBSTITUTE("Space Invaders   Hi &1   Press Space to play", mGame:HiScore).
+                WHEN GamePhase:GameOver THEN RETURN SUBSTITUTE("Game over   Score &1   Hi &2   Press Space", mGame:Score, mGame:HiScore).
             END CASE.
             RETURN SUBSTITUTE("Score &1   Hi &2   Lives &3   Wave &4   Speed &5%", mGame:Score, mGame:HiScore, mGame:Lives, mGame:Wave, mGame:SpeedPercent).
         END GET.

@@ -39,7 +39,6 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     {ProGriddle/Games/SpaceInvaders/Kinds.i}
     {ProGriddle/Games/SpaceInvaders/Art.i}
     {ProGriddle/Games/SpaceInvaders/Colours.i}
-    {ProGriddle/Games/SpaceInvaders/Phases.i}
 
     /* the field and where things stand on it */
     &SCOPED-DEFINE WIDTH 224
@@ -190,8 +189,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             SpeedPercent = MINIMUM(100, MAXIMUM(20, piValue)).
         END SET.
 
-    /* Which phase of the game this is: the numbers in Phases.i. */
-    DEFINE PUBLIC PROPERTY Phase AS INTEGER NO-UNDO
+    /* Which phase of the game this is. */
+    DEFINE PUBLIC PROPERTY Phase AS GamePhase NO-UNDO
         GET.
         PRIVATE SET.
 
@@ -345,12 +344,12 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         mFrames = mFrames + 1.
         UpdateStars().
         CASE Phase:
-            WHEN {&PHASE-TITLE} THEN FrameTitle().
-            WHEN {&PHASE-STARTING} THEN FrameStarting().
-            WHEN {&PHASE-PLAYING} THEN FramePlaying().
-            WHEN {&PHASE-DYING} THEN FrameDying().
-            WHEN {&PHASE-CLEARED} THEN FrameCleared().
-            WHEN {&PHASE-GAMEOVER} THEN FrameGameOver().
+            WHEN GamePhase:Title THEN FrameTitle().
+            WHEN GamePhase:Starting THEN FrameStarting().
+            WHEN GamePhase:Playing THEN FramePlaying().
+            WHEN GamePhase:Dying THEN FrameDying().
+            WHEN GamePhase:Cleared THEN FrameCleared().
+            WHEN GamePhase:GameOver THEN FrameGameOver().
         END CASE.
         UpdateEffects().
         RefreshHud().
@@ -379,15 +378,15 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     /* Finishes drawing a wave in at once, and starts play. For tests, and for anything that wants the game in play
        without waiting two seconds. */
     METHOD PUBLIC VOID SkipIntro():
-        IF Phase <> {&PHASE-STARTING} THEN RETURN.
-        DO WHILE Phase = {&PHASE-STARTING}:
+        IF Phase <> GamePhase:Starting THEN RETURN.
+        DO WHILE Phase = GamePhase:Starting:
             FrameStarting().
         END.
     END METHOD.
 
     /* Puts the cannon at a column, between its two limits, taking it off where it was. */
     METHOD PUBLIC VOID SetPlayerX(INPUT piX AS INTEGER):
-        IF Phase <> {&PHASE-PLAYING} AND Phase <> {&PHASE-STARTING} THEN RETURN.
+        IF Phase <> GamePhase:Playing AND Phase <> GamePhase:Starting THEN RETURN.
         EraseCannon().
         mPX = MINIMUM({&PLAYER-MAX}, MAXIMUM({&PLAYER-MIN}, piX)).
         DrawCannon().
@@ -644,7 +643,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         IF mTimer >= {&STARTING-FRAMES} THEN DO:
             mCanvas:ShowBackRect(60, 149, 110, 17).
             mCanvas:ShowBackRect(84, 169, 56, 9).
-            Phase = {&PHASE-PLAYING}.
+            Phase = GamePhase:Playing.
             mTimer = 0.
         END.
     END METHOD.
@@ -664,9 +663,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         FireCannon().
         UpdateShot().
         UpdateBombs().
-        IF Phase <> {&PHASE-PLAYING} THEN RETURN.
+        IF Phase <> GamePhase:Playing THEN RETURN.
         StepRack().
-        IF Phase <> {&PHASE-PLAYING} THEN RETURN.
+        IF Phase <> GamePhase:Playing THEN RETURN.
         DangerPulse().
         MaybeDropBomb().
         UpdateSaucer().
@@ -702,7 +701,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             mPX = {&PLAYER-START}.
             mGhost = 90.
             DrawCannon().
-            Phase = {&PHASE-PLAYING}.
+            Phase = GamePhase:Playing.
             mTimer = 0.
         END.
     END METHOD.
@@ -805,7 +804,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     /* The title screen: the sky and the credit now, and the name, the points table and the prompt coming in one
        piece at a time over the first four seconds (TitleStep). */
     METHOD PRIVATE VOID ShowTitle():
-        Phase = {&PHASE-TITLE}.
+        Phase = GamePhase:Title.
         mTimer = 0.
         mArmed = FALSE.
         mPX = {&PLAYER-START}.
@@ -839,7 +838,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         mTable[2] = 0.
         mTable[3] = 0.
         mInvaded = FALSE.
-        Phase = {&PHASE-STARTING}.
+        Phase = GamePhase:Starting.
         mTimer = 0.
         mHudWave = -1.
         IF NOT mCanvas:KindAt(mPX, {&PLAYER-Y}) = {&KIND-PLAYER} THEN DrawCannon().
@@ -853,12 +852,12 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             EraseBomb(i).
         END.
         IF mSaucerOn THEN EraseSaucer().
-        Phase = {&PHASE-CLEARED}.
+        Phase = GamePhase:Cleared.
         mTimer = 0.
     END METHOD.
 
     METHOD PRIVATE VOID EnterGameOver():
-        Phase = {&PHASE-GAMEOVER}.
+        Phase = GamePhase:GameOver.
         mTimer = 0.
         mArmed = FALSE.
         mPromptOn = FALSE.
@@ -919,7 +918,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
         mCanvas:Draw(InvadersArt:Picture({&ART-CANNON}), mPX, {&PLAYER-Y}, {&KIND-PLAYER},
                      InvadersLook:Colour({&C-FLASH}), InvadersLook:Colour({&C-FLASH}), InvadersLook:Colour({&C-FLASH})).
         mGhost = 0.
-        Phase = {&PHASE-DYING}.
+        Phase = GamePhase:Dying.
         mTimer = 0.
         SpawnSparks(mPX + 6, {&PLAYER-Y} + 4, InvadersLook:Colour({&C-CANNON}), 14).
     END METHOD.
@@ -1639,12 +1638,12 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
             mCanvas:DrawText(STRING(HiScore, "99999"), 97, 16, InvadersLook:Colour({&C-TEXT})).
             mHudHi = HiScore.
         END.
-        IF Phase <> {&PHASE-TITLE} AND Wave <> mHudWave THEN DO:
+        IF Phase <> GamePhase:Title AND Wave <> mHudWave THEN DO:
             mCanvas:ClearRect(192, 16, 24, 7).
             mCanvas:DrawText(STRING(Wave), 216 - PixelFont:WidthOf(STRING(Wave)), 16, InvadersLook:Colour({&C-TEXT})).
             mHudWave = Wave.
         END.
-        IF Phase <> {&PHASE-TITLE} AND Lives <> mHudLives THEN DO:
+        IF Phase <> GamePhase:Title AND Lives <> mHudLives THEN DO:
             mCanvas:ClearRect(8, 241, 200, 8).
             mCanvas:DrawText(STRING(Lives), 8, 241, InvadersLook:Colour({&C-TEXT})).
             DO i = 1 TO Lives - 1:

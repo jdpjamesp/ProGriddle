@@ -64,7 +64,7 @@ Source: `src/ProGriddle/Games/SpaceInvaders/`. The composition root is `run/run-
 
 | Class | Job |
 |---|---|
-| `SpaceInvadersGame` | The rules and the phases (title, starting, playing, dying, cleared, game over, in `Phases.i`) |
+| `SpaceInvadersGame` | The rules and the phases (title, starting, playing, dying, cleared, game over, in the `GamePhase` enum) |
 | `SpaceInvadersInput` | Keys as held states, the speed keys, the status line, the pause banner and the saved best score and speed |
 | `SpaceInvadersFactory` | Builds the grid and the game |
 | `InvaderRack` | The 55 invaders: where each is, which moves next, the edges, the drops and the speed-up |

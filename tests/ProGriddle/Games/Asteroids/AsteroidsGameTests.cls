@@ -11,7 +11,6 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
-    {ProGriddle/Games/Asteroids/Phases.i}
     {ProGriddle/Games/Asteroids/Colours.i}
 
     DEFINE PRIVATE VARIABLE mGame AS AsteroidsGame NO-UNDO.
@@ -64,7 +63,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheGameStartsOnTheTitleScreenWithNothingScored():
-        Assert:Equals({&PHASE-TITLE}, mGame:Phase).
+        Assert:Equals(GamePhase:Title, mGame:Phase).
         Assert:Equals(0, mGame:Score).
         Assert:Equals("Asteroids", mGame:Name).
         Assert:IsFalse(mGame:IsOver).
@@ -154,7 +153,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
     @Test.
     METHOD PUBLIC VOID PressingFireOnTheTitleScreenStartsAGameWithThreeShipsInTheMiddle():
         Play().
-        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Playing, mGame:Phase).
         Assert:Equals(3, mGame:Lives).
         Assert:Equals(1, mGame:Wave).
         Assert:Equals(0, mGame:Score).
@@ -168,10 +167,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         mGame:Advance().
         mGame:FireHeld = TRUE.
         Frames(2).
-        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Playing, mGame:Phase).
         mGame:TurnDirection = 1.
         Frames(12).
-        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Playing, mGame:Phase).
         Assert:Equals(9, mGame:ShipHeading).
     END METHOD.
 
@@ -182,7 +181,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Frames(20).
         mGame:TurnDirection = 0.
         mGame:StartGame().
-        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Playing, mGame:Phase).
         Assert:Equals(0, mGame:ShipHeading).
         Assert:Equals(160, mGame:ShipX).
         Assert:Equals(0, mGame:ShipVX).
@@ -756,7 +755,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         mGame:Advance().
         Assert:Equals(2, mGame:Lives).
         Assert:IsFalse(mGame:ShipAlive).
-        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Playing, mGame:Phase).
     END METHOD.
 
     @Test.
@@ -835,11 +834,11 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Quiet(200).
         Crash().
         Assert:Equals(0, mGame:Lives).
-        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Playing, mGame:Phase).
         Quiet(89).
-        Assert:Equals({&PHASE-PLAYING}, mGame:Phase).
+        Assert:Equals(GamePhase:Playing, mGame:Phase).
         Quiet(1).
-        Assert:Equals({&PHASE-GAMEOVER}, mGame:Phase).
+        Assert:Equals(GamePhase:GameOver, mGame:Phase).
         Assert:IsFalse(mGame:ShipAlive).
     END METHOD.
 
@@ -855,13 +854,13 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         mGame:AddScore(50).
         mGame:FireHeld = TRUE.
         Quiet(3).
-        Assert:Equals({&PHASE-GAMEOVER}, mGame:Phase).
+        Assert:Equals(GamePhase:GameOver, mGame:Phase).
         mGame:FireHeld = FALSE.
         Quiet(90).
-        Assert:Equals({&PHASE-GAMEOVER}, mGame:Phase).
+        Assert:Equals(GamePhase:GameOver, mGame:Phase).
         mGame:FireHeld = TRUE.
         Frames(1).
-        Assert:Equals({&PHASE-TITLE}, mGame:Phase).
+        Assert:Equals(GamePhase:Title, mGame:Phase).
         Assert:Equals(0, mGame:Score).
         Assert:Equals(50, mGame:HiScore).
         Assert:Equals(6, mGame:Rocks:Count).
@@ -877,7 +876,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Quiet(200).
         Crash().
         Quiet(90).
-        Assert:Equals({&PHASE-GAMEOVER}, mGame:Phase).
+        Assert:Equals(GamePhase:GameOver, mGame:Phase).
         mGame:Rocks:Clear().
         RockAt(1, 50, 50).
         mGame:Rocks:Add(50 * 4096, 60 * 4096, 2000, 0, 1, 0, 0, 1000, 1).
@@ -1371,7 +1370,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
     @Test.
     METHOD PUBLIC VOID HyperspaceDoesNothingOnTheTitleScreen():
         mGame:Hyperspace().
-        Assert:Equals({&PHASE-TITLE}, mGame:Phase).
+        Assert:Equals(GamePhase:Title, mGame:Phase).
     END METHOD.
 
 END CLASS.

@@ -176,11 +176,11 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInputTests:
         DO t = 1 TO 3:
             mGame:DropBomb(0, mGame:PlayerX, 205).
             DO n = 1 TO 40:
-                IF mGame:Phase <> 2 THEN LEAVE.
+                IF mGame:Phase <> GamePhase:Playing THEN LEAVE.
                 mGame:Advance().
             END.
             DO n = 1 TO 130:
-                IF mGame:Phase <> 3 THEN LEAVE.
+                IF mGame:Phase <> GamePhase:Dying THEN LEAVE.
                 mGame:Advance().
             END.
         END.
