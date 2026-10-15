@@ -299,4 +299,35 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInputTests:
         Assert:IsTrue(ThrowsGridException(3)).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID SoundIsOfferedOnlyWithAWorkingPlayerAndSwitchesItAndRemembersIt():
+        DEFINE VARIABLE oPlayer AS RecordingSoundPlayer NO-UNDO.
+        oPlayer = NEW RecordingSoundPlayer().
+        mInput = NEW SpaceInvadersInput(mGame, mSettings, oPlayer).
+        Assert:Equals("Sound:M", mInput:CommandNames).
+        mInput:Perform("Sound").
+        Assert:IsTrue(oPlayer:Muted).
+        Assert:IsFalse(mSettings:GetLogical("sound.on", TRUE)).
+        Assert:Equals("Sound off", mInput:TakeNotice()).
+        Assert:Equals("", mInput:TakeNotice()).
+        mInput:Perform("Sound").
+        Assert:IsFalse(oPlayer:Muted).
+        Assert:Equals("Sound on", mInput:TakeNotice()).
+        /* a player that cannot sound has no command */
+        oPlayer:Working = FALSE.
+        Assert:Equals("", mInput:CommandNames).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheInputNeedsASoundPlayer():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            NEW SpaceInvadersInput(mGame, mSettings, ?).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(1, thrown).
+    END METHOD.
+
 END CLASS.

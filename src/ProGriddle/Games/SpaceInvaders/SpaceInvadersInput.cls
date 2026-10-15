@@ -14,6 +14,8 @@
    when one goes down, ReleaseKey when it comes up, and an empty name when the window loses focus) and gives
    the game the direction and the fire state each time. When both direction keys are down the one pressed last wins.
 
+   Sound (M) switches the sound on or off, when there is a sound device, and the window remembers the choice as sound.on.
+
    The best score is kept in the settings as spaceinvaders.hiscore, and the window saves it when it closes. The
    speed is kept as spaceinvaders.speed, and starts at 70 percent: the arcade's own speed is a lot to ask of a
    first game. */
@@ -29,6 +31,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInput FINAL IMPLEMENTS IGameIn
 
     DEFINE PRIVATE VARIABLE mGame     AS SpaceInvadersGame NO-UNDO.
     DEFINE PRIVATE VARIABLE mSettings AS ISettings         NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPlayer   AS ISoundPlayer      NO-UNDO.
+    DEFINE PRIVATE VARIABLE mNotice   AS CHARACTER         NO-UNDO.
     DEFINE PRIVATE VARIABLE mLeft     AS LOGICAL           NO-UNDO.
     DEFINE PRIVATE VARIABLE mRight    AS LOGICAL           NO-UNDO.
     /* the direction key that went down last, 1 or -1, which wins when both are down */
@@ -66,7 +70,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInput FINAL IMPLEMENTS IGameIn
 
     DEFINE PUBLIC PROPERTY CommandNames AS CHARACTER NO-UNDO
         GET():
-            RETURN "".
+            RETURN (IF mPlayer:Working THEN "Sound:M" ELSE "").
         END GET.
 
     /* The game draws its own words (GAME OVER, PRESS SPACE) into the picture, so the banner is only for pause. */
@@ -85,11 +89,19 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInput FINAL IMPLEMENTS IGameIn
             RETURN "".
         END GET.
 
+    /* A game with no sound. */
     CONSTRUCTOR PUBLIC SpaceInvadersInput(INPUT poGame AS SpaceInvadersGame, INPUT poSettings AS ISettings):
+        THIS-OBJECT(poGame, poSettings, NEW NullSoundPlayer()).
+    END CONSTRUCTOR.
+
+    /* A game whose sound is played by poPlayer. The Sound command and the M key are offered only when the player is working. */
+    CONSTRUCTOR PUBLIC SpaceInvadersInput(INPUT poGame AS SpaceInvadersGame, INPUT poSettings AS ISettings, INPUT poPlayer AS ISoundPlayer):
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("Space Invaders input needs a game").
         IF NOT VALID-OBJECT(poSettings) THEN UNDO, THROW NEW GridException("Space Invaders input needs settings").
+        IF NOT VALID-OBJECT(poPlayer) THEN UNDO, THROW NEW GridException("Space Invaders input needs a sound player").
         mGame = poGame.
         mSettings = poSettings.
+        mPlayer = poPlayer.
         mSavedHi = MAXIMUM(0, mSettings:GetInteger("spaceinvaders.hiscore", 0)).
         mGame:HiScore = mSavedHi.
         mGame:SpeedPercent = mSettings:GetInteger("spaceinvaders.speed", 70).
@@ -97,7 +109,12 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInput FINAL IMPLEMENTS IGameIn
 
     /* The game's own notices: an extra cannon, a new wave. */
     METHOD PUBLIC CHARACTER TakeNotice():
-        RETURN mGame:TakeNotice().
+        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        notice = mGame:TakeNotice().
+        IF mNotice <> "" THEN ASSIGN
+            notice = mNotice
+            mNotice = "".
+        RETURN notice.
     END METHOD.
 
     /* A key went down. Returns true for the keys of the game, which the window then leaves alone. */
@@ -148,7 +165,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInput FINAL IMPLEMENTS IGameIn
     END METHOD.
 
     METHOD PUBLIC VOID Perform(INPUT pcCommand AS CHARACTER):
-        UNDO, THROW NEW GridException("Unknown Space Invaders command: " + STRING(pcCommand)).
+        IF pcCommand = "Sound" THEN mNotice = SoundSettings:Toggle(mPlayer, mSettings).
+        ELSE UNDO, THROW NEW GridException("Unknown Space Invaders command: " + STRING(pcCommand)).
     END METHOD.
 
     METHOD PUBLIC VOID PrimaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
