@@ -61,7 +61,7 @@ DO ON ERROR UNDO, THROW:
     oView = NEW GridView().
     oView:DirectColor = TRUE.
     oView:ShowGridLines = FALSE.
-    oPainter = NEW TetrisPainter(NEW WinFormsGridRenderer(oView, "view"), oGame).
+    oPainter = NEW TetrisPainter(NEW WinFormsGridRenderer(oView, "view"), oGame, NEW SeededRandom(iSeed + 1)).
     oController = NEW RealTimeController(oGame, oPainter, oClock).
     oWindow = NEW GameWindow("ProGriddle Tetris", oController, oView, NEW TetrisInput(oGame, oSettings),
                              oClock, oSettings, "tetris").

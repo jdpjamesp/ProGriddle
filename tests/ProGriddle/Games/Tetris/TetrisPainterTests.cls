@@ -19,7 +19,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
         mGame = TetrisFactory:Create(NEW SeededRandom(1)).
         mGame:StartWith("I,O,T,S,Z,J,L").
         mInner = NEW GridRecordingRenderer().
-        mPainter = NEW TetrisPainter(mInner, mGame).
+        mPainter = NEW TetrisPainter(mInner, mGame, NEW SeededRandom(3)).
     END METHOD.
 
     @TearDown.
@@ -78,21 +78,27 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
     END METHOD.
 
     @Test.
-    METHOD PUBLIC VOID ThePainterNeedsAnInnerRendererAndAGame():
+    METHOD PUBLIC VOID ThePainterNeedsAnInnerRendererAGameAndARandomSource():
         DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
         DO ON ERROR UNDO, THROW:
-            NEW TetrisPainter(?, mGame).
+            NEW TetrisPainter(?, mGame, NEW SeededRandom(3)).
             CATCH e1 AS GridException:
                 thrown = thrown + 1.
             END CATCH.
         END.
         DO ON ERROR UNDO, THROW:
-            NEW TetrisPainter(mInner, ?).
+            NEW TetrisPainter(mInner, ?, NEW SeededRandom(3)).
             CATCH e2 AS GridException:
                 thrown = thrown + 1.
             END CATCH.
         END.
-        Assert:Equals(2, thrown).
+        DO ON ERROR UNDO, THROW:
+            NEW TetrisPainter(mInner, mGame, ?).
+            CATCH e3 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(3, thrown).
     END METHOD.
 
     @Test.

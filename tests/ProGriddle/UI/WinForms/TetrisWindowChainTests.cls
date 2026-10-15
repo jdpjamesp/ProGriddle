@@ -23,7 +23,7 @@ CLASS ProGriddle.UI.WinForms.TetrisWindowChainTests:
         mView = NEW GridView().
         mView:DirectColor = TRUE.
         mView:ShowGridLines = FALSE.
-        mPainter = NEW TetrisPainter(NEW WinFormsGridRenderer(mView, "view"), mGame).
+        mPainter = NEW TetrisPainter(NEW WinFormsGridRenderer(mView, "view"), mGame, NEW SeededRandom(3)).
     END METHOD.
 
     @TearDown.

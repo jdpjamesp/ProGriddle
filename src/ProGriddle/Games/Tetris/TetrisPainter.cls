@@ -22,6 +22,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
     &SCOPED-DEFINE NO-TONES "000000,000000,000000,000000,000000"
 
     DEFINE PRIVATE VARIABLE mInner     AS IGridRenderer   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mRandom    AS IRandom         NO-UNDO.
     DEFINE PRIVATE VARIABLE mGame      AS TetrisGame      NO-UNDO.
     DEFINE PRIVATE VARIABLE mGrid      AS Grid            NO-UNDO.
     DEFINE PRIVATE VARIABLE mBaseGrid  AS Grid            NO-UNDO.
@@ -56,13 +57,15 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
             RETURN mGrid.
         END GET.
 
-    /* Throws GridException for no renderer or no game. */
-    CONSTRUCTOR PUBLIC TetrisPainter(INPUT poInner AS IGridRenderer, INPUT poGame AS TetrisGame):
+    /* poRandom is for the effects (the speeds of sparks). Throws GridException for no renderer, no game or no random source. */
+    CONSTRUCTOR PUBLIC TetrisPainter(INPUT poInner AS IGridRenderer, INPUT poGame AS TetrisGame, INPUT poRandom AS IRandom):
         DEFINE VARIABLE p AS INTEGER NO-UNDO.
         DEFINE VARIABLE r AS INTEGER NO-UNDO.
         IF NOT VALID-OBJECT(poInner) THEN UNDO, THROW NEW GridException("A Tetris painter needs a renderer to hand the picture to").
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("A Tetris painter needs a game").
+        IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("A Tetris painter needs a random source").
         mInner = poInner.
+        mRandom = poRandom.
         mGame = poGame.
         mBW = poGame:BoardWidth.
         mBH = poGame:BoardHeight.
