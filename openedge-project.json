@@ -7,7 +7,9 @@
   "buildPath": [
     { "type": "source", "path": "src" },
     { "type": "source", "path": "tests" },
-    { "type": "source", "path": "run" }
+    { "type": "source", "path": "run" },
+    { "type": "source", "path": "tools" },
+    { "type": "source", "path": "bench" }
   ],
   "buildDirectory": "build",
   "dbConnections": []
