@@ -120,4 +120,37 @@ CLASS ProGriddle.Engine.SparkFieldTests:
         Assert:Equals(2, thrown).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID ADraggedSparkSlowsDownAndOneThatKeepsAllItsSpeedIsAsBefore():
+        /* keeps half its speed a frame: after 2 frames it has gone 2 * (1 - 0.25) / 0.5 = 3 pixels, and at most 4 */
+        Assert:IsTrue(mField:AddDragged(10, 10, 2.0, 0.0, 0.0, 0.5, 0, 20, 101, 102, 103, 104)).
+        DrawAt(33).
+        Assert:IsTrue(mCanvas:ColourAt(10 + 2, 10) <> 1 OR mCanvas:ColourAt(10 + 3, 10) <> 1).
+        DrawAt(120).
+        /* seven frames old: it has all but stopped at 4 pixels, in its second colour */
+        Assert:Equals(102, mCanvas:ColourAt(14, 10)).
+        mField:Clear().
+        mField:AddDragged(10, 10, 1.0, 0.0, 0.0, 1.0, 0, 10, 101, 102, 103, 104).
+        DrawAt(100).
+        Assert:Equals(103, mCanvas:ColourAt(16, 10)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ADragOfNothingOrMoreThanOneIsRefused():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            mField:AddDragged(1, 1, 1.0, 0.0, 0.0, 0.0, 0, 10, 1, 2, 3, 4).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mField:AddDragged(1, 1, 1.0, 0.0, 0.0, 1.5, 0, 10, 1, 2, 3, 4).
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(2, thrown).
+    END METHOD.
+
 END CLASS.

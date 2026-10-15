@@ -3,7 +3,8 @@
    a frame a frame, a life in frames and four colours, which it wears for a quarter of its life each. Where it is at a time is
    worked out from those and the time (x = x0 + vx f, y = y0 + vy f + g f f / 2, with f the frames since it was born), so the
    field keeps nothing from frame to frame, and a game that is paused or that draws late still shows each spark in the right
-   place. Draw puts the live ones on a canvas that is in a batch. When the field is full Add says so and the spark is
+   place. A spark can also be slowed by drag, a part of its speed that is kept each frame (0.97 loses 3 percent a frame): then
+   x = x0 + vx (1 - d^f) / (1 - d). Draw puts the live ones on a canvas that is in a batch. When the field is full Add says so and the spark is
    dropped: sparks are a luxury. */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
@@ -19,6 +20,7 @@ CLASS ProGriddle.Engine.SparkField FINAL:
     DEFINE PRIVATE VARIABLE mVX     AS DECIMAL NO-UNDO EXTENT.
     DEFINE PRIVATE VARIABLE mVY     AS DECIMAL NO-UNDO EXTENT.
     DEFINE PRIVATE VARIABLE mGravity AS DECIMAL NO-UNDO EXTENT.
+    DEFINE PRIVATE VARIABLE mDrag   AS DECIMAL NO-UNDO EXTENT.
     DEFINE PRIVATE VARIABLE mBorn   AS INTEGER NO-UNDO EXTENT.
     DEFINE PRIVATE VARIABLE mLife   AS INTEGER NO-UNDO EXTENT.
     /* four colours a spark, one after another: slot * 4 + stage + 1 */
@@ -35,6 +37,7 @@ CLASS ProGriddle.Engine.SparkField FINAL:
         EXTENT(mVX) = piSlots.
         EXTENT(mVY) = piSlots.
         EXTENT(mGravity) = piSlots.
+        EXTENT(mDrag) = piSlots.
         EXTENT(mBorn) = piSlots.
         EXTENT(mLife) = piSlots.
         EXTENT(mColour) = piSlots * 4.
@@ -46,8 +49,16 @@ CLASS ProGriddle.Engine.SparkField FINAL:
        known here, so a spark that has gone is made room for by Draw or CountAt). Throws GridException for a life under 1. */
     METHOD PUBLIC LOGICAL Add(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT pdVX AS DECIMAL, INPUT pdVY AS DECIMAL, INPUT pdGravity AS DECIMAL,
                               INPUT piBornMs AS INTEGER, INPUT piLife AS INTEGER, INPUT piC1 AS INTEGER, INPUT piC2 AS INTEGER, INPUT piC3 AS INTEGER, INPUT piC4 AS INTEGER):
+        RETURN AddDragged(piX, piY, pdVX, pdVY, pdGravity, 1, piBornMs, piLife, piC1, piC2, piC3, piC4).
+    END METHOD.
+
+    /* The same with drag: pdDrag is the part of its speed a spark keeps each frame, above 0 and up to 1 (1 is no drag, as Add).
+       Throws GridException for a drag outside that, or a life under 1. */
+    METHOD PUBLIC LOGICAL AddDragged(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT pdVX AS DECIMAL, INPUT pdVY AS DECIMAL, INPUT pdGravity AS DECIMAL, INPUT pdDrag AS DECIMAL,
+                                     INPUT piBornMs AS INTEGER, INPUT piLife AS INTEGER, INPUT piC1 AS INTEGER, INPUT piC2 AS INTEGER, INPUT piC3 AS INTEGER, INPUT piC4 AS INTEGER):
         DEFINE VARIABLE i AS INTEGER NO-UNDO.
         IF piLife = ? OR piLife < 1 THEN UNDO, THROW NEW GridException("A spark lives 1 frame or more, not " + STRING(piLife)).
+        IF pdDrag = ? OR pdDrag <= 0 OR pdDrag > 1 THEN UNDO, THROW NEW GridException("A spark keeps more than 0 and up to 1 of its speed a frame, not " + STRING(pdDrag)).
         DO i = 1 TO mSlots:
             IF mUsed[i] THEN NEXT.
             mUsed[i] = TRUE.
@@ -56,6 +67,7 @@ CLASS ProGriddle.Engine.SparkField FINAL:
             mVX[i] = pdVX.
             mVY[i] = pdVY.
             mGravity[i] = pdGravity.
+            mDrag[i] = pdDrag.
             mBorn[i] = piBornMs.
             mLife[i] = piLife.
             mColour[(i - 1) * 4 + 1] = piC1.
@@ -98,6 +110,7 @@ CLASS ProGriddle.Engine.SparkField FINAL:
         DEFINE VARIABLE px     AS INTEGER NO-UNDO.
         DEFINE VARIABLE py     AS INTEGER NO-UNDO.
         DEFINE VARIABLE stage  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE reach  AS DECIMAL NO-UNDO.
         DO i = 1 TO mSlots:
             IF NOT mUsed[i] THEN NEXT.
             f = (piNowMs - mBorn[i]) * 0.06.
@@ -106,8 +119,10 @@ CLASS ProGriddle.Engine.SparkField FINAL:
                 NEXT.
             END.
             IF f < 0 THEN NEXT.
-            px = INTEGER(ROUND(mX[i] + mVX[i] * f, 0)).
-            py = INTEGER(ROUND(mY[i] + mVY[i] * f + mGravity[i] * f * f / 2, 0)).
+            /* the frames' worth of distance: f when there is no drag */
+            reach = (IF mDrag[i] = 1 THEN f ELSE (1 - EXP(mDrag[i], f)) / (1 - mDrag[i])).
+            px = INTEGER(ROUND(mX[i] + mVX[i] * reach, 0)).
+            py = INTEGER(ROUND(mY[i] + mVY[i] * reach + mGravity[i] * f * f / 2, 0)).
             stage = MINIMUM(3, INTEGER(TRUNCATE(f * 4 / mLife[i], 0))).
             poCanvas:DrawLine(px, py, px, py, 0, mColour[(i - 1) * 4 + stage + 1]).
         END.
