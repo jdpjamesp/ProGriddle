@@ -46,9 +46,11 @@ CLASS ProGriddle.Games.Tetris.TetrisCues FINAL IMPLEMENTS ICueSource:
 
     /* 1 for the lock, the clears and the end of the game (the impact), 2 for the level up, 3 for the danger. */
     METHOD PUBLIC INTEGER GroupOf(INPUT piCue AS INTEGER):
-        IF piCue = INTEGER(TetrisCue:LevelUp) THEN RETURN 2.
-        IF piCue = INTEGER(TetrisCue:Danger) THEN RETURN 3.
-        RETURN 1.
+        CASE piCue:
+            WHEN INTEGER(TetrisCue:LevelUp) THEN RETURN 2.
+            WHEN INTEGER(TetrisCue:Danger) THEN RETURN 3.
+            OTHERWISE RETURN 1.
+        END CASE.
     END METHOD.
 
     METHOD PRIVATE VOID Remember(INPUT poGame AS TetrisGame):

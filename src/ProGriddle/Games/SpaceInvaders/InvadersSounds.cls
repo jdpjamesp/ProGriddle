@@ -13,26 +13,30 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersSounds FINAL:
 
     /* The recipe of a cue. Throws GridException for an unknown cue. */
     METHOD PUBLIC STATIC CHARACTER Recipe(INPUT poCue AS InvadersCue):
-        IF poCue = InvadersCue:Shoot THEN RETURN "1400>250:130:60".
-        IF poCue = InvadersCue:InvaderKilled THEN RETURN "n:50:30,500>90:110:70".
-        IF poCue = InvadersCue:PlayerDies THEN RETURN "n:300:20,n:500:80".
-        IF poCue = InvadersCue:March1 THEN RETURN "110:90:40".
-        IF poCue = InvadersCue:March2 THEN RETURN "98:90:40".
-        IF poCue = InvadersCue:March3 THEN RETURN "87:90:40".
-        IF poCue = InvadersCue:March4 THEN RETURN "82:90:40".
-        IF poCue = InvadersCue:SaucerHit THEN RETURN "1300>300:130:30,n:200:80".
-        IF poCue = InvadersCue:ExtraLife THEN RETURN "523:60:20,659:60:20,784:60:20,1047:220:60".
-        IF poCue = InvadersCue:WaveCleared THEN RETURN "392:70:20,523:70:20,659:70:20,784:160:60".
-        IF poCue = InvadersCue:SaucerHum THEN RETURN "@900>1100:100:0,1100>900:100:0".
-        UNDO, THROW NEW GridException("Space Invaders has no sound for cue " + STRING(poCue)).
+        CASE poCue:
+            WHEN InvadersCue:Shoot THEN RETURN "1400>250:130:60".
+            WHEN InvadersCue:InvaderKilled THEN RETURN "n:50:30,500>90:110:70".
+            WHEN InvadersCue:PlayerDies THEN RETURN "n:300:20,n:500:80".
+            WHEN InvadersCue:March1 THEN RETURN "110:90:40".
+            WHEN InvadersCue:March2 THEN RETURN "98:90:40".
+            WHEN InvadersCue:March3 THEN RETURN "87:90:40".
+            WHEN InvadersCue:March4 THEN RETURN "82:90:40".
+            WHEN InvadersCue:SaucerHit THEN RETURN "1300>300:130:30,n:200:80".
+            WHEN InvadersCue:ExtraLife THEN RETURN "523:60:20,659:60:20,784:60:20,1047:220:60".
+            WHEN InvadersCue:WaveCleared THEN RETURN "392:70:20,523:70:20,659:70:20,784:160:60".
+            WHEN InvadersCue:SaucerHum THEN RETURN "@900>1100:100:0,1100>900:100:0".
+            OTHERWISE UNDO, THROW NEW GridException("Space Invaders has no sound for cue " + STRING(poCue)).
+        END CASE.
     END METHOD.
 
     /* How loud a cue is made, 1 to 100 percent: the march is steady, the hum sits under everything else. */
     METHOD PUBLIC STATIC INTEGER VolumeOf(INPUT poCue AS InvadersCue):
-        IF poCue = InvadersCue:SaucerHum THEN RETURN 30.
-        IF poCue = InvadersCue:Shoot THEN RETURN 45.
-        IF poCue = InvadersCue:March1 OR poCue = InvadersCue:March2 OR poCue = InvadersCue:March3 OR poCue = InvadersCue:March4 THEN RETURN 70.
-        RETURN 60.
+        CASE poCue:
+            WHEN InvadersCue:SaucerHum THEN RETURN 30.
+            WHEN InvadersCue:Shoot THEN RETURN 45.
+            WHEN InvadersCue:March1 OR WHEN InvadersCue:March2 OR WHEN InvadersCue:March3 OR WHEN InvadersCue:March4 THEN RETURN 70.
+            OTHERWISE RETURN 60.
+        END CASE.
     END METHOD.
 
     /* Makes the sound of every cue into a bank, under the cue's number. */

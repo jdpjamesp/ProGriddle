@@ -65,14 +65,16 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsCues FINAL IMPLEMENTS ICueSource, ILoo
 
     /* The three rock sounds and a saucer destroyed are one group (the saucer first); every other cue has a group of its own. */
     METHOD PUBLIC INTEGER GroupOf(INPUT piCue AS INTEGER):
-        IF piCue = INTEGER(AsteroidsCue:Fire) THEN RETURN 1.
-        IF piCue >= INTEGER(AsteroidsCue:RockLarge) AND piCue <= INTEGER(AsteroidsCue:RockSmall) THEN RETURN 2.
-        IF piCue = INTEGER(AsteroidsCue:SaucerDies) THEN RETURN 2.
-        IF piCue = INTEGER(AsteroidsCue:ShipDies) THEN RETURN 3.
-        IF piCue = INTEGER(AsteroidsCue:SaucerFire) THEN RETURN 4.
-        IF piCue = INTEGER(AsteroidsCue:Hyperspace) THEN RETURN 5.
-        IF piCue = INTEGER(AsteroidsCue:ExtraShip) THEN RETURN 6.
-        RETURN 7.
+        CASE piCue:
+            WHEN INTEGER(AsteroidsCue:Fire) THEN RETURN 1.
+            WHEN INTEGER(AsteroidsCue:RockLarge) OR WHEN INTEGER(AsteroidsCue:RockMedium) OR WHEN INTEGER(AsteroidsCue:RockSmall)
+                OR WHEN INTEGER(AsteroidsCue:SaucerDies) THEN RETURN 2.
+            WHEN INTEGER(AsteroidsCue:ShipDies) THEN RETURN 3.
+            WHEN INTEGER(AsteroidsCue:SaucerFire) THEN RETURN 4.
+            WHEN INTEGER(AsteroidsCue:Hyperspace) THEN RETURN 5.
+            WHEN INTEGER(AsteroidsCue:ExtraShip) THEN RETURN 6.
+            OTHERWISE RETURN 7.
+        END CASE.
     END METHOD.
 
     METHOD PRIVATE VOID Remember(INPUT poGame AS AsteroidsGame):

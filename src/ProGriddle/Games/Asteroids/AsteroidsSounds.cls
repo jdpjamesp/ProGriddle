@@ -14,27 +14,31 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsSounds FINAL:
 
     /* The recipe of a cue. Throws GridException for an unknown cue. */
     METHOD PUBLIC STATIC CHARACTER Recipe(INPUT poCue AS AsteroidsCue):
-        IF poCue = AsteroidsCue:Fire THEN RETURN "1800>500:90:70".
-        IF poCue = AsteroidsCue:RockLarge THEN RETURN "m:70:30,130>45:260:70".
-        IF poCue = AsteroidsCue:RockMedium THEN RETURN "m:60:30,220>70:200:70".
-        IF poCue = AsteroidsCue:RockSmall THEN RETURN "n:40:30,450>150:130:70".
-        IF poCue = AsteroidsCue:ShipDies THEN RETURN "n:250:20,m:650:85".
-        IF poCue = AsteroidsCue:SaucerFire THEN RETURN "600>1300:90:30".
-        IF poCue = AsteroidsCue:SaucerDies THEN RETURN "1300>200:140:30,n:260:80".
-        IF poCue = AsteroidsCue:Hyperspace THEN RETURN "300>1600:130:20,1600>250:200:50".
-        IF poCue = AsteroidsCue:ExtraShip THEN RETURN "523:60:20,659:60:20,784:60:20,1047:220:60".
-        IF poCue = AsteroidsCue:ThrustLoop THEN RETURN "@m:200:0".
-        IF poCue = AsteroidsCue:SaucerLargeHum THEN RETURN "@300>400:100:0,400>300:100:0".
-        IF poCue = AsteroidsCue:SaucerSmallHum THEN RETURN "@700>900:80:0,900>700:80:0".
-        UNDO, THROW NEW GridException("Asteroids has no sound for cue " + STRING(poCue)).
+        CASE poCue:
+            WHEN AsteroidsCue:Fire THEN RETURN "1800>500:90:70".
+            WHEN AsteroidsCue:RockLarge THEN RETURN "m:70:30,130>45:260:70".
+            WHEN AsteroidsCue:RockMedium THEN RETURN "m:60:30,220>70:200:70".
+            WHEN AsteroidsCue:RockSmall THEN RETURN "n:40:30,450>150:130:70".
+            WHEN AsteroidsCue:ShipDies THEN RETURN "n:250:20,m:650:85".
+            WHEN AsteroidsCue:SaucerFire THEN RETURN "600>1300:90:30".
+            WHEN AsteroidsCue:SaucerDies THEN RETURN "1300>200:140:30,n:260:80".
+            WHEN AsteroidsCue:Hyperspace THEN RETURN "300>1600:130:20,1600>250:200:50".
+            WHEN AsteroidsCue:ExtraShip THEN RETURN "523:60:20,659:60:20,784:60:20,1047:220:60".
+            WHEN AsteroidsCue:ThrustLoop THEN RETURN "@m:200:0".
+            WHEN AsteroidsCue:SaucerLargeHum THEN RETURN "@300>400:100:0,400>300:100:0".
+            WHEN AsteroidsCue:SaucerSmallHum THEN RETURN "@700>900:80:0,900>700:80:0".
+            OTHERWISE UNDO, THROW NEW GridException("Asteroids has no sound for cue " + STRING(poCue)).
+        END CASE.
     END METHOD.
 
     /* How loud a cue is made, 1 to 100 percent: the loops sit under everything else. */
     METHOD PUBLIC STATIC INTEGER VolumeOf(INPUT poCue AS AsteroidsCue):
-        IF poCue = AsteroidsCue:ThrustLoop THEN RETURN 35.
-        IF poCue = AsteroidsCue:SaucerLargeHum OR poCue = AsteroidsCue:SaucerSmallHum THEN RETURN 30.
-        IF poCue = AsteroidsCue:Fire OR poCue = AsteroidsCue:SaucerFire THEN RETURN 45.
-        RETURN 65.
+        CASE poCue:
+            WHEN AsteroidsCue:ThrustLoop THEN RETURN 35.
+            WHEN AsteroidsCue:SaucerLargeHum OR WHEN AsteroidsCue:SaucerSmallHum THEN RETURN 30.
+            WHEN AsteroidsCue:Fire OR WHEN AsteroidsCue:SaucerFire THEN RETURN 45.
+            OTHERWISE RETURN 65.
+        END CASE.
     END METHOD.
 
     /* Makes the sound of every cue into a bank, under the cue's number. */

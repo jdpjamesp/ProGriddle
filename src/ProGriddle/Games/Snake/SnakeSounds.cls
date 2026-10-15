@@ -12,16 +12,20 @@ CLASS ProGriddle.Games.Snake.SnakeSounds FINAL:
 
     /* The recipe of a cue. Throws GridException for an unknown cue. */
     METHOD PUBLIC STATIC CHARACTER Recipe(INPUT poCue AS SnakeCue):
-        IF poCue = SnakeCue:Eat THEN RETURN "t523:40:30,t784:90:70".
-        IF poCue = SnakeCue:Crash THEN RETURN "t196>65:320:70".
-        IF poCue = SnakeCue:Win THEN RETURN "t392:80:30,t523:80:30,t659:80:30,t784:80:30,t1047:320:70".
-        UNDO, THROW NEW GridException("Snake has no sound for cue " + STRING(poCue)).
+        CASE poCue:
+            WHEN SnakeCue:Eat THEN RETURN "t523:40:30,t784:90:70".
+            WHEN SnakeCue:Crash THEN RETURN "t196>65:320:70".
+            WHEN SnakeCue:Win THEN RETURN "t392:80:30,t523:80:30,t659:80:30,t784:80:30,t1047:320:70".
+            OTHERWISE UNDO, THROW NEW GridException("Snake has no sound for cue " + STRING(poCue)).
+        END CASE.
     END METHOD.
 
     /* How loud a cue is made, 1 to 100 percent. */
     METHOD PUBLIC STATIC INTEGER VolumeOf(INPUT poCue AS SnakeCue):
-        IF poCue = SnakeCue:Eat THEN RETURN 60.
-        RETURN 70.
+        CASE poCue:
+            WHEN SnakeCue:Eat THEN RETURN 60.
+            OTHERWISE RETURN 70.
+        END CASE.
     END METHOD.
 
     /* Makes the sound of every cue into a bank, under the cue's number. */

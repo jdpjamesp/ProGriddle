@@ -13,20 +13,24 @@ CLASS ProGriddle.Games.Tetris.TetrisSounds FINAL:
 
     /* The recipe of a cue. Throws GridException for an unknown cue. */
     METHOD PUBLIC STATIC CHARACTER Recipe(INPUT poCue AS TetrisCue):
-        IF poCue = TetrisCue:Lock THEN RETURN "t180>90:70:60".
-        IF poCue = TetrisCue:Clear THEN RETURN "t440:45:40,t587:45:40,t784:110:70".
-        IF poCue = TetrisCue:Tetris THEN RETURN "t523:60:30,t659:60:30,t784:60:30,t1047:60:30,t784:50:30,t1047:50:30,t1319:220:70".
-        IF poCue = TetrisCue:LevelUp THEN RETURN "t659:55:30,t784:55:30,t988:55:30,t1319:55:30,t1568:55:30,t1319:55:30,t1976:200:70".
-        IF poCue = TetrisCue:GameOver THEN RETURN "t392>196:160:20,t330>147:160:20,t262>65:460:70".
-        IF poCue = TetrisCue:Danger THEN RETURN "t110:90:40,r:30,t98:110:60".
-        UNDO, THROW NEW GridException("Tetris has no sound for cue " + STRING(poCue)).
+        CASE poCue:
+            WHEN TetrisCue:Lock THEN RETURN "t180>90:70:60".
+            WHEN TetrisCue:Clear THEN RETURN "t440:45:40,t587:45:40,t784:110:70".
+            WHEN TetrisCue:Tetris THEN RETURN "t523:60:30,t659:60:30,t784:60:30,t1047:60:30,t784:50:30,t1047:50:30,t1319:220:70".
+            WHEN TetrisCue:LevelUp THEN RETURN "t659:55:30,t784:55:30,t988:55:30,t1319:55:30,t1568:55:30,t1319:55:30,t1976:200:70".
+            WHEN TetrisCue:GameOver THEN RETURN "t392>196:160:20,t330>147:160:20,t262>65:460:70".
+            WHEN TetrisCue:Danger THEN RETURN "t110:90:40,r:30,t98:110:60".
+            OTHERWISE UNDO, THROW NEW GridException("Tetris has no sound for cue " + STRING(poCue)).
+        END CASE.
     END METHOD.
 
     /* How loud a cue is made, 1 to 100 percent: the lock is quiet, the rest are a little louder. */
     METHOD PUBLIC STATIC INTEGER VolumeOf(INPUT poCue AS TetrisCue):
-        IF poCue = TetrisCue:Lock THEN RETURN 60.
-        IF poCue = TetrisCue:Danger THEN RETURN 55.
-        RETURN 70.
+        CASE poCue:
+            WHEN TetrisCue:Lock THEN RETURN 60.
+            WHEN TetrisCue:Danger THEN RETURN 55.
+            OTHERWISE RETURN 70.
+        END CASE.
     END METHOD.
 
     /* Makes the sound of every cue into a bank, under the cue's number. */

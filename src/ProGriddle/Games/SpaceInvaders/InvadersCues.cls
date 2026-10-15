@@ -65,13 +65,15 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCues FINAL IMPLEMENTS ICueSource, I
     /* Each of the cannon blowing up, the shot, the kills, the march and the two fanfares is a group; a saucer hit and an invader hit
        share the group of the kills. */
     METHOD PUBLIC INTEGER GroupOf(INPUT piCue AS INTEGER):
-        IF piCue = INTEGER(InvadersCue:Shoot) THEN RETURN 1.
-        IF piCue = INTEGER(InvadersCue:InvaderKilled) OR piCue = INTEGER(InvadersCue:SaucerHit) THEN RETURN 2.
-        IF piCue = INTEGER(InvadersCue:PlayerDies) THEN RETURN 3.
-        IF piCue >= INTEGER(InvadersCue:March1) AND piCue <= INTEGER(InvadersCue:March4) THEN RETURN 4.
-        IF piCue = INTEGER(InvadersCue:ExtraLife) THEN RETURN 5.
-        IF piCue = INTEGER(InvadersCue:WaveCleared) THEN RETURN 6.
-        RETURN 7.
+        CASE piCue:
+            WHEN INTEGER(InvadersCue:Shoot) THEN RETURN 1.
+            WHEN INTEGER(InvadersCue:InvaderKilled) OR WHEN INTEGER(InvadersCue:SaucerHit) THEN RETURN 2.
+            WHEN INTEGER(InvadersCue:PlayerDies) THEN RETURN 3.
+            WHEN INTEGER(InvadersCue:March1) OR WHEN INTEGER(InvadersCue:March2) OR WHEN INTEGER(InvadersCue:March3) OR WHEN INTEGER(InvadersCue:March4) THEN RETURN 4.
+            WHEN INTEGER(InvadersCue:ExtraLife) THEN RETURN 5.
+            WHEN INTEGER(InvadersCue:WaveCleared) THEN RETURN 6.
+            OTHERWISE RETURN 7.
+        END CASE.
     END METHOD.
 
     METHOD PRIVATE VOID Remember(INPUT poGame AS SpaceInvadersGame):
