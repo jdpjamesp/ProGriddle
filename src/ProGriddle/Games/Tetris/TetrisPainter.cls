@@ -115,6 +115,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         mCanvas:Restore().
         mCanvas:BeginBatch().
         DrawTrail().
+        DrawSweep().
         DrawGhost().
         DrawPiece().
         DrawLock().
@@ -124,6 +125,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         DrawTetrisWord().
         DrawNext().
         DrawHud().
+        DrawCardFlashes().
         mCanvas:EndBatch().
         mInner:Render(mGrid, poGame).
     END METHOD.
@@ -303,6 +305,57 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         DO i = 1 TO shape:Size:
             mBlock[mGame:CurrentPiece]:DrawTo(mCanvas, (mGame:PieceX + shape:OffsetX(i)) * {&TILE}, (mGame:PieceY + shape:OffsetY(i)) * {&TILE}).
         END.
+    END METHOD.
+
+    /* The level up sweep (docs/design/tetris-art.md 3.5): a line two pixels high that rises through the well in 18 frames, gold,
+       then a darker gold from the ninth frame. It is drawn under the blocks and only where the background is the plain floor,
+       so it shows in the empty cells and never on a block, a grid line or a wall. */
+    METHOD PRIVATE VOID DrawSweep():
+        DEFINE VARIABLE age AS INTEGER NO-UNDO.
+        DEFINE VARIABLE f   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE c   AS INTEGER NO-UNDO.
+        IF mGame:LevelUpMs < 0 THEN RETURN.
+        age = mGame:ElapsedMs - mGame:LevelUpMs.
+        IF age < 0 THEN RETURN.
+        f = INTEGER(TRUNCATE(age * 0.06, 0)).
+        IF f > 17 THEN RETURN.
+        c = IF f < 9 THEN TetrisLook:Colour(Tint:Gold) ELSE ColourMath:FromHex(ENTRY(4, TetrisLook:Tones(9))).
+        DO k = 0 TO 1:
+            y = mHeight - 2 - 18 * f + k.
+            IF y < 0 OR y >= mHeight THEN NEXT.
+            DO x = 0 TO mBW * {&TILE} - 1:
+                IF mCanvas:BackAt(x, y) = FloorColour(INTEGER(TRUNCATE(y / {&TILE}, 0))) THEN mCanvas:DrawLine(x, y, x, y, 0, c).
+            END.
+        END.
+    END METHOD.
+
+    /* The level number blinks for the first half second after a level up: gold 80 ms, accent 80 ms, three times. */
+    METHOD PRIVATE Tint LevelTint():
+        DEFINE VARIABLE age AS INTEGER NO-UNDO.
+        IF mGame:LevelUpMs < 0 THEN RETURN Tint:Accent.
+        age = mGame:ElapsedMs - mGame:LevelUpMs.
+        IF age >= 0 AND age < 480 AND INTEGER(TRUNCATE(age / 80, 0)) MODULO 2 = 0 THEN RETURN Tint:Gold.
+        RETURN Tint:Accent.
+    END METHOD.
+
+    /* The outer line of a card turns to a colour for a moment: the LEVEL card for 480 ms after a level up. */
+    METHOD PRIVATE VOID DrawCardFlashes():
+        DEFINE VARIABLE age AS INTEGER NO-UNDO.
+        IF mGame:LevelUpMs >= 0 THEN DO:
+            age = mGame:ElapsedMs - mGame:LevelUpMs.
+            IF age >= 0 AND age < 480 THEN CardOutline(mPanelX + 4, 196, 88, 40, TetrisLook:Colour(Tint:Accent)).
+        END.
+    END METHOD.
+
+    /* The outer line of a card in a colour, with its four corner pixels left as they are. */
+    METHOD PRIVATE VOID CardOutline(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER, INPUT piColour AS INTEGER):
+        mCanvas:DrawLine(piX + 1, piY, piX + piW - 2, piY, 0, piColour).
+        mCanvas:DrawLine(piX + 1, piY + piH - 1, piX + piW - 2, piY + piH - 1, 0, piColour).
+        mCanvas:DrawLine(piX, piY + 1, piX, piY + piH - 2, 0, piColour).
+        mCanvas:DrawLine(piX + piW - 1, piY + 1, piX + piW - 1, piY + piH - 2, 0, piColour).
     END METHOD.
 
     /* The trail of a hard drop (docs/design/tetris-art.md 3.2): from the top of the highest block of each column of the piece
@@ -536,7 +589,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         Caption("LINES", 1, Tint:Label, mPanelX + 12, 156).
         Number(mGame:LinesCleared, 6, Tint:Text, 168).
         Caption("LEVEL", 1, Tint:Label, mPanelX + 12, 202).
-        Number(mGame:Level, 2, Tint:Accent, 214).
+        Number(mGame:Level, 2, LevelTint(), 214).
         Caption("HI-SCORE", 1, Tint:Label, mPanelX + 12, 248).
         Number(mGame:BestScore, 6, Tint:Dim, 260).
         Caption("P PAUSE", 1, Tint:Label, mPanelX + 12, 294).

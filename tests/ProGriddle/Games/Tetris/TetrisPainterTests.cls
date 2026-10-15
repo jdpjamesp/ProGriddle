@@ -508,4 +508,59 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
         Assert:Equals(0, CountOf(Colour(Tint:Gold), 188, 122, 70, 14)).
     END METHOD.
 
+    /* Ten single row clears, the last of which raises the level: the level up is 5 ms before the end of the clock. */
+    METHOD PRIVATE VOID RaiseTheLevel():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        mGame:StartWith("I,I,I,I,I,I,I,I,I,I,I,I").
+        DO i = 1 TO 10:
+            mGame:Tick(5).
+            mGame:LoadLocked("IIIIIII.II").
+            mGame:RotateClockwise().
+            DO j = 1 TO 3:
+                mGame:MoveRight().
+            END.
+            mGame:HardDrop().
+        END.
+        Draw().
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ALevelUpSendsAGoldLineUpTheEmptyCellsOfTheWellThatDarkensHalfWay():
+        RaiseTheLevel().
+        Assert:Equals(2, mGame:Level).
+        mGame:Tick(20).
+        Draw().
+        /* the second frame: two pixels at 300, over the empty floor, but not over the wall */
+        Assert:Equals(Colour(Tint:Gold), Px(150, 300)).
+        Assert:Equals(Colour(Tint:Gold), Px(150, 301)).
+        Assert:IsFalse(Px(150, 302) = Colour(Tint:Gold)).
+        Assert:IsFalse(Px(1, 300) = Colour(Tint:Gold)).
+        mGame:Tick(130).
+        Draw().
+        /* the tenth frame, in gold tone 4 */
+        Assert:Equals(ColourMath:FromHex(ENTRY(4, TetrisLook:Tones(9))), Px(150, 318 - 18 * 9)).
+        mGame:Tick(200).
+        Draw().
+        Assert:IsFalse(Px(150, 318 - 18 * 9) = ColourMath:FromHex(ENTRY(4, TetrisLook:Tones(9)))).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ALevelUpMakesTheLevelCardAmberAndBlinksTheNumberForHalfASecond():
+        RaiseTheLevel().
+        mGame:Tick(20).
+        Draw().
+        Assert:Equals(Colour(Tint:Accent), Px(mPainter:Canvas:Width - 96 + 4 + 10, 196)).
+        Assert:IsTrue(CountOf(Colour(Tint:Gold), 188, 214, 22, 14) > 0).
+        Assert:Equals(0, CountOf(Colour(Tint:Accent), 188, 214, 22, 14)).
+        mGame:Tick(80).
+        Draw().
+        Assert:Equals(0, CountOf(Colour(Tint:Gold), 188, 214, 22, 14)).
+        Assert:IsTrue(CountOf(Colour(Tint:Accent), 188, 214, 22, 14) > 0).
+        mGame:Tick(400).
+        Draw().
+        Assert:Equals(Colour(Tint:FrameOuter), Px(mPainter:Canvas:Width - 96 + 4 + 10, 196)).
+        Assert:Equals(0, CountOf(Colour(Tint:Gold), 188, 214, 22, 14)).
+    END METHOD.
+
 END CLASS.
