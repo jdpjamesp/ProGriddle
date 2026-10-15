@@ -327,6 +327,39 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID FitToWindowScalesByAnyAmountAndKeepsTheShapeAndTheClicksRight():
+        DEFINE VARIABLE g  AS Grid NO-UNDO.
+        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            g = NewGrid(1, 10, 10).
+            mView:Show(g, "state").
+            mView:ClientSize = NEW Size(275, 999).
+            /* whole numbers: 27 a cell, 270 wide, 5 pixels over */
+            Assert:Equals(27, mView:CellSize()).
+            Assert:Equals(270, mView:PictureWidth()).
+            mView:FitToWindow = TRUE.
+            /* fitted: 27.5 a cell fills the width, and the board is centred in the height */
+            Assert:Equals(275, mView:PictureWidth()).
+            Assert:Equals(275, mView:PictureHeight()).
+            Assert:Equals(0, mView:OffsetX()).
+            Assert:Equals(362, mView:OffsetY()).
+            Assert:IsTrue(mView:HitTest(274, 362, OUTPUT cx, OUTPUT cy)).
+            Assert:Equals(9, cx).
+            Assert:Equals(0, cy).
+            Assert:IsFalse(mView:HitTest(275, 362, OUTPUT cx, OUTPUT cy)).
+            /* never under a pixel a cell */
+            mView:ClientSize = NEW Size(5, 5).
+            Assert:Equals(10, mView:PictureWidth()).
+            mView:FitToWindow = FALSE.
+            Assert:Equals(10, mView:PictureWidth()).
+            FINALLY:
+                IF VALID-OBJECT(g) THEN g:Dispose().
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID CellSizeBeforeTheFirstShowIsOne():
         Assert:Equals(1, mView:CellSize()).
     END METHOD.

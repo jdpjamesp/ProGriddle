@@ -133,27 +133,40 @@ CLASS ProGriddle.Games.Snake.SnakeInputTests:
         mGame:StartWith(body, "Right").
         mGame:Tick(150).
         Assert:IsTrue(INDEX(mInput:StatusText, "You win   Score 10   Length 25") = 1).
-        Assert:Equals("YOU WIN", mInput:BannerText).
+        Assert:Equals("", mInput:BannerText).
     END METHOD.
 
     /* ---- the banner ---- */
 
     @Test.
-    METHOD PUBLIC VOID TheBannerSaysPAUSEDWhilePausedAndGAMEOVERWhenTheSnakeHasCrashed():
+    METHOD PUBLIC VOID TheBannerIsAlwaysEmptyBecauseThePainterDrawsPausedAndGameOver():
         Assert:Equals("", mInput:BannerText).
         mGame:Paused = TRUE.
-        Assert:Equals("PAUSED", mInput:BannerText).
-        mGame:Paused = FALSE.
         Assert:Equals("", mInput:BannerText).
+        mGame:Paused = FALSE.
         Crash().
-        Assert:Equals("GAME OVER", mInput:BannerText).
+        Assert:Equals("", mInput:BannerText).
+        mGame:Paused = TRUE.
+        Assert:Equals("", mInput:BannerText).
     END METHOD.
 
     @Test.
-    METHOD PUBLIC VOID GAMEOVERIsShownEvenIfThePausedFlagIsSet():
-        Crash().
-        mGame:Paused = TRUE.
-        Assert:Equals("GAME OVER", mInput:BannerText).
+    METHOD PUBLIC VOID TheGameIsToldTheBestScoreFromBeforeItAndTheNextGameGetsTheNewOne():
+        mSettings:SetInteger("snake.best", 70).
+        mInput = NEW SnakeInput(mGame, mSettings).
+        Assert:Equals(70, mGame:BestScore).
+        mGame:StartWith("3,4;4,4", "Right").
+        mGame:SetFood(5, 4).
+        DO WHILE NOT mGame:IsOver:
+            mGame:Tick(mGame:StepMs).
+        END.
+        /* asking about the end notes it, and the best of before stays for this game's painter... */
+        mInput:BannerText.
+        Assert:Equals(70, mGame:BestScore).
+        /* ...until the game is new */
+        mGame:StartWith("3,4;4,4", "Right").
+        mInput:BannerText.
+        Assert:Equals(70, mGame:BestScore).
     END METHOD.
 
     /* ---- the best score ---- */
@@ -218,10 +231,11 @@ CLASS ProGriddle.Games.Snake.SnakeInputTests:
     /* ---- waiting for the first key ---- */
 
     @Test.
-    METHOD PUBLIC VOID TheBannerAsksForAnArrowKeyWhileTheGameWaits():
+    METHOD PUBLIC VOID TheFirstKeyStartsTheSnakeAfterItWaitedAndTheBannerStaysEmpty():
         mGame:WaitForKey = TRUE.
         mGame:Initialise().
-        Assert:Equals("PRESS AN ARROW KEY", mInput:BannerText).
+        Assert:IsTrue(mGame:Waiting).
+        Assert:Equals("", mInput:BannerText).
         Assert:IsTrue(mInput:HandleKey("Up")).
         Assert:Equals("", mInput:BannerText).
         mGame:Tick(150).
@@ -229,11 +243,11 @@ CLASS ProGriddle.Games.Snake.SnakeInputTests:
     END METHOD.
 
     @Test.
-    METHOD PUBLIC VOID PausedComesBeforeWaitingInTheBanner():
+    METHOD PUBLIC VOID APausedWaitingGameHasNoBannerEither():
         mGame:WaitForKey = TRUE.
         mGame:Initialise().
         mGame:Paused = TRUE.
-        Assert:Equals("PAUSED", mInput:BannerText).
+        Assert:Equals("", mInput:BannerText).
     END METHOD.
 
     /* ---- the board size option ---- */

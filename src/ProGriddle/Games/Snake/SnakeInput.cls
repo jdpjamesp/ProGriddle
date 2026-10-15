@@ -66,12 +66,11 @@ CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput, IGameOption
             RETURN "".
         END GET.
 
+    /* Always empty: the painter draws PRESS AN ARROW KEY, PAUSED, GAME OVER and YOU WIN into the picture. Asking still notes the
+       end of a game. */
     DEFINE PUBLIC PROPERTY BannerText AS CHARACTER NO-UNDO
         GET():
             NoteEnd().
-            IF mGame:IsOver THEN RETURN (IF mGame:HasWon THEN "YOU WIN" ELSE "GAME OVER").
-            IF mGame:Paused THEN RETURN "PAUSED".
-            IF mGame:Waiting THEN RETURN "PRESS AN ARROW KEY".
             RETURN "".
         END GET.
 
@@ -97,6 +96,7 @@ CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput, IGameOption
         mGame = poGame.
         mSettings = poSettings.
         mBest = MAX(0, mSettings:GetInteger("snake.best", 0)).
+        mGame:BestScore = mBest.
     END CONSTRUCTOR.
 
     /* What the last change of board size said, once. */
@@ -191,6 +191,8 @@ CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput, IGameOption
         IF NOT mGame:IsOver THEN DO:
             mRecorded = FALSE.
             mNewBest = FALSE.
+            /* the painter shows the best from before this game, so it can tell when this one beats it */
+            mGame:BestScore = mBest.
         END.
         ELSE IF NOT mRecorded THEN DO:
             mRecorded = TRUE.

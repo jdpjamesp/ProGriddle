@@ -27,7 +27,7 @@ DEFINE VARIABLE oSettings     AS ISettings          NO-UNDO.
 DEFINE VARIABLE oGame         AS TetrisGame         NO-UNDO.
 DEFINE VARIABLE oView         AS GridView           NO-UNDO.
 DEFINE VARIABLE oPainter      AS TetrisPainter      NO-UNDO.
-DEFINE VARIABLE iCell         AS INTEGER            NO-UNDO.
+DEFINE VARIABLE dScale        AS DECIMAL            NO-UNDO.
 DEFINE VARIABLE oClock        AS WinFormsClock      NO-UNDO.
 DEFINE VARIABLE oController   AS RealTimeController NO-UNDO.
 DEFINE VARIABLE oWindow       AS GameWindow         NO-UNDO.
@@ -43,11 +43,12 @@ DO ON ERROR UNDO, THROW:
     IF cSettingsFile = "default" THEN cSettingsFile = JsonFileSettings:DefaultPath().
     oSettings = NEW JsonFileSettings(cSettingsFile).
 
-    /* a window the shape of the picture (17 x 20 cells of 16 pixels), so there is no dead space round it: 3 pixels to a pixel of the
-       picture when the screen is tall enough, else 2. The toolbar and the status bar take about 66 more. */
-    iCell = (IF Screen:PrimaryScreen:WorkingArea:Height >= 3 * 320 + 66 + 40 THEN 3 ELSE 2).
-    oSettings:SetInteger("tetris.window.width", 272 * iCell).
-    oSettings:SetInteger("tetris.window.height", 320 * iCell + 66).
+    /* a window the shape of the picture (17 x 20 cells of 16 pixels), as big as the screen has room for, up to 4 pixels to a pixel of the
+       picture: the view scales the picture to fill it. The toolbar and the status bar take about 66 more, the title bar and frame
+       about 50. */
+    dScale = MINIMUM(4.0, MINIMUM((Screen:PrimaryScreen:WorkingArea:Height - 66 - 50) / 320, Screen:PrimaryScreen:WorkingArea:Width / 272)).
+    oSettings:SetInteger("tetris.window.width", INTEGER(TRUNCATE(272 * dScale, 0))).
+    oSettings:SetInteger("tetris.window.height", INTEGER(TRUNCATE(320 * dScale, 0)) + 66).
 
     /* a tick every 20 ms is smooth enough for the effects, and the picture is redrawn only when something moved or is moving */
     oClock = NEW WinFormsClock().
@@ -61,6 +62,7 @@ DO ON ERROR UNDO, THROW:
     oView = NEW GridView().
     oView:DirectColor = TRUE.
     oView:ShowGridLines = FALSE.
+    oView:FitToWindow = TRUE.
     oPainter = NEW TetrisPainter(NEW WinFormsGridRenderer(oView, "view"), oGame, NEW SeededRandom(iSeed + 1)).
     oController = NEW RealTimeController(oGame, oPainter, oClock).
     oWindow = NEW GameWindow("ProGriddle Tetris", oController, oView, NEW TetrisInput(oGame, oSettings),

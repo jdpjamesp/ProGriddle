@@ -9,6 +9,9 @@
    %APPDATA%\ProGriddle\settings.json), a number of seconds after which the window closes by itself
    (for scripted checks), and a seed for the food (for scripted checks).
 
+   The picture is the "Lantern Glass" look of docs/design/snake-art.md, drawn by SnakePainter. The window is made the shape of the
+   first board.
+
    Settings it reads (all optional, edit the file while the program is closed):
      snake.width, snake.height   board size in cells, 5 to 40 (default 20 x 20)
      snake.size                  the board size chosen in the window, such as 30 x 20 (saved when the window closes,
@@ -17,6 +20,7 @@
    The window also saves its own size and position. */
 USING Progress.Lang.*.
 USING System.Windows.Forms.Application FROM ASSEMBLY.
+USING System.Windows.Forms.Screen FROM ASSEMBLY.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
 USING ProGriddle.Games.Snake.*.
@@ -28,6 +32,8 @@ DEFINE VARIABLE iSeed         AS INT64              NO-UNDO.
 DEFINE VARIABLE oSettings     AS ISettings          NO-UNDO.
 DEFINE VARIABLE oGame         AS SnakeGame          NO-UNDO.
 DEFINE VARIABLE oView         AS GridView           NO-UNDO.
+DEFINE VARIABLE oPainter      AS SnakePainter       NO-UNDO.
+DEFINE VARIABLE dScale        AS DECIMAL            NO-UNDO.
 DEFINE VARIABLE oClock        AS WinFormsClock      NO-UNDO.
 DEFINE VARIABLE oController   AS RealTimeController NO-UNDO.
 DEFINE VARIABLE oWindow       AS GameWindow         NO-UNDO.
@@ -54,10 +60,24 @@ DO ON ERROR UNDO, THROW:
     oGame = SnakeFactory:Create(iWidth, iHeight, NEW SeededRandom(iSeed)).
     /* each new game waits for the first arrow key, so the snake never sets off before the player is ready */
     oGame:WaitForKey = TRUE.
+    /* the effects: the game keeps their clocks, so the picture can flick the tongue, blink and play the end */
+    oGame:Animated = TRUE.
 
+    /* the picture is drawn by the painter on a canvas of its own, and the view shows that canvas in direct colour, with no grid lines */
     oView = NEW GridView().
-    oView:SetPalette(SnakeLook:Palette()).
-    oController = NEW RealTimeController(oGame, NEW WinFormsGridRenderer(oView, "view"), oClock).
+    oView:DirectColor = TRUE.
+    oView:ShowGridLines = FALSE.
+    oView:FitToWindow = TRUE.
+    oPainter = NEW SnakePainter(NEW WinFormsGridRenderer(oView, "view"), oGame, NEW SeededRandom(iSeed + 1)).
+    oController = NEW RealTimeController(oGame, oPainter, oClock).
+
+    /* a window the shape of the picture, as big as the screen has room for, up to 4 pixels to a pixel of the picture: the view scales the
+       picture to fill it. The toolbar and the status bar take about 66 more, the title bar and frame about 50. A change of board size in
+       the window keeps the window and fits the new picture into it. */
+    dScale = MINIMUM(4.0, MINIMUM((Screen:PrimaryScreen:WorkingArea:Height - 66 - 50) / oPainter:Canvas:Height, Screen:PrimaryScreen:WorkingArea:Width / oPainter:Canvas:Width)).
+    oSettings:SetInteger("snake.window.width", INTEGER(TRUNCATE(oPainter:Canvas:Width * dScale, 0))).
+    oSettings:SetInteger("snake.window.height", INTEGER(TRUNCATE(oPainter:Canvas:Height * dScale, 0)) + 66).
+
     oWindow = NEW GameWindow("ProGriddle Snake", oController, oView, NEW SnakeInput(oGame, oSettings),
                              oClock, oSettings, "snake").
     IF iAutoClose > 0 THEN oWindow:AutoCloseSeconds = iAutoClose.
@@ -72,6 +92,7 @@ DO ON ERROR UNDO, THROW:
     END CATCH.
     FINALLY:
         IF VALID-OBJECT(oController) THEN oController:Dispose().
+        IF VALID-OBJECT(oPainter) THEN oPainter:Dispose().
         IF VALID-OBJECT(oGame) THEN oGame:Dispose().
         IF VALID-OBJECT(oClock) THEN oClock:Dispose().
     END FINALLY.

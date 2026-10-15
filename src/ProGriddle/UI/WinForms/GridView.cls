@@ -83,6 +83,16 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         GET.
         SET.
 
+    /* True to scale the picture to fill the control as far as its shape allows, by any amount, instead of by a whole number of
+       pixels a cell. A picture drawn pixel by pixel on a canvas (Tetris, Snake) uses it so that no space is wasted round it, at
+       the price of some pixels being a pixel wider than others. Grid lines and glyphs are not drawn while it is on. */
+    DEFINE PUBLIC PROPERTY FitToWindow AS LOGICAL NO-UNDO INITIAL FALSE
+        GET.
+        SET(INPUT plValue AS LOGICAL):
+            FitToWindow = plValue.
+            THIS-OBJECT:Invalidate().
+        END SET.
+
     /* Draw thin lines between cells when each cell is at least 8 pixels wide. */
     DEFINE PUBLIC PROPERTY ShowGridLines AS LOGICAL NO-UNDO INITIAL TRUE
         GET.
@@ -381,34 +391,50 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
         RETURN INTEGER(MAXIMUM(1, TRUNCATE(MINIMUM(THIS-OBJECT:ClientSize:Width / mCols, THIS-OBJECT:ClientSize:Height / mRows), 0))).
     END METHOD.
 
+    /* How many pixels a cell is drawn: the whole number CellSize, or, with FitToWindow, the most that fits (not under 1). */
+    METHOD PUBLIC DECIMAL Scale():
+        IF mCols < 1 OR mRows < 1 THEN RETURN 1.
+        IF FitToWindow THEN RETURN MAXIMUM(1, MINIMUM(THIS-OBJECT:ClientSize:Width / mCols, THIS-OBJECT:ClientSize:Height / mRows)).
+        RETURN CellSize().
+    END METHOD.
+
+    /* The size in pixels of the board as drawn. */
+    METHOD PUBLIC INTEGER PictureWidth():
+        RETURN INTEGER(TRUNCATE(Scale() * mCols, 0)).
+    END METHOD.
+
+    METHOD PUBLIC INTEGER PictureHeight():
+        RETURN INTEGER(TRUNCATE(Scale() * mRows, 0)).
+    END METHOD.
+
     /* Pixels between the left edge of the control and the board, which is centred. */
     METHOD PUBLIC INTEGER OffsetX():
         IF mCols < 1 THEN RETURN 0.
-        RETURN INTEGER(MAXIMUM(0, TRUNCATE((THIS-OBJECT:ClientSize:Width - CellSize() * mCols) / 2, 0))).
+        RETURN INTEGER(MAXIMUM(0, TRUNCATE((THIS-OBJECT:ClientSize:Width - PictureWidth()) / 2, 0))).
     END METHOD.
 
     /* Pixels between the top edge of the control and the board. */
     METHOD PUBLIC INTEGER OffsetY():
         IF mRows < 1 THEN RETURN 0.
-        RETURN INTEGER(MAXIMUM(0, TRUNCATE((THIS-OBJECT:ClientSize:Height - CellSize() * mRows) / 2, 0))).
+        RETURN INTEGER(MAXIMUM(0, TRUNCATE((THIS-OBJECT:ClientSize:Height - PictureHeight()) / 2, 0))).
     END METHOD.
 
     /* Converts a pixel position to a cell. Returns false, and sets both outputs to -1, when
        the position is outside the board (including the margin around it). */
     METHOD PUBLIC LOGICAL HitTest(INPUT piX AS INTEGER, INPUT piY AS INTEGER,
                                   OUTPUT piCellX AS INTEGER, OUTPUT piCellY AS INTEGER):
-        DEFINE VARIABLE cs AS INTEGER NO-UNDO.
+        DEFINE VARIABLE sc   AS DECIMAL NO-UNDO.
         DEFINE VARIABLE relX AS INTEGER NO-UNDO.
         DEFINE VARIABLE relY AS INTEGER NO-UNDO.
         piCellX = -1.
         piCellY = -1.
         IF mCols < 1 OR mRows < 1 THEN RETURN FALSE.
-        cs = CellSize().
+        sc = Scale().
         relX = piX - OffsetX().
         relY = piY - OffsetY().
-        IF relX < 0 OR relY < 0 OR relX >= cs * mCols OR relY >= cs * mRows THEN RETURN FALSE.
-        piCellX = INTEGER(TRUNCATE(relX / cs, 0)).
-        piCellY = INTEGER(TRUNCATE(relY / cs, 0)).
+        IF relX < 0 OR relY < 0 OR relX >= PictureWidth() OR relY >= PictureHeight() THEN RETURN FALSE.
+        piCellX = MINIMUM(mCols - 1, INTEGER(TRUNCATE(relX / sc, 0))).
+        piCellY = MINIMUM(mRows - 1, INTEGER(TRUNCATE(relY / sc, 0))).
         RETURN TRUE.
     END METHOD.
 
@@ -424,8 +450,8 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
             oy = OffsetY().
             e:Graphics:InterpolationMode = InterpolationMode:NearestNeighbor.
             e:Graphics:PixelOffsetMode = PixelOffsetMode:Half.
-            e:Graphics:DrawImage(mBitmap, ox, oy, cs * mCols, cs * mRows).
-            IF ShowGridLines AND cs >= 8 THEN DO:
+            e:Graphics:DrawImage(mBitmap, ox, oy, PictureWidth(), PictureHeight()).
+            IF ShowGridLines AND cs >= 8 AND NOT FitToWindow THEN DO:
                 DO i = 0 TO mCols:
                     e:Graphics:DrawLine(mLinePen, ox + i * cs, oy, ox + i * cs, oy + mRows * cs).
                 END.
@@ -433,7 +459,7 @@ CLASS ProGriddle.UI.WinForms.GridView INHERITS Panel:
                     e:Graphics:DrawLine(mLinePen, ox, oy + i * cs, ox + mCols * cs, oy + i * cs).
                 END.
             END.
-            IF mGlyphCount > 0 THEN PaintGlyphs(e:Graphics, ox, oy, cs).
+            IF mGlyphCount > 0 AND NOT FitToWindow THEN PaintGlyphs(e:Graphics, ox, oy, cs).
         END.
         IF mBannerText <> "" THEN PaintBox(e:Graphics, mBannerText, 255).
         IF mNoticeText <> "" THEN PaintNotice(e:Graphics).
