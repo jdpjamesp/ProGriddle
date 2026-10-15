@@ -102,8 +102,18 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
         mCanvas:Restore().
         mCanvas:BeginBatch().
         DrawFood().
+        DrawWave().
         DrawHead().
+        DrawEatRing().
+        DrawWaiting().
         mCanvas:EndBatch().
+        IF mGame:Paused AND NOT mGame:IsOver THEN DO:
+            /* the board is dimmed once, with the batch closed, and then the plate and the words go on it */
+            mCanvas:DimRect(0, mStrip, mWidth, mRows * mTile, 55, SnakeLook:Colour(SnakeTint:Shade)).
+            mCanvas:BeginBatch().
+            DrawPaused().
+            mCanvas:EndBatch().
+        END.
         mInner:Render(mGrid, poGame).
     END METHOD.
 
@@ -410,8 +420,60 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
         DEFINE VARIABLE dress AS INTEGER NO-UNDO.
         part = (IF TongueOut() THEN INTEGER(SnakePart:HeadTongue) ELSE INTEGER(SnakePart:Head)).
         dress = INTEGER(SnakeDress:Normal).
+        IF EatAge() >= 0 AND EatAge() < 66 THEN dress = INTEGER(SnakeDress:Flash).
         Dressed(dress, part, HeadTurns()):DrawTo(mCanvas, mGame:HeadX * mTile, mStrip + mGame:HeadY * mTile).
         RingCell(mGame:HeadX, mGame:HeadY).
+    END METHOD.
+
+    /* ================================ eating ================================ */
+
+    /* Milliseconds since the food was last eaten, or -1 when it has not been in this game. */
+    METHOD PRIVATE INTEGER EatAge():
+        IF mGame:LastEatMs < 0 OR mGame:ElapsedMs < mGame:LastEatMs THEN RETURN -1.
+        RETURN mGame:ElapsedMs - mGame:LastEatMs.
+    END METHOD.
+
+    /* The wave that runs down the body after the food is eaten (docs/design/snake-art.md 3.3): from the cell behind the head, one
+       cell every 30 ms, each in the brighter body colour for 90 ms, so three are lit at once. */
+    METHOD PRIVATE VOID DrawWave():
+        DEFINE VARIABLE age AS INTEGER NO-UNDO.
+        DEFINE VARIABLE j   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE lo  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hi  AS INTEGER NO-UNDO.
+        age = EatAge().
+        IF age < 0 THEN RETURN.
+        hi = INTEGER(TRUNCATE(age / 30, 0)).
+        lo = (IF age < 90 THEN 0 ELSE INTEGER(TRUNCATE((age - 90) / 30, 0)) + 1).
+        DO j = lo TO hi:
+            IF mGame:Length - 2 - j < 0 THEN LEAVE.
+            DrawBodyCell(mGame:Length - 2 - j, INTEGER(SnakeDress:Bright)).
+        END.
+    END METHOD.
+
+    /* The ring of eight pixels that spreads from the cell where the food was eaten: six steps of 33 ms, the radius growing 1.2 pixels
+       a step (0.6 on a small tile), white and then the five tones of the apple. */
+    METHOD PRIVATE VOID DrawEatRing():
+        DEFINE VARIABLE age    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE f      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE c      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE radius AS DECIMAL NO-UNDO.
+        DEFINE VARIABLE cx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cy     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE px     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE py     AS INTEGER NO-UNDO.
+        age = EatAge().
+        IF age < 0 OR age >= 198 THEN RETURN.
+        f = INTEGER(TRUNCATE(age / 33, 0)).
+        c = (IF f = 0 THEN SnakeLook:Colour(SnakeTint:Flash) ELSE ColourMath:FromHex(ENTRY(f, SnakeLook:ToneRow(SnakeLook:Colour(SnakeTint:Apple))))).
+        radius = (IF mTile = 16 THEN 3 + 1.2 * f ELSE 1.5 + 0.6 * f).
+        cx = mGame:LastEatX * mTile + INTEGER(TRUNCATE(mTile / 2, 0)).
+        cy = mStrip + mGame:LastEatY * mTile + INTEGER(TRUNCATE(mTile / 2, 0)).
+        DO k = 1 TO 8:
+            px = cx + INTEGER(ROUND(radius * DECIMAL(ENTRY(k, "1,0.7071,0,-0.7071,-1,-0.7071,0,0.7071")), 0)).
+            py = cy + INTEGER(ROUND(radius * DECIMAL(ENTRY(k, "0,0.7071,1,0.7071,0,-0.7071,-1,-0.7071")), 0)).
+            mCanvas:DrawLine(px, py, px, py, 0, c).
+        END.
     END METHOD.
 
     /* ================================ the food ================================ */
@@ -455,6 +517,65 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
             END.
         END.
         RingCell(piX, piY).
+    END METHOD.
+
+    /* ================================ plates and words ================================ */
+
+    /* A plate: a rectangle filled with the gap colour, with a rule of piRules rows in a colour on its top and bottom edges. The
+       canvas must be in a batch. */
+    METHOD PRIVATE VOID Plate(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER, INPUT poRule AS SnakeTint, INPUT piRules AS INTEGER):
+        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        DO j = 0 TO piH - 1:
+            mCanvas:DrawLine(piX, piY + j, piX + piW - 1, piY + j, 0,
+                             (IF j < piRules OR j >= piH - piRules THEN SnakeLook:Colour(poRule) ELSE SnakeLook:Colour(SnakeTint:Gap))).
+        END.
+    END METHOD.
+
+    /* The x of some text of piWidth pixels that is centred across the picture. */
+    METHOD PRIVATE INTEGER Centred(INPUT piWidth AS INTEGER):
+        RETURN INTEGER(TRUNCATE((mWidth - piWidth) / 2, 0)).
+    END METHOD.
+
+    /* Text in the board with a one pixel outline behind it. */
+    METHOD PRIVATE VOID Outlined(INPUT pcText AS CHARACTER, INPUT piScale AS INTEGER, INPUT poTop AS SnakeTint, INPUT poBottom AS SnakeTint, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+        mText:Get(pcText, piScale, SnakeLook:Colour(poTop), SnakeLook:Colour(poBottom), SnakeLook:Colour(SnakeTint:Outline)):DrawTo(mCanvas, piX, piY).
+    END METHOD.
+
+    /* While the snake waits for the first key (4.2): a plate a quarter of the way down the board with PRESS AN ARROW KEY blinking
+       500 ms on and 300 off, and an arrow beside the head, which blinks with it, showing the way it will go. */
+    METHOD PRIVATE VOID DrawWaiting():
+        DEFINE VARIABLE words AS CHARACTER NO-UNDO INITIAL "PRESS AN ARROW KEY".
+        DEFINE VARIABLE w     AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE y     AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE r     AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE x     AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE arrow AS CHARACTER NO-UNDO.
+        IF NOT mGame:Waiting OR mGame:IsOver THEN RETURN.
+        w = PixelCanvas:ScaledWidth(words, 1).
+        y = mStrip + INTEGER(TRUNCATE(mRows * mTile / 4, 0)).
+        Plate(Centred(w) - 8, y - 8, w + 16, 23, SnakeTint:FrameOuter, 1).
+        IF mGame:ElapsedMs MODULO 800 >= 500 THEN RETURN.
+        Caption(words, 1, SnakeTint:Text, Centred(w), y).
+        /* the arrow, four pixels on from the head's cell, in the middle of its height */
+        arrow = "1000/1100/0110/0011/0110/1100/1000".
+        x = (mGame:HeadX + 1) * mTile + 4.
+        y = mStrip + mGame:HeadY * mTile + INTEGER(TRUNCATE(mTile / 2, 0)) - 3.
+        DO r = 0 TO 6:
+            DO w = 0 TO 3:
+                IF SUBSTRING(ENTRY(r + 1, arrow, "/"), w + 1, 1) = "1" THEN
+                    mCanvas:DrawLine(x + w, y + r, x + w, y + r, 0, SnakeLook:Colour(SnakeTint:Accent)).
+            END.
+        END.
+    END METHOD.
+
+    /* The words of a pause on a plate across the middle of the board. This is not in the design, which has no pause: it is the
+       plate of the other screens with the words PAUSED and P TO RESUME. */
+    METHOD PRIVATE VOID DrawPaused():
+        DEFINE VARIABLE middle AS INTEGER NO-UNDO.
+        middle = mStrip + INTEGER(TRUNCATE(mRows * mTile / 2, 0)).
+        Plate(0, middle - 28, mWidth, 56, SnakeTint:Accent, 2).
+        Outlined("PAUSED", 2, SnakeTint:Text, SnakeTint:Text, Centred(PixelCanvas:ScaledWidth("PAUSED", 2)), middle - 16).
+        Caption("P TO RESUME", 1, SnakeTint:Dim, Centred(PixelCanvas:ScaledWidth("P TO RESUME", 1)), middle + 6).
     END METHOD.
 
     /* ================================ the strip ================================ */

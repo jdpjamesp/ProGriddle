@@ -267,8 +267,9 @@ CLASS ProGriddle.Games.Snake.SnakePainterTests:
         Draw().
         Assert:Equals(4, mGame:Length).
         Assert:Equals(0, Mismatches(2, 4, SnakeArt:Tail(16):Turned(2), SnakeLook:ToneRow(Colour(SnakeTint:TailBase)))).
-        Assert:Equals(0, Mismatches(4, 4, SnakeArt:BodyStraight(16), SnakeLook:ToneRow(Colour(SnakeTint:BodyBase)))).
-        Assert:Equals(0, Mismatches(5, 4, SnakeArt:Head(16), SnakeLook:ToneRow(Colour(SnakeTint:HeadBase)))).
+        Assert:Equals(0, Mismatches(3, 4, SnakeArt:BodyStraight(16), SnakeLook:ToneRow(Colour(SnakeTint:BodyBase)))).
+        /* the old head is lit by the wave for 90 ms, so its normal tile is checked a little later */
+        Assert:Equals(16777215, Px(CellX(5) + 2, CellY(4) + 4)).
     END METHOD.
 
     @Test.
@@ -360,6 +361,121 @@ CLASS ProGriddle.Games.Snake.SnakePainterTests:
         Draw().
         Assert:Equals(0, CountOf(Colour(SnakeTint:Gold), 100, 4, 28, 7)).
         Assert:IsTrue(CountOf(Colour(SnakeTint:Label), 100, 4, 28, 7) > 0).
+    END METHOD.
+
+    /* ---------------------------------- waiting for a key ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID WhileItWaitsAPlateAsksForAKeyWithBlinkingTextAndAnArrowBesideTheHead():
+        mGame:WaitForKey = TRUE.
+        Draw().
+        /* the plate is 123 wide at x 2, 23 high at y 48, a one pixel rule on its top and bottom rows */
+        Assert:Equals(Colour(SnakeTint:FrameOuter), Px(60, 48)).
+        Assert:Equals(Colour(SnakeTint:Gap), Px(60, 49)).
+        Assert:Equals(Colour(SnakeTint:FrameOuter), Px(60, 70)).
+        Assert:IsTrue(CountOf(Colour(SnakeTint:Text), 10, 56, 107, 7) > 0).
+        /* the arrow: a chevron four pixels to the right of the head's cell, centred on it */
+        Assert:Equals(Colour(SnakeTint:Accent), Px(84, 93)).
+        Assert:Equals(Colour(SnakeTint:Accent), Px(87, 96)).
+        mGame:Tick(600).
+        Draw().
+        /* 500 ms on and 300 off: the text and the arrow are off, the plate stays */
+        Assert:Equals(0, CountOf(Colour(SnakeTint:Text), 10, 56, 107, 7)).
+        Assert:IsFalse(Px(84, 93) = Colour(SnakeTint:Accent)).
+        Assert:Equals(Colour(SnakeTint:Gap), Px(60, 49)).
+        mGame:Tick(200).
+        Draw().
+        Assert:IsTrue(CountOf(Colour(SnakeTint:Text), 10, 56, 107, 7) > 0).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheTongueFlicksEveryFourHundredMillisecondsWhileItWaits():
+        mGame:WaitForKey = TRUE.
+        mGame:Tick(450).
+        Draw().
+        /* 450 is in the first 100 of the second 400: out */
+        Assert:Equals(Colour(SnakeTint:Tongue), Px(CellX(4) + 15, CellY(4) + 6)).
+        mGame:Tick(100).
+        Draw().
+        Assert:IsFalse(Px(CellX(4) + 15, CellY(4) + 6) = Colour(SnakeTint:Tongue)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheKeyThatStartsTheSnakeTakesThePlateAway():
+        mGame:WaitForKey = TRUE.
+        Draw().
+        Assert:Equals(Colour(SnakeTint:Gap), Px(60, 49)).
+        mGame:TurnRight().
+        Draw().
+        Assert:IsFalse(Px(60, 49) = Colour(SnakeTint:Gap)).
+    END METHOD.
+
+    /* ---------------------------------- eating ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID TheHeadFlashesWhiteForSixtySixMillisecondsWhenItEats():
+        mGame:SetFood(5, 4).
+        Steps(1).
+        Draw().
+        /* a highlight pixel of the head, away from the ring, is white and not the head's own light green */
+        Assert:Equals(16777215, Px(CellX(5) + 2, CellY(4) + 4)).
+        mGame:Tick(70).
+        Draw().
+        Assert:Equals(Tone(SnakeTint:HeadBase, 1), Px(CellX(5) + 2, CellY(4) + 4)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ARingOfEightPixelsSpreadsFromTheEatenCellAndIsGoneAfterTwoHundredMilliseconds():
+        mGame:SetFood(5, 4).
+        Steps(1).
+        mGame:Tick(110).
+        Draw().
+        /* the fourth step: the apple's tone 3, 6.6 pixels from the middle of the cell (88, 96), eight of them */
+        Assert:IsTrue(CountOf(Tone(SnakeTint:Apple, 3), 80, 88, 17, 17) >= 6).
+        mGame:Tick(100).
+        Draw().
+        Assert:Equals(0, CountOf(Tone(SnakeTint:Apple, 3), 70, 80, 40, 30)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ABrighterWaveRunsDownTheBodyThreeCellsAtATime():
+        mGame:SetFood(5, 4).
+        Steps(1).
+        Draw().
+        /* the snake is the tail at 2, then 3 and 4, and the head at 5. At first only the cell behind the head is bright */
+        Assert:Equals(0, Mismatches(4, 4, SnakeArt:BodyStraight(16), SnakeLook:ToneRow(Colour(SnakeTint:BodyBright)))).
+        Assert:Equals(0, Mismatches(3, 4, SnakeArt:BodyStraight(16), SnakeLook:ToneRow(Colour(SnakeTint:BodyBase)))).
+        mGame:Tick(35).
+        Draw().
+        Assert:Equals(0, Mismatches(3, 4, SnakeArt:BodyStraight(16), SnakeLook:ToneRow(Colour(SnakeTint:BodyBright)))).
+        mGame:Tick(65).
+        Draw().
+        /* 100 ms: the first has gone back to normal, the tail is lit as well */
+        Assert:Equals(0, Mismatches(4, 4, SnakeArt:BodyStraight(16), SnakeLook:ToneRow(Colour(SnakeTint:BodyBase)))).
+        Assert:Equals(0, Mismatches(3, 4, SnakeArt:BodyStraight(16), SnakeLook:ToneRow(Colour(SnakeTint:BodyBright)))).
+        Assert:Equals(0, Mismatches(2, 4, SnakeArt:Tail(16):Turned(2), SnakeLook:ToneRow(Colour(SnakeTint:BodyBright)))).
+    END METHOD.
+
+    /* ---------------------------------- pause ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID APausedBoardIsDimmedBehindAPlateWithTheWordsAndTheStripIsNot():
+        Draw().
+        Assert:Equals(Colour(SnakeTint:FloorA), Px(CellX(1) + 8, CellY(1) + 8)).
+        mGame:Paused = TRUE.
+        Draw().
+        Assert:Equals(ColourMath:Mix(Colour(SnakeTint:FloorA), Colour(SnakeTint:Shade), 55, 100), Px(CellX(1) + 8, CellY(1) + 8)).
+        Assert:Equals(Colour(SnakeTint:NightTop), Px(127, 2)).
+        /* the plate across the middle, 56 high with two amber rules */
+        Assert:Equals(Colour(SnakeTint:Accent), Px(5, 60)).
+        Assert:Equals(Colour(SnakeTint:Accent), Px(5, 61)).
+        Assert:Equals(Colour(SnakeTint:Gap), Px(5, 90)).
+        Assert:Equals(Colour(SnakeTint:Accent), Px(5, 115)).
+        Assert:IsTrue(CountOf(Colour(SnakeTint:Text), 29, 72, 70, 14) > 0).
+        Assert:IsTrue(CountOf(Colour(SnakeTint:Dim), 31, 94, 65, 7) > 0).
+        mGame:Paused = FALSE.
+        Draw().
+        Assert:Equals(Colour(SnakeTint:FloorA), Px(CellX(1) + 8, CellY(1) + 8)).
     END METHOD.
 
     /* ---------------------------------- the size of the board ---------------------------------- */
