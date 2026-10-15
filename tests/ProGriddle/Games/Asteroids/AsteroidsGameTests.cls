@@ -2134,4 +2134,78 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
         Assert:Equals(GamePhase:Title, mGame:Phase).
     END METHOD.
 
+    /* ---------------------------------- running counts ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID ShotsFiredCountsEveryShotTheShipFires():
+        EmptySky().
+        Assert:Equals(0, mGame:ShotsFired).
+        mGame:FireHeld = TRUE.
+        mGame:Advance().
+        Assert:Equals(1, mGame:ShotsFired).
+        /* held down, the next shot comes after the gap of 8 frames */
+        Frames(8).
+        Assert:Equals(2, mGame:ShotsFired).
+        mGame:FireHeld = FALSE.
+        Frames(60).
+        Assert:Equals(2, mGame:ShotsFired).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID RocksBrokenCountsEachRockAndKeepsTheSizeOfTheLast():
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        EmptySky().
+        Assert:Equals(0, mGame:RocksBroken).
+        RockAt(2, 160, 90).
+        mGame:FireHeld = TRUE.
+        DO WHILE mGame:RocksBroken = 0 AND n < 20:
+            Frames(1).
+            mGame:FireHeld = FALSE.
+            n = n + 1.
+        END.
+        Assert:Equals(1, mGame:RocksBroken).
+        Assert:Equals(2, mGame:LastBrokenSize).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ARockASaucerFliesIntoCountsAsBrokenAndTheSaucerAsDestroyed():
+        EmptySky().
+        mGame:LaunchSaucerAt(TRUE, 1, 100).
+        mGame:PlaceSaucer(60, 60).
+        mGame:Rocks:Add(60 * 4096, 60 * 4096, 0, 0, 1, 0, 0, 1000, 1).
+        mGame:Advance().
+        Assert:Equals(1, mGame:RocksBroken).
+        Assert:Equals(1, mGame:LastBrokenSize).
+        Assert:Equals(1, mGame:SaucersDestroyed).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AShotSaucerIsDestroyedButOneThatCrossesAndLeavesIsNot():
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        EmptySky().
+        mGame:LaunchSaucerAt(TRUE, 1, 100).
+        mGame:PlaceSaucer(400, 100).
+        Quiet(20).
+        Assert:IsFalse(mGame:SaucerActive).
+        Assert:Equals(0, mGame:SaucersDestroyed).
+        mGame:LaunchSaucerAt(TRUE, 1, 100).
+        mGame:PlaceSaucer(160, 90).
+        mGame:FireHeld = TRUE.
+        DO WHILE mGame:SaucersDestroyed = 0 AND n < 20:
+            Frames(1).
+            mGame:FireHeld = FALSE.
+            n = n + 1.
+        END.
+        Assert:Equals(1, mGame:SaucersDestroyed).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID SaucerShotsFiredCountsTheShotsOfTheSaucers():
+        EmptySky().
+        Assert:Equals(0, mGame:SaucerShotsFired).
+        mGame:LaunchSaucerAt(TRUE, 1, 100).
+        UntilTheFirstSaucerShot(600).
+        Assert:Equals(1, mGame:SaucerShotsFired).
+    END METHOD.
+
 END CLASS.
