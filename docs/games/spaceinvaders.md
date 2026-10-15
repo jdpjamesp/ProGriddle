@@ -25,6 +25,7 @@ From the repository root, or from the Cookoff (`cookoff.bat`), where it has a bu
 | Space, Up, W or Z | Fire. Hold it and the cannon fires again the moment its shot is gone |
 | P, or the Pause button | Pause and run |
 | R or F2, or the New game button | A new game |
+| M, or the Sound button | Sound on or off (only when the machine has a sound device) |
 | + or - | Faster or slower, in steps of 10 percent of the arcade's speed (20 to 100). It starts at 70 and the choice is kept |
 
 Moving and firing work at the same time. Both direction keys down: the one pressed last wins. The title screen and the game over screen wait for the fire key, which must be pressed afresh (a key that was already down does not start the game).
@@ -43,12 +44,33 @@ At 100 percent the game is the arcade's own speed, which is a lot to ask of a fi
 
 The game runs at 60 frames a second at full speed whatever the clock does: it adds up the time it is given and makes a frame for every sixtieth of a second, never more than four at once, so a stall cannot make a burst.
 
+## Sound
+
+Space Invaders has the arcade's kind of sound effects: square waves and noise, made from recipes at start up. [Sound](../framework/sound.md) explains how they are made and played. The recipes are in `InvadersSounds`, one place for all of them, and `InvadersCues` says when each one happens.
+
+| Cue (`InvadersCue`) | When | Sound |
+|---|---|---|
+| `Shoot` | The cannon fires | A quick falling zap |
+| `InvaderKilled` | An invader is hit | A crunch of noise, then a falling note |
+| `PlayerDies` | The cannon is hit | A long burst of noise |
+| `March1` to `March4` | The rack finishes a pass | Four low notes in turn, each lower than the last, so the march speeds up as the invaders die |
+| `SaucerHit` | The saucer is shot | A high falling sweep and noise |
+| `ExtraLife` | The extra cannon at 1500 points | A rising run of four notes |
+| `WaveCleared` | The last invader dies | A short rising fanfare |
+| `SaucerHum` | While the saucer is out | A warbling hum that **loops**, and stops when the saucer is hit or flies off |
+
+The kills (an invader or the saucer) are one priority group; every other cue has a group of its own, so the shot, the march and an explosion all sound together. The title screen and the wave drawing in are silent, and a paused game stops the hum.
+
+Sound is on unless `sound.on` says otherwise. The M key or the Sound button switches it and saves the choice. With no sound device there is no button and no key, and the game is silent.
+
 ## Settings
 
 | Key | Meaning | Default |
 |---|---|---|
 | `spaceinvaders.hiscore` | The best score, written as soon as it is beaten | 0 |
 | `spaceinvaders.speed` | Percent of the arcade's speed, 20 to 100, changed with + and - | 70 |
+
+The sound uses two settings shared by every game with sound: `sound.on` (`true` by default, the M key changes it) and `sound.volume` (0 to 100, 50 by default).
 
 The window saves its position (`spaceinvaders.window.x` and `.y`) and whether it was maximised. Its size is not kept: each time it opens it is made the shape of the board (224 x 256 cells), so there is no empty space round the game: 3 pixels to a cell where the screen is tall enough, else 2. A window never opens bigger than the screen's working area.
 
@@ -100,6 +122,8 @@ All under `tests/ProGriddle/Games/SpaceInvaders/`.
 | `SpaceInvadersFactoryTests` | The grid, the title screen and seeded stars |
 | `InvaderRackTests` | The rack: order of movement, edges, drops, speed-up |
 | `PixelCanvasTests`, `SpriteTests`, `PixelFontTests` (now in `tests/ProGriddle/Engine/`) | Drawing, erasing by kind, clipping, text and the font |
+| `InvadersCuesTests` | Each sound event of a real game, driven frame by frame, is reported once (the shot, a kill, the cannon blowing up, a saucer hit and not a saucer that flies away, the extra cannon, the wave cleared), the title and the wave drawing in are silent, the march is four notes in turn, the hum is a loop that stops on pause, and the whole chain reaches a recording player |
+| `InvadersSoundsTests` | Every cue has a recipe that makes sound, only the hum loops, the march notes get lower, and the bank fills in well under half a second |
 | `InvadersArtTests`, `InvadersLookTests` | The picture sizes the rules rely on, the palette, the row colours by wave |
 
 Run them with `powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter "Invad*"` (and `-Filter "SpaceInvaders*"`).

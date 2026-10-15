@@ -27,6 +27,7 @@ From the repository root, or from the Cookoff (`cookoff.bat`), where it has a bu
 | Down or S | Hyperspace: jump to a random place, with a small chance of blowing up |
 | P | Pause and run. Pausing shows the picture dimmed with PAUSED over it |
 | R or F2 | A new game |
+| M, or the Sound button | Sound on or off (only when the machine has a sound device) |
 | + or - | Faster or slower, in steps of 10 percent of the real speed (20 to 100). It starts at 80 and the choice is kept |
 
 Turning, thrust and fire work at the same time. Both turn keys down: the one pressed last wins. The title screen and the game over screen wait for the fire key, which must be pressed afresh (a key that was already down does not start the game).
@@ -46,12 +47,34 @@ The title screen traces ASTEROIDS with a beam, letter by letter, then draws the 
 
 The game runs at 60 frames a second at full speed whatever the clock does: it adds up the time it is given and makes a frame for every sixtieth of a second (at the speed chosen), never more than four at once, so a stall cannot make a burst. The speed slows everything together, so it is the same game, only easier. It starts at 80 percent.
 
+## Sound
+
+Asteroids has chiptune sound effects, made from recipes at start up. [Sound](../framework/sound.md) explains how they are made and played. The recipes are in `AsteroidsSounds`, one place for all of them, and `AsteroidsCues` says when each one happens. The game keeps running counts of its events (`ShotsFired`, `SaucerShotsFired`, `RocksBroken` with `LastBrokenSize`, `SaucersDestroyed`) so the cues never have to guess from what is on the screen.
+
+| Cue (`AsteroidsCue`) | When | Sound |
+|---|---|---|
+| `Fire` | The ship fires | A quick falling zap |
+| `RockLarge`, `RockMedium`, `RockSmall` | A rock breaks, by its size | A low boom, a middle thump, a high crack |
+| `ShipDies` | The ship breaks up | A long burst of noise and rumble |
+| `SaucerFire` | A saucer fires | A rising chirp |
+| `SaucerDies` | A saucer is destroyed | A falling sweep and noise |
+| `Hyperspace` | The ship jumps | A sweep up and back down |
+| `ExtraShip` | An extra ship at every 10000 points | A rising run of four notes |
+| `ThrustLoop` | While the ship thrusts | A low rumble that **loops** |
+| `SaucerLargeHum`, `SaucerSmallHum` | While a saucer is out | A warbling hum that **loops**, low for the large saucer and high for the small one |
+
+Breaking a rock and destroying a saucer in the same moment (a saucer that flies into a rock) make one sound. The title screen is silent, and the loops stop when the game is paused, the ship stops thrusting or the saucer goes.
+
+Sound is on unless `sound.on` says otherwise. The M key or the Sound button switches it and saves the choice. With no sound device there is no button and no key, and the game is silent.
+
 ## Settings
 
 | Key | Meaning | Default |
 |---|---|---|
 | `asteroids.hiscore` | The best score, written as soon as it is beaten | 0 |
 | `asteroids.speed` | Percent of the real speed, 20 to 100, changed with + and - | 80 |
+
+The sound uses two settings shared by every game with sound: `sound.on` (`true` by default, the M key changes it) and `sound.volume` (0 to 100, 50 by default).
 
 The window saves its position (`asteroids.window.x` and `.y`) and whether it was maximised. Its size is not kept: each time it opens it is made the shape of the board (320 x 240 cells), so there is no empty space round the game: 3 pixels to a cell where the screen is tall enough, else 2.
 
@@ -102,6 +125,8 @@ All under `tests/ProGriddle/Games/Asteroids/` (and `tests/ProGriddle/Engine/` fo
 |---|---|
 | `AsteroidsGameTests` | The rules, frame by frame: turning, thrust, drag, wrapping, shots, the rocks and their splits and points, the ship breaking up and coming back, the shield, the saucers, hyperspace, game over, the HUD, the banners, the title, pause and every effect |
 | `AsteroidsInputTests` | Held keys, both turn keys, an empty name letting go of every key, the status line for each phase and the saved best score and speed |
+| `AsteroidsCuesTests` | Each sound event of a real game, driven frame by frame, is reported once (the shot, a rock of each size, the ship breaking up first, an extra ship, one hyperspace jump, a saucer's shots, a saucer destroyed, a saucer that flies into a rock making one sound), the title is silent, the thrust and each saucer are loops that stop when they should, and the whole chain reaches a recording player |
+| `AsteroidsSoundsTests` | Every cue has a recipe that makes sound, only the thrust and the two hums loop, a large rock is lower than a small one, and the bank fills in well under half a second |
 | `RockFieldTests` | The rock slots and their movement |
 | `DebrisPoolTests` | Cells and chips moving, slowing, spinning, wrapping, fading through a ramp and going; the pool refusing more when full; every recipe |
 | `TitleTraceTests` | The beam drawing the title letter by letter |
