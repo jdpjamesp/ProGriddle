@@ -4,14 +4,16 @@
 .DESCRIPTION
     Launches run/run-snake.p under prowin with a throwaway settings file that asks for a 40 x 40 board
     (so the snake has room) and a fixed seed, then plays: a new game waits for the first arrow key and
-    nothing moves until it comes, the colours of src/ProGriddle/Games/Snake/SnakeLook.cls are on the
-    screen, the arrow keys steer the snake (up, left, then two quick turns, up and right, which both
+    nothing moves until it comes, the colours of the "Lantern Glass" look (src/ProGriddle/Games/Snake/SnakeLook.cls,
+    drawn by SnakePainter on a pixel canvas) are on the screen, the arrow keys steer the snake (up, left, then two quick turns, up and right, which both
     have to be made), P pauses and the picture freezes, the snake crashes into a wall (GAME OVER, and
     the keys then do nothing), R starts a new game that waits again, and the Board drop down list
     changes the size (the food is drawn bigger on a 10 x 10 board) and the choice is saved. A second run
     asks for a 12 x 8 board in the settings and checks the board on screen has that shape. The snake is
-    found in screenshots by its head colour and the state is read from the window title. Screenshots go
-    to build/screenshots.
+    found in screenshots by its head colour and the state is read from the window title. The picture has
+    things that move by themselves (the tongue, the food, the blinking text while it waits), so "nothing
+    moves" is checked by where the head is, not by comparing whole pictures, except while paused, when the
+    game's clock stops and the picture does too. Screenshots go to build/screenshots.
 
     It sends real keystrokes and a mouse click to the foreground window, so do not touch the keyboard
     or mouse while it runs (a minute or two). Exit code 0 when every check passes.
@@ -33,10 +35,10 @@ $settingsFile = Join-Path $root 'build\smoke-snake-settings.json'
 . (Join-Path $PSScriptRoot 'gui-smoke-common.ps1')
 Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
 
-# the palette of SnakeLook: empty, body, head, food
-$EMPTY = @(0x1E, 0x24, 0x2B)
-$BODY  = @(0x3F, 0xAE, 0x78)
-$HEAD  = @(0x8E, 0xF0, 0xC0)
+# the base colours of SnakeLook (tone 3 of each colour row): the floor, the body, the head and the apple
+$EMPTY = @(0x0D, 0x14, 0x20)
+$BODY  = @(0x2F, 0xB3, 0x83)
+$HEAD  = @(0x4F, 0xD6, 0xA0)
 $FOOD  = @(0xE5, 0x53, 0x3D)
 
 function Write-Settings([int]$width, [int]$height) {
@@ -89,17 +91,18 @@ function Get-BoardBox($bmp) {
     return $b
 }
 
-# Where the head is: the centre of its box, and the size of a cell (the head is exactly one cell).
+# Where the head is: the centre of the box round its base colour, and about the size of a cell (the base colour covers
+# three quarters of the head's tile).
 function Get-Head($p, [string]$name) {
     $bmp = Take-Shot $p $name
     $b = Get-Box $bmp $HEAD
     $bmp.Dispose()
     if ($null -eq $b) { return $null }
-    return @{ X = ($b[0] + $b[2]) / 2.0; Y = ($b[1] + $b[3]) / 2.0; Cell = [Math]::Max($b[2] - $b[0], $b[3] - $b[1]) + 1 }
+    return @{ X = ($b[0] + $b[2]) / 2.0; Y = ($b[1] + $b[3]) / 2.0; Cell = ([Math]::Max($b[2] - $b[0], $b[3] - $b[1]) + 1) * 4.0 / 3.0 }
 }
 
-# The size of a cell in pixels, from the food, which is exactly one cell and which the banner never covers
-# (it is only in the middle of the board).
+# The size of the food in pixels (the base colour of the apple), which gets bigger as the cells do. It is only used to
+# compare two boards.
 function Get-FoodCell($p, [string]$name) {
     $bmp = Take-Shot $p $name
     $b = Get-Box $bmp $FOOD
@@ -130,9 +133,11 @@ try {
     Check 'a 40 x 40 board is square on the screen' ($ratio -gt 0.95 -and $ratio -lt 1.05) "ratio $ratio"
     $bmp.Dispose()
     $cell40 = Get-FoodCell $proc 'smoke-snake-1b-food'
-    $still1 = Get-Picture $proc 'smoke-snake-1c-still'
+    $still1 = Get-Head $proc 'smoke-snake-1c-still'
     Start-Sleep -Milliseconds 1200
-    Check 'a new game does not move until an arrow key is pressed' ((Get-Picture $proc 'smoke-snake-1d-still') -eq $still1)
+    $still2 = Get-Head $proc 'smoke-snake-1d-still'
+    Check 'a new game does not move until an arrow key is pressed' ($still1 -and $still2 -and $still1.X -eq $still2.X -and $still1.Y -eq $still2.Y) "$($still1.X),$($still1.Y) then $($still2.X),$($still2.Y)"
+
 
     # the key for the way it is facing starts it
     Send-Keys '{RIGHT}'
@@ -185,6 +190,9 @@ try {
     while (-not (Has-Text $proc 'Game over') -and $waited -lt 20) { Start-Sleep -Seconds 1; $waited++ }
     Check 'the snake crashes into the wall and the game is over' (Has-Text $proc 'Game over') (Get-Title $proc)
     $over = Take-Shot $proc 'smoke-snake-7-game-over'; $over.Dispose()
+    # the crash plays for 0.9 seconds and the banner opens for another 0.3, with the best score blinking for a few seconds more
+    Start-Sleep -Milliseconds 4500
+    $over = Take-Shot $proc 'smoke-snake-7a-game-over-banner'; $over.Dispose()
     $stuck = Get-Picture $proc 'smoke-snake-7b-stuck'
     Send-Keys '{DOWN}{LEFT}{UP}'
     Start-Sleep -Milliseconds 600
@@ -193,9 +201,11 @@ try {
     # a new game waits again
     Send-Keys 'r'
     Check 'R starts a new game' ((Has-Text $proc 'Score 0   Length 3') -and -not (Has-Text $proc 'Game over')) (Get-Title $proc)
-    $waiting1 = Get-Picture $proc 'smoke-snake-8a-new-game'
+    $waiting1 = Get-Head $proc 'smoke-snake-8a-new-game'
     Start-Sleep -Milliseconds 1000
-    Check 'and the new game waits for an arrow key' ((Get-Picture $proc 'smoke-snake-8b-new-game') -eq $waiting1)
+    $waiting2 = Get-Head $proc 'smoke-snake-8b-new-game'
+    Check 'and the new game waits for an arrow key' ($waiting1 -and $waiting2 -and $waiting1.X -eq $waiting2.X -and $waiting1.Y -eq $waiting2.Y) "$($waiting1.X),$($waiting1.Y) then $($waiting2.X),$($waiting2.Y)"
+
     Send-Keys '{UP}'
     Start-Sleep -Milliseconds 300
     $new0 = Get-Head $proc 'smoke-snake-8c-new-game-running'

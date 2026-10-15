@@ -79,6 +79,8 @@ What you see happen (all of it a function of the game's clock, so a paused game 
 | Game over | The well fills with dead blocks from the bottom, a row every 40 ms; the plate opens; GAME OVER appears a letter at a time; then the score, NEW BEST (blinking) if the game beat the best from before it, and PRESS R |
 | The score passes the best | HI-SCORE becomes NEW BEST in gold, follows the score, and its card flashes amber for 600 ms |
 
+The window is as big as the screen allows when it opens, and the picture is scaled to fill the window by any amount (`GridView:FitToWindow`), so there is no dead space round it and resizing the window grows the picture.
+
 Left out on purpose, as the design says: a moving background, screen shake, bloom and a glow round a clearing row. The start up animation (the falling TETRIS word) is also not built: only the panel appearing at once, because the game starts as soon as the window opens.
 
 ## Settings
