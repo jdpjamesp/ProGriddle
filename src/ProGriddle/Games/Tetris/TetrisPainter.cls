@@ -35,7 +35,11 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
     /* the blocks as they flash when they settle: lit all over, then only the highlight white */
     DEFINE PRIVATE VARIABLE mLit       AS PixelStamp      NO-UNDO EXTENT 7.
     DEFINE PRIVATE VARIABLE mWhiteTop  AS PixelStamp      NO-UNDO EXTENT 7.
+    /* the same blocks in the gold row, for the first frame of a Tetris */
+    DEFINE PRIVATE VARIABLE mGold      AS PixelStamp      NO-UNDO EXTENT 7.
     DEFINE PRIVATE VARIABLE mSparks    AS SparkField      NO-UNDO.
+    /* the clear that the sparks were made for */
+    DEFINE PRIVATE VARIABLE mSparkClearMs AS INTEGER      NO-UNDO INITIAL -1.
     /* the lock that the sparks were made for */
     DEFINE PRIVATE VARIABLE mSparkSerial AS INTEGER       NO-UNDO INITIAL -1.
     DEFINE PRIVATE VARIABLE mSparkPlaced AS INTEGER       NO-UNDO.
@@ -84,11 +88,12 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         mCanvas = NEW PixelCanvas(mGrid).
         mBase = NEW PixelCanvas(mBaseGrid).
         mText = NEW TextStampCache(64).
-        mSparks = NEW SparkField(32).
+        mSparks = NEW SparkField(64).
         DO p = 1 TO 7:
             mBlock[p] = TetrisArt:Block(p):Colourise(TetrisLook:Tones(p), "").
             mLit[p] = TetrisArt:Block(p):Colourise(TetrisLook:LitTones(p), "").
             mWhiteTop[p] = TetrisArt:Block(p):Colourise(TetrisLook:WhiteTopTones(p), "").
+            mGold[p] = TetrisArt:Block(p):Colourise(TetrisLook:Tones(9), "").
         END.
         mGhost = TetrisArt:Ghost():Colourise({&NO-TONES}, SUBSTITUTE("D=&1,H=&2", TetrisLook:Hex(Tint:GhostLine), TetrisLook:Hex(Tint:GhostHatch))).
         EXTENT(mFloor) = mBH.
@@ -113,7 +118,10 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         DrawGhost().
         DrawPiece().
         DrawLock().
+        DrawClear().
         DrawImpact().
+        mSparks:Draw(mCanvas, mGame:ElapsedMs).
+        DrawTetrisWord().
         DrawNext().
         DrawHud().
         mCanvas:EndBatch().
@@ -129,6 +137,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
             IF VALID-OBJECT(mBlock[i]) THEN mBlock[i]:Dispose().
             IF VALID-OBJECT(mLit[i]) THEN mLit[i]:Dispose().
             IF VALID-OBJECT(mWhiteTop[i]) THEN mWhiteTop[i]:Dispose().
+            IF VALID-OBJECT(mGold[i]) THEN mGold[i]:Dispose().
         END.
         IF VALID-OBJECT(mGhost) THEN mGhost:Dispose().
         DO i = 1 TO EXTENT(mFloor):
@@ -355,6 +364,96 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         mCanvas:DrawLine(MAXIMUM(0, x1), (mGame:LastLockY + y) * {&TILE} + {&TILE} - 1, MINIMUM(mBW * {&TILE} - 1, x2), (mGame:LastLockY + y) * {&TILE} + {&TILE} - 1, 0, c).
     END METHOD.
 
+    /* Whether a column of the well has turned to floor at a frame of the wipe (frames 2 to 5): the two in the middle first, then
+       two more each side, and the whole row at the last. */
+    METHOD PRIVATE LOGICAL WipedAt(INPUT piCol AS INTEGER, INPUT piFrame AS INTEGER):
+        IF piFrame >= 5 THEN RETURN TRUE.
+        RETURN ABSOLUTE(2 * piCol - (mBW - 1)) <= 2 * (piFrame - 2) + 1.
+    END METHOD.
+
+    /* The rows that are held for a clear (docs/design/tetris-art.md 3.3 and 3.4): the blocks lit, the whole row white, then
+       the row turns to floor from the middle out. A Tetris takes 60 ms a frame, begins in gold and has one more frame. The
+       sparks of the wipe are made once, for all the frames, with their birth times in the future. */
+    METHOD PRIVATE VOID DrawClear():
+        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE c      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE r      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE piece  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE fno  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE fms AS INTEGER NO-UNDO.
+        DEFINE VARIABLE four   AS LOGICAL NO-UNDO.
+        IF NOT mGame:Clearing OR mGame:LastClearMs < 0 THEN RETURN.
+        four = mGame:LastClearCount = 4.
+        fms = IF four THEN 60 ELSE 50.
+        IF mSparkClearMs <> mGame:LastClearMs THEN DO:
+            mSparkClearMs = mGame:LastClearMs.
+            ClearSparks(fms, four).
+        END.
+        fno = INTEGER(TRUNCATE((mGame:ElapsedMs - mGame:LastClearMs) / fms, 0)).
+        IF fno < 0 THEN RETURN.
+        DO i = 1 TO NUM-ENTRIES(mGame:ClearRows):
+            r = INTEGER(ENTRY(i, mGame:ClearRows)).
+            IF fno = 1 THEN DO:
+                DO c = r * {&TILE} TO r * {&TILE} + {&TILE} - 1:
+                    mCanvas:DrawLine(0, c, mBW * {&TILE} - 1, c, 0, TetrisLook:Colour(Tint:Flash)).
+                END.
+                NEXT.
+            END.
+            DO c = 0 TO mBW - 1:
+                piece = mGame:LockedAt(c, r).
+                IF (fno >= 2 AND WipedAt(c, fno)) OR (four AND fno >= 6) THEN mFloor[r + 1]:DrawTo(mCanvas, c * {&TILE}, r * {&TILE}).
+                ELSE IF piece > 0 THEN DO:
+                    IF fno = 0 AND four THEN mGold[piece]:DrawTo(mCanvas, c * {&TILE}, r * {&TILE}).
+                    ELSE mLit[piece]:DrawTo(mCanvas, c * {&TILE}, r * {&TILE}).
+                END.
+            END.
+        END.
+    END METHOD.
+
+    /* The sparks of the wipe: for each cleared row and each of frames 2 to 5, a spark each side (two each side for a Tetris) at
+       the centres of the outermost columns that turn to floor in that frame, in the gold ramp. */
+    METHOD PRIVATE VOID ClearSparks(INPUT piLength AS INTEGER, INPUT plFour AS LOGICAL):
+        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE f      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE k      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE r      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE c      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE side   AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE gold   AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE half   AS INTEGER   NO-UNDO.
+        gold = TetrisLook:Tones(9).
+        half = INTEGER(TRUNCATE(mBW / 2, 0)) - 1.
+        DO i = 1 TO NUM-ENTRIES(mGame:ClearRows):
+            r = INTEGER(ENTRY(i, mGame:ClearRows)).
+            DO f = 2 TO 5:
+                /* the outer pair of columns of this frame: 4 and 5, 3 and 6, 2 and 7, then 0 and 9 */
+                c = IF f = 5 THEN 0 ELSE half - (f - 2).
+                DO side = 0 TO 1:
+                    DO k = 1 TO (IF plFour THEN 2 ELSE 1):
+                        mSparks:Add((IF side = 0 THEN c ELSE mBW - 1 - c) * {&TILE} + 8, r * {&TILE} + 8,
+                                    (IF side = 0 THEN -1 ELSE 1) * (0.5 + mRandom:NextDecimal() * 0.7), 0 - (0.4 + mRandom:NextDecimal() * 0.7), 0.05,
+                                    mGame:LastClearMs + f * piLength, 12,
+                                    TetrisLook:Colour(Tint:Flash), ColourMath:FromHex(ENTRY(1, gold)), ColourMath:FromHex(ENTRY(2, gold)), ColourMath:FromHex(ENTRY(3, gold))).
+                    END.
+                END.
+            END.
+        END.
+    END METHOD.
+
+    /* The word TETRIS over the well for half a second after four rows are cleared, centred on the band that went. */
+    METHOD PRIVATE VOID DrawTetrisWord():
+        DEFINE VARIABLE age  AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE y    AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE word AS TextStamp NO-UNDO.
+        IF mGame:LastClearCount <> 4 OR mGame:LastClearMs < 0 THEN RETURN.
+        age = mGame:ElapsedMs - mGame:LastClearMs.
+        IF age < 120 OR age >= 720 THEN RETURN.
+        word = mText:Get("TETRIS", 2, TetrisLook:Colour(Tint:Gold), TetrisLook:Colour(Tint:Accent), TetrisLook:Colour(Tint:Outline)).
+        y = {&TILE} * INTEGER(ENTRY(1, mGame:ClearRows)) + 32 - 7.
+        y = MAXIMUM(8, MINIMUM(298, y)).
+        word:DrawTo(mCanvas, INTEGER(TRUNCATE((mBW * {&TILE} - PixelCanvas:ScaledWidth("TETRIS", 2)) / 2, 0)), y).
+    END METHOD.
+
     /* The settling of the last piece (docs/design/tetris-art.md 3.1): for 50 ms its four blocks are lit, for 50 ms more only their
        highlight is white, and sparks fly from the blocks that sit on something. The sparks are made once for each lock. Nothing
        is drawn while rows are held for a clear, because the piece may be in them. */
@@ -367,7 +466,8 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         IF mGame:GameSerial <> mSparkSerial THEN DO:
             mSparks:Clear().
             ASSIGN mSparkSerial = mGame:GameSerial
-                   mSparkPlaced = 0.
+                   mSparkPlaced = 0
+                   mSparkClearMs = -1.
         END.
         IF mGame:LastLockPiece = 0 OR mGame:LastLockMs < 0 THEN RETURN.
         shape = Tetrominoes:ShapeOf(mGame:LastLockPiece, mGame:LastLockTurn).
@@ -383,7 +483,6 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
             IF age < 50 THEN mLit[mGame:LastLockPiece]:DrawTo(mCanvas, cx, cy).
             ELSE mWhiteTop[mGame:LastLockPiece]:DrawTo(mCanvas, cx, cy).
         END.
-        mSparks:Draw(mCanvas, mGame:ElapsedMs).
     END METHOD.
 
     /* Two sparks, left and right, from the bottom of every block of the piece that has the floor or a block under it. The speed
@@ -433,7 +532,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
     /* The labels and numbers of the four cards, and the two key hints. */
     METHOD PRIVATE VOID DrawHud():
         Caption("SCORE", 1, Tint:Label, mPanelX + 12, 110).
-        Number(mGame:Score, 6, Tint:Text, 122).
+        Number(mGame:Score, 6, IF Pulsing() THEN Tint:Gold ELSE Tint:Text, 122).
         Caption("LINES", 1, Tint:Label, mPanelX + 12, 156).
         Number(mGame:LinesCleared, 6, Tint:Text, 168).
         Caption("LEVEL", 1, Tint:Label, mPanelX + 12, 202).
@@ -442,6 +541,12 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         Number(mGame:BestScore, 6, Tint:Dim, 260).
         Caption("P PAUSE", 1, Tint:Label, mPanelX + 12, 294).
         Caption("G GHOST", 1, Tint:Label, mPanelX + 12, 304).
+    END METHOD.
+
+    /* True for 400 ms after a line clear (800 ms after a Tetris): the score shows in gold. */
+    METHOD PRIVATE LOGICAL Pulsing():
+        IF mGame:LastClearMs < 0 THEN RETURN FALSE.
+        RETURN mGame:ElapsedMs - mGame:LastClearMs < (IF mGame:LastClearCount = 4 THEN 800 ELSE 400).
     END METHOD.
 
     /* Some text at a place, one colour, no outline. */

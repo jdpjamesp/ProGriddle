@@ -403,4 +403,109 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
         Assert:IsFalse(Px(x0 - 8, 16 * 19 + 15) = Tone(1, 3)).
     END METHOD.
 
+    /* A game that holds a clear for 300 ms, with one full row about to go (row 19, ten blocks once the I is dropped in). */
+    METHOD PRIVATE VOID SetUpOneRow():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        mGame:ClearDelayMs = 300.
+        mGame:StartWith("I,I,I").
+        mGame:LoadLocked("T........./IIIIIII.II").
+        Draw().
+        mGame:RotateClockwise().
+        DO i = 1 TO 3:
+            mGame:MoveRight().
+        END.
+        mGame:HardDrop().
+    END METHOD.
+
+    /* A game that holds a clear for 300 ms, with four full rows about to go. */
+    METHOD PRIVATE VOID SetUpFourRows():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        mGame:ClearDelayMs = 300.
+        mGame:StartWith("I,I,I").
+        mGame:LoadLocked("IIIIIIIII./IIIIIIIII./IIIIIIIII./IIIIIIIII.").
+        Draw().
+        mGame:RotateClockwise().
+        DO i = 1 TO 6:
+            mGame:MoveRight().
+        END.
+        mGame:HardDrop().
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AClearedRowIsLitThenWhiteThenTurnsToFloorFromTheMiddleOut():
+        SetUpOneRow().
+        Assert:IsTrue(mGame:Clearing).
+        Draw().
+        /* frame 0: lit, the highlight is white and tone 2 is the old tone 1 */
+        Assert:Equals(16777215, Px(16 * 2 + 1, 16 * 19 + 1)).
+        Assert:Equals(Tone(1, 1), Px(16 * 2 + 3, 16 * 19 + 3)).
+        mGame:Tick(50).
+        Draw().
+        /* frame 1: the whole row is white */
+        Assert:Equals(16777215, Px(5, 16 * 19 + 5)).
+        Assert:Equals(16777215, Px(159, 16 * 19 + 15)).
+        Assert:IsFalse(Px(5, 16 * 18 + 5) = 16777215).
+        mGame:Tick(50).
+        Draw().
+        /* frame 2: columns 4 and 5 are floor, the rest lit */
+        Assert:Equals(Floor(19), Px(16 * 4 + 5, 16 * 19 + 5)).
+        Assert:Equals(Floor(19), Px(16 * 5 + 5, 16 * 19 + 5)).
+        Assert:Equals(Tone(1, 1), Px(16 * 3 + 3, 16 * 19 + 3)).
+        mGame:Tick(50).
+        Draw().
+        Assert:Equals(Floor(19), Px(16 * 3 + 5, 16 * 19 + 5)).
+        Assert:Equals(Tone(1, 1), Px(16 * 2 + 3, 16 * 19 + 3)).
+        mGame:Tick(50).
+        Draw().
+        Assert:Equals(Floor(19), Px(16 * 2 + 5, 16 * 19 + 5)).
+        Assert:Equals(Tone(1, 1), Px(16 * 1 + 3, 16 * 19 + 3)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheWipeThrowsGoldSparksAndTheScoreGlowsGoldForFourHundredMilliseconds():
+        DEFINE VARIABLE gold1 AS INTEGER NO-UNDO.
+        SetUpOneRow().
+        gold1 = ColourMath:FromHex(ENTRY(1, TetrisLook:Tones(9))).
+        mGame:Tick(90).
+        Draw().
+        Assert:Equals(0, CountOf(gold1, 0, 16 * 15, 160, 80)).
+        Assert:IsTrue(CountOf(Colour(Tint:Gold), 188, 122, 70, 14) > 0).
+        mGame:Tick(60).
+        Draw().
+        /* three frames after the first wipe frame the sparks wear the first gold */
+        Assert:IsTrue(CountOf(gold1, 0, 16 * 15, 160, 80) > 0).
+        mGame:Tick(300).
+        Draw().
+        Assert:Equals(0, CountOf(Colour(Tint:Gold), 188, 122, 70, 14)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AFourRowClearBeginsInGoldGoesWhiteAndShowsTheWordTetrisForHalfASecond():
+        DEFINE VARIABLE gold AS INTEGER NO-UNDO.
+        SetUpFourRows().
+        Assert:IsTrue(mGame:Clearing).
+        Assert:Equals(4, mGame:LastClearCount).
+        gold = ColourMath:FromHex(ENTRY(1, TetrisLook:Tones(9))).
+        Draw().
+        Assert:Equals(gold, Px(16 * 2 + 1, 16 * 17 + 1)).
+        mGame:Tick(60).
+        Draw().
+        Assert:Equals(16777215, Px(5, 16 * 17 + 5)).
+        Assert:Equals(16777215, Px(150, 16 * 19 + 5)).
+        Assert:Equals(0, CountOf(Colour(Tint:Gold), 45, 281, 70, 14)).
+        mGame:Tick(70).
+        Draw().
+        /* the word, in gold at the top of its letters, over the well */
+        Assert:IsTrue(CountOf(Colour(Tint:Gold), 45, 281, 70, 14) > 0).
+        Assert:IsTrue(CountOf(Colour(Tint:Gold), 188, 122, 70, 14) > 0).
+        mGame:Tick(600).
+        Draw().
+        Assert:Equals(0, CountOf(Colour(Tint:Gold), 45, 281, 70, 14)).
+        /* the score is gold for 800 ms after a Tetris */
+        Assert:IsTrue(CountOf(Colour(Tint:Gold), 188, 122, 70, 14) > 0).
+        mGame:Tick(100).
+        Draw().
+        Assert:Equals(0, CountOf(Colour(Tint:Gold), 188, 122, 70, 14)).
+    END METHOD.
+
 END CLASS.
