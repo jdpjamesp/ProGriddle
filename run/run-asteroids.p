@@ -11,14 +11,18 @@
 
    Settings it reads (all optional):
      asteroids.hiscore   the best score (kept by the game)
+     sound.on   false for no sound (default true). The Sound button and the M key switch it, and it is saved
+     sound.volume   0 to 100 (default 50)
    The window saves its position as asteroids.window.x and y. Its size is always worked out from the board
-   (320 x 240 cells, 3 pixels to a cell where the screen is tall enough, else 2), so there is no empty space round it. */
+   (320 x 240 cells, 3 pixels to a cell where the screen is tall enough, else 2), so there is no empty space round it. The sounds
+   are made at start up (AsteroidsSounds) and played by the Windows sound player; with no sound device the game is silent. */
 USING Progress.Lang.*.
 USING System.Windows.Forms.Application FROM ASSEMBLY.
 USING System.Windows.Forms.Screen FROM ASSEMBLY.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
 USING ProGriddle.Games.Asteroids.*.
+USING ProGriddle.UI.Audio.*.
 USING ProGriddle.UI.WinForms.*.
 
 DEFINE VARIABLE cSettingsFile AS CHARACTER           NO-UNDO INITIAL "default".
@@ -31,6 +35,9 @@ DEFINE VARIABLE oView         AS GridView            NO-UNDO.
 DEFINE VARIABLE oClock        AS WinFormsClock       NO-UNDO.
 DEFINE VARIABLE oController   AS RealTimeController  NO-UNDO.
 DEFINE VARIABLE oWindow       AS GameWindow          NO-UNDO.
+DEFINE VARIABLE oBank         AS SoundBank           NO-UNDO.
+DEFINE VARIABLE oPlayer       AS WaveOutPlayer       NO-UNDO.
+DEFINE VARIABLE oSound        AS SoundRenderer       NO-UNDO.
 
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 2 THEN cSettingsFile = ENTRY(2, SESSION:PARAMETER).
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 3 THEN iAutoClose = INTEGER(ENTRY(3, SESSION:PARAMETER)).
@@ -60,8 +67,15 @@ DO ON ERROR UNDO, THROW:
     oView = NEW GridView().
     oView:DirectColor = TRUE.
     oView:ShowGridLines = FALSE.
-    oController = NEW RealTimeController(oGame, NEW WinFormsGridRenderer(oView, "view"), oClock).
-    oWindow = NEW GameWindow("ProGriddle Asteroids", oController, oView, NEW AsteroidsInput(oGame, oSettings),
+
+    /* the sound: the cues and loops of the game are found after every redraw and played by the Windows player, from sounds made now */
+    oBank = NEW SoundBank().
+    AsteroidsSounds:Fill(oBank).
+    oPlayer = NEW WaveOutPlayer(oBank).
+    SoundSettings:Apply(oPlayer, oSettings).
+    oSound = NEW SoundRenderer(NEW WinFormsGridRenderer(oView, "view"), NEW AsteroidsCues(), oPlayer).
+    oController = NEW RealTimeController(oGame, oSound, oClock).
+    oWindow = NEW GameWindow("ProGriddle Asteroids", oController, oView, NEW AsteroidsInput(oGame, oSettings, oPlayer),
                              oClock, oSettings, "asteroids").
     IF iAutoClose > 0 THEN oWindow:AutoCloseSeconds = iAutoClose.
 
@@ -77,6 +91,9 @@ DO ON ERROR UNDO, THROW:
         IF VALID-OBJECT(oController) THEN oController:Dispose().
         IF VALID-OBJECT(oGame) THEN oGame:Dispose().
         IF VALID-OBJECT(oClock) THEN oClock:Dispose().
+        /* the player first (it stops the sounds, which are read from the bank), then the bank */
+        IF VALID-OBJECT(oPlayer) THEN oPlayer:Dispose().
+        IF VALID-OBJECT(oBank) THEN oBank:Dispose().
     END FINALLY.
 END.
 QUIT.
