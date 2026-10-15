@@ -685,4 +685,44 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
         Assert:IsTrue(CountOf(Colour(Tint:Gold), 188, 248, 50, 8) > 0).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID TheLeftAndBottomWallsPulseRedWhileTheStackIsInTheTopFourRowsAndStopWhenItIsNot():
+        mGame:LoadLocked("T........." + FILL("/..........", 19)).
+        Assert:IsTrue(mGame:Danger).
+        Draw().
+        Assert:Equals(Colour(Tint:DangerHigh), Px(0, 100)).
+        Assert:Equals(Colour(Tint:DangerLow), Px(1, 100)).
+        Assert:Equals(Colour(Tint:DangerLow), Px(140, 16 * 20 - 2)).
+        Assert:Equals(Colour(Tint:DangerHigh), Px(140, 16 * 20 - 1)).
+        /* the block at the top left still covers the wall */
+        Assert:Equals(Tone(3, 5), Px(0, 0)).
+        mGame:Tick(250).
+        Draw().
+        Assert:Equals(Colour(Tint:WallHigh), Px(0, 100)).
+        mGame:Tick(250).
+        Draw().
+        Assert:Equals(Colour(Tint:DangerHigh), Px(0, 100)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AStackThatIsNotHighLeavesTheWallsAlone():
+        mGame:LoadLocked("T........./" + FILL("..........", 1)).
+        Assert:IsFalse(mGame:Danger).
+        Draw().
+        Assert:Equals(Colour(Tint:WallHigh), Px(0, 100)).
+        Assert:Equals(Colour(Tint:WallLow), Px(1, 100)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ANewPieceInTheNextBoxShowsLitForFiftyMilliseconds():
+        Draw().
+        Assert:Equals(0, CountOf(16777215, 192, 24, 64, 64)).
+        mGame:HardDrop().
+        Draw().
+        Assert:IsTrue(CountOf(16777215, 192, 24, 64, 64) > 0).
+        mGame:Tick(60).
+        Draw().
+        Assert:Equals(0, CountOf(16777215, 192, 24, 64, 64)).
+    END METHOD.
+
 END CLASS.

@@ -125,6 +125,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         mCanvas:BeginBatch().
         DrawTrail().
         DrawSweep().
+        DrawDanger().
         DrawGhost().
         DrawPiece().
         DrawLock().
@@ -402,6 +403,36 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         IF age >= 1800 THEN Caption("PRESS R", 1, Tint:Text, 59, 192).
     END METHOD.
 
+    /* The danger walls (docs/design/tetris-art.md 5): while the stack is in the top four rows the walls on the left and at the
+       bottom pulse red, 250 ms on and 250 ms off. Only the wall pixels that are showing are changed, so a block at the edge
+       keeps covering the wall. */
+    METHOD PRIVATE VOID DrawDanger():
+        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE high AS INTEGER NO-UNDO.
+        DEFINE VARIABLE low  AS INTEGER NO-UNDO.
+        IF NOT mGame:Danger OR INTEGER(TRUNCATE(mGame:ElapsedMs / 250, 0)) MODULO 2 = 1 THEN RETURN.
+        high = TetrisLook:Colour(Tint:WallHigh).
+        low = TetrisLook:Colour(Tint:WallLow).
+        DO y = 0 TO mHeight - 1:
+            DO x = 0 TO 1:
+                WallPixel(x, y, high, low).
+            END.
+        END.
+        DO x = 2 TO mBW * {&TILE} - 1:
+            WallPixel(x, mHeight - 2, high, low).
+            WallPixel(x, mHeight - 1, high, low).
+        END.
+    END METHOD.
+
+    /* One pixel of the wall in its danger colour, if the wall is what the background shows there. */
+    METHOD PRIVATE VOID WallPixel(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piHigh AS INTEGER, INPUT piLow AS INTEGER):
+        DEFINE VARIABLE shown AS INTEGER NO-UNDO.
+        shown = mCanvas:BackAt(piX, piY).
+        IF shown = piHigh THEN mCanvas:DrawLine(piX, piY, piX, piY, 0, TetrisLook:Colour(Tint:DangerHigh)).
+        ELSE IF shown = piLow THEN mCanvas:DrawLine(piX, piY, piX, piY, 0, TetrisLook:Colour(Tint:DangerLow)).
+    END METHOD.
+
     /* The level up sweep (docs/design/tetris-art.md 3.5): a line two pixels high that rises through the well in 18 frames, gold,
        then a darker gold from the ninth frame. It is drawn under the blocks and only where the background is the plain floor,
        so it shows in the empty cells and never on a block, a grid line or a wall. */
@@ -669,12 +700,16 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         DEFINE VARIABLE i     AS INTEGER NO-UNDO.
         DEFINE VARIABLE x0    AS INTEGER NO-UNDO.
         DEFINE VARIABLE y0    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE lit   AS LOGICAL NO-UNDO.
         Caption("NEXT", 1, Tint:Accent, mPanelX + 36, 8).
         shape = Tetrominoes:ShapeOf(mGame:NextPiece, 0).
         x0 = mPanelX + 16 + INTEGER(TRUNCATE((64 - {&TILE} * shape:Width) / 2, 0)).
         y0 = 24 + INTEGER(TRUNCATE((64 - {&TILE} * shape:Height) / 2, 0)).
+        /* a piece that has just come into the box shows lit for 50 ms */
+        lit = mGame:LastLockMs >= 0 AND mGame:ElapsedMs >= mGame:LastLockMs AND mGame:ElapsedMs - mGame:LastLockMs < 50.
         DO i = 1 TO shape:Size:
-            mBlock[mGame:NextPiece]:DrawTo(mCanvas, x0 + {&TILE} * shape:OffsetX(i), y0 + {&TILE} * shape:OffsetY(i)).
+            IF lit THEN mLit[mGame:NextPiece]:DrawTo(mCanvas, x0 + {&TILE} * shape:OffsetX(i), y0 + {&TILE} * shape:OffsetY(i)).
+            ELSE mBlock[mGame:NextPiece]:DrawTo(mCanvas, x0 + {&TILE} * shape:OffsetX(i), y0 + {&TILE} * shape:OffsetY(i)).
         END.
     END METHOD.
 
