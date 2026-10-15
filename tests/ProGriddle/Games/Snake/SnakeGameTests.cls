@@ -645,4 +645,137 @@ CLASS ProGriddle.Games.Snake.SnakeGameTests:
         Assert:Equals(6, mGame:HeadY).
     END METHOD.
 
+    /* ---------------------------------- effects ---------------------------------- */
+
+    @Test.
+    METHOD PUBLIC VOID TheSnakeCanBeReadFromTheTailToTheHead():
+        Assert:Equals(3, mGame:Length).
+        Assert:Equals(2, mGame:BodyX(0)).
+        Assert:Equals(4, mGame:BodyY(0)).
+        Assert:Equals(3, mGame:BodyX(1)).
+        Assert:Equals(4, mGame:BodyX(2)).
+        Assert:Equals(mGame:HeadX, mGame:BodyX(2)).
+        Steps(1).
+        /* it moved: the tail is now where the middle was, the head one further on, and the ring wraps without trouble */
+        Assert:Equals(3, mGame:BodyX(0)).
+        Assert:Equals(5, mGame:BodyX(2)).
+        Assert:Equals(mGame:HeadY, mGame:BodyY(2)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheBodyReadersRefuseAnIndexOutsideTheSnake():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            mGame:BodyX(-1).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mGame:BodyY(3).
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(2, thrown).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheGameKeepsAClockOfItsOwnThatDoesNotCountPausedTime():
+        Assert:Equals(0, mGame:ElapsedMs).
+        mGame:Tick(100).
+        Assert:Equals(100, mGame:ElapsedMs).
+        mGame:Paused = TRUE.
+        mGame:Tick(100).
+        Assert:Equals(100, mGame:ElapsedMs).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID EveryNewGameHasANewSerialNumber():
+        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        before = mGame:GameSerial.
+        mGame:StartWith("1,1;2,1", "Right").
+        Assert:Equals(before + 1, mGame:GameSerial).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheGameNotesWhenFoodIsPutDownAndWhenItIsEaten():
+        Assert:Equals(0, mGame:FoodMs).
+        Assert:Equals(-1, mGame:LastEatMs).
+        Assert:Equals(-1, mGame:LastEatX).
+        mGame:StartWith("1,0;2,0", "Right").
+        mGame:SetFood(3, 0).
+        mGame:Tick(50).
+        mGame:Tick(100).
+        Assert:Equals(150, mGame:LastEatMs).
+        Assert:Equals(3, mGame:LastEatX).
+        Assert:Equals(0, mGame:LastEatY).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheGameNotesWhenItEndsByACrashAndByAWin():
+        Assert:Equals(-1, mGame:OverMs).
+        mGame:StartWith("1,0;0,0", "Left").
+        mGame:Tick(50).
+        mGame:Tick(100).
+        Assert:Equals(150, mGame:OverMs).
+        mGame:StartWith("1,0;0,0", "Left").
+        Assert:Equals(-1, mGame:OverMs).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ABoardThatIsFilledEndsWithAWinAndTheTime():
+        DEFINE VARIABLE g AS SnakeGame NO-UNDO.
+        g = NEW SnakeGame(SnakeFactory:CreateGrid(5, 5), NEW ScriptedRandom("0")).
+        g:StartWith("0,0;1,0;2,0;3,0;4,0;4,1;3,1;2,1;1,1;0,1;0,2;1,2;2,2;3,2;4,2;4,3;3,3;2,3;1,3;0,3;0,4;1,4;2,4;3,4", "Right").
+        g:SetFood(4, 4).
+        g:Tick(150).
+        Assert:IsTrue(g:HasWon).
+        Assert:Equals(150, g:OverMs).
+        Assert:Equals(-1, g:FoodMs).
+        g:Dispose().
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AnimatedMakesTickSayWhenTheSnakeWaitsAndKeepsAnimatingForABitAfterTheEnd():
+        mGame:Animated = TRUE.
+        mGame:WaitForKey = TRUE.
+        Assert:IsTrue(mGame:Tick(20)).
+        Assert:IsFalse(mGame:Animating).
+        mGame:StartWith("1,0;0,0", "Left").
+        mGame:WaitForKey = FALSE.
+        mGame:Tick(150).
+        Assert:IsTrue(mGame:IsOver).
+        Assert:IsTrue(mGame:Animating).
+        Assert:IsTrue(mGame:Tick(1000)).
+        Assert:IsTrue(mGame:Animating).
+        Assert:IsFalse(mGame:Tick(3000)).
+        Assert:IsFalse(mGame:Animating).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID WithoutAnimatedNothingChangesForTick():
+        Assert:IsFalse(mGame:Animated).
+        mGame:WaitForKey = TRUE.
+        Assert:IsFalse(mGame:Tick(20)).
+        mGame:WaitForKey = FALSE.
+        Assert:IsTrue(mGame:Tick(150)).
+        Assert:IsFalse(mGame:Tick(20)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheBestScoreIsHeldForThePainterAndRefusesNonsense():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        Assert:Equals(0, mGame:BestScore).
+        mGame:BestScore = 120.
+        Assert:Equals(120, mGame:BestScore).
+        DO ON ERROR UNDO, THROW:
+            mGame:BestScore = -1.
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(1, thrown).
+    END METHOD.
+
 END CLASS.

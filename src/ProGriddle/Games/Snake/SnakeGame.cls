@@ -22,6 +22,12 @@
      (Waiting is true) and Tick does nothing. The first turn starts it, and a turn that repeats the way
      it is facing does too, since it is only a way to say "go". A turn that would reverse it does not.
 
+   Effects (all off unless Animated, so the rules tests are unchanged): the game keeps a clock of its own, ElapsedMs, which
+   Tick adds the time to, and notes when things happened on it (the last food eaten, a new piece of food, the end of the
+   game), so a painter can draw an animation as a function of the time. While Animated and Waiting, Tick says something
+   changed every time, so the tongue can flick and the text blink; when the game is over, Animating is true for a while so
+   the clock keeps running for the crash or win animation.
+
    The snake lives in a ring of cell indexes, tail to head, made once, so a step allocates
    nothing. The grid shows one layer, "view" (see the ViewCode enum). The game owns its grid, and
    Dispose releases it. */
@@ -32,7 +38,7 @@ USING ProGriddle.Games.Snake.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IRealTimeGame:
+CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IRealTimeGame, IAnimated:
 
 
     /* the slowest and the fastest step, and how much faster each piece of food makes it */
@@ -59,10 +65,81 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
     DEFINE PRIVATE VARIABLE mEaten     AS INTEGER NO-UNDO.
     DEFINE PRIVATE VARIABLE mAcc       AS INTEGER NO-UNDO.
     DEFINE PRIVATE VARIABLE mWaitForKey AS LOGICAL NO-UNDO.
+    DEFINE PRIVATE VARIABLE mElapsed   AS INTEGER NO-UNDO.
+    DEFINE PRIVATE VARIABLE mSerial    AS INTEGER NO-UNDO.
+    DEFINE PRIVATE VARIABLE mBest      AS INTEGER NO-UNDO.
+    DEFINE PRIVATE VARIABLE mEatMs     AS INTEGER NO-UNDO INITIAL -1.
+    DEFINE PRIVATE VARIABLE mEatCell   AS INTEGER NO-UNDO INITIAL -1.
+    DEFINE PRIVATE VARIABLE mFoodMs    AS INTEGER NO-UNDO INITIAL -1.
+    DEFINE PRIVATE VARIABLE mOverMs    AS INTEGER NO-UNDO INITIAL -1.
 
     DEFINE PUBLIC PROPERTY Paused AS LOGICAL NO-UNDO
         GET.
         SET.
+
+    /* True to give the game its effects: Tick then says something changed on every call while the snake waits for a key, and
+       Animating is true for a while after the game ends. Off by default. */
+    DEFINE PUBLIC PROPERTY Animated AS LOGICAL NO-UNDO INITIAL FALSE
+        GET.
+        SET.
+
+    /* Milliseconds of play the game has been given, not counting time while paused. Never goes back, not even for a new game. */
+    DEFINE PUBLIC PROPERTY ElapsedMs AS INTEGER NO-UNDO
+        GET():
+            RETURN mElapsed.
+        END GET.
+
+    /* A number that goes up with every new game, so a painter knows to start again. */
+    DEFINE PUBLIC PROPERTY GameSerial AS INTEGER NO-UNDO
+        GET():
+            RETURN mSerial.
+        END GET.
+
+    /* The best score from before this game, shown beside the score: the game does not keep it (the input does) and only holds
+       it for the painter, which can then tell when this game beats it. */
+    DEFINE PUBLIC PROPERTY BestScore AS INTEGER NO-UNDO
+        GET():
+            RETURN mBest.
+        END GET.
+        SET(INPUT piValue AS INTEGER):
+            IF piValue = ? OR piValue < 0 THEN UNDO, THROW NEW GridException("The best score is 0 or more, not " + STRING(piValue)).
+            mBest = piValue.
+        END SET.
+
+    /* When the last piece of food was eaten (ElapsedMs, -1 for none this game) and the cell it was in. */
+    DEFINE PUBLIC PROPERTY LastEatMs AS INTEGER NO-UNDO
+        GET():
+            RETURN mEatMs.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY LastEatX AS INTEGER NO-UNDO
+        GET():
+            RETURN (IF mEatCell < 0 THEN -1 ELSE mEatCell MODULO mWidth).
+        END GET.
+
+    DEFINE PUBLIC PROPERTY LastEatY AS INTEGER NO-UNDO
+        GET():
+            RETURN (IF mEatCell < 0 THEN -1 ELSE INTEGER(TRUNCATE(mEatCell / mWidth, 0))).
+        END GET.
+
+    /* When the food that is on the board was put there (ElapsedMs, -1 for none). */
+    DEFINE PUBLIC PROPERTY FoodMs AS INTEGER NO-UNDO
+        GET():
+            RETURN mFoodMs.
+        END GET.
+
+    /* When the game ended, by a crash or a win (ElapsedMs, -1 while it is going). */
+    DEFINE PUBLIC PROPERTY OverMs AS INTEGER NO-UNDO
+        GET():
+            RETURN mOverMs.
+        END GET.
+
+    /* True for the time the end of the game is being shown (3.6 seconds). A controller that sees it keeps the clock running
+       after the game is over. Always false unless Animated. */
+    DEFINE PUBLIC PROPERTY Animating AS LOGICAL NO-UNDO
+        GET():
+            RETURN Animated AND IsOver AND mOverMs >= 0 AND mElapsed - mOverMs < 3600.
+        END GET.
 
     /* True while a new game is waiting for its first turn key. Tick does nothing then. */
     DEFINE PUBLIC PROPERTY Waiting AS LOGICAL NO-UNDO
@@ -212,14 +289,31 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
        was made, so the controller redraws only when it has to. */
     METHOD PUBLIC LOGICAL Tick(INPUT piElapsedMs AS INTEGER):
         DEFINE VARIABLE moved AS LOGICAL NO-UNDO.
-        IF Paused OR IsOver OR Waiting OR piElapsedMs <= 0 THEN RETURN FALSE.
+        IF Paused OR piElapsedMs = ? OR piElapsedMs <= 0 THEN RETURN FALSE.
+        mElapsed = mElapsed + piElapsedMs.
+        IF IsOver THEN RETURN Animating.
+        IF Waiting THEN RETURN Animated.
         mAcc = mAcc + MIN(piElapsedMs, {&MOST-MS}).
         DO WHILE mAcc >= StepMs AND NOT IsOver:
             mAcc = mAcc - StepMs.
             Step().
             moved = TRUE.
         END.
-        RETURN moved.
+        RETURN moved OR Animated.
+    END METHOD.
+
+    /* The cells of the snake from the tail (piIndex 0) to the head (Length - 1). Throws GridException for any other index. */
+    METHOD PUBLIC INTEGER BodyX(INPUT piIndex AS INTEGER):
+        RETURN BodyCell(piIndex) MODULO mWidth.
+    END METHOD.
+
+    METHOD PUBLIC INTEGER BodyY(INPUT piIndex AS INTEGER):
+        RETURN INTEGER(TRUNCATE(BodyCell(piIndex) / mWidth, 0)).
+    END METHOD.
+
+    METHOD PRIVATE INTEGER BodyCell(INPUT piIndex AS INTEGER):
+        IF piIndex = ? OR piIndex < 0 OR piIndex >= mLength THEN UNDO, THROW NEW GridException(SUBSTITUTE("The snake has cells 0 to &1, not &2", mLength - 1, piIndex)).
+        RETURN mBody[(mTail + piIndex) MODULO Grid:CellCount + 1].
     END METHOD.
 
     /* Starts a game with the snake made of the cells in pcBody, tail first, head last, each written
@@ -267,6 +361,10 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
         Generation = 0.
         IsOver = FALSE.
         HasWon = FALSE.
+        mSerial = mSerial + 1.
+        mEatMs = -1.
+        mEatCell = -1.
+        mOverMs = -1.
         Grid:Store:FillLayer(1, INTEGER(ViewCode:Empty)).
         mTail = 0.
         mHead = n - 1.
@@ -295,6 +393,7 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
             UNDO, THROW NEW GridException(SUBSTITUTE("The food cannot go at &1,&2, where the snake is", piX, piY)).
         IF mFood >= 0 THEN Grid:Store:SetCellAt(1, mFood, INTEGER(ViewCode:Empty)).
         mFood = target.
+        mFoodMs = mElapsed.
         Grid:Store:SetCellAt(1, mFood, INTEGER(ViewCode:Food)).
     END METHOD.
 
@@ -356,6 +455,7 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
         ny = HeadY + (IF mDirection = 2 THEN 1 ELSE IF mDirection = 0 THEN -1 ELSE 0).
         IF nx < 0 OR nx >= mWidth OR ny < 0 OR ny >= mHeight THEN DO:
             IsOver = TRUE.
+            mOverMs = mElapsed.
             RETURN.
         END.
         target = ny * mWidth + nx.
@@ -364,6 +464,7 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
         /* the snake's own body is deadly, except the tail cell, which is being left this step */
         IF (v = INTEGER(ViewCode:Body) OR v = INTEGER(ViewCode:Head)) AND target <> mBody[mTail + 1] THEN DO:
             IsOver = TRUE.
+            mOverMs = mElapsed.
             RETURN.
         END.
         Generation = Generation + 1.
@@ -378,6 +479,8 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
         IF eating THEN DO:
             mLength = mLength + 1.
             mEaten = mEaten + 1.
+            mEatMs = mElapsed.
+            mEatCell = target.
             mFood = -1.
             PlaceFood().
         END.
@@ -390,6 +493,8 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
         IF mLength >= Grid:CellCount THEN DO:
             HasWon = TRUE.
             IsOver = TRUE.
+            mOverMs = mElapsed.
+            mFoodMs = -1.
             RETURN.
         END.
         pick = mRandom:NextInt(Grid:CellCount - mLength).
@@ -397,6 +502,7 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
             IF Grid:Store:GetCellAt(1, i) <> INTEGER(ViewCode:Empty) THEN NEXT.
             IF pick = 0 THEN DO:
                 mFood = i.
+                mFoodMs = mElapsed.
                 Grid:Store:SetCellAt(1, i, INTEGER(ViewCode:Food)).
                 RETURN.
             END.
