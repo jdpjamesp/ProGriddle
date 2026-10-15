@@ -72,6 +72,9 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
     DEFINE PRIVATE VARIABLE mEatCell   AS INTEGER NO-UNDO INITIAL -1.
     DEFINE PRIVATE VARIABLE mFoodMs    AS INTEGER NO-UNDO INITIAL -1.
     DEFINE PRIVATE VARIABLE mOverMs    AS INTEGER NO-UNDO INITIAL -1.
+    /* the slice of the clock that Tick last said something changed in, and how long the slices are then */
+    DEFINE PRIVATE VARIABLE mSlice     AS INTEGER NO-UNDO INITIAL -1.
+    DEFINE PRIVATE VARIABLE mSliceMs   AS INTEGER NO-UNDO.
 
     DEFINE PUBLIC PROPERTY Paused AS LOGICAL NO-UNDO
         GET.
@@ -291,15 +294,15 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
         DEFINE VARIABLE moved AS LOGICAL NO-UNDO.
         IF Paused OR piElapsedMs = ? OR piElapsedMs <= 0 THEN RETURN FALSE.
         mElapsed = mElapsed + piElapsedMs.
-        IF IsOver THEN RETURN Animating.
-        IF Waiting THEN RETURN Animated.
+        IF IsOver THEN RETURN Animating AND NewSlice().
+        IF Waiting THEN RETURN Animated AND NewSlice().
         mAcc = mAcc + MIN(piElapsedMs, {&MOST-MS}).
         DO WHILE mAcc >= StepMs AND NOT IsOver:
             mAcc = mAcc - StepMs.
             Step().
             moved = TRUE.
         END.
-        RETURN moved OR Animated.
+        RETURN moved OR (Animated AND NewSlice()).
     END METHOD.
 
     /* The cells of the snake from the tail (piIndex 0) to the head (Length - 1). Throws GridException for any other index. */
@@ -314,6 +317,20 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
     METHOD PRIVATE INTEGER BodyCell(INPUT piIndex AS INTEGER):
         IF piIndex = ? OR piIndex < 0 OR piIndex >= mLength THEN UNDO, THROW NEW GridException(SUBSTITUTE("The snake has cells 0 to &1, not &2", mLength - 1, piIndex)).
         RETURN mBody[(mTail + piIndex) MODULO Grid:CellCount + 1].
+    END METHOD.
+
+    /* True once for each slice of the clock while the game is animated, so the picture is redrawn about 30 times a second while
+       something is moving (an eat, a new apple, the end) and about 10 times a second otherwise, enough for the tongue and the
+       food to beat, instead of on every tick of a clock that may be faster than the screen can be drawn. */
+    METHOD PRIVATE LOGICAL NewSlice():
+        DEFINE VARIABLE ms    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE slice AS INTEGER NO-UNDO.
+        ms = (IF IsOver OR (mEatMs >= 0 AND mElapsed - mEatMs < 300) OR (mFoodMs >= 0 AND mElapsed - mFoodMs < 150) THEN 33 ELSE 100).
+        slice = INTEGER(TRUNCATE(mElapsed / ms, 0)).
+        IF slice = mSlice AND ms = mSliceMs THEN RETURN FALSE.
+        ASSIGN mSlice = slice
+               mSliceMs = ms.
+        RETURN TRUE.
     END METHOD.
 
     /* Starts a game with the snake made of the cells in pcBody, tail first, head last, each written

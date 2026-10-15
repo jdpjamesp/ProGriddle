@@ -149,11 +149,16 @@ try {
     # P pauses: the picture is dimmed and nothing moves, and P runs it again
     Start-Sleep -Milliseconds 1500
     Send-Keys 'p'
+    # the window can take a moment to answer the key and draw the paused picture
+    Start-Sleep -Milliseconds 1000
     $frozen = Get-Picture $proc 'smoke-ast-6-paused'
     Start-Sleep -Milliseconds 800
     Check 'P pauses: while paused nothing moves' ((Get-Picture $proc 'smoke-ast-6b-paused') -eq $frozen)
     $bmp = Take-Shot $proc 'smoke-ast-6c-dim'
-    Check 'the paused picture is dimmed: no ship colour is left' ($null -eq (Get-Box $bmp $SHIP 6)) 'the ship colour is still there'
+    # only the game area: the screenshot also holds the desktop behind the window, which may have this colour somewhere
+    $area = $bmp.Clone((New-Object System.Drawing.Rectangle 15, 95, ($bmp.Width - 30), ($bmp.Height - 135)), $bmp.PixelFormat)
+    Check 'the paused picture is dimmed: no ship colour is left' ($null -eq (Get-Box $area $SHIP 6)) 'the ship colour is still there'
+    $area.Dispose()
     $bmp.Dispose()
     Send-Keys 'p'
     Start-Sleep -Milliseconds 800

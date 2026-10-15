@@ -778,4 +778,31 @@ CLASS ProGriddle.Games.Snake.SnakeGameTests:
         Assert:Equals(1, thrown).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID AnAnimatedGameSaysSomethingChangedOnlyOncePerSliceOfTheClock():
+        mGame:Animated = TRUE.
+        mGame:WaitForKey = TRUE.
+        /* a new apple is growing for 150 ms, so wait that out: then slices of 100 ms */
+        Assert:IsTrue(mGame:Tick(200)).
+        Assert:IsFalse(mGame:Tick(20)).
+        Assert:IsFalse(mGame:Tick(20)).
+        Assert:IsTrue(mGame:Tick(60)).
+        Assert:IsFalse(mGame:Tick(20)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID WhileSomethingIsMovingTheSlicesAreThirtyThreeMilliseconds():
+        mGame:Animated = TRUE.
+        mGame:StartWith("1,4;2,4", "Right").
+        mGame:SetFood(3, 4).
+        mGame:Tick(150).
+        Assert:IsTrue(mGame:LastEatMs >= 0).
+        /* just after the food was eaten: a new slice every 33 ms */
+        mGame:Tick(1).
+        Assert:IsFalse(mGame:Tick(10)).
+        Assert:IsTrue(mGame:Tick(10)).
+        Assert:IsFalse(mGame:Tick(10)).
+        Assert:IsTrue(mGame:Tick(20)).
+    END METHOD.
+
 END CLASS.

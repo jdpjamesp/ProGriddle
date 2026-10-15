@@ -90,11 +90,12 @@ function Get-Board($p, [string]$name) {
     $bmp = Take-Shot $p $name
     try {
         # the shot includes the window's shadow, where the desktop behind may have the same colour, so look inside the frame only
-        $inset = 16; $top = 90; $bottom = 40
-        $crop = $bmp.Clone((New-Object System.Drawing.Rectangle $inset, $top, ($bmp.Width - 2 * $inset), ($bmp.Height - $top - $bottom)), $bmp.PixelFormat)
+        # only the right hand part of the window, where the panel is: the floor of the well has this very colour in some rows
+        $inset = 16; $top = 90; $bottom = 40; $left = [int]($bmp.Width * 0.63)
+        $crop = $bmp.Clone((New-Object System.Drawing.Rectangle $left, $top, ($bmp.Width - $left - $inset), ($bmp.Height - $top - $bottom)), $bmp.PixelFormat)
         try { $box = [Native]::FindColour($crop, $PANEL[0], $PANEL[1], $PANEL[2], 0) } finally { $crop.Dispose() }
         if ($box[0] -lt 0) { return $null }
-        $box = @(($box[0] + $inset), ($box[1] + $top), ($box[2] + $inset), ($box[3] + $top))
+        $box = @(($box[0] + $left), ($box[1] + $top), ($box[2] + $left), ($box[3] + $top))
         $scale = ($box[2] - $box[0] + 1) / 92
         return [pscustomobject]@{ Left = $box[0] - 178 * $scale; Top = $box[1] - 2 * $scale; CellW = 16 * $scale; CellH = 16 * $scale }
     } finally { $bmp.Dispose() }
@@ -104,13 +105,13 @@ function Near($c, $rgb, [int]$tol = 3) { return ([math]::Abs($c.R - $rgb[0]) -le
 
 # The letter of a cell from its pixel 3, 3 (tone 2 of a block, the floor of the row otherwise) and its pixel 2, 2 (the
 # hatch of a ghost, which has the floor showing at 3, 3).
-function Letter-Of($c, $c2, [int]$row) {
+function Letter-Of($c, $hatch, [int]$row) {
     foreach ($e in $LOOK) {
         if (Near $c @($e[1], $e[2], $e[3])) { return $e[0] }
     }
     $f = @(0, 1, 2 | ForEach-Object { [int][math]::Round($FLOOR_TOP[$_] + ($FLOOR_BOTTOM[$_] - $FLOOR_TOP[$_]) * $row / ($BOARD_H - 1)) })
     if (Near $c $f 2) {
-        if (Near $c2 $GHOST_HATCH 2) { return ':' }
+        if ($hatch) { return ':' }
         return '.'
     }
     return '?'
@@ -126,9 +127,14 @@ function Read-Board($p, $board, [string]$name = 'smoke-tetris-read') {
             for ($x = 0; $x -lt $BOARD_W; $x++) {
                 $px = [int]($board.Left + ($x + 3.5 / 16) * $board.CellW)
                 $py = [int]($board.Top + ($y + 3.5 / 16) * $board.CellH)
-                $px2 = [int]($board.Left + ($x + 2.5 / 16) * $board.CellW)
-                $py2 = [int]($board.Top + ($y + 2.5 / 16) * $board.CellH)
-                $line += Letter-Of ($bmp.GetPixel($px, $py)) ($bmp.GetPixel($px2, $py2)) $y
+                # the ghost's hatch (222F4A) is at 2, 2 and 6, 2 of the tile: look at a few pixels round them, since the scale is not a whole number
+                $hatch = $false
+                foreach ($hx in 2.5, 6.5) { foreach ($dy in -1, 0, 1) { foreach ($dx in -1, 0, 1) {
+                    $px2 = [int]($board.Left + ($x + $hx / 16) * $board.CellW) + $dx
+                    $py2 = [int]($board.Top + ($y + 2.5 / 16) * $board.CellH) + $dy
+                    if (Near ($bmp.GetPixel($px2, $py2)) $GHOST_HATCH 2) { $hatch = $true }
+                } } }
+                $line += Letter-Of ($bmp.GetPixel($px, $py)) $hatch $y
             }
             $rows += $line
         }
@@ -250,19 +256,21 @@ try {
     Check 'and on again' ((Count-Of $rows ':') -gt 0) (Show-Rows $rows)
 
     # pause: nothing moves, and P starts it again
+    $rowsBeforePause = Read-Board $proc $board 'smoke-tetris-6b-before-pause'
     Send-Keys 'p'
+    Start-Sleep -Milliseconds 700
     $rows1 = Read-Board $proc $board 'smoke-tetris-7-paused'
     $score1 = Get-Score $proc
     Send-Keys '{DOWN}{LEFT}'
     Start-Sleep -Milliseconds 1500
     $rows2 = Read-Board $proc $board
     Check 'the well is dimmed and the PAUSED plate is drawn over the board' ((Count-Of $rows1 '?') -gt 0) (Show-Rows $rows1)
-    Check 'while paused neither gravity nor the keys move anything' ((Same-Board $rows1 $rows2) -and (Get-Score $proc) -eq $score1) "$(Show-Rows $rows1) vs $(Show-Rows $rows2)"
+    Check 'while paused neither gravity nor the keys move anything' (((Show-Rows $rows1) -eq (Show-Rows $rows2)) -and (Get-Score $proc) -eq $score1) "$(Show-Rows $rows1) vs $(Show-Rows $rows2)"
     $paused = Take-Shot $proc 'smoke-tetris-7b-paused-banner'; $paused.Dispose()
     Send-Keys 'p'
     Start-Sleep -Milliseconds 1700
     $rows3 = Read-Board $proc $board 'smoke-tetris-8-resumed'
-    Check 'P starts it again and the piece falls' (-not (Same-Board $rows3 $rows2) -and (Count-Of $rows3 '?') -eq 0) (Show-Rows $rows3)
+    Check 'P starts it again and the piece falls' (-not (Same-Board $rows3 $rowsBeforePause) -and (Count-Of $rows3 '?') -eq 0) (Show-Rows $rows3)
 
     # hard drop, once per press. Start from a known board with one piece
     Send-Keys '{F2}'

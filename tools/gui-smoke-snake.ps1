@@ -40,6 +40,8 @@ $EMPTY = @(0x0D, 0x14, 0x20)
 $BODY  = @(0x2F, 0xB3, 0x83)
 $HEAD  = @(0x4F, 0xD6, 0xA0)
 $FOOD  = @(0xE5, 0x53, 0x3D)
+# tone 2 of the apple, which the tongue (the colour of the apple's base) does not have: the size of the apple is read from it
+$APPLE = @(0xED, 0x87, 0x77)
 
 function Write-Settings([int]$width, [int]$height) {
     $json = @{ schemaVersion = 1; values = @{ 'snake.width' = $width; 'snake.height' = $height } } | ConvertTo-Json -Compress
@@ -86,7 +88,8 @@ function Get-Box($bmp, $rgb, [int]$tol = 4) {
 function Get-BoardBox($bmp) {
     $rect = New-Object System.Drawing.Rectangle 20, 95, ($bmp.Width - 40), ($bmp.Height - 140)
     $crop = $bmp.Clone($rect, $bmp.PixelFormat)
-    $b = Get-Box $crop $EMPTY
+    # exactly this floor colour (the other floor colour and the strip are only a few steps away)
+    $b = Get-Box $crop $EMPTY 1
     $crop.Dispose()
     return $b
 }
@@ -105,7 +108,7 @@ function Get-Head($p, [string]$name) {
 # compare two boards.
 function Get-FoodCell($p, [string]$name) {
     $bmp = Take-Shot $p $name
-    $b = Get-Box $bmp $FOOD
+    $b = Get-Box $bmp $APPLE 2
     $bmp.Dispose()
     if ($null -eq $b) { return 0 }
     return [Math]::Max($b[2] - $b[0], $b[3] - $b[1]) + 1
@@ -178,6 +181,8 @@ try {
 
     # P pauses: the picture freezes, and P runs it again (done now, with the snake well away from the walls)
     Send-Keys 'p'
+    # the window can take a moment to answer the key and draw the paused picture
+    Start-Sleep -Milliseconds 1000
     $paused1 = Get-Picture $proc 'smoke-snake-6d-paused'
     Start-Sleep -Milliseconds 900
     Check 'P pauses: while paused nothing moves' ((Get-Picture $proc 'smoke-snake-6e-paused') -eq $paused1)
