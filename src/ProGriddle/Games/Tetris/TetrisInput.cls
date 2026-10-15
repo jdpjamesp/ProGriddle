@@ -56,11 +56,10 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
             RETURN result.
         END GET.
 
+    /* Always empty: the painter draws PAUSED and GAME OVER into the picture. Asking still notes the end of a game. */
     DEFINE PUBLIC PROPERTY BannerText AS CHARACTER NO-UNDO
         GET():
             NoteEnd().
-            IF mGame:IsOver THEN RETURN "GAME OVER".
-            IF mGame:Paused THEN RETURN "PAUSED".
             RETURN "".
         END GET.
 

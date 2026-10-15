@@ -287,18 +287,18 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
     END METHOD.
 
     @Test.
-    METHOD PUBLIC VOID TheBannerSaysPausedWhilePausedAndGameOverWhenOver():
+    METHOD PUBLIC VOID TheBannerIsAlwaysEmptyBecauseThePainterDrawsPausedAndGameOver():
         DEFINE VARIABLE drops AS INTEGER NO-UNDO.
         Assert:Equals("", mInput:BannerText).
         mGame:Paused = TRUE.
-        Assert:Equals("PAUSED", mInput:BannerText).
+        Assert:Equals("", mInput:BannerText).
         mGame:Paused = FALSE.
         mGame:StartWith("O,O,O,O,O,O,O,O,O,O,O,O").
         DO WHILE NOT mGame:IsOver AND drops < 15:
             mGame:HardDrop().
             drops = drops + 1.
         END.
-        Assert:Equals("GAME OVER", mInput:BannerText).
+        Assert:Equals("", mInput:BannerText).
     END METHOD.
 
     /* ---- the start level picker ---- */

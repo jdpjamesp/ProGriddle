@@ -563,4 +563,126 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
         Assert:Equals(0, CountOf(Colour(Tint:Gold), 188, 214, 22, 14)).
     END METHOD.
 
+    /* Drops O pieces until the stack reaches the top and the game is over. */
+    METHOD PRIVATE VOID PlayToTheEnd():
+        DEFINE VARIABLE drops AS INTEGER NO-UNDO.
+        mGame:StartWith("O,O,O,O,O,O,O,O,O,O,O,O,O,O,O,O").
+        DO WHILE NOT mGame:IsOver AND drops < 20:
+            mGame:HardDrop().
+            drops = drops + 1.
+        END.
+        Assert:IsTrue(mGame:IsOver).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID APausedWellIsDimmedOncePutBehindAPlateAndTheWordsAreWritten():
+        Draw().
+        Assert:Equals(Floor(0), Px(150, 5)).
+        mGame:Paused = TRUE.
+        Draw().
+        Assert:Equals(ColourMath:Mix(Floor(0), ColourMath:FromHex("05080F"), 55, 100), Px(150, 5)).
+        /* the panel is not dimmed */
+        Assert:Equals(Colour(Tint:PanelFill), Px(262, 108)).
+        Assert:Equals(Colour(Tint:Accent), Px(5, 124)).
+        Assert:Equals(Colour(Tint:Accent), Px(5, 125)).
+        Assert:Equals(Colour(Tint:Gap), Px(5, 140)).
+        Assert:Equals(Colour(Tint:Accent), Px(5, 178)).
+        Assert:IsTrue(CountOf(Colour(Tint:Text), 45, 145, 70, 14) > 0).
+        Assert:IsTrue(CountOf(Colour(Tint:Dim), 47, 164, 66, 7) > 0).
+        mGame:Paused = FALSE.
+        Draw().
+        Assert:Equals(Floor(0), Px(150, 5)).
+        Assert:Equals(0, CountOf(Colour(Tint:Accent), 0, 124, 160, 2)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AGameOverFillsTheWellWithDeadBlocksFromTheBottomOneRowEveryFortyMilliseconds():
+        PlayToTheEnd().
+        mGame:Tick(10).
+        Draw().
+        /* the bottom row is dead, with the empty cells too; the row above is not yet */
+        Assert:Equals(Tone(8, 2), Px(16 * 9 + 3, 16 * 19 + 3)).
+        Assert:IsFalse(Px(16 * 9 + 3, 16 * 18 + 3) = Tone(8, 2)).
+        mGame:Tick(790).
+        Draw().
+        Assert:Equals(Tone(8, 2), Px(16 * 9 + 3, 3)).
+        Assert:Equals(Tone(8, 2), Px(16 * 9 + 3, 16 * 10 + 3)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheGameOverPlateOpensFromTheMiddleLineAndTheLettersComeOneAtATime():
+        PlayToTheEnd().
+        mGame:Tick(900).
+        Draw().
+        Assert:IsFalse(Px(5, 163) = Colour(Tint:Accent)).
+        mGame:Tick(125).
+        Draw().
+        /* 1025: the plate is two pixels high on the middle line */
+        Assert:Equals(Colour(Tint:Accent), Px(5, 164)).
+        Assert:IsFalse(Px(5, 130) = Colour(Tint:Accent)).
+        mGame:Tick(200).
+        Draw().
+        /* 1225: the plate is 96 high, 116 to 211, with the first letter */
+        Assert:Equals(Colour(Tint:Accent), Px(5, 116)).
+        Assert:Equals(Colour(Tint:Accent), Px(5, 211)).
+        Assert:Equals(Colour(Tint:Gap), Px(5, 150)).
+        Assert:IsTrue(CountOf(Colour(Tint:OverTop), 27, 128, 11, 14) > 0).
+        Assert:Equals(0, CountOf(Colour(Tint:OverTop), 100, 128, 11, 14)).
+        mGame:Tick(100).
+        Draw().
+        /* 1325: four letters, the fourth (E) is there and the last (R) is not */
+        Assert:IsTrue(CountOf(Colour(Tint:OverTop), 27 + 12 * 3, 128, 11, 14) > 0).
+        Assert:Equals(0, CountOf(Colour(Tint:OverTop), 27 + 12 * 8, 128, 11, 14)).
+        mGame:Tick(150).
+        Draw().
+        /* 1475: all nine, and still no score line */
+        Assert:IsTrue(CountOf(Colour(Tint:OverTop), 27 + 12 * 8, 128, 11, 14) > 0).
+        Assert:Equals(0, CountOf(Colour(Tint:Dim), 0, 156, 160, 8)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheScoreNewBestAndPressRComeAfterTheLettersAndNewBestBlinks():
+        PlayToTheEnd().
+        mGame:Tick(1550).
+        Draw().
+        Assert:IsTrue(CountOf(Colour(Tint:Dim), 0, 156, 160, 8) > 0).
+        Assert:IsTrue(CountOf(Colour(Tint:Gold), 56, 172, 60, 8) > 0).
+        Assert:Equals(0, CountOf(Colour(Tint:Text), 59, 192, 42, 8)).
+        /* in the panel the label has become NEW BEST in gold, with the score */
+        Assert:IsTrue(CountOf(Colour(Tint:Gold), 188, 248, 50, 8) > 0).
+        mGame:Tick(300).
+        Draw().
+        /* 1850: blinked off, PRESS R is there */
+        Assert:Equals(0, CountOf(Colour(Tint:Gold), 56, 172, 60, 8)).
+        Assert:IsTrue(CountOf(Colour(Tint:Text), 59, 192, 42, 8) > 0).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AScoreBelowTheBestShowsNoNewBestAndKeepsTheHiScoreLabel():
+        mGame:BestScore = 99999.
+        PlayToTheEnd().
+        mGame:Tick(1550).
+        Draw().
+        Assert:Equals(0, CountOf(Colour(Tint:Gold), 56, 172, 60, 8)).
+        Assert:Equals(0, CountOf(Colour(Tint:Gold), 188, 248, 50, 8)).
+        Assert:IsTrue(CountOf(Colour(Tint:Label), 188, 248, 50, 8) > 0).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID PassingTheBestScoreTurnsTheHiScoreToNewBestAndFlashesItsCardForSixHundredMilliseconds():
+        mGame:BestScore = 1.
+        Draw().
+        Assert:Equals(Colour(Tint:FrameOuter), Px(180 + 4 + 10, 242)).
+        Assert:Equals(0, CountOf(Colour(Tint:Gold), 188, 248, 50, 8)).
+        mGame:HardDrop().
+        Draw().
+        Assert:IsTrue(mGame:Score > 1).
+        Assert:Equals(Colour(Tint:Accent), Px(180 + 4 + 10, 242)).
+        Assert:IsTrue(CountOf(Colour(Tint:Gold), 188, 248, 50, 8) > 0).
+        mGame:Tick(700).
+        Draw().
+        Assert:Equals(Colour(Tint:FrameOuter), Px(180 + 4 + 10, 242)).
+        Assert:IsTrue(CountOf(Colour(Tint:Gold), 188, 248, 50, 8) > 0).
+    END METHOD.
+
 END CLASS.

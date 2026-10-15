@@ -218,6 +218,19 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID DimRectMovesOnlyThePixelsInsideTheRectangleTowardsTheColourAndSkipsWhatIsOffTheBoard():
+        mCanvas:Plot(2, 3, {&KIND-SHOT}, ColourMath:Rgb(200, 100, 40)).
+        mCanvas:Plot(9, 9, {&KIND-SHOT}, ColourMath:Rgb(200, 100, 40)).
+        mCanvas:DimRect(-5, 0, 8, 6, 50, 0).
+        Assert:Equals(ColourMath:Rgb(100, 50, 20), mCanvas:ColourAt(2, 3)).
+        Assert:Equals({&KIND-SHOT}, mCanvas:KindAt(2, 3)).
+        Assert:Equals(ColourMath:Rgb(200, 100, 40), mCanvas:ColourAt(9, 9)).
+        Assert:Equals(100, mCanvas:BackAt(2, 3)).
+        mCanvas:Restore().
+        Assert:Equals(100, mCanvas:ColourAt(0, 0)).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID BakeViewMakesWhatIsShowingTheNewBackgroundSoRestoreKeepsIt():
         mCanvas:Plot(3, 4, {&KIND-SHOT}, 777).
         mCanvas:BakeView().

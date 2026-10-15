@@ -37,7 +37,13 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
     DEFINE PRIVATE VARIABLE mWhiteTop  AS PixelStamp      NO-UNDO EXTENT 7.
     /* the same blocks in the gold row, for the first frame of a Tetris */
     DEFINE PRIVATE VARIABLE mGold      AS PixelStamp      NO-UNDO EXTENT 7.
+    /* the dead blocks of a game over, with the marks of the seven pieces and without */
+    DEFINE PRIVATE VARIABLE mDead      AS PixelStamp      NO-UNDO EXTENT 7.
+    DEFINE PRIVATE VARIABLE mDeadBlank AS PixelStamp      NO-UNDO.
     DEFINE PRIVATE VARIABLE mSparks    AS SparkField      NO-UNDO.
+    /* when the score passed the best of before, for the flash of the card */
+    DEFINE PRIVATE VARIABLE mNewBestMs     AS INTEGER     NO-UNDO INITIAL -1.
+    DEFINE PRIVATE VARIABLE mBestSerial    AS INTEGER     NO-UNDO INITIAL -1.
     /* the clear that the sparks were made for */
     DEFINE PRIVATE VARIABLE mSparkClearMs AS INTEGER      NO-UNDO INITIAL -1.
     /* the lock that the sparks were made for */
@@ -87,6 +93,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         mBaseGrid = NEW Grid(NEW ArrayStore(mWidth, mHeight, "view,kind,back")).
         mCanvas = NEW PixelCanvas(mGrid).
         mBase = NEW PixelCanvas(mBaseGrid).
+        mDeadBlank = TetrisArt:BlockBlank():Colourise(TetrisLook:Tones(8), "").
         mText = NEW TextStampCache(64).
         mSparks = NEW SparkField(64).
         DO p = 1 TO 7:
@@ -94,6 +101,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
             mLit[p] = TetrisArt:Block(p):Colourise(TetrisLook:LitTones(p), "").
             mWhiteTop[p] = TetrisArt:Block(p):Colourise(TetrisLook:WhiteTopTones(p), "").
             mGold[p] = TetrisArt:Block(p):Colourise(TetrisLook:Tones(9), "").
+            mDead[p] = TetrisArt:Block(p):Colourise(TetrisLook:Tones(8), "").
         END.
         mGhost = TetrisArt:Ghost():Colourise({&NO-TONES}, SUBSTITUTE("D=&1,H=&2", TetrisLook:Hex(Tint:GhostLine), TetrisLook:Hex(Tint:GhostHatch))).
         EXTENT(mFloor) = mBH.
@@ -112,6 +120,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
     METHOD PUBLIC VOID Render(INPUT poGrid AS Grid, INPUT poGame AS IGame):
         IF NOT VALID-OBJECT(poGame) OR NOT TYPE-OF(poGame, TetrisGame) THEN UNDO, THROW NEW GridException("A Tetris painter draws a Tetris game").
         SyncStack().
+        NoteBest().
         mCanvas:Restore().
         mCanvas:BeginBatch().
         DrawTrail().
@@ -121,12 +130,21 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         DrawLock().
         DrawClear().
         DrawImpact().
+        DrawDead().
         mSparks:Draw(mCanvas, mGame:ElapsedMs).
         DrawTetrisWord().
         DrawNext().
         DrawHud().
         DrawCardFlashes().
+        DrawGameOver().
         mCanvas:EndBatch().
+        IF mGame:Paused AND NOT mGame:IsOver THEN DO:
+            /* the well is dimmed once, with the batch closed, and then the plate and the words go on it */
+            mCanvas:DimRect(0, 0, mBW * {&TILE}, mHeight, 55, ColourMath:FromHex("05080F")).
+            mCanvas:BeginBatch().
+            DrawPaused().
+            mCanvas:EndBatch().
+        END.
         mInner:Render(mGrid, poGame).
     END METHOD.
 
@@ -140,8 +158,10 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
             IF VALID-OBJECT(mLit[i]) THEN mLit[i]:Dispose().
             IF VALID-OBJECT(mWhiteTop[i]) THEN mWhiteTop[i]:Dispose().
             IF VALID-OBJECT(mGold[i]) THEN mGold[i]:Dispose().
+            IF VALID-OBJECT(mDead[i]) THEN mDead[i]:Dispose().
         END.
         IF VALID-OBJECT(mGhost) THEN mGhost:Dispose().
+        IF VALID-OBJECT(mDeadBlank) THEN mDeadBlank:Dispose().
         DO i = 1 TO EXTENT(mFloor):
             IF VALID-OBJECT(mFloor[i]) THEN mFloor[i]:Dispose().
         END.
@@ -307,6 +327,81 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         END.
     END METHOD.
 
+    /* Notes the moment the score goes past the best of before this game (the card flashes for a while from then). */
+    METHOD PRIVATE VOID NoteBest():
+        IF mGame:GameSerial <> mBestSerial THEN ASSIGN mBestSerial = mGame:GameSerial
+                                                       mNewBestMs = -1.
+        IF mNewBestMs < 0 AND NewBest() THEN mNewBestMs = mGame:ElapsedMs.
+    END METHOD.
+
+    METHOD PRIVATE LOGICAL NewBest():
+        RETURN mGame:Score > mGame:BestScore.
+    END METHOD.
+
+    /* A plate across the well, filled with the gap colour and ruled in the accent colour on its top two rows and bottom two
+       rows, piHeight high and centred on the row piCentre. */
+    METHOD PRIVATE VOID Plate(INPUT piCentre AS INTEGER, INPUT piHeight AS INTEGER):
+        DEFINE VARIABLE j   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE top AS INTEGER NO-UNDO.
+        DEFINE VARIABLE c   AS INTEGER NO-UNDO.
+        top = piCentre - INTEGER(TRUNCATE(piHeight / 2, 0)).
+        DO j = 0 TO piHeight - 1:
+            c = IF j < 2 OR j >= piHeight - 2 THEN TetrisLook:Colour(Tint:Accent) ELSE TetrisLook:Colour(Tint:Gap).
+            mCanvas:DrawLine(0, top + j, mBW * {&TILE} - 1, top + j, 0, c).
+        END.
+    END METHOD.
+
+    /* Text in the well with a one pixel outline behind it. */
+    METHOD PRIVATE VOID Outlined(INPUT pcText AS CHARACTER, INPUT piScale AS INTEGER, INPUT poTop AS Tint, INPUT poBottom AS Tint, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+        mText:Get(pcText, piScale, TetrisLook:Colour(poTop), TetrisLook:Colour(poBottom), TetrisLook:Colour(Tint:Outline)):DrawTo(mCanvas, piX, piY).
+    END METHOD.
+
+    /* The words of a pause (docs/design/tetris-art.md 4.2). */
+    METHOD PRIVATE VOID DrawPaused():
+        Plate(152, 56).
+        Outlined("PAUSED", 2, Tint:Text, Tint:Text, 45, 145).
+        Caption("P TO RESUME", 1, Tint:Dim, 47, 164).
+    END METHOD.
+
+    /* The dead fill of a game over: from the bottom row up, one row every 40 ms, every cell a dead block with the mark of the
+       block that was there. */
+    METHOD PRIVATE VOID DrawDead():
+        DEFINE VARIABLE rows  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE piece AS INTEGER NO-UNDO.
+        IF NOT mGame:IsOver OR mGame:OverMs < 0 THEN RETURN.
+        rows = MINIMUM(mBH, INTEGER(TRUNCATE((mGame:ElapsedMs - mGame:OverMs) / 40, 0)) + 1).
+        DO y = mBH - rows TO mBH - 1:
+            DO x = 0 TO mBW - 1:
+                piece = mGame:LockedAt(x, y).
+                IF piece > 0 THEN mDead[piece]:DrawTo(mCanvas, x * {&TILE}, y * {&TILE}).
+                ELSE mDeadBlank:DrawTo(mCanvas, x * {&TILE}, y * {&TILE}).
+            END.
+        END.
+    END METHOD.
+
+    /* The banner of a game over (4.3): after the fill and a short hold the plate opens from the middle line, the letters of
+       GAME OVER come one every 33 ms, then the score, NEW BEST if it beat the best, and PRESS R. */
+    METHOD PRIVATE VOID DrawGameOver():
+        DEFINE VARIABLE age   AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE n     AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE shown AS CHARACTER NO-UNDO.
+        IF NOT mGame:IsOver OR mGame:OverMs < 0 THEN RETURN.
+        age = mGame:ElapsedMs - mGame:OverMs.
+        IF age < 1000 THEN RETURN.
+        n = INTEGER(TRUNCATE((age - 1000) / 50, 0)).
+        Plate(164, INTEGER(ENTRY(MINIMUM(n, 3) + 1, "2,24,56,96"))).
+        IF age < 1200 THEN RETURN.
+        n = MINIMUM(9, INTEGER(TRUNCATE((age - 1200) / 33, 0)) + 1).
+        Outlined(SUBSTRING("GAME OVER", 1, n), 2, Tint:OverTop, Tint:OverBottom, 27, 128).
+        IF age < 1500 THEN RETURN.
+        shown = "SCORE " + STRING(mGame:Score, "999999").
+        Caption(shown, 1, Tint:Dim, INTEGER(TRUNCATE((mBW * {&TILE} - PixelCanvas:ScaledWidth(shown, 1)) / 2, 0)), 156).
+        IF NewBest() AND INTEGER(TRUNCATE((age - 1500) / 300, 0)) MODULO 2 = 0 THEN Caption("NEW BEST", 1, Tint:Gold, 56, 172).
+        IF age >= 1800 THEN Caption("PRESS R", 1, Tint:Text, 59, 192).
+    END METHOD.
+
     /* The level up sweep (docs/design/tetris-art.md 3.5): a line two pixels high that rises through the well in 18 frames, gold,
        then a darker gold from the ninth frame. It is drawn under the blocks and only where the background is the plain floor,
        so it shows in the empty cells and never on a block, a grid line or a wall. */
@@ -348,6 +443,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
             age = mGame:ElapsedMs - mGame:LevelUpMs.
             IF age >= 0 AND age < 480 THEN CardOutline(mPanelX + 4, 196, 88, 40, TetrisLook:Colour(Tint:Accent)).
         END.
+        IF mNewBestMs >= 0 AND mGame:ElapsedMs - mNewBestMs < 600 THEN CardOutline(mPanelX + 4, 242, 88, 40, TetrisLook:Colour(Tint:Accent)).
     END METHOD.
 
     /* The outer line of a card in a colour, with its four corner pixels left as they are. */
@@ -590,8 +686,14 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         Number(mGame:LinesCleared, 6, Tint:Text, 168).
         Caption("LEVEL", 1, Tint:Label, mPanelX + 12, 202).
         Number(mGame:Level, 2, LevelTint(), 214).
-        Caption("HI-SCORE", 1, Tint:Label, mPanelX + 12, 248).
-        Number(mGame:BestScore, 6, Tint:Dim, 260).
+        IF NewBest() THEN DO:
+            Caption("NEW BEST", 1, Tint:Gold, mPanelX + 12, 248).
+            Number(mGame:Score, 6, Tint:Gold, 260).
+        END.
+        ELSE DO:
+            Caption("HI-SCORE", 1, Tint:Label, mPanelX + 12, 248).
+            Number(mGame:BestScore, 6, Tint:Dim, 260).
+        END.
         Caption("P PAUSE", 1, Tint:Label, mPanelX + 12, 294).
         Caption("G GHOST", 1, Tint:Label, mPanelX + 12, 304).
     END METHOD.

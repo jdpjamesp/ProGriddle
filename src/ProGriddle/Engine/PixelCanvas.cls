@@ -394,6 +394,32 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
         END.
     END METHOD.
 
+    /* Dims one rectangle of what is showing, the way a pause dims a well: every colour in it moves piPercent percent of the way
+       to piToColour (55 with a near black leaves 45 percent of the colour). The part of the rectangle that is off the
+       board is skipped, and the kinds and the background are not touched, so Restore undoes it. Call it once for a screen,
+       not every frame. */
+    METHOD PUBLIC VOID DimRect(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER,
+                               INPUT piPercent AS INTEGER, INPUT piToColour AS INTEGER):
+        DEFINE VARIABLE x       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE idx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE colour  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE lastIn  AS INTEGER NO-UNDO INITIAL ?.
+        DEFINE VARIABLE lastOut AS INTEGER NO-UNDO.
+        {&NOT-IN-BATCH}
+        DO y = MAXIMUM(0, piY) TO MINIMUM(mHeight - 1, piY + piHeight - 1):
+            DO x = MAXIMUM(0, piX) TO MINIMUM(mWidth - 1, piX + piWidth - 1):
+                idx = y * mWidth + x.
+                colour = mStore:GetCellAt(mView, idx).
+                IF colour <> lastIn THEN DO:
+                    lastIn = colour.
+                    lastOut = ColourMath:Mix(colour, piToColour, piPercent, 100).
+                END.
+                mStore:SetCellAt(mView, idx, lastOut).
+            END.
+        END.
+    END METHOD.
+
     /* Counts the cells of one kind on the board. */
     METHOD PUBLIC INTEGER CountKind(INPUT piKind AS INTEGER):
         RETURN mStore:CountOf(mKind, piKind).
