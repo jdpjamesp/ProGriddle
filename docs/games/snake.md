@@ -27,6 +27,7 @@ The toolbar has a **Board** drop down list with seven sizes, 10 x 10 to 40 x 40 
 | Arrow keys, or W A S D | Turn the snake |
 | P or Space, or the Start and Pause button | Pause and carry on. The board dims and a PAUSED plate shows |
 | R or F2, or the New game button | Start again |
+| M, or the Sound button | Sound on or off (only when the machine has a sound device) |
 
 A turn is made at the next step. Two quick presses (up, then left) both count, one on each of the next two steps, which is what makes tight turns possible. A key that would send the snake straight back on itself, or that points the way it is already going, is ignored.
 
@@ -60,6 +61,20 @@ What you see happen (all of it a function of the game's own clock, so a paused g
 
 Left out on purpose, as the design says: a drifting background, a glow round the food, screen shake and a bulging body.
 
+## Sound
+
+Snake has sound effects in the soft, warm voice of the Lantern Glass look: triangle waves with a gentle decay. [Sound](../framework/sound.md) explains how they are made and played. The sounds are written as recipes in `SnakeSounds`, one place for all of them, and `SnakeCues` says when each one happens.
+
+| Cue (`SnakeCue`) | When | Sound |
+|---|---|---|
+| `Eat` | The snake eats | A small rising blip |
+| `Crash` | The snake hits the wall or itself | A slow falling slide |
+| `Win` | The snake fills the board | A rising run that ends on a long bright note |
+
+All three are one priority group, so the winning bite is heard as the win only. A new game that is waiting for its first arrow key is silent.
+
+Sound is on unless `sound.on` says otherwise. The M key or the Sound button switches it and saves the choice. With no sound device there is no button and no key, and the game is silent.
+
 ## Settings
 
 | Key | Meaning | Default |
@@ -68,7 +83,7 @@ Left out on purpose, as the design says: a drifting background, a glow round the
 | `snake.size` | The size chosen in the Board list, such as `30 x 20`, saved when the window closes. A value that is not a size is ignored | none |
 | `snake.best` | The best score, kept by the game: it is updated when a game ends with a better one | 0 |
 
-The window also saves `window.width`, `window.height`, `window.x`, `window.y` and `window.maximised` by itself. The best score is one number for every board size.
+The window also saves `window.width`, `window.height`, `window.x`, `window.y` and `window.maximised` by itself. The best score is one number for every board size. The sound uses two settings shared by every game with sound: `sound.on` (`true` by default, the M key changes it) and `sound.volume` (0 to 100, 50 by default).
 
 ## How it uses the framework
 
@@ -109,6 +124,8 @@ All under `tests/ProGriddle/Games/Snake/`.
 | `SnakeLookTests`, `SnakeArtTests` | The named colours, the tone rows against the designer's rows, the flash and the crash fade; the tiles and the refusals |
 | `SnakePainterTests` | The picture by pixel: layout at both tile sizes, floor, wall ring, strip, every piece of the body turned to fit, a step and an eat, the head and its tongue, the food, the waiting plate and arrow, the eat flash, ring and wave, pause, the crash, the fade and dim, the game over plate, NEW BEST, the win, and a board of another size |
 | `SnakeWindowChainTests` (windowed) | The window's view holds the painter's pixels, and follows a new board size |
+| `SnakeCuesTests` | Each sound event of a real game, driven by hand, is reported once (a bite, a crash, a win that covers the last bite), a waiting game is silent, a new game forgets the old one, and the whole chain reaches a recording player |
+| `SnakeSoundsTests` | Every cue has a recipe that makes sound and a volume, and the bank fills in well under half a second |
 
 `ScriptedRandom` (in `tests/ProGriddle/Core`, shared with 2048) returns the numbers it is given, so a test chooses exactly where the food goes. Run the tests with `powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter "Snake*"`. The window is checked by `tools/gui-smoke-snake.ps1`, which takes over the keyboard for a minute or two.
 

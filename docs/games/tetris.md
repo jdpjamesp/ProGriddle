@@ -33,6 +33,7 @@ All play is on the keyboard.
 | P, or the Pause button | Pause and resume. The well dims and PAUSED shows on a plate |
 | F2 or R, or the New game button | Start a new game |
 | G, or the Ghost button | Show or hide the ghost piece |
+| M, or the Sound button | Sound on or off (only when the machine has a sound device) |
 | H, or the Help button | Show the high scores, the keys and the scoring |
 | Start level box | Choose the level a new game starts at, 1 to 10 |
 
@@ -85,6 +86,23 @@ The window is as big as the screen allows when it opens, and the picture is scal
 
 Left out on purpose, as the design says: a moving background, screen shake, bloom and a glow round a clearing row. The start up animation (the falling TETRIS word) is also not built: only the panel appearing at once, because the game starts as soon as the window opens.
 
+## Sound
+
+Tetris has sound effects in the soft, warm voice of the Lantern Glass look: triangle waves with a gentle decay, none of them loud. [Sound](../framework/sound.md) explains how they are made and played. The sounds are written as recipes in `TetrisSounds`, one place for all of them, and `TetrisCues` says when each one happens.
+
+| Cue (`TetrisCue`) | When | Sound |
+|---|---|---|
+| `Lock` | A piece settles | A short muffled thud, falling in pitch |
+| `Clear` | One to three rows clear | Three rising soft notes |
+| `Tetris` | Four rows clear at once | A longer rising run that ends on a high held note |
+| `LevelUp` | The level goes up | A quick climbing run to a bright note, with the clear or the lock |
+| `GameOver` | The stack reaches the top | A slow falling slide |
+| `Danger` | The stack first rises into the top four rows | A low double note |
+
+A lock, a clear, a Tetris and the end of the game are one priority group, so when a piece locks and clears rows you hear the clear, not both. The level up and the danger are groups of their own and sound along with them. The moves and turns make no sound: the game keeps no time for them.
+
+Sound is on unless `sound.on` says otherwise. The M key or the Sound button switches it and saves the choice, and the Help screen lists the key. With no sound device there is no button and no key, and the game is silent.
+
 ## Settings
 
 The window saves `tetris.choice` (the start level) and its own `window.width`, `window.height`, `window.x`, `window.y` and `window.maximised`, which are shared with the other games. The game itself reads and saves two settings:
@@ -93,6 +111,8 @@ The window saves `tetris.choice` (the start level) and its own `window.width`, `
 |---|---|---|
 | `tetris.ghost` | `true` to show the ghost piece. The G key and the Ghost button change it and save it | `true` |
 | `tetris.scores` | The high score list as `score:lines` pairs, best first, for example `12400:32,9800:25`. Anything that is not a pair with a score of 1 or more is dropped when it is read | empty |
+
+The sound uses two settings shared by every game with sound: `sound.on` (`true` by default, the M key changes it) and `sound.volume` (0 to 100, 50 by default).
 
 ## How it uses the framework
 
@@ -152,6 +172,8 @@ All under `tests/ProGriddle/Games/Tetris/`, plus the framework tests next to the
 | `TetrisAnimationTests` | The game's effect clocks: the clear freeze, the lock, clear and level up times, game over, danger |
 | `TetrisPainterTests` | Every part of the picture by pixel: background, floor, walls, cards, next piece, piece, ghost, stack, numbers, the lock flash and sparks, the hard drop trail and impact, the clear wipe, sparks and TETRIS word, the level up sweep and blink, pause, game over, NEW BEST, danger walls |
 | `TetrisWindowChainTests` (windowed) | The window's view holds the painter's pixels |
+| `TetrisCuesTests` | Each sound event of a real game, driven by hand, is reported once and in order (the clear before the lock, the end first), the danger once, a new game forgets the old one, and the whole chain reaches a recording player |
+| `TetrisSoundsTests` | Every cue has a recipe that makes sound and a volume, and the bank fills in well under half a second |
 | `RealTimeControllerTests` (Engine) | The real time controller, driven with a fake clock |
 
 Run them with `powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter "Tetris*"`.

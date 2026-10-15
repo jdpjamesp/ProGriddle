@@ -78,6 +78,7 @@ Source lives under `src/ProGriddle`, one folder per namespace, one class per fil
  ProGriddle.Games.<Game>    a game's rules      depends on Core and Engine only
  ProGriddle.UI.WinForms     the window          depends on Core, Engine, UI.Text. The only layer that uses .NET
  ProGriddle.UI.Text         text renderer, fake clock, for tests
+ ProGriddle.UI.Audio        the Windows sound player   depends on Core and Engine. No game may use it
     |
  ProGriddle.Engine          game contracts, controller, clock, settings    depends on Core
     |
@@ -89,9 +90,10 @@ Source lives under `src/ProGriddle`, one folder per namespace, one class per fil
 | Folder | Holds |
 |---|---|
 | `src/ProGriddle/Core` | `Coord`, `Shape`, `Grid`, the cell stores, topologies, neighbourhoods, `IRandom` |
-| `src/ProGriddle/Engine` | `IGame`, `AbstractGame`, `GameController`, `TurnController`, `IClock`, `IGridRenderer`, `IGameInput`, settings |
+| `src/ProGriddle/Engine` | `IGame`, `AbstractGame`, `GameController`, `TurnController`, `IClock`, `IGridRenderer`, `IGameInput`, settings, and the sound pieces (`ToneSynth`, `SoundBank`, `ISoundPlayer`, `ICueSource`, `SoundRenderer`) |
 | `src/ProGriddle/UI/WinForms` | `GameWindow`, `GridView`, `WinFormsGridRenderer`, `WinFormsClock`, `KeyMap` |
 | `src/ProGriddle/UI/Text` | `TextGridRenderer`, `FakeClock` |
+| `src/ProGriddle/UI/Audio` | `WaveOutPlayer` and `WinMm.p`, the Windows sound player. See [Sound](docs/framework/sound.md) |
 | `src/ProGriddle/Games/<Game>` | One folder per game |
 | `run` | One `run-<game>.p` per game |
 | `tests` | The same folder layout as `src`, `*Tests.cls` |
@@ -436,6 +438,7 @@ Under `prowin -b` WinForms objects can be built and drawn to a bitmap, but there
 
 - [Adding a game](docs/adding-a-game.md): from one command to a finished game, step by step.
 - [Contributing](CONTRIBUTING.md): how a change goes, the rules of the codebase and what a good pull request looks like.
+- [Sound](docs/framework/sound.md): 8 bit sound effects made from recipes, how a game gets cues and sounds, the Windows player, the settings and how to add sound to a game. Tetris and Snake have it.
 - [OpenEdge environment notes](docs/framework/environment.md): running and testing, language gotchas, the ABL keywords to avoid.
 - [Performance notes](docs/framework/performance.md): the measurements behind the storage and rendering design.
 - [Accessibility](docs/accessibility.md): what works today, the known gaps, and how to keep a new game accessible.
@@ -459,8 +462,8 @@ Start any of them from the **ProGriddle Cookoff**, one window with a button for 
 - [Conway's Game of Life](docs/games/life.md): steppable, dense and sparse engines, patterns, HighLife and other rule sets, saved settings. Playable now.
 - [Battleships](docs/games/battleships.md): turn based, you against a computer on two boards, ships that may not touch, five board sizes with a fleet to match, placing by hand or at random, marking water, a hunting and targeting opponent. Playable now.
 - [Minesweeper](docs/games/minesweeper.md): turn based, the classic Windows rules, four levels, a high score list and screen per level, question marks, chording (both buttons, middle or double click). Playable now.
-- [Tetris](docs/games/tetris.md): real time, seven bag pieces falling on a timer, held key repeat, ghost piece, next piece panel, pause, levels and scoring, a start level picker, a high score list, and the Lantern Glass pixel look with a lock flash, drop trail, line clear wipe, level up sweep and game over animation. Playable now.
+- [Tetris](docs/games/tetris.md): real time, seven bag pieces falling on a timer, held key repeat, ghost piece, next piece panel, pause, levels and scoring, a start level picker, a high score list, and the Lantern Glass pixel look with a lock flash, drop trail, line clear wipe, level up sweep and game over animation, and soft 8 bit sound effects (M switches them). Playable now.
 - [2048](docs/games/2048.md): turn based, slide and join the tiles with the arrow keys, a best score, any board size from 2 x 2. Playable now.
-- [Snake](docs/games/snake.md): real time, steer with the arrow keys, eat to grow and speed up, two turns can wait for a quick corner, a best score, any board size from 5 x 5, and the Lantern Glass pixel look with a tongue, an eat wave, a crash fade and a gold win. Playable now.
+- [Snake](docs/games/snake.md): real time, steer with the arrow keys, eat to grow and speed up, two turns can wait for a quick corner, a best score, any board size from 5 x 5, and the Lantern Glass pixel look with a tongue, an eat wave, a crash fade and a gold win, and soft 8 bit sound effects (M switches them). Playable now.
 - [Asteroids](docs/games/asteroids.md): real time on a 320 x 240 pixel canvas in direct colour, vector outlines turned to 64 headings, a ship that turns, thrusts and drifts on a screen that wraps, rocks that split, saucers, hyperspace, debris and sparks, a traced title, a designed look, adjustable speed. Playable now.
 - [Space Invaders](docs/games/spaceinvaders.md): real time on the arcade's 224 x 256 grid in direct colour, one shot at a time, one invader moved a frame so the rack speeds up as it dies, crumbling shields, three bombs, the mystery saucer, a neon look, adjustable speed. Playable now.
