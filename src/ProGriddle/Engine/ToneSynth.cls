@@ -5,7 +5,8 @@
      spec   440       a square wave of that pitch in Hz (20 to 5000)
             880>440   a square wave sliding from one pitch to the other over the part
             t440      a triangle wave (softer), t880>440 slides it
-            n         noise (a register that changes level every three samples)
+            n         noise (a register that changes level every three samples: a hiss)
+            m         slow noise (the level changes every 24 samples: a rumble)
             r         a rest, silence
      ms     how long the part lasts, 1 to 5000
      decay  the percentage of its swing the part loses by its end, 0 to 100 (50 when left out)
@@ -111,10 +112,10 @@ CLASS ProGriddle.Engine.ToneSynth FINAL:
                         IF phase < half THEN sample = 128 + TRUNCATE(amp * (4 * phase - cycle) / cycle, 0).
                         ELSE sample = 128 + TRUNCATE(amp * (3 * cycle - 4 * phase) / cycle, 0).
                     END.
-                    WHEN "n" THEN DO:
+                    WHEN "n" OR WHEN "m" THEN DO:
                         noiseHold = noiseHold - 1.
                         IF noiseHold <= 0 THEN DO:
-                            noiseHold = 3.
+                            noiseHold = (IF kind = "m" THEN 24 ELSE 3).
                             lfsr = (lfsr * 1103515245 + 12345) MODULO 2147483648.
                             noiseHigh = (lfsr >= 1073741824).
                         END.
@@ -156,7 +157,7 @@ CLASS ProGriddle.Engine.ToneSynth FINAL:
                 mDecay[j] = INTEGER(ENTRY(3, seg, ":")).
                 IF mDecay[j] > 100 THEN UNDO, THROW NEW GridException("A sound part decays 0 to 100 percent, not " + seg).
             END.
-            IF spec = "n" OR spec = "r" THEN DO:
+            IF spec = "n" OR spec = "m" OR spec = "r" THEN DO:
                 kind = spec.
                 mFrom[j] = 0.
                 mTo[j] = 0.

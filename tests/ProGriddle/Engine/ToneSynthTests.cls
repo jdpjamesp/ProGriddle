@@ -233,6 +233,28 @@ CLASS ProGriddle.Engine.ToneSynthTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID SlowNoiseChangesLevelFarLessOftenThanNoise():
+        DEFINE VARIABLE mFast    AS MEMPTR  NO-UNDO.
+        DEFINE VARIABLE mSlow    AS MEMPTR  NO-UNDO.
+        DEFINE VARIABLE i        AS INTEGER NO-UNDO.
+        DEFINE VARIABLE fastEdges AS INTEGER NO-UNDO.
+        DEFINE VARIABLE slowEdges AS INTEGER NO-UNDO.
+        mSynth:Make("n:300:0", 100, OUTPUT mFast).
+        mSynth:Make("m:300:0", 100, OUTPUT mSlow).
+        Assert:Equals(GET-SIZE(mFast), GET-SIZE(mSlow)).
+        DO i = 101 TO 3000:
+            IF GET-BYTE(mFast, i) <> GET-BYTE(mFast, i - 1) THEN fastEdges = fastEdges + 1.
+            IF GET-BYTE(mSlow, i) <> GET-BYTE(mSlow, i - 1) THEN slowEdges = slowEdges + 1.
+        END.
+        Assert:IsTrue(slowEdges > 10).
+        Assert:IsTrue(slowEdges * 4 < fastEdges).
+        FINALLY:
+            SET-SIZE(mFast) = 0.
+            SET-SIZE(mSlow) = 0.
+        END FINALLY.
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID TheSameRecipeGivesTheSameBytes():
         DEFINE VARIABLE mFirst  AS MEMPTR  NO-UNDO.
         DEFINE VARIABLE mSecond AS MEMPTR  NO-UNDO.
