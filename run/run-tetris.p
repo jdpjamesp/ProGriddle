@@ -11,13 +11,17 @@
 
    Settings it reads (all optional):
      tetris.ghost     true to show the ghost piece, where the piece will land (default true)
-   The window also saves the chosen start level as tetris.choice, and its own size and position. */
+     sound.on         false for no sound (default true). The Sound button and the M key switch it, and it is saved
+     sound.volume     0 to 100 (default 50)
+   The window also saves the chosen start level as tetris.choice, and its own size and position. The sounds are made at start up
+   (TetrisSounds) and played by the Windows sound player; with no sound device the game is silent. */
 USING Progress.Lang.*.
 USING System.Windows.Forms.Application FROM ASSEMBLY.
 USING System.Windows.Forms.Screen FROM ASSEMBLY.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
 USING ProGriddle.Games.Tetris.*.
+USING ProGriddle.UI.Audio.*.
 USING ProGriddle.UI.WinForms.*.
 
 DEFINE VARIABLE cSettingsFile AS CHARACTER          NO-UNDO INITIAL "default".
@@ -31,6 +35,9 @@ DEFINE VARIABLE dScale        AS DECIMAL            NO-UNDO.
 DEFINE VARIABLE oClock        AS WinFormsClock      NO-UNDO.
 DEFINE VARIABLE oController   AS RealTimeController NO-UNDO.
 DEFINE VARIABLE oWindow       AS GameWindow         NO-UNDO.
+DEFINE VARIABLE oBank         AS SoundBank          NO-UNDO.
+DEFINE VARIABLE oPlayer       AS WaveOutPlayer      NO-UNDO.
+DEFINE VARIABLE oSound        AS SoundRenderer      NO-UNDO.
 
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 2 THEN cSettingsFile = ENTRY(2, SESSION:PARAMETER).
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 3 THEN iAutoClose = INTEGER(ENTRY(3, SESSION:PARAMETER)).
@@ -64,8 +71,15 @@ DO ON ERROR UNDO, THROW:
     oView:ShowGridLines = FALSE.
     oView:FitToWindow = TRUE.
     oPainter = NEW TetrisPainter(NEW WinFormsGridRenderer(oView, "view"), oGame, NEW SeededRandom(iSeed + 1)).
-    oController = NEW RealTimeController(oGame, oPainter, oClock).
-    oWindow = NEW GameWindow("ProGriddle Tetris", oController, oView, NEW TetrisInput(oGame, oSettings),
+
+    /* the sound: the cues of the game are found after every redraw and played by the Windows player, from sounds made now */
+    oBank = NEW SoundBank().
+    TetrisSounds:Fill(oBank).
+    oPlayer = NEW WaveOutPlayer(oBank).
+    SoundSettings:Apply(oPlayer, oSettings).
+    oSound = NEW SoundRenderer(oPainter, NEW TetrisCues(), oPlayer).
+    oController = NEW RealTimeController(oGame, oSound, oClock).
+    oWindow = NEW GameWindow("ProGriddle Tetris", oController, oView, NEW TetrisInput(oGame, oSettings, oPlayer),
                              oClock, oSettings, "tetris").
     IF iAutoClose > 0 THEN oWindow:AutoCloseSeconds = iAutoClose.
 
@@ -82,6 +96,9 @@ DO ON ERROR UNDO, THROW:
         IF VALID-OBJECT(oPainter) THEN oPainter:Dispose().
         IF VALID-OBJECT(oGame) THEN oGame:Dispose().
         IF VALID-OBJECT(oClock) THEN oClock:Dispose().
+        /* the player first (it stops the sounds, which are read from the bank), then the bank */
+        IF VALID-OBJECT(oPlayer) THEN oPlayer:Dispose().
+        IF VALID-OBJECT(oBank) THEN oBank:Dispose().
     END FINALLY.
 END.
 QUIT.

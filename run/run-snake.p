@@ -17,13 +17,17 @@
      snake.size                  the board size chosen in the window, such as 30 x 20 (saved when the window closes,
                                  and it wins over snake.width and snake.height when the window opens)
      snake.best                  the best score (kept by the game)
-   The window also saves its own size and position. */
+     sound.on                    false for no sound (default true). The Sound button and the M key switch it, and it is saved
+     sound.volume                0 to 100 (default 50)
+   The window also saves its own size and position. The sounds are made at start up (SnakeSounds) and played by the Windows sound
+   player; with no sound device the game is silent. */
 USING Progress.Lang.*.
 USING System.Windows.Forms.Application FROM ASSEMBLY.
 USING System.Windows.Forms.Screen FROM ASSEMBLY.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
 USING ProGriddle.Games.Snake.*.
+USING ProGriddle.UI.Audio.*.
 USING ProGriddle.UI.WinForms.*.
 
 DEFINE VARIABLE cSettingsFile AS CHARACTER          NO-UNDO INITIAL "default".
@@ -37,6 +41,9 @@ DEFINE VARIABLE dScale        AS DECIMAL            NO-UNDO.
 DEFINE VARIABLE oClock        AS WinFormsClock      NO-UNDO.
 DEFINE VARIABLE oController   AS RealTimeController NO-UNDO.
 DEFINE VARIABLE oWindow       AS GameWindow         NO-UNDO.
+DEFINE VARIABLE oBank         AS SoundBank          NO-UNDO.
+DEFINE VARIABLE oPlayer       AS WaveOutPlayer      NO-UNDO.
+DEFINE VARIABLE oSound        AS SoundRenderer      NO-UNDO.
 DEFINE VARIABLE iWidth        AS INTEGER            NO-UNDO.
 DEFINE VARIABLE iHeight       AS INTEGER            NO-UNDO.
 
@@ -69,7 +76,14 @@ DO ON ERROR UNDO, THROW:
     oView:ShowGridLines = FALSE.
     oView:FitToWindow = TRUE.
     oPainter = NEW SnakePainter(NEW WinFormsGridRenderer(oView, "view"), oGame, NEW SeededRandom(iSeed + 1)).
-    oController = NEW RealTimeController(oGame, oPainter, oClock).
+
+    /* the sound: the cues of the game are found after every redraw and played by the Windows player, from sounds made now */
+    oBank = NEW SoundBank().
+    SnakeSounds:Fill(oBank).
+    oPlayer = NEW WaveOutPlayer(oBank).
+    SoundSettings:Apply(oPlayer, oSettings).
+    oSound = NEW SoundRenderer(oPainter, NEW SnakeCues(), oPlayer).
+    oController = NEW RealTimeController(oGame, oSound, oClock).
 
     /* a window the shape of the picture, as big as the screen has room for, up to 4 pixels to a pixel of the picture: the view scales the
        picture to fill it. The toolbar and the status bar take about 66 more, the title bar and frame about 50. A change of board size in
@@ -78,7 +92,7 @@ DO ON ERROR UNDO, THROW:
     oSettings:SetInteger("snake.window.width", INTEGER(TRUNCATE(oPainter:Canvas:Width * dScale, 0))).
     oSettings:SetInteger("snake.window.height", INTEGER(TRUNCATE(oPainter:Canvas:Height * dScale, 0)) + 66).
 
-    oWindow = NEW GameWindow("ProGriddle Snake", oController, oView, NEW SnakeInput(oGame, oSettings),
+    oWindow = NEW GameWindow("ProGriddle Snake", oController, oView, NEW SnakeInput(oGame, oSettings, oPlayer),
                              oClock, oSettings, "snake").
     IF iAutoClose > 0 THEN oWindow:AutoCloseSeconds = iAutoClose.
 
@@ -95,6 +109,9 @@ DO ON ERROR UNDO, THROW:
         IF VALID-OBJECT(oPainter) THEN oPainter:Dispose().
         IF VALID-OBJECT(oGame) THEN oGame:Dispose().
         IF VALID-OBJECT(oClock) THEN oClock:Dispose().
+        /* the player first (it stops the sounds, which are read from the bank), then the bank */
+        IF VALID-OBJECT(oPlayer) THEN oPlayer:Dispose().
+        IF VALID-OBJECT(oBank) THEN oBank:Dispose().
     END FINALLY.
 END.
 QUIT.
