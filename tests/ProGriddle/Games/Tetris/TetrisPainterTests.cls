@@ -235,11 +235,13 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
         shape = Tetrominoes:ShapeOf(1, 0).
         x1 = mGame:PieceX + shape:OffsetX(1).
         mGame:HardDrop().
+        mGame:Tick(150).
         Draw().
         /* the I sits on the floor: where it landed is its tone 1 at the top left of the tile */
         Assert:Equals(Tone(1, 1), Px(16 * x1 + 1, 16 * 19 + 1)).
         /* the next piece (the O) comes down on top of it */
         mGame:HardDrop().
+        mGame:Tick(150).
         Draw().
         Assert:Equals(Tone(1, 1), Px(16 * x1 + 1, 16 * 19 + 1)).
         Assert:IsTrue(CountOf(Tone(2, 1), 0, 16 * 17, 160, 32) >= 2).
@@ -257,6 +259,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
             mGame:MoveRight().
         END.
         mGame:HardDrop().
+        mGame:Tick(150).
         Draw().
         /* the full row is gone: the T came down a row, onto the floor, and what was the fourth row of the I's column is now the last */
         Assert:Equals(Tone(3, 2), Px(3, 16 * 19 + 3)).
@@ -303,6 +306,51 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
         /* the digits changed: 000000 became 000038 or so, so the lit pixels are not the same */
         Assert:IsTrue(mGame:Score > 0).
         Assert:IsFalse(CountOf(Colour(Tint:Text), 188, 122, 70, 14) = before).
+    END METHOD.
+
+    /* The first cell of the piece that has just been hard dropped, as a pixel x, and the row it sits on (the floor). */
+    METHOD PRIVATE INTEGER DropAnI():
+        DEFINE VARIABLE shape AS Shape NO-UNDO.
+        shape = Tetrominoes:ShapeOf(1, 0).
+        mGame:HardDrop().
+        RETURN 16 * (mGame:LastLockX + shape:OffsetX(1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASettlingPieceIsLitForFiftyMillisecondsThenOnlyItsHighlightIsWhiteThenNormal():
+        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        Draw().
+        x0 = DropAnI().
+        Draw().
+        /* lit: the highlight is white and tone 2 is the old tone 1 */
+        Assert:Equals(16777215, Px(x0 + 1, 16 * 19 + 1)).
+        Assert:Equals(Tone(1, 1), Px(x0 + 3, 16 * 19 + 3)).
+        mGame:Tick(60).
+        Draw().
+        /* the highlight is still white but the rest is the normal tile */
+        Assert:Equals(16777215, Px(x0 + 1, 16 * 19 + 1)).
+        Assert:Equals(Tone(1, 2), Px(x0 + 3, 16 * 19 + 3)).
+        mGame:Tick(60).
+        Draw().
+        Assert:Equals(Tone(1, 1), Px(x0 + 1, 16 * 19 + 1)).
+        Assert:Equals(Tone(1, 2), Px(x0 + 3, 16 * 19 + 3)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASettlingPieceThrowsSparksThatAreGoneAfterTenFrames():
+        DEFINE VARIABLE x0     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE during AS INTEGER NO-UNDO.
+        DEFINE VARIABLE after  AS INTEGER NO-UNDO.
+        Draw().
+        x0 = DropAnI().
+        mGame:Tick(100).
+        Draw().
+        /* six frames old, the sparks wear tone 2 of the piece, near the bottom of the blocks */
+        during = CountOf(Tone(1, 2), x0, 16 * 19 + 13, 16, 2).
+        mGame:Tick(100).
+        Draw().
+        after = CountOf(Tone(1, 2), x0, 16 * 19 + 13, 16, 2).
+        Assert:IsTrue(during > after).
     END METHOD.
 
 END CLASS.

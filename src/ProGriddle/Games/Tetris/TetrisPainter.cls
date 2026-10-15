@@ -32,6 +32,13 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
     /* the blocks of the seven pieces, the ghost, and the empty cell of each row */
     DEFINE PRIVATE VARIABLE mBlock     AS PixelStamp      NO-UNDO EXTENT 7.
     DEFINE PRIVATE VARIABLE mGhost     AS PixelStamp      NO-UNDO.
+    /* the blocks as they flash when they settle: lit all over, then only the highlight white */
+    DEFINE PRIVATE VARIABLE mLit       AS PixelStamp      NO-UNDO EXTENT 7.
+    DEFINE PRIVATE VARIABLE mWhiteTop  AS PixelStamp      NO-UNDO EXTENT 7.
+    DEFINE PRIVATE VARIABLE mSparks    AS SparkField      NO-UNDO.
+    /* the lock that the sparks were made for */
+    DEFINE PRIVATE VARIABLE mSparkSerial AS INTEGER       NO-UNDO INITIAL -1.
+    DEFINE PRIVATE VARIABLE mSparkPlaced AS INTEGER       NO-UNDO.
     DEFINE PRIVATE VARIABLE mFloor     AS PixelStamp      NO-UNDO EXTENT.
     /* the size of the well in cells and of the picture in pixels, and where the panel begins */
     DEFINE PRIVATE VARIABLE mBW        AS INTEGER         NO-UNDO.
@@ -77,8 +84,11 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         mCanvas = NEW PixelCanvas(mGrid).
         mBase = NEW PixelCanvas(mBaseGrid).
         mText = NEW TextStampCache(64).
+        mSparks = NEW SparkField(32).
         DO p = 1 TO 7:
             mBlock[p] = TetrisArt:Block(p):Colourise(TetrisLook:Tones(p), "").
+            mLit[p] = TetrisArt:Block(p):Colourise(TetrisLook:LitTones(p), "").
+            mWhiteTop[p] = TetrisArt:Block(p):Colourise(TetrisLook:WhiteTopTones(p), "").
         END.
         mGhost = TetrisArt:Ghost():Colourise({&NO-TONES}, SUBSTITUTE("D=&1,H=&2", TetrisLook:Hex(Tint:GhostLine), TetrisLook:Hex(Tint:GhostHatch))).
         EXTENT(mFloor) = mBH.
@@ -101,6 +111,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         mCanvas:BeginBatch().
         DrawGhost().
         DrawPiece().
+        DrawLock().
         DrawNext().
         DrawHud().
         mCanvas:EndBatch().
@@ -114,6 +125,8 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         mDisposed = TRUE.
         DO i = 1 TO 7:
             IF VALID-OBJECT(mBlock[i]) THEN mBlock[i]:Dispose().
+            IF VALID-OBJECT(mLit[i]) THEN mLit[i]:Dispose().
+            IF VALID-OBJECT(mWhiteTop[i]) THEN mWhiteTop[i]:Dispose().
         END.
         IF VALID-OBJECT(mGhost) THEN mGhost:Dispose().
         DO i = 1 TO EXTENT(mFloor):
@@ -278,6 +291,65 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         shape = Tetrominoes:ShapeOf(mGame:CurrentPiece, mGame:Turns).
         DO i = 1 TO shape:Size:
             mBlock[mGame:CurrentPiece]:DrawTo(mCanvas, (mGame:PieceX + shape:OffsetX(i)) * {&TILE}, (mGame:PieceY + shape:OffsetY(i)) * {&TILE}).
+        END.
+    END METHOD.
+
+    /* The settling of the last piece (docs/design/tetris-art.md 3.1): for 50 ms its four blocks are lit, for 50 ms more only their
+       highlight is white, and sparks fly from the blocks that sit on something. The sparks are made once for each lock. Nothing
+       is drawn while rows are held for a clear, because the piece may be in them. */
+    METHOD PRIVATE VOID DrawLock():
+        DEFINE VARIABLE shape AS Shape   NO-UNDO.
+        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE age   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cx    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cy    AS INTEGER NO-UNDO.
+        IF mGame:GameSerial <> mSparkSerial THEN DO:
+            mSparks:Clear().
+            ASSIGN mSparkSerial = mGame:GameSerial
+                   mSparkPlaced = 0.
+        END.
+        IF mGame:LastLockPiece = 0 OR mGame:LastLockMs < 0 THEN RETURN.
+        shape = Tetrominoes:ShapeOf(mGame:LastLockPiece, mGame:LastLockTurn).
+        IF mGame:PiecesPlaced <> mSparkPlaced THEN DO:
+            mSparkPlaced = mGame:PiecesPlaced.
+            LockSparks(shape).
+        END.
+        age = mGame:ElapsedMs - mGame:LastLockMs.
+        IF age >= 0 AND age < 100 AND NOT mGame:Clearing THEN DO i = 1 TO shape:Size:
+            cx = (mGame:LastLockX + shape:OffsetX(i)) * {&TILE}.
+            cy = (mGame:LastLockY + shape:OffsetY(i)) * {&TILE}.
+            IF mGame:LockedAt(INTEGER(cx / {&TILE}), INTEGER(cy / {&TILE})) <> mGame:LastLockPiece THEN NEXT.
+            IF age < 50 THEN mLit[mGame:LastLockPiece]:DrawTo(mCanvas, cx, cy).
+            ELSE mWhiteTop[mGame:LastLockPiece]:DrawTo(mCanvas, cx, cy).
+        END.
+        mSparks:Draw(mCanvas, mGame:ElapsedMs).
+    END METHOD.
+
+    /* Two sparks, left and right, from the bottom of every block of the piece that has the floor or a block under it. The speed
+       varies a little with the random source. */
+    METHOD PRIVATE VOID LockSparks(INPUT poShape AS Shape):
+        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE j      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE bx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE by2    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE own    AS LOGICAL NO-UNDO.
+        DEFINE VARIABLE t      AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE speed  AS DECIMAL NO-UNDO.
+        t = TetrisLook:Tones(mGame:LastLockPiece).
+        DO i = 1 TO poShape:Size:
+            bx = mGame:LastLockX + poShape:OffsetX(i).
+            by2 = mGame:LastLockY + poShape:OffsetY(i).
+            own = FALSE.
+            DO j = 1 TO poShape:Size:
+                IF mGame:LastLockX + poShape:OffsetX(j) = bx AND mGame:LastLockY + poShape:OffsetY(j) = by2 + 1 THEN own = TRUE.
+            END.
+            IF own THEN NEXT.
+            IF by2 + 1 < mBH AND mGame:LockedAt(bx, by2 + 1) = 0 THEN NEXT.
+            speed = 0.5 + mRandom:NextDecimal() * 0.2.
+            mSparks:Add(bx * {&TILE} + 5, by2 * {&TILE} + 15, 0 - speed, -0.35, 0.04, mGame:LastLockMs, 10,
+                        TetrisLook:Colour(Tint:Flash), ColourMath:FromHex(ENTRY(1, t)), ColourMath:FromHex(ENTRY(2, t)), ColourMath:FromHex(ENTRY(3, t))).
+            mSparks:Add(bx * {&TILE} + 10, by2 * {&TILE} + 15, speed, -0.35, 0.04, mGame:LastLockMs, 10,
+                        TetrisLook:Colour(Tint:Flash), ColourMath:FromHex(ENTRY(1, t)), ColourMath:FromHex(ENTRY(2, t)), ColourMath:FromHex(ENTRY(3, t))).
         END.
     END METHOD.
 
