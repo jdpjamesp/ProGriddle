@@ -109,9 +109,11 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         SyncStack().
         mCanvas:Restore().
         mCanvas:BeginBatch().
+        DrawTrail().
         DrawGhost().
         DrawPiece().
         DrawLock().
+        DrawImpact().
         DrawNext().
         DrawHud().
         mCanvas:EndBatch().
@@ -292,6 +294,65 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
         DO i = 1 TO shape:Size:
             mBlock[mGame:CurrentPiece]:DrawTo(mCanvas, (mGame:PieceX + shape:OffsetX(i)) * {&TILE}, (mGame:PieceY + shape:OffsetY(i)) * {&TILE}).
         END.
+    END METHOD.
+
+    /* The trail of a hard drop (docs/design/tetris-art.md 3.2): from the top of the highest block of each column of the piece
+       down to where it landed, two pixels wide, in tone 2, then 3, then 4 of the piece, 50 ms each. It is drawn under the ghost
+       and the pieces and only on cells that are empty, so the stack is never covered. */
+    METHOD PRIVATE VOID DrawTrail():
+        DEFINE VARIABLE shape AS Shape   NO-UNDO.
+        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE j     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE r     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE age   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cc   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE top   AS LOGICAL NO-UNDO.
+        DEFINE VARIABLE c     AS INTEGER NO-UNDO.
+        IF NOT mGame:LastLockHard OR mGame:LastLockMs < 0 OR mGame:LastLockPiece = 0 THEN RETURN.
+        age = mGame:ElapsedMs - mGame:LastLockMs.
+        IF age < 0 OR age >= 150 THEN RETURN.
+        c = ColourMath:FromHex(ENTRY(2 + INTEGER(TRUNCATE(age / 50, 0)), TetrisLook:Tones(mGame:LastLockPiece))).
+        shape = Tetrominoes:ShapeOf(mGame:LastLockPiece, mGame:LastLockTurn).
+        DO i = 1 TO shape:Size:
+            top = TRUE.
+            DO j = 1 TO shape:Size:
+                IF shape:OffsetX(j) = shape:OffsetX(i) AND shape:OffsetY(j) < shape:OffsetY(i) THEN top = FALSE.
+            END.
+            IF NOT top THEN NEXT.
+            cc = mGame:LastLockX + shape:OffsetX(i).
+            DO r = mGame:LastLockFromY + shape:OffsetY(i) TO mGame:LastLockY + shape:OffsetY(i) - 1:
+                IF r < 0 OR mGame:LockedAt(cc, r) <> 0 THEN NEXT.
+                mCanvas:DrawLine(cc * {&TILE} + 7, r * {&TILE}, cc * {&TILE} + 7, r * {&TILE} + {&TILE} - 1, 0, c).
+                mCanvas:DrawLine(cc * {&TILE} + 8, r * {&TILE}, cc * {&TILE} + 8, r * {&TILE} + {&TILE} - 1, 0, c).
+            END.
+        END.
+    END METHOD.
+
+    /* The impact of a hard drop: a line along the bottom edge of the landed piece that grows 4 pixels each side every 50 ms for
+       three steps, in the flash colour, tone 1 and tone 3 of the piece. */
+    METHOD PRIVATE VOID DrawImpact():
+        DEFINE VARIABLE shape AS Shape   NO-UNDO.
+        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE step  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x1    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x2    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE c     AS INTEGER NO-UNDO.
+        IF NOT mGame:LastLockHard OR mGame:LastLockMs < 0 OR mGame:LastLockPiece = 0 THEN RETURN.
+        step = INTEGER(TRUNCATE((mGame:ElapsedMs - mGame:LastLockMs) / 50, 0)).
+        IF mGame:ElapsedMs < mGame:LastLockMs OR step > 2 THEN RETURN.
+        shape = Tetrominoes:ShapeOf(mGame:LastLockPiece, mGame:LastLockTurn).
+        DO i = 1 TO shape:Size:
+            y = MAXIMUM(y, shape:OffsetY(i)).
+        END.
+        x2 = (mGame:LastLockX + shape:Width) * {&TILE} - 1 + 4 * step.
+        x1 = mGame:LastLockX * {&TILE} - 4 * step.
+        CASE step:
+            WHEN 0 THEN c = TetrisLook:Colour(Tint:Flash).
+            WHEN 1 THEN c = ColourMath:FromHex(ENTRY(1, TetrisLook:Tones(mGame:LastLockPiece))).
+            OTHERWISE c = ColourMath:FromHex(ENTRY(3, TetrisLook:Tones(mGame:LastLockPiece))).
+        END CASE.
+        mCanvas:DrawLine(MAXIMUM(0, x1), (mGame:LastLockY + y) * {&TILE} + {&TILE} - 1, MINIMUM(mBW * {&TILE} - 1, x2), (mGame:LastLockY + y) * {&TILE} + {&TILE} - 1, 0, c).
     END METHOD.
 
     /* The settling of the last piece (docs/design/tetris-art.md 3.1): for 50 ms its four blocks are lit, for 50 ms more only their

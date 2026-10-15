@@ -353,4 +353,54 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
         Assert:IsTrue(during > after).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID AHardDropLeavesATwoPixelTrailInTheColumnsThatFadesThroughTonesTwoThreeAndFour():
+        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        Draw().
+        x0 = DropAnI().
+        Draw().
+        Assert:Equals(Tone(1, 2), Px(x0 + 7, 16 * 8 + 5)).
+        Assert:Equals(Tone(1, 2), Px(x0 + 8, 16 * 8 + 5)).
+        Assert:IsFalse(Px(x0 + 6, 16 * 8 + 5) = Tone(1, 2)).
+        Assert:IsFalse(Px(x0 + 9, 16 * 8 + 5) = Tone(1, 2)).
+        mGame:Tick(60).
+        Draw().
+        Assert:Equals(Tone(1, 3), Px(x0 + 7, 16 * 8 + 5)).
+        mGame:Tick(50).
+        Draw().
+        Assert:Equals(Tone(1, 4), Px(x0 + 7, 16 * 8 + 5)).
+        mGame:Tick(50).
+        Draw().
+        Assert:Equals(Floor(8), Px(x0 + 7, 16 * 8 + 5)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASoftLandingLeavesNoTrail():
+        DEFINE VARIABLE shape AS Shape   NO-UNDO.
+        DEFINE VARIABLE x0    AS INTEGER NO-UNDO.
+        shape = Tetrominoes:ShapeOf(1, 0).
+        x0 = 16 * (mGame:PieceX + shape:OffsetX(1)).
+        Draw().
+        Assert:Equals(Floor(8), Px(x0 + 7, 16 * 8 + 5)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AHardDropImpactIsALineAlongTheBottomEdgeThatGrowsFourPixelsEachSideAStep():
+        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        Draw().
+        x0 = DropAnI().
+        Draw().
+        Assert:Equals(Colour(Tint:Flash), Px(x0 + 4, 16 * 19 + 15)).
+        mGame:Tick(60).
+        Draw().
+        Assert:Equals(Tone(1, 1), Px(x0 - 3, 16 * 19 + 15)).
+        Assert:Equals(Tone(1, 1), Px(x0 + 64 + 3, 16 * 19 + 15)).
+        mGame:Tick(50).
+        Draw().
+        Assert:Equals(Tone(1, 3), Px(x0 - 8, 16 * 19 + 15)).
+        mGame:Tick(50).
+        Draw().
+        Assert:IsFalse(Px(x0 - 8, 16 * 19 + 15) = Tone(1, 3)).
+    END METHOD.
+
 END CLASS.
