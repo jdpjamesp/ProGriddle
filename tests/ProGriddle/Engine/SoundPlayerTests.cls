@@ -82,6 +82,38 @@ CLASS ProGriddle.Engine.SoundPlayerTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID TheSilentPlayerTakesLoopsAndDoesNothing():
+        DEFINE VARIABLE oPlayer AS ISoundPlayer NO-UNDO.
+        oPlayer = NEW NullSoundPlayer().
+        oPlayer:StartLoop(2).
+        oPlayer:StopLoop(2).
+        oPlayer:StopLoop(9).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheRecordingPlayerKeepsLoopsOncePerCueUntilStoppedOrMuted():
+        DEFINE VARIABLE oPlayer AS RecordingSoundPlayer NO-UNDO.
+        oPlayer = NEW RecordingSoundPlayer().
+        oPlayer:StartLoop(4).
+        oPlayer:StartLoop(4).
+        oPlayer:StartLoop(5).
+        oPlayer:StartLoop(6).
+        Assert:Equals("4,5,6", oPlayer:Looping).
+        Assert:Equals(3, oPlayer:LoopStarts).
+        oPlayer:StopLoop(5).
+        Assert:Equals("4,6", oPlayer:Looping).
+        oPlayer:StopLoop(9).
+        oPlayer:StopLoop(4).
+        oPlayer:StopLoop(6).
+        Assert:Equals("", oPlayer:Looping).
+        oPlayer:StartLoop(4).
+        oPlayer:Muted = TRUE.
+        Assert:Equals("", oPlayer:Looping).
+        oPlayer:StartLoop(4).
+        Assert:Equals("", oPlayer:Looping).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID TheRecordingPlayerNotesThatItWasDisposedAndWorks():
         DEFINE VARIABLE oPlayer AS RecordingSoundPlayer NO-UNDO.
         oPlayer = NEW RecordingSoundPlayer().

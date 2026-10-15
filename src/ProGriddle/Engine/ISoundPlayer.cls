@@ -21,6 +21,13 @@ INTERFACE ProGriddle.Engine.ISoundPlayer:
     /* Starts the sound of a cue at once and returns, mixing it with any that are still playing. */
     METHOD PUBLIC VOID Play(INPUT piCue AS INTEGER).
 
+    /* Starts the sound of a cue playing over and over (a recipe made to loop, see ToneSynth) until StopLoop, Muted or Dispose. Does
+       nothing when that cue is already looping, or when the player is muted or has no such sound. Looped sounds take a voice each. */
+    METHOD PUBLIC VOID StartLoop(INPUT piCue AS INTEGER).
+
+    /* Stops the looping sound of a cue at once. Does nothing when it is not looping. */
+    METHOD PUBLIC VOID StopLoop(INPUT piCue AS INTEGER).
+
     /* Stops every sound and lets go of the device. Safe to call more than once. */
     METHOD PUBLIC VOID Dispose().
 

@@ -12,9 +12,18 @@ CLASS ProGriddle.Engine.RecordingSoundPlayer IMPLEMENTS ISoundPlayer:
         GET.
         SET.
 
+    /* The cues that are looping now, as a comma list ("" for none), and how many loops were started. */
+    DEFINE PUBLIC PROPERTY Looping AS CHARACTER NO-UNDO
+        GET.
+        PRIVATE SET.
+
+    /* Muting stops every loop. */
     DEFINE PUBLIC PROPERTY Muted AS LOGICAL NO-UNDO
         GET.
-        SET.
+        SET(INPUT plValue AS LOGICAL):
+            Muted = plValue.
+            IF plValue THEN Looping = "".
+        END SET.
 
     DEFINE PUBLIC PROPERTY Volume AS INTEGER NO-UNDO INITIAL 100
         GET.
@@ -32,6 +41,10 @@ CLASS ProGriddle.Engine.RecordingSoundPlayer IMPLEMENTS ISoundPlayer:
         GET.
         PRIVATE SET.
 
+    DEFINE PUBLIC PROPERTY LoopStarts AS INTEGER NO-UNDO
+        GET.
+        PRIVATE SET.
+
     DEFINE PUBLIC PROPERTY Disposed AS LOGICAL NO-UNDO
         GET.
         PRIVATE SET.
@@ -40,6 +53,19 @@ CLASS ProGriddle.Engine.RecordingSoundPlayer IMPLEMENTS ISoundPlayer:
         IF Muted THEN RETURN.
         Played = Played + (IF PlayCount > 0 THEN "," ELSE "") + STRING(piCue).
         PlayCount = PlayCount + 1.
+    END METHOD.
+
+    METHOD PUBLIC VOID StartLoop(INPUT piCue AS INTEGER):
+        IF Muted OR LOOKUP(STRING(piCue), Looping) > 0 THEN RETURN.
+        Looping = Looping + (IF Looping = "" THEN "" ELSE ",") + STRING(piCue).
+        LoopStarts = LoopStarts + 1.
+    END METHOD.
+
+    METHOD PUBLIC VOID StopLoop(INPUT piCue AS INTEGER):
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        i = LOOKUP(STRING(piCue), Looping).
+        IF i > 0 THEN ENTRY(i, Looping) = "".
+        IF i > 0 THEN Looping = TRIM(REPLACE(REPLACE(Looping, ",,", ","), ",,", ","), ",").
     END METHOD.
 
     /* Forgets what was played. */

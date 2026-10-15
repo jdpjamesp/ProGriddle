@@ -6,10 +6,15 @@ USING ProGriddle.Engine.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS ProGriddle.Engine.ScriptedCueSource IMPLEMENTS ICueSource:
+CLASS ProGriddle.Engine.ScriptedCueSource IMPLEMENTS ICueSource, ILoopSource:
 
     /* The comma list the next poll returns. */
     DEFINE PUBLIC PROPERTY NextCues AS CHARACTER NO-UNDO
+        GET.
+        SET.
+
+    /* The comma list Loops returns every time, until it is changed. */
+    DEFINE PUBLIC PROPERTY WantedLoops AS CHARACTER NO-UNDO
         GET.
         SET.
 
@@ -28,6 +33,10 @@ CLASS ProGriddle.Engine.ScriptedCueSource IMPLEMENTS ICueSource:
         result = NextCues.
         NextCues = "".
         RETURN result.
+    END METHOD.
+
+    METHOD PUBLIC CHARACTER Loops(INPUT poGame AS IGame):
+        RETURN WantedLoops.
     END METHOD.
 
     METHOD PUBLIC INTEGER GroupOf(INPUT piCue AS INTEGER):

@@ -24,6 +24,9 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayer FINAL IMPLEMENTS ISoundPlayer:
     DEFINE PRIVATE VARIABLE mHeader   AS MEMPTR    NO-UNDO EXTENT {&VOICES}.
     /* a buffer was written on the voice and not yet let go of */
     DEFINE PRIVATE VARIABLE mBusy     AS LOGICAL   NO-UNDO EXTENT {&VOICES}.
+    /* the cue a voice is looping, 0 for none: a looping voice stays busy until it is stopped */
+    DEFINE PRIVATE VARIABLE mLoopCue  AS INTEGER   NO-UNDO EXTENT {&VOICES}.
+    DEFINE PRIVATE VARIABLE mMuted    AS LOGICAL   NO-UNDO.
     DEFINE PRIVATE VARIABLE mOpened   AS INTEGER   NO-UNDO.
     DEFINE PRIVATE VARIABLE mVolume   AS INTEGER   NO-UNDO INITIAL 100.
 
@@ -33,9 +36,19 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayer FINAL IMPLEMENTS ISoundPlayer:
             RETURN mOpened > 0.
         END GET.
 
+    /* Muting stops every loop at once. */
     DEFINE PUBLIC PROPERTY Muted AS LOGICAL NO-UNDO
-        GET.
-        SET.
+        GET():
+            RETURN mMuted.
+        END GET.
+        SET(INPUT plValue AS LOGICAL):
+            DEFINE VARIABLE i AS INTEGER NO-UNDO.
+            mMuted = plValue.
+            IF mMuted THEN
+                DO i = 1 TO mOpened:
+                    IF mLoopCue[i] <> 0 THEN ReleaseLoop(i).
+                END.
+        END SET.
 
     DEFINE PUBLIC PROPERTY Volume AS INTEGER NO-UNDO
         GET():
@@ -134,6 +147,52 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayer FINAL IMPLEMENTS ISoundPlayer:
         Played = Played + 1.
     END METHOD.
 
+    /* Starts the sound of a cue over and over on a voice of its own, until StopLoop, Muted or Dispose. Nothing happens when that cue
+       is already looping, when the player is muted or not working, or when the bank has no sound for the cue. The sound should be
+       made from a recipe that loops (see ToneSynth). When every voice is busy the loop is not started (and counted as dropped). */
+    METHOD PUBLIC VOID StartLoop(INPUT piCue AS INTEGER):
+        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE v  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE rc AS INTEGER NO-UNDO.
+        IF Muted OR mOpened = 0 OR NOT mBank:Has(piCue) THEN RETURN.
+        IF LoopVoice(piCue) > 0 THEN RETURN.
+        Reap().
+        DO i = 1 TO mOpened:
+            IF NOT mBusy[i] THEN DO:
+                v = i.
+                LEAVE.
+            END.
+        END.
+        IF v = 0 THEN DO:
+            Dropped = Dropped + 1.
+            RETURN.
+        END.
+        PUT-INT64(mHeader[v], 1) = mBank:PointerOf(piCue).
+        PUT-LONG(mHeader[v], 9) = mBank:SizeOf(piCue).
+        PUT-LONG(mHeader[v], 25) = 0.
+        PUT-LONG(mHeader[v], 29) = 0.
+        RUN PrepareHeader IN mWinMm(mHandle[v], mHeader[v], OUTPUT rc).
+        IF rc <> 0 THEN RETURN.
+        /* WHDR_BEGINLOOP (4) and WHDR_ENDLOOP (8) on the one buffer, played a million times (hours) unless it is reset */
+        PUT-LONG(mHeader[v], 25) = GET-LONG(mHeader[v], 25) + 12.
+        PUT-LONG(mHeader[v], 29) = 1000000.
+        mBusy[v] = TRUE.
+        RUN WriteHeader IN mWinMm(mHandle[v], mHeader[v], OUTPUT rc).
+        IF rc <> 0 THEN DO:
+            RUN UnprepareHeader IN mWinMm(mHandle[v], mHeader[v]).
+            mBusy[v] = FALSE.
+            RETURN.
+        END.
+        mLoopCue[v] = piCue.
+    END METHOD.
+
+    /* Stops the looping sound of a cue at once. Nothing happens when it is not looping. */
+    METHOD PUBLIC VOID StopLoop(INPUT piCue AS INTEGER):
+        DEFINE VARIABLE v AS INTEGER NO-UNDO.
+        v = LoopVoice(piCue).
+        IF v > 0 THEN ReleaseLoop(v).
+    END METHOD.
+
     /* Stops every sound, closes the voices and frees the headers. Safe to call more than once. */
     METHOD PUBLIC VOID Dispose():
         DEFINE VARIABLE i AS INTEGER NO-UNDO.
@@ -143,6 +202,7 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayer FINAL IMPLEMENTS ISoundPlayer:
                 RUN ResetVoice IN mWinMm(mHandle[i]).
                 IF mBusy[i] THEN RUN UnprepareHeader IN mWinMm(mHandle[i], mHeader[i]).
                 mBusy[i] = FALSE.
+                mLoopCue[i] = 0.
                 RUN CloseVoice IN mWinMm(mHandle[i]).
             END.
             RUN FreeFormat IN mWinMm.
@@ -152,6 +212,24 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayer FINAL IMPLEMENTS ISoundPlayer:
             SET-SIZE(mHeader[i]) = 0.
         END.
         mOpened = 0.
+    END METHOD.
+
+    /* The voice that is looping a cue, 0 for none. */
+    METHOD PRIVATE INTEGER LoopVoice(INPUT piCue AS INTEGER):
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        IF piCue = ? OR piCue < 1 THEN RETURN 0.
+        DO i = 1 TO mOpened:
+            IF mLoopCue[i] = piCue THEN RETURN i.
+        END.
+        RETURN 0.
+    END METHOD.
+
+    /* Stops what a voice is looping: a reset ends the loop and marks the buffer done, then its header is let go of. */
+    METHOD PRIVATE VOID ReleaseLoop(INPUT piVoice AS INTEGER):
+        RUN ResetVoice IN mWinMm(mHandle[piVoice]).
+        RUN UnprepareHeader IN mWinMm(mHandle[piVoice], mHeader[piVoice]).
+        mBusy[piVoice] = FALSE.
+        mLoopCue[piVoice] = 0.
     END METHOD.
 
     /* Lets go of the voices whose buffer has finished: the done flag (1) of dwFlags is set. */

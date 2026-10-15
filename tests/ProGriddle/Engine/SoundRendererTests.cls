@@ -79,6 +79,47 @@ CLASS ProGriddle.Engine.SoundRendererTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID LoopsAreStartedWhenWantedAndStoppedWhenTheyAreNot():
+        mSource:WantedLoops = "7".
+        mRenderer:Render(mGrid, mGame).
+        Assert:Equals("7", mPlayer:Looping).
+        mSource:WantedLoops = "7,8".
+        mRenderer:Render(mGrid, mGame).
+        Assert:Equals("7,8", mPlayer:Looping).
+        Assert:Equals(2, mPlayer:LoopStarts).
+        mSource:WantedLoops = "8".
+        mRenderer:Render(mGrid, mGame).
+        Assert:Equals("8", mPlayer:Looping).
+        mSource:WantedLoops = "".
+        mRenderer:Render(mGrid, mGame).
+        Assert:Equals("", mPlayer:Looping).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AMutedLoopComesBackAfterUnmutingOnTheNextRender():
+        mSource:WantedLoops = "7".
+        mPlayer:Muted = TRUE.
+        mRenderer:Render(mGrid, mGame).
+        Assert:Equals("", mPlayer:Looping).
+        mPlayer:Muted = FALSE.
+        mRenderer:Render(mGrid, mGame).
+        Assert:Equals("7", mPlayer:Looping).
+        /* muting stops it at once */
+        mPlayer:Muted = TRUE.
+        Assert:Equals("", mPlayer:Looping).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASourceThatIsNotALoopSourceStartsNoLoops():
+        DEFINE VARIABLE oPlain AS ICueSource NO-UNDO.
+        oPlain = NEW PlainCueSource().
+        mRenderer = NEW SoundRenderer(mInner, oPlain, mPlayer).
+        mRenderer:Render(mGrid, mGame).
+        Assert:Equals("", mPlayer:Looping).
+        Assert:Equals(0, mPlayer:LoopStarts).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ARendererNeedsAnInnerRendererASourceAndAPlayer():
         DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
         DO ON ERROR UNDO, THROW:
