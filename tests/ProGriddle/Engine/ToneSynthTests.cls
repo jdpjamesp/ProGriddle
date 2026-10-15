@@ -59,6 +59,24 @@ CLASS ProGriddle.Engine.ToneSynthTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID ARecipeThatStartsWithAtHasNoFadeAtItsVeryStartAndEndSoItCanLoop():
+        DEFINE VARIABLE mData AS MEMPTR NO-UNDO.
+        mSynth:Make("@440:100:0", 100, OUTPUT mData).
+        Assert:Equals(mSynth:SampleCount("440:100:0"), GET-SIZE(mData)).
+        Assert:Equals(mSynth:SampleCount("440:100:0"), mSynth:SampleCount("@440:100:0")).
+        /* a square wave at full swing from the first sample to the last */
+        Assert:IsTrue(ABSOLUTE(GET-BYTE(mData, 1) - 128) > 100).
+        Assert:IsTrue(ABSOLUTE(GET-BYTE(mData, GET-SIZE(mData)) - 128) > 100).
+        SET-SIZE(mData) = 0.
+        /* the part joined in the middle still fades, so the middle is quiet */
+        mSynth:Make("@440:100:0,440:100:0", 100, OUTPUT mData).
+        Assert:Equals(128, GET-BYTE(mData, 1102)).
+        FINALLY:
+            SET-SIZE(mData) = 0.
+        END FINALLY.
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID AToneWithNoDecayIsASquareWaveOfTwoLevelsAroundSilence():
         DEFINE VARIABLE mData AS MEMPTR  NO-UNDO.
         DEFINE VARIABLE i     AS INTEGER NO-UNDO.

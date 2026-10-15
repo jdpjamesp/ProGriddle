@@ -10,7 +10,9 @@
      ms     how long the part lasts, 1 to 5000
      decay  the percentage of its swing the part loses by its end, 0 to 100 (50 when left out)
    Every part rises over a few milliseconds from silence and falls back to it at the end, so there is no click. The same
-   recipe always gives the same bytes.
+   recipe always gives the same bytes. A recipe that starts with @ is made to be played over and over: its first part does not
+   rise and its last part does not fall, so the end joins the start with no gap (use a decay of 0 and, for a tone, a part
+   that holds a whole number of cycles).
 
    Inside, a phase is a whole number of 2 to the 40th parts of a cycle, so a pitch is a whole number added to it for each
    sample and a slide is a whole number added to that, and nothing needs a division but the swing of each sample. */
@@ -31,6 +33,7 @@ CLASS ProGriddle.Engine.ToneSynth FINAL:
     DEFINE PRIVATE VARIABLE mMs     AS INTEGER   NO-UNDO EXTENT {&MAXPARTS}.
     DEFINE PRIVATE VARIABLE mDecay  AS INTEGER   NO-UNDO EXTENT {&MAXPARTS}.
     DEFINE PRIVATE VARIABLE mParts  AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mLoop   AS LOGICAL   NO-UNDO.
 
     /* Samples a second: 11025. */
     METHOD PUBLIC STATIC INTEGER SampleRate():
@@ -89,8 +92,8 @@ CLASS ProGriddle.Engine.ToneSynth FINAL:
                 slope = TRUNCATE((TRUNCATE(mTo[part] * cycle / {&RATE}, 0) - pitch) / cnt, 0).
             DO i = 0 TO cnt - 1:
                 /* the rise and fall over the ends of the part, 0 to 1024 each, and the swing now */
-                rise = MINIMUM(1024, i * inStep).
-                fall = MINIMUM(1024, (cnt - 1 - i) * outStep).
+                rise = (IF mLoop AND part = 1 THEN 1024 ELSE MINIMUM(1024, i * inStep)).
+                fall = (IF mLoop AND part = mParts THEN 1024 ELSE MINIMUM(1024, (cnt - 1 - i) * outStep)).
                 IF rise = 1024 AND fall = 1024 THEN amp = TRUNCATE(swing / 65536, 0).
                 ELSE amp = TRUNCATE(swing * rise * fall / 68719476736, 0).
                 swing = swing - swingStep.
@@ -135,6 +138,9 @@ CLASS ProGriddle.Engine.ToneSynth FINAL:
         DEFINE VARIABLE pitchA  AS CHARACTER NO-UNDO.
         DEFINE VARIABLE pitchB  AS CHARACTER NO-UNDO.
         IF pcRecipe = ? OR pcRecipe = "" THEN UNDO, THROW NEW GridException("A sound recipe is empty").
+        mLoop = (SUBSTRING(pcRecipe, 1, 1) = "@").
+        IF mLoop THEN pcRecipe = SUBSTRING(pcRecipe, 2).
+        IF pcRecipe = "" THEN UNDO, THROW NEW GridException("A sound recipe is empty").
         mParts = NUM-ENTRIES(pcRecipe).
         IF mParts > {&MAXPARTS} THEN UNDO, THROW NEW GridException("A sound recipe has " + STRING({&MAXPARTS}) + " parts or fewer, not " + STRING(mParts)).
         DO j = 1 TO mParts:

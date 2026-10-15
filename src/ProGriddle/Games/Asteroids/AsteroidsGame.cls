@@ -139,6 +139,11 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     DEFINE PRIVATE VARIABLE mSsVX      AS INTEGER     NO-UNDO EXTENT {&SAUCER-SHOTS}.
     DEFINE PRIVATE VARIABLE mSsVY      AS INTEGER     NO-UNDO EXTENT {&SAUCER-SHOTS}.
     DEFINE PRIVATE VARIABLE mSsLife    AS INTEGER     NO-UNDO EXTENT {&SAUCER-SHOTS}.
+    DEFINE PRIVATE VARIABLE mShotsFired      AS INTEGER NO-UNDO.
+    DEFINE PRIVATE VARIABLE mSaucShotsFired  AS INTEGER NO-UNDO.
+    DEFINE PRIVATE VARIABLE mRocksBroken     AS INTEGER NO-UNDO.
+    DEFINE PRIVATE VARIABLE mLastBrokenSize  AS INTEGER NO-UNDO.
+    DEFINE PRIVATE VARIABLE mSaucersDestroyed AS INTEGER NO-UNDO.
     DEFINE PRIVATE VARIABLE mSsLarge   AS LOGICAL     NO-UNDO EXTENT {&SAUCER-SHOTS}.
     /* frames until the rocks of a new wave appear, and frames since the last rock was shot */
     DEFINE PRIVATE VARIABLE mIntro     AS INTEGER     NO-UNDO.
@@ -325,6 +330,34 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     DEFINE PUBLIC PROPERTY NewHiScore AS LOGICAL NO-UNDO
         GET():
             RETURN mNewHi.
+        END GET.
+
+    /* Running counts of what has happened, which never go back (not even for a new game), so a sound or any other watcher can
+       tell that something new has happened by comparing with the count it last saw: shots the ship has fired, shots the saucers
+       have fired, rocks broken (and the size of the last one, 1 large to 3 small) and saucers destroyed. */
+    DEFINE PUBLIC PROPERTY ShotsFired AS INTEGER NO-UNDO
+        GET():
+            RETURN mShotsFired.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY SaucerShotsFired AS INTEGER NO-UNDO
+        GET():
+            RETURN mSaucShotsFired.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY RocksBroken AS INTEGER NO-UNDO
+        GET():
+            RETURN mRocksBroken.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY LastBrokenSize AS INTEGER NO-UNDO
+        GET():
+            RETURN mLastBrokenSize.
+        END GET.
+
+    DEFINE PUBLIC PROPERTY SaucersDestroyed AS INTEGER NO-UNDO
+        GET():
+            RETURN mSaucersDestroyed.
         END GET.
 
     /* How many frames the game has made. */
@@ -739,6 +772,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
         DEFINE VARIABLE px   AS INTEGER NO-UNDO.
         DEFINE VARIABLE py   AS INTEGER NO-UNDO.
         size = mRocks:SizeAt(piSlot).
+        mRocksBroken = mRocksBroken + 1.
+        mLastBrokenSize = size.
         x = mRocks:X(piSlot).
         y = mRocks:Y(piSlot).
         vx = mRocks:VX(piSlot).
@@ -869,6 +904,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
             mSsVX[i] = INTEGER(TRUNCATE(Heading:DirX(h) * speed / 1024, 0)).
             mSsVY[i] = INTEGER(TRUNCATE(Heading:DirY(h) * speed / 1024, 0)).
             mSsLife[i] = {&SAUCER-SHOT-LIFE}.
+            mSaucShotsFired = mSaucShotsFired + 1.
             mSsLarge[i] = mSaucLarge.
             RETURN.
         END.
@@ -887,6 +923,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* The saucer is destroyed, by a shot, the ship or a rock: it explodes where it is, and is gone. When it scored (plScored),
        its points rise from that place for 48 frames. */
     METHOD PRIVATE VOID DestroySaucer(INPUT plScored AS LOGICAL):
+        mSaucersDestroyed = mSaucersDestroyed + 1.
         mDebris:SaucerBurst(mSaucLarge, mSaucX, mSaucY, mSaucVX, mSaucVY).
         IF plScored THEN DO:
             mPopT = 1.
@@ -1021,6 +1058,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
                 mShVY[i] = INTEGER(TRUNCATE(Heading:DirY(mHeading) * {&SHOT-SPEED} / 1024, 0)) + INTEGER(TRUNCATE(mSVY / 2, 0)).
                 mShHead[i] = mHeading.
                 mShLife[i] = {&SHOT-LIFE}.
+                mShotsFired = mShotsFired + 1.
                 mFireGap = {&FIRE-GAP}.
                 mDebris:Muzzle(mShX[i], mShY[i], mHeading).
                 RETURN.
