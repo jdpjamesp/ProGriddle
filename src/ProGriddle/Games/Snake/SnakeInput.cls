@@ -3,6 +3,8 @@
    turns, and a key that would send the snake straight back on itself is ignored. P or Space pauses
    and F2 or R starts a new game (the window's own keys). There is nothing to click.
 
+   Sound (M) switches the sound on or off, when there is a sound device, and the window remembers the choice as sound.on.
+
    The one option, a drop down list called Board, chooses the size of the board (see SnakeSizes). Choosing
    a size starts a new game on a board of that size, and the window remembers the choice as snake.size.
 
@@ -25,7 +27,8 @@ CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput, IGameOption
 
     DEFINE PRIVATE VARIABLE mGame     AS SnakeGame NO-UNDO.
     DEFINE PRIVATE VARIABLE mSettings AS ISettings NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBest     AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPlayer   AS ISoundPlayer NO-UNDO.
+    DEFINE PRIVATE VARIABLE mBest    AS INTEGER   NO-UNDO.
     /* the game that has just ended has been counted for the best score, and it was a new best */
     DEFINE PRIVATE VARIABLE mRecorded AS LOGICAL   NO-UNDO.
     DEFINE PRIVATE VARIABLE mNewBest  AS LOGICAL   NO-UNDO.
@@ -63,7 +66,7 @@ CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput, IGameOption
 
     DEFINE PUBLIC PROPERTY CommandNames AS CHARACTER NO-UNDO
         GET():
-            RETURN "".
+            RETURN (IF mPlayer:Working THEN "Sound:M" ELSE "").
         END GET.
 
     /* Always empty: the painter draws PRESS AN ARROW KEY, PAUSED, GAME OVER and YOU WIN into the picture. Asking still notes the
@@ -90,11 +93,19 @@ CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput, IGameOption
             RETURN 1.
         END GET.
 
+    /* A game with no sound. */
     CONSTRUCTOR PUBLIC SnakeInput(INPUT poGame AS SnakeGame, INPUT poSettings AS ISettings):
+        THIS-OBJECT(poGame, poSettings, NEW NullSoundPlayer()).
+    END CONSTRUCTOR.
+
+    /* A game whose sound is played by poPlayer. The Sound command and the M key are offered only when the player is working. */
+    CONSTRUCTOR PUBLIC SnakeInput(INPUT poGame AS SnakeGame, INPUT poSettings AS ISettings, INPUT poPlayer AS ISoundPlayer):
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("Snake input needs a game").
         IF NOT VALID-OBJECT(poSettings) THEN UNDO, THROW NEW GridException("Snake input needs settings").
+        IF NOT VALID-OBJECT(poPlayer) THEN UNDO, THROW NEW GridException("Snake input needs a sound player").
         mGame = poGame.
         mSettings = poSettings.
+        mPlayer = poPlayer.
         mBest = MAX(0, mSettings:GetInteger("snake.best", 0)).
         mGame:BestScore = mBest.
     END CONSTRUCTOR.
@@ -126,7 +137,8 @@ CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput, IGameOption
     END METHOD.
 
     METHOD PUBLIC VOID Perform(INPUT pcCommand AS CHARACTER):
-        UNDO, THROW NEW GridException("Unknown Snake command: " + STRING(pcCommand)).
+        IF pcCommand = "Sound" THEN mNotice = SoundSettings:Toggle(mPlayer, mSettings).
+        ELSE UNDO, THROW NEW GridException("Unknown Snake command: " + STRING(pcCommand)).
     END METHOD.
 
     METHOD PUBLIC VOID PrimaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):

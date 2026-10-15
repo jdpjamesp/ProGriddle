@@ -9,7 +9,7 @@
 
    P pauses and F2 or R starts a new game (the window's own keys). The picker chooses the level a new
    game starts at, and Ghost switches the ghost piece, which shows where the piece will land, on or off.
-   Help shows these keys and the scoring.
+   Sound (M) switches the sound on or off, when there is a sound device. Help shows these keys and the scoring.
 
    A key held down keeps arriving. The movement keys use that as key repeat, as every Tetris does. The
    turn and hard drop keys would be a mistake to repeat, so while one is held its repeats are swallowed
@@ -20,7 +20,8 @@
    shows the best score while there is one.
 
    Settings it reads, all optional: tetris.ghost, true for the ghost piece (default true), and
-   tetris.scores, the high score list. The window saves the chosen start level as tetris.choice. */
+   tetris.scores, the high score list. It also writes sound.on (see SoundSettings). The window saves the chosen start level
+   as tetris.choice. */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
@@ -32,7 +33,8 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
 
     DEFINE PRIVATE VARIABLE mGame     AS TetrisGame NO-UNDO.
     DEFINE PRIVATE VARIABLE mSettings AS ISettings  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mChoice   AS INTEGER    NO-UNDO INITIAL 1.
+    DEFINE PRIVATE VARIABLE mPlayer   AS ISoundPlayer NO-UNDO.
+    DEFINE PRIVATE VARIABLE mChoice  AS INTEGER    NO-UNDO INITIAL 1.
     DEFINE PRIVATE VARIABLE mNotice   AS CHARACTER  NO-UNDO.
     /* keys that are down now, as ",Up,Space," */
     DEFINE PRIVATE VARIABLE mHeld     AS CHARACTER  NO-UNDO INITIAL ",".
@@ -89,7 +91,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
 
     DEFINE PUBLIC PROPERTY CommandNames AS CHARACTER NO-UNDO
         GET():
-            RETURN "Ghost:G".
+            RETURN "Ghost:G" + (IF mPlayer:Working THEN ",Sound:M" ELSE "").
         END GET.
 
     DEFINE PUBLIC PROPERTY InfoLabel AS CHARACTER NO-UNDO
@@ -118,7 +120,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
                  + "  Space        hard drop" + CHR(10)
                  + "  P            pause" + CHR(10)
                  + "  F2, R        new game" + CHR(10)
-                 + "  G            ghost on or off"
+                 + "  G            ghost on or off" + (IF mPlayer:Working THEN CHR(10) + "  M            sound on or off" ELSE "")
                  + CHR(10) + CHR(10)
                  + "Scoring" + CHR(10)
                  + "  Soft drop    1 point a row" + CHR(10)
@@ -128,11 +130,19 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
                  + "  Every 10 lines the level rises".
         END GET.
 
+    /* A game with no sound. */
     CONSTRUCTOR PUBLIC TetrisInput(INPUT poGame AS TetrisGame, INPUT poSettings AS ISettings):
+        THIS-OBJECT(poGame, poSettings, NEW NullSoundPlayer()).
+    END CONSTRUCTOR.
+
+    /* A game whose sound is played by poPlayer. The Sound command and the M key are offered only when the player is working. */
+    CONSTRUCTOR PUBLIC TetrisInput(INPUT poGame AS TetrisGame, INPUT poSettings AS ISettings, INPUT poPlayer AS ISoundPlayer):
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("Tetris input needs a game").
         IF NOT VALID-OBJECT(poSettings) THEN UNDO, THROW NEW GridException("Tetris input needs settings").
+        IF NOT VALID-OBJECT(poPlayer) THEN UNDO, THROW NEW GridException("Tetris input needs a sound player").
         mGame = poGame.
         mSettings = poSettings.
+        mPlayer = poPlayer.
         mScores = NEW TetrisHighScores(poSettings).
         mGame:ShowGhost = mSettings:GetLogical("tetris.ghost", TRUE).
         mGame:BestScore = mScores:Best().
@@ -152,6 +162,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
                 mSettings:SetLogical("tetris.ghost", mGame:ShowGhost).
                 mNotice = "Ghost piece " + (IF mGame:ShowGhost THEN "on" ELSE "off").
             END.
+            WHEN "Sound" THEN mNotice = SoundSettings:Toggle(mPlayer, mSettings).
             OTHERWISE UNDO, THROW NEW GridException("Unknown Tetris command: " + STRING(pcCommand)).
         END CASE.
     END METHOD.
