@@ -1,5 +1,7 @@
 # Snake
 
+![Snake in the Lantern Glass look, the snake and an apple](../../assets/screenshots/snake.png)
+
 The classic: steer a snake round the board, eat the food, grow longer, and do not bite yourself or hit the wall. A real time game on a clock, played from the keyboard. Playable now. Restyled as "Lantern Glass" on a pixel canvas, with effects (see [The look](#the-look)).
 
 ## Playing it

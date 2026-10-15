@@ -1,5 +1,9 @@
 # Space Invaders
 
+![The Space Invaders title screen](../../assets/screenshots/spaceinvaders-title.png)
+
+![Space Invaders in play](../../assets/screenshots/spaceinvaders.png)
+
 The 1978 arcade game with its own rules, in a neon look: 55 invaders that speed up as they die, one shot on the screen at a time, shields that crumble a cell at a time, three kinds of bomb and the mystery saucer. The board is the arcade's own 224 x 256 grid, one cell to a pixel, drawn in direct colour.
 
 ## Playing it

@@ -1,5 +1,7 @@
 # Conway's Game of Life
 
+![Conway's Game of Life, a random board running](../../assets/screenshots/life.png)
+
 Status: complete and playable. Built in Phase 3 as the first game on the framework.
 
 Life is a simulation, not a game with a winner. Every cell is alive or dead, and on each generation all cells change at once according to how many of their eight neighbours are alive. You draw a starting pattern, press Space, and watch it evolve.

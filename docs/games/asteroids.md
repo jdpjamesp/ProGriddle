@@ -1,5 +1,9 @@
 # Asteroids
 
+![The Asteroids title screen](../../assets/screenshots/asteroids-title.png)
+
+![Asteroids in play](../../assets/screenshots/asteroids.png)
+
 Fly, thrust and drift, and shoot the rocks into smaller rocks while saucers hunt you. The ship turns and thrusts with a little drag on a screen that wraps on all four edges, a wave starts with four large rocks and gets more crowded, and every break up, burst and spark has its own small effect. The board is 320 x 240 cells, one cell to a pixel, drawn in the glowing line look of the designer's "Obsidian Line" brief.
 
 ## Playing it

@@ -1,5 +1,7 @@
 # Tetris
 
+![Tetris in the Lantern Glass look, a stack and the next piece](../../assets/screenshots/tetris.png)
+
 Status: complete and playable. Built in Phase 6 as the first real time game: the pieces fall on a timer whether or not you do anything. Restyled later as "Lantern Glass" on a pixel canvas, with effects (see [The look](#the-look)).
 
 Seven kinds of piece fall one at a time into a ten wide, twenty high well. You slide and turn each piece as it falls and drop it where it fits. A row with no gaps disappears and the rows above it drop down. The game ends when a new piece has no room to appear.

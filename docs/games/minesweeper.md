@@ -1,5 +1,7 @@
 # Minesweeper
 
+![Minesweeper after a lost game, with the mines shown](../../assets/screenshots/minesweeper.png)
+
 Status: complete and playable. Built in Phase 4 as the first turn based game, and the first real test of the framework.
 
 The rules are those of the classic Windows game. The look is modern: a dark board with flat tiles, bright numbers, a bomb and flag drawn from a symbol font, and a window that scales to any size. Everything in the [rules](#the-rules) section matches Windows Minesweeper, including the details people tend to get wrong (the first click, the way a flood treats flags, what a chord does).

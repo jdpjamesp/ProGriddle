@@ -12,8 +12,25 @@ ProGriddle is an OpenEdge ABL object oriented framework for games played on a re
 
 This page documents the framework and how to create a new game with it. Each game that has been built has its own page, linked at the [end](#games).
 
+## Screenshots
+
+The ProGriddle Cookoff, the window that lists every game and starts the one you pick:
+
+![The ProGriddle Cookoff, with a button for each of the eight games](assets/screenshots/cookoff.png)
+
+The games, each with its own page (click a picture):
+
+| | | |
+|:---:|:---:|:---:|
+| [<img src="assets/screenshots/tetris.png" width="260" alt="Tetris">](docs/games/tetris.md)<br>Tetris | [<img src="assets/screenshots/snake.png" width="260" alt="Snake">](docs/games/snake.md)<br>Snake | [<img src="assets/screenshots/asteroids.png" width="300" alt="Asteroids">](docs/games/asteroids.md)<br>Asteroids |
+| [<img src="assets/screenshots/spaceinvaders.png" width="220" alt="Space Invaders">](docs/games/spaceinvaders.md)<br>Space Invaders | [<img src="assets/screenshots/life.png" width="300" alt="Conway's Game of Life">](docs/games/life.md)<br>Conway's Game of Life | [<img src="assets/screenshots/minesweeper.png" width="300" alt="Minesweeper">](docs/games/minesweeper.md)<br>Minesweeper |
+| [<img src="assets/screenshots/battleships.png" width="300" alt="Battleships">](docs/games/battleships.md)<br>Battleships | [<img src="assets/screenshots/2048.png" width="300" alt="2048">](docs/games/2048.md)<br>2048 | |
+
+The pictures are taken by `tools/take-screenshots.ps1`, which plays each game for a moment and saves its window to `assets/screenshots`.
+
 ## Contents
 
+- [Screenshots](#screenshots)
 - [Requirements and quick start](#requirements-and-quick-start)
 - [How it fits together](#how-it-fits-together)
 - [The building blocks](#the-building-blocks)
@@ -402,6 +419,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter 
 | `tools/gui-smoke-life.ps1` | Drives the real Life window like a user and checks what happens. Takes over the keyboard and mouse for about a minute |
 | `tools/gui-smoke-battleships.ps1` | The same for Battleships: placing a fleet, firing, marking water, a whole game, the board size picker. Takes over the keyboard and mouse for a couple of minutes |
 | `tools/gui-smoke-minesweeper.ps1` | The same for Minesweeper: flags, chords, a whole game, the level picker, saved settings. Takes over the keyboard and mouse for a couple of minutes |
+| `tools/take-screenshots.ps1` | Plays each game for a moment and saves a picture of its window to `assets/screenshots` for this README and the game pages (`-Only tetris,snake` takes some). Takes over the keyboard and mouse for about three minutes |
 | `tools/gui-smoke-tetris.ps1` | The same for Tetris: moving, turning, held key repeat, drops and score, gravity, pause, ghost, a game over, the start level picker, saved settings. Takes over the keyboard and mouse for a couple of minutes |
 | `tools/gui-smoke-2048.ps1` | The same for 2048: the arrow keys and W A S D, the score, a game played to GAME OVER, a new game, the best score saved and read back. Takes over the keyboard and mouse for a minute or two |
 | `tools/gui-smoke-snake.ps1` | The same for Snake: steering, pause, the snake crashing into the wall, a new game, the best score saved and read back. Takes over the keyboard for a minute or two |

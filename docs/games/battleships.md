@@ -1,5 +1,7 @@
 # Battleships
 
+![Battleships, shots fired at the enemy board and the computer firing back](../../assets/screenshots/battleships.png)
+
 Status: complete and playable. Built in Phase 5 as the second turn based game, and the first with two boards and a computer opponent.
 
 You and the computer each hide a fleet on a square sea. You place yours by hand (or at random), then take turns firing at each other's waters, one shot each whatever happens. The first to sink the other's whole fleet wins.
