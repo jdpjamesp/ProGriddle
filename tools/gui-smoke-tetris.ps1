@@ -7,8 +7,11 @@
     or hard drop key fires once), soft and hard drops and the score, gravity, pause, the ghost piece,
     the Help screen, stacking up to a game over (a new best score), a new game with F2 and the start level picker, then
     the saved settings and a second run. It reads the score from the window title and the board from
-    a screenshot: the cells are matched to the palette in src/ProGriddle/Games/Tetris/TetrisLook.cls
-    and read as text, one letter per piece, : for the ghost. Screenshots go to build/screenshots.
+    a screenshot: the picture is the "Lantern Glass" pixel canvas of TetrisPainter (272 x 320 pixels, 16 to
+    a cell, shown 2 or 3 times as big). The board is found from the fill of the panel cards, and every cell is
+    read at one pixel, 3 across and 3 down, which is tone 2 of the piece's colour row in every block, matched to
+    src/ProGriddle/Games/Tetris/TetrisLook.cls and read as text, one letter per piece, : for the ghost (the
+    hatch pixel at 2, 2) and . for the floor of the row. Screenshots go to build/screenshots.
 
     It sends real keystrokes and mouse clicks to the foreground window, so do not touch the
     keyboard or mouse while it runs (about 2 minutes). Exit code 0 when every check passes.
@@ -39,12 +42,17 @@ public class Kbd {
 
 $BOARD_W = 10
 $BOARD_H = 20
-# the palette of TetrisLook, as a letter for each colour: the pieces I O T S Z J L, the ghost, the empty board
+# tone 2 of the colour row of each piece (TetrisLook:Tones), as a letter for each: I O T S Z J L
 $LOOK = @(
-    @('I', 0x3C, 0xC9, 0xD6), @('O', 0xF2, 0xC1, 0x4E), @('T', 0xA0, 0x6B, 0xE0), @('S', 0x4C, 0xC3, 0x8A),
-    @('Z', 0xE5, 0x53, 0x3D), @('J', 0x4F, 0x7D, 0xE8), @('L', 0xF0, 0x88, 0x3E), @(':', 0x2A, 0x34, 0x41), @('.', 0x12, 0x16, 0x1B)
+    @('I', 0x6B, 0xD6, 0xC2), @('O', 0xF8, 0xD6, 0x7B), @('T', 0xB9, 0x97, 0xE6), @('S', 0xA3, 0xD7, 0x80),
+    @('Z', 0xEC, 0x84, 0x76), @('J', 0x79, 0x9D, 0xE9), @('L', 0xF6, 0xAE, 0x74)
 )
-$PANEL = @(0x1A, 0x1F, 0x25)
+$GHOST_HATCH = @(0x22, 0x2F, 0x4A)
+# the fill inside the cards of the panel, which is found on screen to place the board
+$PANEL = @(0x0E, 0x14, 0x20)
+# the floor of the first and the last row (TetrisLook Tint FloorTop and FloorBottom), which gets lighter by row
+$FLOOR_TOP = @(0x0B, 0x11, 0x1B)
+$FLOOR_BOTTOM = @(0x10, 0x1A, 0x2B)
 
 # Starts the window. The seed makes the pieces the same every run.
 function Start-Game([int]$autoClose = 300) {
@@ -74,28 +82,36 @@ function Hold-Key([int]$vk, [int]$repeats, [bool]$extended = $false) {
     Start-Sleep -Milliseconds 350
 }
 
-# Where the board is in a screenshot. The grid lines have the colour of the next piece panel, so a box
-# round that colour is the whole grid: the ten board columns, the divider and the panel of six. Cells
-# may not be square, so width and height are kept apart.
+# Where the board is in a screenshot. The cards of the panel have a fill of their own, so a box round that
+# fill runs from canvas pixel 178 to 269 across and 2 to 279 down (the NEXT card and the last card). That gives the
+# scale of the picture, and from the scale the corner of the picture and the size of a cell (16 canvas pixels).
+# CellW and CellH are kept apart but are the same.
 function Get-Board($p, [string]$name) {
     $bmp = Take-Shot $p $name
     try {
         # the shot includes the window's shadow, where the desktop behind may have the same colour, so look inside the frame only
         $inset = 16; $top = 90; $bottom = 40
         $crop = $bmp.Clone((New-Object System.Drawing.Rectangle $inset, $top, ($bmp.Width - 2 * $inset), ($bmp.Height - $top - $bottom)), $bmp.PixelFormat)
-        try { $box = [Native]::FindColour($crop, $PANEL[0], $PANEL[1], $PANEL[2], 1) } finally { $crop.Dispose() }
+        try { $box = [Native]::FindColour($crop, $PANEL[0], $PANEL[1], $PANEL[2], 0) } finally { $crop.Dispose() }
         if ($box[0] -lt 0) { return $null }
         $box = @(($box[0] + $inset), ($box[1] + $top), ($box[2] + $inset), ($box[3] + $top))
-        $pw = $box[2] - $box[0] + 1
-        $ph = $box[3] - $box[1] + 1
-        $cw = $pw / ($BOARD_W + 7)
-        return [pscustomobject]@{ Left = $box[0]; Top = $box[1]; CellW = $cw; CellH = $ph / $BOARD_H }
+        $scale = ($box[2] - $box[0] + 1) / 92
+        return [pscustomobject]@{ Left = $box[0] - 178 * $scale; Top = $box[1] - 2 * $scale; CellW = 16 * $scale; CellH = 16 * $scale }
     } finally { $bmp.Dispose() }
 }
 
-function Letter-Of($c) {
+function Near($c, $rgb, [int]$tol = 3) { return ([math]::Abs($c.R - $rgb[0]) -le $tol -and [math]::Abs($c.G - $rgb[1]) -le $tol -and [math]::Abs($c.B - $rgb[2]) -le $tol) }
+
+# The letter of a cell from its pixel 3, 3 (tone 2 of a block, the floor of the row otherwise) and its pixel 2, 2 (the
+# hatch of a ghost, which has the floor showing at 3, 3).
+function Letter-Of($c, $c2, [int]$row) {
     foreach ($e in $LOOK) {
-        if ([math]::Abs($c.R - $e[1]) -le 3 -and [math]::Abs($c.G - $e[2]) -le 3 -and [math]::Abs($c.B - $e[3]) -le 3) { return $e[0] }
+        if (Near $c @($e[1], $e[2], $e[3])) { return $e[0] }
+    }
+    $f = @(0, 1, 2 | ForEach-Object { [int][math]::Round($FLOOR_TOP[$_] + ($FLOOR_BOTTOM[$_] - $FLOOR_TOP[$_]) * $row / ($BOARD_H - 1)) })
+    if (Near $c $f 2) {
+        if (Near $c2 $GHOST_HATCH 2) { return ':' }
+        return '.'
     }
     return '?'
 }
@@ -108,9 +124,11 @@ function Read-Board($p, $board, [string]$name = 'smoke-tetris-read') {
         for ($y = 0; $y -lt $BOARD_H; $y++) {
             $line = ''
             for ($x = 0; $x -lt $BOARD_W; $x++) {
-                $px = [int]($board.Left + ($x + 0.5) * $board.CellW)
-                $py = [int]($board.Top + ($y + 0.5) * $board.CellH)
-                $line += Letter-Of ($bmp.GetPixel($px, $py))
+                $px = [int]($board.Left + ($x + 3.5 / 16) * $board.CellW)
+                $py = [int]($board.Top + ($y + 3.5 / 16) * $board.CellH)
+                $px2 = [int]($board.Left + ($x + 2.5 / 16) * $board.CellW)
+                $py2 = [int]($board.Top + ($y + 2.5 / 16) * $board.CellH)
+                $line += Letter-Of ($bmp.GetPixel($px, $py)) ($bmp.GetPixel($px2, $py2)) $y
             }
             $rows += $line
         }
@@ -238,7 +256,7 @@ try {
     Send-Keys '{DOWN}{LEFT}'
     Start-Sleep -Milliseconds 1500
     $rows2 = Read-Board $proc $board
-    Check 'the PAUSED banner is drawn over the board' ((Count-Of $rows1 '?') -gt 0) (Show-Rows $rows1)
+    Check 'the well is dimmed and the PAUSED plate is drawn over the board' ((Count-Of $rows1 '?') -gt 0) (Show-Rows $rows1)
     Check 'while paused neither gravity nor the keys move anything' ((Same-Board $rows1 $rows2) -and (Get-Score $proc) -eq $score1) "$(Show-Rows $rows1) vs $(Show-Rows $rows2)"
     $paused = Take-Shot $proc 'smoke-tetris-7b-paused-banner'; $paused.Dispose()
     Send-Keys 'p'
@@ -276,6 +294,8 @@ try {
     Check 'dropping piece after piece in the middle ends the game' (Has-Text $proc 'Game over') (Get-Title $proc)
     Check 'the game over score is a new best score' (Has-Text $proc 'New best score') (Get-Title $proc)
     $over = Take-Shot $proc 'smoke-tetris-12-game-over'; $over.Dispose()
+    # the dead blocks fill the well in under a second and a half: let it finish before the board is read
+    Start-Sleep -Milliseconds 2500
     $rowsOver = Read-Board $proc $board
     $scoreOver = Get-Score $proc
     Send-Keys '{LEFT}{DOWN}'
