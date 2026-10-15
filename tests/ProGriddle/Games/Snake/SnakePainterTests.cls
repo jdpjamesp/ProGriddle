@@ -514,4 +514,169 @@ CLASS ProGriddle.Games.Snake.SnakePainterTests:
         Assert:Equals(0, Mismatches(14, 10, SnakeArt:BodyStraight(8), SnakeLook:ToneRow(Colour(SnakeTint:BodyBase)))).
     END METHOD.
 
+    /* ---------------------------------- the end ---------------------------------- */
+
+    /* The snake of the start, but at the wall: it crashes at the next step. Returns when the game is over. */
+    METHOD PRIVATE VOID CrashAtTheWall():
+        mGame:StartWith("5,4;6,4;7,4", "Right").
+        mGame:SetFood(1, 1).
+        Draw().
+        mGame:Tick(150).
+        Assert:IsTrue(mGame:IsOver).
+        Assert:Equals(150, mGame:OverMs).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ACrashFlashesTheWholeSnakeWhiteThreeTimesInThreeHundredAndSixtyMilliseconds():
+        CrashAtTheWall().
+        Draw().
+        Assert:Equals(0, Mismatches(6, 4, SnakeArt:BodyStraight(16), SnakeLook:FlashTones())).
+        mGame:Tick(70).
+        Draw().
+        Assert:Equals(0, Mismatches(6, 4, SnakeArt:BodyStraight(16), SnakeLook:ToneRow(Colour(SnakeTint:BodyBase)))).
+        mGame:Tick(60).
+        Draw().
+        Assert:Equals(0, Mismatches(6, 4, SnakeArt:BodyStraight(16), SnakeLook:FlashTones())).
+        mGame:Tick(60).
+        Draw().
+        /* 190 ms: the second pause */
+        Assert:Equals(0, Mismatches(6, 4, SnakeArt:BodyStraight(16), SnakeLook:ToneRow(Colour(SnakeTint:BodyBase)))).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ACrashThrowsTwelveSparksFromTheHeadThatAreGoneAfterThreeHundredMilliseconds():
+        DEFINE VARIABLE gold2 AS INTEGER NO-UNDO.
+        gold2 = ColourMath:FromHex(ENTRY(2, SnakeLook:ToneRow(Colour(SnakeTint:Gold)))).
+        CrashAtTheWall().
+        mGame:Tick(100).
+        Draw().
+        /* six frames old, in the second colour, round the head's cell (7, 4) */
+        Assert:IsTrue(CountOf(gold2, 96, 80, 32, 32) >= 6).
+        mGame:Tick(300).
+        Draw().
+        Assert:Equals(0, CountOf(gold2, 0, 24, 128, 128)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheBodyFadesFromTheTailToTheHeadThroughFiveStepsAndTheBoardIsThenDimmedOnce():
+        CrashAtTheWall().
+        mGame:Tick(380).
+        Draw().
+        /* 380 ms: the tail's first step of five, the head not started */
+        Assert:Equals(0, Mismatches(5, 4, SnakeArt:Tail(16):Turned(2), SnakeLook:CrashTones(1))).
+        Assert:Equals(0, Mismatches(6, 4, SnakeArt:BodyStraight(16), SnakeLook:ToneRow(Colour(SnakeTint:BodyBase)))).
+        mGame:Tick(100).
+        Draw().
+        /* 480: the tail is at step 3 and the middle cell has begun */
+        Assert:Equals(0, Mismatches(5, 4, SnakeArt:Tail(16):Turned(2), SnakeLook:CrashTones(3))).
+        Assert:Equals(0, Mismatches(6, 4, SnakeArt:BodyStraight(16), SnakeLook:CrashTones(1))).
+        mGame:Tick(200).
+        Draw().
+        /* 680: the tail has gone to floor (5, 4 is odd) */
+        Assert:Equals(Colour(SnakeTint:FloorB), Px(CellX(5) + 8, CellY(4) + 8)).
+        mGame:Tick(250).
+        Draw().
+        /* 930: all floor, dimmed, and the food is still there */
+        Assert:Equals(ColourMath:Mix(Colour(SnakeTint:FloorB), Colour(SnakeTint:Shade), 55, 100), Px(CellX(5) + 8, CellY(4) + 8)).
+        Assert:Equals(ColourMath:Mix(Colour(SnakeTint:FloorB), Colour(SnakeTint:Shade), 55, 100), Px(CellX(7) + 8, CellY(4) + 8)).
+        Assert:IsTrue(CountOf(ColourMath:Scale(Tone(SnakeTint:Apple, 3), 45), CellX(1), CellY(1), 16, 16) > 0 OR mGame:FoodX >= 0).
+        /* the strip is not dimmed */
+        Assert:Equals(Colour(SnakeTint:NightTop), Px(127, 2)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheGameOverPlateOpensFromTheMiddleLineAndThenShowsTheWordsAndTheScore():
+        CrashAtTheWall().
+        mGame:Tick(790).
+        Draw().
+        /* 790: not yet. By is 24 + 64 = 88 */
+        Assert:IsFalse(Px(5, 87) = Colour(SnakeTint:Accent)).
+        mGame:Tick(120).
+        Draw().
+        /* 910: a plate two pixels high on the middle line */
+        Assert:Equals(Colour(SnakeTint:Accent), Px(5, 87)).
+        Assert:Equals(Colour(SnakeTint:Accent), Px(5, 88)).
+        mGame:Tick(100).
+        Draw().
+        /* 1010: 44 high, 66 to 109 */
+        Assert:Equals(Colour(SnakeTint:Accent), Px(5, 66)).
+        Assert:Equals(Colour(SnakeTint:Gap), Px(5, 70)).
+        Assert:Equals(0, CountOf(Colour(SnakeTint:OverTop), 11, 64, 106, 14)).
+        mGame:Tick(100).
+        Draw().
+        /* 1110: all 68 high, 54 to 121, with the words */
+        Assert:Equals(Colour(SnakeTint:Accent), Px(5, 54)).
+        Assert:Equals(Colour(SnakeTint:Accent), Px(5, 55)).
+        Assert:Equals(Colour(SnakeTint:Gap), Px(5, 56)).
+        Assert:Equals(Colour(SnakeTint:Accent), Px(5, 120)).
+        Assert:Equals(Colour(SnakeTint:Accent), Px(5, 121)).
+        Assert:IsTrue(CountOf(Colour(SnakeTint:OverTop), 11, 64, 106, 14) > 0).
+        Assert:IsTrue(CountOf(Colour(SnakeTint:OverBottom), 11, 64, 106, 14) > 0).
+        Assert:IsTrue(CountOf(Colour(SnakeTint:Dim), 0, 86, 128, 7) > 0).
+        Assert:IsTrue(CountOf(Colour(SnakeTint:Text), 40, 110, 50, 7) > 0).
+        /* no new best: the score is nothing */
+        Assert:Equals(0, CountOf(Colour(SnakeTint:Gold), 0, 98, 128, 7)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ABeatenBestIsShownInGoldAtTheStripAndOnThePlateAndBlinks():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        mGame:StartWith("3,4;4,4", "Right").
+        mGame:SetFood(5, 4).
+        DO WHILE NOT mGame:IsOver AND i < 30:
+            mGame:Tick(mGame:StepMs).
+            i = i + 1.
+        END.
+        Assert:IsTrue(mGame:IsOver).
+        Assert:Equals(10, mGame:Score).
+        mGame:Tick(1200 - (mGame:ElapsedMs - mGame:OverMs)).
+        Draw().
+        /* 1200 after the end: on, in the first 300 of its second 300 or so. The blink is 300 on and 300 off from the end, so 1200 is on */
+        Assert:IsTrue(CountOf(Colour(SnakeTint:Gold), 0, 98, 128, 7) > 0).
+        Assert:IsTrue(CountOf(Colour(SnakeTint:Gold), 100, 13, 24, 7) > 0).
+        mGame:Tick(300).
+        Draw().
+        Assert:Equals(0, CountOf(Colour(SnakeTint:Gold), 0, 98, 128, 7)).
+        /* the strip keeps it gold */
+        Assert:IsTrue(CountOf(Colour(SnakeTint:Gold), 100, 13, 24, 7) > 0).
+    END METHOD.
+
+    /* The snake of the whole board but the last cell, in rows, with the head at 1, 7 facing left and the food at 0, 7. */
+    METHOD PRIVATE VOID NearlyFull():
+        DEFINE VARIABLE body AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE x    AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE y    AS INTEGER   NO-UNDO.
+        DO y = 0 TO 7:
+            DO x = 0 TO 7:
+                IF y = 7 AND x > 6 THEN NEXT.
+                body = body + (IF body = "" THEN "" ELSE ";") + SUBSTITUTE("&1,&2", (IF y MODULO 2 = 0 THEN x ELSE 7 - x), y).
+            END.
+        END.
+        mGame:StartWith(body, "Left").
+        mGame:SetFood(0, 7).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AWinRunsAGoldWaveFromTheHeadAndOpensAYouWinPlate():
+        NearlyFull().
+        Draw().
+        mGame:Tick(150).
+        Assert:IsTrue(mGame:HasWon).
+        Assert:Equals(64, mGame:Length).
+        Draw().
+        /* the head, facing west, is gold at the first moment: its highlight (2, 4 when facing east) is the gold tone 1 */
+        Assert:Equals(Tone(SnakeTint:Gold, 1), Px(CellX(0) + 13, CellY(7) + 11)).
+        mGame:Tick(1210).
+        Draw().
+        /* 1210 after the end: the plate begins, two pixels high on the middle line (by is 88) */
+        Assert:Equals(Colour(SnakeTint:Accent), Px(5, 88)).
+        mGame:Tick(200).
+        Draw().
+        /* 1410: 84 high, 46 to 129, with YOU WIN in gold at the top of its letters, and PRESS R */
+        Assert:Equals(Colour(SnakeTint:Accent), Px(5, 46)).
+        Assert:Equals(Colour(SnakeTint:Gap), Px(5, 50)).
+        Assert:IsTrue(CountOf(Colour(SnakeTint:Gold), 2, 54, 123, 21) > 0).
+        Assert:IsTrue(CountOf(Colour(SnakeTint:Text), 40, 116, 50, 7) > 0).
+    END METHOD.
+
 END CLASS.

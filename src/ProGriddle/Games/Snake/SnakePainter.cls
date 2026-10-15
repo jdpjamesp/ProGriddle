@@ -37,6 +37,11 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     DEFINE PRIVATE VARIABLE mFood      AS PixelStamp      NO-UNDO EXTENT 4.
     DEFINE PRIVATE VARIABLE mFloorA    AS PixelStamp      NO-UNDO.
     DEFINE PRIVATE VARIABLE mFloorB    AS PixelStamp      NO-UNDO.
+    DEFINE PRIVATE VARIABLE mSparks    AS SparkField      NO-UNDO.
+    /* the game that the sparks of the ending were made for, and the one whose faded and dimmed board is baked into the background */
+    DEFINE PRIVATE VARIABLE mSparkSerial AS INTEGER       NO-UNDO INITIAL -1.
+    DEFINE PRIVATE VARIABLE mSparksMade  AS LOGICAL       NO-UNDO.
+    DEFINE PRIVATE VARIABLE mOverSerial  AS INTEGER       NO-UNDO INITIAL -1.
     /* the board in cells, the tile in pixels, the strip above the board and the whole picture in pixels */
     DEFINE PRIVATE VARIABLE mCols      AS INTEGER         NO-UNDO.
     DEFINE PRIVATE VARIABLE mRows      AS INTEGER         NO-UNDO.
@@ -85,6 +90,7 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
         mRandom = poRandom.
         mGame = poGame.
         mText = NEW TextStampCache(64).
+        mSparks = NEW SparkField(64).
         BuildFor(poGame:Grid:Width, poGame:Grid:Height).
     END CONSTRUCTOR.
 
@@ -98,14 +104,20 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
         IF NOT VALID-OBJECT(poGame) OR NOT TYPE-OF(poGame, SnakeGame) THEN UNDO, THROW NEW GridException("A Snake painter draws a Snake game").
         IF mGame:Grid:Width <> mCols OR mGame:Grid:Height <> mRows THEN BuildFor(mGame:Grid:Width, mGame:Grid:Height).
         SyncBody().
+        SyncOver().
         SyncHud().
+        MakeSparks().
         mCanvas:Restore().
         mCanvas:BeginBatch().
-        DrawFood().
+        IF mOverSerial <> mGame:GameSerial THEN DrawFood().
         DrawWave().
-        DrawHead().
+        IF NOT CrashActive() THEN DrawHead(HeadDress()).
+        DrawCrash().
+        DrawWin().
         DrawEatRing().
+        mSparks:Draw(mCanvas, mGame:ElapsedMs).
         DrawWaiting().
+        DrawBanner().
         mCanvas:EndBatch().
         IF mGame:Paused AND NOT mGame:IsOver THEN DO:
             /* the board is dimmed once, with the batch closed, and then the plate and the words go on it */
@@ -164,6 +176,7 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
                mStrip = (IF mWidth >= 320 THEN 32 ELSE 24)
                mHeight = mStrip + piRows * mTile
                mBakedSerial = -1
+               mOverSerial = -1
                mHudKey = "".
         mGrid = NEW Grid(NEW ArrayStore(mWidth, mHeight, "view,kind,back")).
         mBaseGrid = NEW Grid(NEW ArrayStore(mWidth, mHeight, "view,kind,back")).
@@ -414,15 +427,184 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
         RETURN mGame:ElapsedMs MODULO 600 < 100.
     END METHOD.
 
-    /* The head, with its tongue when it is out, turned to face the way it is going. */
-    METHOD PRIVATE VOID DrawHead():
-        DEFINE VARIABLE part  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dress AS INTEGER NO-UNDO.
+    /* The dress of the head: white for 66 ms after it eats, else its own. */
+    METHOD PRIVATE INTEGER HeadDress():
+        IF EatAge() >= 0 AND EatAge() < 66 THEN RETURN INTEGER(SnakeDress:Flash).
+        RETURN INTEGER(SnakeDress:Normal).
+    END METHOD.
+
+    /* The head in a dress, with its tongue when it is out, turned to face the way it is going. */
+    METHOD PRIVATE VOID DrawHead(INPUT piDress AS INTEGER):
+        DEFINE VARIABLE part AS INTEGER NO-UNDO.
         part = (IF TongueOut() THEN INTEGER(SnakePart:HeadTongue) ELSE INTEGER(SnakePart:Head)).
-        dress = INTEGER(SnakeDress:Normal).
-        IF EatAge() >= 0 AND EatAge() < 66 THEN dress = INTEGER(SnakeDress:Flash).
-        Dressed(dress, part, HeadTurns()):DrawTo(mCanvas, mGame:HeadX * mTile, mStrip + mGame:HeadY * mTile).
+        Dressed(piDress, part, HeadTurns()):DrawTo(mCanvas, mGame:HeadX * mTile, mStrip + mGame:HeadY * mTile).
         RingCell(mGame:HeadX, mGame:HeadY).
+    END METHOD.
+
+    /* ================================ the end ================================ */
+
+    /* True when the game has ended by a crash (not a win), from the moment it did. */
+    METHOD PRIVATE LOGICAL CrashActive():
+        RETURN mGame:IsOver AND NOT mGame:HasWon AND mGame:OverMs >= 0.
+    END METHOD.
+
+    /* Milliseconds since the game ended, or -1 while it goes. */
+    METHOD PRIVATE INTEGER OverAge():
+        IF NOT mGame:IsOver OR mGame:OverMs < 0 OR mGame:ElapsedMs < mGame:OverMs THEN RETURN -1.
+        RETURN mGame:ElapsedMs - mGame:OverMs.
+    END METHOD.
+
+    /* The moment the body of a crash has faded to nothing, the board is made the way it stays: floor where the snake was, the food,
+       and the whole board dimmed once (docs/design/snake-art.md 4.3). It goes into the background, so the frames that follow do
+       not repeat the work. */
+    METHOD PRIVATE VOID SyncOver():
+        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        IF NOT CrashActive() OR mOverSerial = mGame:GameSerial OR OverAge() < 900 THEN RETURN.
+        mCanvas:Restore().
+        mCanvas:BeginBatch().
+        DO k = 0 TO mGame:Length - 1:
+            FloorAt(mGame:BodyX(k), mGame:BodyY(k)).
+        END.
+        DrawFood().
+        mCanvas:EndBatch().
+        mCanvas:DimRect(0, mStrip, mWidth, mRows * mTile, 55, SnakeLook:Colour(SnakeTint:Shade)).
+        mCanvas:BakeView().
+        mOverSerial = mGame:GameSerial.
+    END METHOD.
+
+    /* The sparks of an ending, made once for each game that ends: twelve flying out of the head in a crash, and in a win
+       twenty four rising from random cells, one every 50 ms. They are worked out from the time, so they are made all at once. */
+    METHOD PRIVATE VOID MakeSparks():
+        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE speed  AS DECIMAL NO-UNDO.
+        DEFINE VARIABLE cx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cy     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE gold   AS CHARACTER NO-UNDO.
+        IF mGame:GameSerial <> mSparkSerial THEN DO:
+            mSparks:Clear().
+            mSparkSerial = mGame:GameSerial.
+            mSparksMade = FALSE.
+        END.
+        IF mSparksMade OR NOT mGame:IsOver OR mGame:OverMs < 0 THEN RETURN.
+        mSparksMade = TRUE.
+        DO:
+            gold = SnakeLook:ToneRow(SnakeLook:Colour(SnakeTint:Gold)).
+            IF mGame:HasWon THEN DO i = 0 TO 23:
+                cx = mRandom:NextInt(mCols) * mTile + INTEGER(TRUNCATE(mTile / 2, 0)).
+                cy = mStrip + mRandom:NextInt(mRows) * mTile + INTEGER(TRUNCATE(mTile / 2, 0)).
+                mSparks:Add(cx, cy, 0.0, -0.5, 0.0, mGame:OverMs + 50 * i, 20,
+                            SnakeLook:Colour(SnakeTint:Flash), ColourMath:FromHex(ENTRY(2, gold)), ColourMath:FromHex(ENTRY(3, gold)), SnakeLook:Colour(SnakeTint:Accent)).
+            END.
+            ELSE DO i = 0 TO 11:
+                speed = (0.6 + 0.2 * (i MODULO 3)) * mTile / 16.
+                cx = mGame:HeadX * mTile + INTEGER(TRUNCATE(mTile / 2, 0)).
+                cy = mStrip + mGame:HeadY * mTile + INTEGER(TRUNCATE(mTile / 2, 0)).
+                mSparks:AddDragged(cx, cy, speed * DECIMAL(ENTRY(i + 1, "1,0.866,0.5,0,-0.5,-0.866,-1,-0.866,-0.5,0,0.5,0.866")),
+                                   speed * DECIMAL(ENTRY(i + 1, "0,0.5,0.866,1,0.866,0.5,0,-0.5,-0.866,-1,-0.866,-0.5")), 0.0, 0.97, mGame:OverMs, 18,
+                                   SnakeLook:Colour(SnakeTint:Flash), ColourMath:FromHex(ENTRY(2, gold)), SnakeLook:Colour(SnakeTint:Accent), SnakeLook:Colour(SnakeTint:Apple)).
+            END.
+        END.
+    END METHOD.
+
+    /* The crash (3.4): the whole snake flashes white three times in 360 ms, then fades out from the tail to the head, each cell going
+       through five steps of 60 ms, the starts spread over 240 ms. The head is drawn here too, since it is part of the fade. */
+    METHOD PRIVATE VOID DrawCrash():
+        DEFINE VARIABLE age   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE begin AS INTEGER NO-UNDO.
+        DEFINE VARIABLE step  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dress AS INTEGER NO-UNDO.
+        IF NOT CrashActive() OR mOverSerial = mGame:GameSerial THEN RETURN.
+        age = OverAge().
+        IF age < 0 THEN RETURN.
+        n = mGame:Length.
+        IF age < 360 THEN DO:
+            IF INTEGER(TRUNCATE(age / 60, 0)) MODULO 2 = 0 THEN DO:
+                DO k = 0 TO n - 2:
+                    DrawBodyCell(k, INTEGER(SnakeDress:Flash)).
+                END.
+                DrawHead(INTEGER(SnakeDress:Flash)).
+            END.
+            ELSE DrawHead(INTEGER(SnakeDress:Normal)).
+            RETURN.
+        END.
+        DO k = 0 TO n - 1:
+            begin = 360 + (IF n > 1 THEN INTEGER(TRUNCATE(240 * k / (n - 1), 0)) ELSE 0).
+            IF age < begin THEN DO:
+                IF k = n - 1 THEN DrawHead(INTEGER(SnakeDress:Normal)).
+                NEXT.
+            END.
+            step = INTEGER(TRUNCATE((age - begin) / 60, 0)) + 1.
+            IF step > 5 THEN DO:
+                FloorAt(mGame:BodyX(k), mGame:BodyY(k)).
+                NEXT.
+            END.
+            dress = INTEGER(SnakeDress:Crash1) + step - 1.
+            IF k = n - 1 THEN DrawHead(dress).
+            ELSE DrawBodyCell(k, dress).
+        END.
+    END METHOD.
+
+    /* The win (3.5): a gold wave runs from the head to the tail twice in 1200 ms, each cell gold for 90 ms, one lap taking 600 ms
+       however long the snake is. */
+    METHOD PRIVATE VOID DrawWin():
+        DEFINE VARIABLE age AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE lap AS INTEGER NO-UNDO.
+        DEFINE VARIABLE m   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE lo  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hi  AS INTEGER NO-UNDO.
+        IF NOT mGame:HasWon THEN RETURN.
+        age = OverAge().
+        IF age < 0 OR age >= 1200 THEN RETURN.
+        n = mGame:Length.
+        DO lap = 0 TO 1:
+            IF age < lap * 600 THEN NEXT.
+            hi = MINIMUM(n - 1, INTEGER(TRUNCATE((age - lap * 600) * n / 600, 0))).
+            lo = MAXIMUM(0, INTEGER(TRUNCATE((age - lap * 600 - 90) * n / 600, 0)) + (IF age - lap * 600 < 90 THEN 0 ELSE 1)).
+            DO m = lo TO hi:
+                IF m = 0 THEN DrawHead(INTEGER(SnakeDress:Gold)).
+                ELSE DrawBodyCell(n - 1 - m, INTEGER(SnakeDress:Gold)).
+            END.
+        END.
+    END METHOD.
+
+    /* The plate of an ending (4.3 and 4.4): it opens from the middle line in four steps of 50 ms, and when it is open it shows the
+       title, the score and length, NEW BEST (blinking, if the best was beaten) and PRESS R. */
+    METHOD PRIVATE VOID DrawBanner():
+        DEFINE VARIABLE age    AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE begin  AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE steps  AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE h      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE middle AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE scores AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE won    AS LOGICAL   NO-UNDO.
+        DEFINE VARIABLE titleY AS INTEGER   NO-UNDO.
+        age = OverAge().
+        IF age < 0 THEN RETURN.
+        won = mGame:HasWon.
+        begin = (IF won THEN 1200 ELSE 900).
+        IF age < begin THEN RETURN.
+        middle = mStrip + INTEGER(TRUNCATE(mRows * mTile / 2, 0)).
+        steps = INTEGER(ENTRY(MINIMUM(3, INTEGER(TRUNCATE((age - begin) / 50, 0))) + 1, (IF won THEN "2,28,56,84" ELSE "2,20,44,68"))).
+        h = steps.
+        Plate(0, middle - INTEGER(TRUNCATE(h / 2, 0)), mWidth, h, SnakeTint:Accent, 2).
+        IF age < begin + 150 THEN RETURN.
+        scores = SUBSTITUTE("SCORE &1   LENGTH &2", mGame:Score, mGame:Length).
+        IF won THEN DO:
+            Outlined("YOU WIN", 3, SnakeTint:Gold, SnakeTint:Accent, Centred(PixelCanvas:ScaledWidth("YOU WIN", 3)), middle - 34).
+            Caption(scores, 1, SnakeTint:Dim, Centred(PixelCanvas:ScaledWidth(scores, 1)), middle + 4).
+            titleY = middle + 16.
+        END.
+        ELSE DO:
+            Outlined("GAME OVER", 2, SnakeTint:OverTop, SnakeTint:OverBottom, Centred(PixelCanvas:ScaledWidth("GAME OVER", 2)), middle - 24).
+            Caption(scores, 1, SnakeTint:Dim, Centred(PixelCanvas:ScaledWidth(scores, 1)), middle - 2).
+            titleY = middle + 10.
+        END.
+        IF NewBest() AND (age >= 3600 OR INTEGER(TRUNCATE(age / 300, 0)) MODULO 2 = 0) THEN
+            Caption("NEW BEST", 1, SnakeTint:Gold, Centred(PixelCanvas:ScaledWidth("NEW BEST", 1)), titleY).
+        Caption("PRESS R", 1, SnakeTint:Text, Centred(PixelCanvas:ScaledWidth("PRESS R", 1)), (IF won THEN middle + 28 ELSE middle + 22)).
     END METHOD.
 
     /* ================================ eating ================================ */
