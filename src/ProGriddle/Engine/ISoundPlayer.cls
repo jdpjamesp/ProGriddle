@@ -1,6 +1,6 @@
 /* Plays the sounds of a game. A cue is the integer of one of the game's cue enums (1 to 64), and what it sounds like is the
    game's business (a SoundBank), so a player knows nothing about any game. Play never waits and never fails: a player that has
-   no device, is muted or has no sound for the cue is silent. The real player (WaveOutPlayer) is in ProGriddle.UI.Audio and the
+   no device, is muted or has no sound for the cue is silent. The real player (WaveOutPlayer) is in the UI.Audio layer and the
    silent one (NullSoundPlayer) is the default. The owner of a player calls Dispose. */
 INTERFACE ProGriddle.Engine.ISoundPlayer:
 

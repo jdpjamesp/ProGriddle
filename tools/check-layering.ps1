@@ -6,6 +6,7 @@
       Core            -> (nothing)
       Engine          -> Core
       UI.Text         -> Core, Engine
+      UI.Audio        -> Core, Engine (the Windows sound player; no game may use it)
       UI.WinForms     -> Core, Engine, UI.Text, and .NET (the only layer allowed to use .NET)
       Games.<Name>    -> Core, Engine, itself. Never UI.WinForms, .NET UI types or another game.
     Progress.* (except Progress.Windows) and OpenEdge.* are always allowed.
@@ -34,6 +35,7 @@ function Get-Allowed([string]$layer) {
         'Core'        { return @('ProGriddle.Core') }
         'Engine'      { return @('ProGriddle.Core', 'ProGriddle.Engine') }
         'UI.Text'     { return @('ProGriddle.Core', 'ProGriddle.Engine', 'ProGriddle.UI.Text') }
+        'UI.Audio'    { return @('ProGriddle.Core', 'ProGriddle.Engine', 'ProGriddle.UI.Audio') }
         'UI.WinForms' { return @('ProGriddle.Core', 'ProGriddle.Engine', 'ProGriddle.UI.Text', 'ProGriddle.UI.WinForms') }
         'Games.*'     { return @('ProGriddle.Core', 'ProGriddle.Engine', ('ProGriddle.Games.' + $layer.Substring(6))) }
         default       { return @() }
@@ -79,7 +81,7 @@ foreach ($file in $files) {
         if (-not $isDotNetLayer -and $code -match '\b(System\.Windows|System\.Drawing|Progress\.Windows)\.') {
             $violations.Add("$where  [$layer] .NET UI type referenced outside UI.WinForms: $($line.Trim())")
         }
-        foreach ($m in [regex]::Matches($code, '\bProGriddle\.(Core|Engine|UI\.Text|UI\.WinForms|Games\.[A-Za-z0-9_]+)\b')) {
+        foreach ($m in [regex]::Matches($code, '\bProGriddle\.(Core|Engine|UI\.Text|UI\.Audio|UI\.WinForms|Games\.[A-Za-z0-9_]+)\b')) {
             $ns = $m.Value
             $ok = $false
             foreach ($a in $allowed) { if (Test-Under $ns $a) { $ok = $true } }

@@ -26,7 +26,7 @@ ProGriddle: allowing you to cook up new grid based games easily. An OpenEdge ABL
 - Use the progress-abl skill when writing or reviewing ABL.
 
 ## Layering (checked by tools/check-layering.ps1)
-Core depends on nothing. Engine depends on Core. UI.Text depends on Core and Engine. UI.WinForms depends on Core, Engine and UI.Text and is the only layer that may use .NET. Games depend on Core and Engine only and never on another game or on UI.WinForms.
+Core depends on nothing. Engine depends on Core. UI.Text depends on Core and Engine. UI.Audio (the Windows sound player, with its one procedure file WinMm.p for the winmm calls that a class cannot declare) depends on Core and Engine only, and no game may use it. UI.WinForms depends on Core, Engine and UI.Text and is the only layer that may use .NET. Games depend on Core and Engine only and never on another game or on UI.WinForms.
 
 ## Commands
 - Tests: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 [-Filter "Grid*"] [-Gui] [-All]`. The default runs everything except `tests/**/UI/WinForms`, under `_progres -b`. `-Gui` runs only the WinForms tests, under `prowin -b` (results in `build/test-results/gui/results.xml`). `-All` runs both.
