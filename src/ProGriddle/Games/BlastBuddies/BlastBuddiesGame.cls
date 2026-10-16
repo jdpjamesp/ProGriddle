@@ -26,6 +26,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
     DEFINE PRIVATE VARIABLE mAcc     AS INTEGER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mTimer   AS INTEGER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mSettle  AS INTEGER        NO-UNDO.
+    DEFINE PRIVATE VARIABLE mShells  AS ShellPool      NO-UNDO.
+    DEFINE PRIVATE VARIABLE mExplosion AS Explosion    NO-UNDO.
     DEFINE PRIVATE VARIABLE mWalkAcc AS INTEGER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mAimAcc  AS INTEGER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mJumpAt  AS INTEGER        NO-UNDO.
@@ -50,6 +52,25 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
 
     /* The team that won (1 to 4) in the Winner phase, else 0. */
     DEFINE PUBLIC PROPERTY WinnerTeam AS INTEGER NO-UNDO GET. PRIVATE SET.
+
+    /* How many blasts there have been, where the last one was (the pixel and the radius), and how many shells have fallen in the water. */
+    DEFINE PUBLIC PROPERTY BlastCount AS INTEGER NO-UNDO GET. PRIVATE SET.
+    DEFINE PUBLIC PROPERTY LastBlastX AS INTEGER NO-UNDO GET. PRIVATE SET.
+    DEFINE PUBLIC PROPERTY LastBlastY AS INTEGER NO-UNDO GET. PRIVATE SET.
+    DEFINE PUBLIC PROPERTY LastBlastRadius AS INTEGER NO-UNDO GET. PRIVATE SET.
+    DEFINE PUBLIC PROPERTY WaterHits AS INTEGER NO-UNDO GET. PRIVATE SET.
+
+    /* The shells in the air, for the painter and the sound. */
+    DEFINE PUBLIC PROPERTY Shells AS ShellPool NO-UNDO
+        GET():
+            RETURN mShells.
+        END GET.
+
+    /* What the last blast hurt (for the damage numbers). */
+    DEFINE PUBLIC PROPERTY LastBlast AS Explosion NO-UNDO
+        GET():
+            RETURN mExplosion.
+        END GET.
 
     /* The way the buddy in turn is being walked, -1 for left, 1 for right, 0 for not at all (see SetWalk). */
     DEFINE PUBLIC PROPERTY WalkDirection AS INTEGER NO-UNDO GET. PRIVATE SET.
@@ -122,6 +143,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
         mRandom = poRandom.
         mSetup = poSetup.
         mPhysics = NEW BuddyPhysics().
+        mShells = NEW ShellPool().
+        mExplosion = NEW Explosion().
         Initialise().
     END CONSTRUCTOR.
 
@@ -254,6 +277,12 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
         mWalkAcc = 0.
         mAimAcc = 0.
         mJumpWas = 0.
+        mShells:Clear().
+        BlastCount = 0.
+        LastBlastX = 0.
+        LastBlastY = 0.
+        LastBlastRadius = 0.
+        WaterHits = 0.
         WalkDirection = 0.
         AimDirection = 0.
         Charging = FALSE.
@@ -281,13 +310,14 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
             END.
         END.
         ApplyControls().
+        StepShells().
         CASE Phase:
             WHEN BuddyPhase:Arrival OR WHEN BuddyPhase:Banner OR WHEN BuddyPhase:Turn OR WHEN BuddyPhase:Retreat THEN DO:
                 mTimer = mTimer - 1.
                 IF mTimer <= 0 THEN PhaseEnded().
             END.
             WHEN BuddyPhase:Resolve THEN DO:
-                IF AnyoneInTheAir() THEN mSettle = 0.
+                IF AnyoneInTheAir() OR mShells:Count() > 0 THEN mSettle = 0.
                 ELSE mSettle = mSettle + 1.
                 IF mSettle >= BuddyRules:SettleFrames() THEN BeginBanner().
             END.
@@ -324,13 +354,102 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
         END.
     END METHOD.
 
-    /* The shot goes, with the power built up. The weapon itself comes next; for now the shot is counted and the retreat begins. */
+    /* The shot goes, with the power built up: a bazooka rocket leaves the muzzle, 6 pixels from the buddy along the aim, at a speed that
+       grows with the power, and the retreat begins. */
     METHOD PRIVATE VOID FireShot():
+        DEFINE VARIABLE aimStep AS INTEGER NO-UNDO.
+        DEFINE VARIABLE speed   AS INTEGER NO-UNDO.
         LastPower = PowerPercent.
         ShotsFired = ShotsFired + 1.
         Charging = FALSE.
         Charge = 0.
+        aimStep = AimHeading.
+        speed = BuddyRules:ShotSpeedMin() + INTEGER(TRUNCATE((BuddyRules:ShotSpeedMax() - BuddyRules:ShotSpeedMin()) * LastPower / 100, 0)).
+        mShells:Launch(WeaponKind:Bazooka, CurrentBuddy:Team,
+                       CurrentBuddy:X256 + INTEGER(TRUNCATE(Heading:DirX(aimStep) * 3 / 2, 0)),
+                       CurrentBuddy:Y256 - 6 * 256 + INTEGER(TRUNCATE(Heading:DirY(aimStep) * 3 / 2, 0)),
+                       INTEGER(TRUNCATE(Heading:DirX(aimStep) * speed / Heading:Scale(), 0)),
+                       INTEGER(TRUNCATE(Heading:DirY(aimStep) * speed / Heading:Scale(), 0))).
         BeginRetreat().
+    END METHOD.
+
+    /* One frame of flight for every shell: gravity and the wind bend its path, and it is moved a pixel at a time so nothing is skipped
+       over. It blows up on ground or on a buddy, and is gone in the water or past the sides of the map. */
+    METHOD PRIVATE VOID StepShells():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO ShellPool:Capacity():
+            IF mShells:Active(i) THEN StepShell(i).
+        END.
+    END METHOD.
+
+    METHOD PRIVATE VOID StepShell(INPUT piSlot AS INTEGER):
+        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE vx    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE vy    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE px    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE py    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE age   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x0    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y0    AS INTEGER NO-UNDO.
+        mShells:Grow(piSlot).
+        age = mShells:Age(piSlot).
+        vx = mShells:VX(piSlot) + Wind.
+        vy = mShells:VY(piSlot) + BuddyRules:Gravity().
+        x0 = mShells:X(piSlot).
+        y0 = mShells:Y(piSlot).
+        x = x0.
+        y = y0.
+        n = INTEGER(TRUNCATE(MAXIMUM(ABSOLUTE(vx), ABSOLUTE(vy)) / 256, 0)) + 1.
+        DO k = 1 TO n:
+            x = x0 + INTEGER(TRUNCATE(vx * k / n, 0)).
+            y = y0 + INTEGER(TRUNCATE(vy * k / n, 0)).
+            px = BuddyRules:Pixel(x).
+            py = BuddyRules:Pixel(y).
+            IF px < 0 OR px >= Terrain:Width() OR age > BuddyRules:ShotMaxFrames() THEN DO:
+                mShells:Release(piSlot).
+                RETURN.
+            END.
+            IF py >= BuddyRules:WaterRow() THEN DO:
+                WaterHits = WaterHits + 1.
+                mShells:Release(piSlot).
+                RETURN.
+            END.
+            IF mTerrain:IsSolid(px, py) OR ShellHitsBuddy(piSlot, px, py) THEN DO:
+                mShells:Release(piSlot).
+                Detonate(px, py, BuddyRules:BazookaRadius(), BuddyRules:BazookaDamage()).
+                RETURN.
+            END.
+        END.
+        mShells:Move(piSlot, x, y, vx, vy).
+    END METHOD.
+
+    /* Whether a shell at a pixel is inside a buddy that is not out of it: a buddy standing or flying, living or not. The buddy that fired it
+       is safe for the first few frames, while the shell leaves it. */
+    METHOD PRIVATE LOGICAL ShellHitsBuddy(INPUT piSlot AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        DEFINE VARIABLE b AS Buddy   NO-UNDO.
+        DO i = 1 TO mPlan:TeamCount():
+            DO j = 1 TO mPlan:TeamAt(i):Count():
+                b = mPlan:TeamAt(i):BuddyAt(j).
+                IF b:IsDead() THEN NEXT.
+                IF b = CurrentBuddy AND mShells:Age(piSlot) <= BuddyRules:ShotSafeFrames() THEN NEXT.
+                IF ABSOLUTE(piX - b:X()) <= 4 AND piY >= b:Y() - BuddyRules:BuddyHeight() AND piY < b:Y() THEN RETURN TRUE.
+            END.
+        END.
+        RETURN FALSE.
+    END METHOD.
+
+    /* A blast: the hole, the damage, the throwing, and the counts and place that the painter and the sound read. */
+    METHOD PRIVATE VOID Detonate(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piRadius AS INTEGER, INPUT piDamage AS INTEGER):
+        mExplosion:Detonate(mTerrain, mPlan, mPhysics, piX, piY, piRadius, piDamage).
+        BlastCount = BlastCount + 1.
+        LastBlastX = piX.
+        LastBlastY = piY.
+        LastBlastRadius = piRadius.
     END METHOD.
 
     /* The clock of the phase has run out. */

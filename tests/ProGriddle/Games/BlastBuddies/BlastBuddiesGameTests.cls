@@ -487,6 +487,169 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
         Assert:IsFalse(mGame:Charging).
     END METHOD.
 
+    /* the first turn, with the shooter on flat open ground facing right and aiming level, ready to charge */
+    METHOD PRIVATE VOID ReadyToShoot():
+        ToTheFirstTurn().
+        mGame:CurrentBuddy:Facing = 1.
+        Flatten(mGame:CurrentBuddy).
+        mGame:SetAim(1).
+        Frames(12).
+        mGame:SetAim(0).
+        Assert:Equals(16, mGame:Aim).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ARocketLeavesTheMuzzleAtASpeedByThePowerAndFliesUnderGravityAndWind():
+        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y0 AS INTEGER NO-UNDO.
+        ReadyToShoot().
+        x0 = mGame:CurrentBuddy:X256 + 1536.
+        y0 = mGame:CurrentBuddy:Y256 - 1536.
+        mGame:StartCharge().
+        Frames(30).
+        mGame:ReleaseCharge().
+        Assert:Equals(1, mGame:Shells:Count()).
+        Assert:Equals(x0, mGame:Shells:X(1)).
+        Assert:Equals(y0, mGame:Shells:Y(1)).
+        Assert:Equals(592, mGame:Shells:VX(1)).
+        Assert:Equals(0, mGame:Shells:VY(1)).
+        Assert:Equals(1, mGame:Shells:Team(1)).
+        Frames(1).
+        Assert:Equals(x0 + 592 + mGame:Wind, mGame:Shells:X(1)).
+        Assert:Equals(y0 + 38, mGame:Shells:Y(1)).
+        Assert:Equals(592 + mGame:Wind, mGame:Shells:VX(1)).
+        Assert:Equals(38, mGame:Shells:VY(1)).
+        Assert:Equals(1, mGame:Shells:Age(1)).
+        Frames(1).
+        Assert:Equals(y0 + 38 + 76, mGame:Shells:Y(1)).
+        Assert:Equals(592 + 2 * mGame:Wind, mGame:Shells:VX(1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID MorePowerIsAFasterRocketAndNoPowerIsAHalfPixelAFrame():
+        ReadyToShoot().
+        mGame:StartCharge().
+        mGame:ReleaseCharge().
+        Assert:Equals(128, mGame:Shells:VX(1)).
+        mGame:Shells:Clear().
+        mGame:Initialise().
+        ReadyToShoot().
+        mGame:StartCharge().
+        Frames(89).
+        mGame:ReleaseCharge().
+        Assert:Equals(1, mGame:ShotsFired).
+        Assert:Equals(1507, mGame:Shells:VX(1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ARocketAimedStraightUpGoesUpAndTheOneFacingLeftGoesLeft():
+        ReadyToShoot().
+        mGame:SetAim(-1).
+        Frames(48).
+        mGame:SetAim(0).
+        Assert:Equals(0, mGame:Aim).
+        mGame:StartCharge().
+        Frames(30).
+        mGame:ReleaseCharge().
+        Assert:Equals(0, mGame:Shells:VX(1)).
+        Assert:Equals(-592, mGame:Shells:VY(1)).
+        mGame:Shells:Clear().
+        mGame:Initialise().
+        ToTheFirstTurn().
+        mGame:CurrentBuddy:Facing = -1.
+        Flatten(mGame:CurrentBuddy).
+        mGame:SetAim(1).
+        Frames(12).
+        mGame:SetAim(0).
+        mGame:StartCharge().
+        Frames(30).
+        mGame:ReleaseCharge().
+        Assert:Equals(-592, mGame:Shells:VX(1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ARocketThatHitsAWallBlowsAHoleInItAndIsGone():
+        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        ReadyToShoot().
+        x = mGame:CurrentBuddy:X().
+        y = mGame:CurrentBuddy:Y().
+        mGame:Land:FillRect(x + 30, y - 40, x + 40, y + 5, TRUE).
+        mGame:StartCharge().
+        Frames(45).
+        mGame:ReleaseCharge().
+        Frames(40).
+        Assert:Equals(0, mGame:Shells:Count()).
+        Assert:Equals(1, mGame:BlastCount).
+        Assert:Equals(20, mGame:LastBlastRadius).
+        Assert:IsTrue(mGame:LastBlastX >= x + 28 AND mGame:LastBlastX <= x + 34, "blast at " + STRING(mGame:LastBlastX)).
+        Assert:IsTrue(mGame:LastBlastY >= y - 12 AND mGame:LastBlastY <= y, "blast at row " + STRING(mGame:LastBlastY)).
+        Assert:IsFalse(mGame:Land:IsSolid(x + 32, y - 5)).
+        Assert:IsTrue(mGame:Land:HasDirty()).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ARocketThatHitsABuddyHurtsAndThrowsIt():
+        DEFINE VARIABLE enemy AS Buddy NO-UNDO.
+        ReadyToShoot().
+        enemy = mGame:Plan:TeamAt(2):BuddyAt(1).
+        enemy:PlaceAt(mGame:CurrentBuddy:X() + 36, mGame:CurrentBuddy:Y()).
+        mGame:StartCharge().
+        Frames(45).
+        mGame:ReleaseCharge().
+        Frames(20).
+        Assert:Equals(1, mGame:BlastCount).
+        Assert:IsTrue(enemy:Health < 100, "health " + STRING(enemy:Health)).
+        Assert:IsTrue(mGame:LastBlast:HitCount() >= 1).
+        Assert:Equals(100, mGame:CurrentBuddy:Health).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AShellInTheWaterIsGoneWithASplashAndNoBlast():
+        mGame:Land:FillRect(90, 200, 110, 239, FALSE).
+        mGame:Shells:Launch(WeaponKind:Bazooka, 1, 100 * 256, 224 * 256, 0, 1024).
+        Frames(1).
+        Assert:Equals(0, mGame:Shells:Count()).
+        Assert:Equals(1, mGame:WaterHits).
+        Assert:Equals(0, mGame:BlastCount).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AShellThatLeavesThroughTheSidesIsGone():
+        mGame:Shells:Launch(WeaponKind:Bazooka, 1, 2 * 256, 50 * 256, -1024, 0).
+        Frames(1).
+        Assert:Equals(0, mGame:Shells:Count()).
+        Assert:Equals(0, mGame:BlastCount).
+        Assert:Equals(0, mGame:WaterHits).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AShellAboveTheTopOfTheMapComesBackDown():
+        mGame:Shells:Launch(WeaponKind:Bazooka, 1, 50 * 256, 5 * 256, 0, -3000).
+        Frames(10).
+        Assert:Equals(1, mGame:Shells:Count()).
+        Assert:IsTrue(mGame:Shells:Y(1) < 0).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheGameDoesNotSettleWhileAShellIsStillFlying():
+        ToTheFirstTurn().
+        mGame:EndTurn().
+        mGame:Shells:Launch(WeaponKind:Bazooka, 1, 50 * 256, 5 * 256, 0, -3000).
+        Frames(BuddyRules:SettleFrames() + 20).
+        Assert:IsTrue(mGame:Phase = BuddyPhase:Resolve).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ANewGameClearsTheShellsAndTheBlastCounts():
+        mGame:Shells:Launch(WeaponKind:Bazooka, 1, 50 * 256, 5 * 256, 0, -3000).
+        mGame:Shells:Launch(WeaponKind:Bazooka, 1, 60 * 256, 50 * 256, 0, 0).
+        mGame:Initialise().
+        Assert:Equals(0, mGame:Shells:Count()).
+        Assert:Equals(0, mGame:BlastCount).
+        Assert:Equals(0, mGame:WaterHits).
+    END METHOD.
+
     @Test.
     METHOD PUBLIC VOID ThreeTeamsOfFourMakeTwelveBuddiesWithTheLastOnesPlayedByTheComputer():
         DEFINE VARIABLE g AS BlastBuddiesGame NO-UNDO.

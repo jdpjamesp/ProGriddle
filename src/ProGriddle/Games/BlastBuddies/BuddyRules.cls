@@ -123,4 +123,51 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyRules FINAL:
         RETURN 12.
     END METHOD.
 
+    /* A number of 256ths of a pixel as whole pixels, rounding down (so -1 is pixel -1, not 0). */
+    METHOD PUBLIC STATIC INTEGER Pixel(INPUT piValue AS INTEGER):
+        IF piValue >= 0 THEN RETURN INTEGER(TRUNCATE(piValue / 256, 0)).
+        RETURN - INTEGER(TRUNCATE((255 - piValue) / 256, 0)).
+    END METHOD.
+
+    /* The bazooka rocket: its blast radius and the damage at the very middle of the blast. The damage falls away in a straight line to
+       nothing at the edge of the blast plus BlastReach pixels. */
+    METHOD PUBLIC STATIC INTEGER BazookaRadius():
+        RETURN 20.
+    END METHOD.
+
+    METHOD PUBLIC STATIC INTEGER BazookaDamage():
+        RETURN 50.
+    END METHOD.
+
+    METHOD PUBLIC STATIC INTEGER BlastReach():
+        RETURN 8.
+    END METHOD.
+
+    /* The speed a buddy is thrown at by a blast right at its middle, in 256ths of a pixel a frame (4 pixels), and the lift added to it. */
+    METHOD PUBLIC STATIC INTEGER KnockbackMax():
+        RETURN 1024.
+    END METHOD.
+
+    METHOD PUBLIC STATIC INTEGER KnockbackLift():
+        RETURN 64.
+    END METHOD.
+
+    /* The speed of a shot by the power: 0.5 pixel a frame at no power, 6 at full power. */
+    METHOD PUBLIC STATIC INTEGER ShotSpeedMin():
+        RETURN 128.
+    END METHOD.
+
+    METHOD PUBLIC STATIC INTEGER ShotSpeedMax():
+        RETURN 1536.
+    END METHOD.
+
+    /* How many frames a shot may fly before it is given up, and how many frames its own buddy cannot be hit by it. */
+    METHOD PUBLIC STATIC INTEGER ShotMaxFrames():
+        RETURN 1200.
+    END METHOD.
+
+    METHOD PUBLIC STATIC INTEGER ShotSafeFrames():
+        RETURN 8.
+    END METHOD.
+
 END CLASS.

@@ -44,18 +44,12 @@ CLASS ProGriddle.Games.BlastBuddies.Buddy FINAL:
 
     /* The pixel column the feet are in. */
     METHOD PUBLIC INTEGER X():
-        RETURN Whole(X256).
+        RETURN BuddyRules:Pixel(X256).
     END METHOD.
 
     /* The pixel row the feet are in. */
     METHOD PUBLIC INTEGER Y():
-        RETURN Whole(Y256).
-    END METHOD.
-
-    /* A number of 256ths of a pixel as whole pixels, rounding down (so -1 is pixel -1, not 0). */
-    METHOD PRIVATE INTEGER Whole(INPUT piValue AS INTEGER):
-        IF piValue >= 0 THEN RETURN INTEGER(TRUNCATE(piValue / 256, 0)).
-        RETURN - INTEGER(TRUNCATE((255 - piValue) / 256, 0)).
+        RETURN BuddyRules:Pixel(Y256).
     END METHOD.
 
     /* Puts the buddy standing, still, with its feet on a pixel. */
