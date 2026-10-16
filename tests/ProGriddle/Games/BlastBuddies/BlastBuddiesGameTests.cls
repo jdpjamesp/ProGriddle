@@ -730,6 +730,38 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID AGameWithATitleWaitsOnItUntilTheMatchIsStarted():
+        DEFINE VARIABLE g AS BlastBuddiesGame NO-UNDO.
+        Assert:IsFalse(mGame:HasTitle).
+        g = BlastBuddiesFactory:CreateWithTitle(NEW SeededRandom(5), BuddySetup:Default()).
+        Assert:IsTrue(g:HasTitle).
+        Assert:IsTrue(g:Phase = BuddyPhase:Title).
+        g:Advance().
+        g:Advance().
+        g:Tick(1000).
+        Assert:IsTrue(g:Phase = BuddyPhase:Title).
+        Assert:Equals(0, g:MatchStartMs).
+        g:StartMatch().
+        Assert:IsTrue(g:Phase = BuddyPhase:Arrival).
+        Assert:Equals(g:ElapsedMs, g:MatchStartMs).
+        g:StartMatch().
+        Assert:IsTrue(g:Phase = BuddyPhase:Arrival).
+        g:Initialise().
+        Assert:IsTrue(g:Phase = BuddyPhase:Title).
+        g:Dispose().
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AMatchStartedFromTheListsGoesStraightToTheArrival():
+        DEFINE VARIABLE g AS BlastBuddiesGame NO-UNDO.
+        g = BlastBuddiesFactory:CreateWithTitle(NEW SeededRandom(5), BuddySetup:Default()).
+        g:Restart(NEW BuddySetup(3, 3, 1, Theme:Candy)).
+        Assert:IsTrue(g:Phase = BuddyPhase:Arrival).
+        Assert:Equals(3, g:Plan:TeamCount()).
+        g:Dispose().
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ANewGameClearsTheShellsAndTheBlastCounts():
         mGame:Shells:Launch(WeaponKind:Bazooka, 1, 50 * 256, 5 * 256, 0, -3000).
         mGame:Shells:Launch(WeaponKind:Bazooka, 1, 60 * 256, 50 * 256, 0, 0).

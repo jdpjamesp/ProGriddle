@@ -66,6 +66,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     DEFINE PRIVATE VARIABLE mRingS     AS INTEGER       NO-UNDO EXTENT 3200.
     DEFINE PRIVATE VARIABLE mFxNext    AS INTEGER       NO-UNDO INITIAL 1.
     DEFINE PRIVATE VARIABLE mFxSeen    AS INTEGER       NO-UNDO.
+    DEFINE PRIVATE VARIABLE mTitleLoop AS INTEGER       NO-UNDO INITIAL -1.
     DEFINE PRIVATE VARIABLE mBlast     AS INTEGER       NO-UNDO EXTENT 5.
     /* the pieces of ground thrown out by blasts: where, how fast (256ths of a pixel), what colour, how wide, and whether it is still flying */
     DEFINE PRIVATE VARIABLE mDbX       AS INTEGER       NO-UNDO EXTENT 256.
@@ -181,6 +182,13 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         SyncLand().
         mCanvas:Restore().
         DrawWater().
+        IF mGame:Phase = BuddyPhase:Title THEN DO:
+            SyncBlasts().
+            DrawTitle().
+            DrawBlasts().
+            mInner:Render(mGame:Grid, poGame).
+            RETURN.
+        END.
         DrawBuddies().
         SyncBlasts().
         DrawShells().
@@ -517,6 +525,10 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         DO i = 1 TO mGame:Plan:TeamCount():
             DO j = 1 TO mGame:Plan:TeamAt(i):Count():
                 b = mGame:Plan:TeamAt(i):BuddyAt(j).
+                IF mGame:Phase = BuddyPhase:Arrival AND mGame:HasTitle THEN DO:
+                    DrawArriving(b, (b:Team - 1) * 4 + j, (j - 1) * mGame:Plan:TeamCount() + b:Team - 1).
+                    NEXT.
+                END.
                 IF b:State = BuddyState:Drowned THEN DrawSinking((b:Team - 1) * 4 + j).
                 ELSE IF b:Buried THEN DrawGravestone(b, (b:Team - 1) * 4 + j).
                 ELSE IF b = mGame:DyingBuddy THEN DrawDying(b, (b:Team - 1) * 4 + j).
@@ -527,6 +539,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
             DO j = 1 TO mGame:Plan:TeamAt(i):Count():
                 b = mGame:Plan:TeamAt(i):BuddyAt(j).
                 IF b:State = BuddyState:Drowned OR b:IsDead() THEN NEXT.
+                IF mGame:Phase = BuddyPhase:Arrival AND mGame:HasTitle AND ArrivalAge(b, (j - 1) * mGame:Plan:TeamCount() + b:Team - 1) < 0 THEN NEXT.
                 DrawLabels(b, (b:Team - 1) * 4 + j).
             END.
         END.
@@ -590,23 +603,24 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* A goon in a picture, piUp pixels above where it stands, with its mark, and the bazooka in its hands when it aims. */
     METHOD PRIVATE VOID DrawPose(INPUT poBuddy AS Buddy, INPUT pcPose AS CHARACTER, INPUT piUp AS INTEGER):
-        DEFINE VARIABLE mirror AS LOGICAL   NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE mark   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE head   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE r      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE mirror AS LOGICAL NO-UNDO.
+        DEFINE VARIABLE r      AS INTEGER NO-UNDO.
         mirror = poBuddy:Facing < 0.
-        x = poBuddy:X().
-        y = poBuddy:Y() - piUp.
-        mSprites:Stamp(pcPose, poBuddy:Team, mirror):DrawTo(mCanvas, x - mSprites:OriginX(pcPose, mirror), y - mSprites:OriginY(pcPose)).
-        head = y - mSprites:OriginY(pcPose) + mSprites:HeadTop(pcPose).
-        mark = ENTRY(poBuddy:Team, "mark_reds,mark_blues,mark_teals,mark_grapes").
-        mSprites:Stamp(mark, 0, mirror):DrawTo(mCanvas, x - mSprites:OriginX(mark, mirror), head + 1 - mSprites:HeightOf(mark)).
+        DrawGoonAt(poBuddy:Team, pcPose, poBuddy:X(), poBuddy:Y() - piUp, mirror).
         IF pcPose = "goon_aim" THEN DO:
             r = mSprites:Reach("held_bazooka").
-            mSprites:Turned("held_bazooka", mGame:AimHeading, mirror):DrawTo(mCanvas, x + (IF mirror THEN -3 ELSE 3) - r, y - 5 - r).
+            mSprites:Turned("held_bazooka", mGame:AimHeading, mirror):DrawTo(mCanvas, poBuddy:X() + (IF mirror THEN -3 ELSE 3) - r, poBuddy:Y() - piUp - 5 - r).
         END.
+    END METHOD.
+
+    /* A goon of a team in a picture with its feet at a place, with its mark on its head. */
+    METHOD PRIVATE VOID DrawGoonAt(INPUT piTeam AS INTEGER, INPUT pcPose AS CHARACTER, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT plMirror AS LOGICAL):
+        DEFINE VARIABLE mark AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE head AS INTEGER   NO-UNDO.
+        mSprites:Stamp(pcPose, piTeam, plMirror):DrawTo(mCanvas, piX - mSprites:OriginX(pcPose, plMirror), piY - mSprites:OriginY(pcPose)).
+        head = piY - mSprites:OriginY(pcPose) + mSprites:HeadTop(pcPose).
+        mark = ENTRY(piTeam, "mark_reds,mark_blues,mark_teals,mark_grapes").
+        mSprites:Stamp(mark, 0, plMirror):DrawTo(mCanvas, piX - mSprites:OriginX(mark, plMirror), head + 1 - mSprites:HeightOf(mark)).
     END METHOD.
 
     /* A buddy that has died, shown dying for a second: the alarm frames with a skull over its head, and then a puff of smoke where it was. */
@@ -751,17 +765,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
                 mTrailNext = mTrailNext MODULO 12 + 1.
             END.
         END.
-        /* the trail, oldest puffs palest */
-        DO i = 1 TO 12:
-            age = ms - mTrailMs[i].
-            IF age < 0 OR age >= 600 THEN NEXT.
-            tone = MINIMUM(5, 1 + INTEGER(TRUNCATE(age / 120, 0))).
-            mCanvas:Plot(mTrailX[i], mTrailY[i], 0, mSmoke[tone]).
-            mCanvas:Plot(mTrailX[i] - 1, mTrailY[i], 0, mSmoke[tone]).
-            mCanvas:Plot(mTrailX[i] + 1, mTrailY[i], 0, mSmoke[tone]).
-            mCanvas:Plot(mTrailX[i], mTrailY[i] - 1, 0, mSmoke[tone]).
-            mCanvas:Plot(mTrailX[i], mTrailY[i] + 1, 0, mSmoke[tone]).
-        END.
+        DrawTrail().
         DO i = 1 TO ShellPool:Capacity():
             IF NOT mGame:Shells:Active(i) THEN NEXT.
             px = BuddyRules:Pixel(mGame:Shells:X(i)).
@@ -780,6 +784,25 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
                 mCanvas:Plot(px + 1, 1, 0, BuddiesLook:Colour(BuddyTint:Ink)).
                 mCanvas:Plot(px, 2, 0, BuddiesLook:Colour(BuddyTint:Ink)).
             END.
+        END.
+    END METHOD.
+
+    /* The puffs of smoke of a rocket's trail, the oldest palest. */
+    METHOD PRIVATE VOID DrawTrail():
+        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE age  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE tone AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ms   AS INTEGER NO-UNDO.
+        ms = mGame:ElapsedMs.
+        DO i = 1 TO 12:
+            age = ms - mTrailMs[i].
+            IF age < 0 OR age >= 600 THEN NEXT.
+            tone = MINIMUM(5, 1 + INTEGER(TRUNCATE(age / 120, 0))).
+            mCanvas:Plot(mTrailX[i], mTrailY[i], 0, mSmoke[tone]).
+            mCanvas:Plot(mTrailX[i] - 1, mTrailY[i], 0, mSmoke[tone]).
+            mCanvas:Plot(mTrailX[i] + 1, mTrailY[i], 0, mSmoke[tone]).
+            mCanvas:Plot(mTrailX[i], mTrailY[i] - 1, 0, mSmoke[tone]).
+            mCanvas:Plot(mTrailX[i], mTrailY[i] + 1, 0, mSmoke[tone]).
         END.
     END METHOD.
 
@@ -856,16 +879,6 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* Starts showing any blast that has gone off since the last picture: its place, the pixels of its scorch ring, and the pieces of
        ground it throws out (24, 40 or 60 by its size, and one for every crumb the crumb rule took). */
     METHOD PRIVATE VOID SyncBlasts():
-        DEFINE VARIABLE slot  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d2    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE stp   AS INTEGER NO-UNDO.
         DEFINE VARIABLE frames AS INTEGER NO-UNDO.
         /* the pieces already in the air fly on by the frames that have passed */
         frames = mGame:FrameCount - mLastFrame.
@@ -877,21 +890,30 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
             RETURN.
         END.
         mFxSeen = mGame:BlastCount.
+        AddBlast(mGame:LastBlastX, mGame:LastBlastY, mGame:LastBlastRadius).
+    END METHOD.
+
+    /* Starts showing a blast at a place: its scorch ring (the ground from the edge of the hole to 3 pixels beyond it), and the pieces of
+       ground it throws out, 24, 40 or 60 by its size and one for every crumb the crumb rule took. */
+    METHOD PRIVATE VOID AddBlast(INPUT piCx AS INTEGER, INPUT piCy AS INTEGER, INPUT piR AS INTEGER):
+        DEFINE VARIABLE slot  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE d2    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE stp   AS INTEGER NO-UNDO.
         slot = mFxNext.
         mFxNext = mFxNext MODULO 4 + 1.
-        cx = mGame:LastBlastX.
-        cy = mGame:LastBlastY.
-        r = mGame:LastBlastRadius.
-        mFxX[slot] = cx.
-        mFxY[slot] = cy.
-        mFxR[slot] = r.
+        mFxX[slot] = piCx.
+        mFxY[slot] = piCy.
+        mFxR[slot] = piR.
         mFxMs[slot] = mGame:ElapsedMs.
-        /* the scorch ring: the ground from the edge of the hole to 3 pixels beyond it */
         n = 0.
-        DO y = MAXIMUM(cy - r - 3, 0) TO MINIMUM(cy + r + 3, 239):
-            DO x = MAXIMUM(cx - r - 3, 0) TO MINIMUM(cx + r + 3, 383):
-                d2 = (x - cx) * (x - cx) + (y - cy) * (y - cy).
-                IF d2 <= r * r OR d2 > (r + 3) * (r + 3) THEN NEXT.
+        DO y = MAXIMUM(piCy - piR - 3, 0) TO MINIMUM(piCy + piR + 3, 239):
+            DO x = MAXIMUM(piCx - piR - 3, 0) TO MINIMUM(piCx + piR + 3, 383):
+                d2 = (x - piCx) * (x - piCx) + (y - piCy) * (y - piCy).
+                IF d2 <= piR * piR OR d2 > (piR + 3) * (piR + 3) THEN NEXT.
                 stp = mGame:Land:ScorchStep(x, y).
                 IF stp = 0 OR n >= 800 THEN NEXT.
                 n = n + 1.
@@ -901,12 +923,11 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
             END.
         END.
         mFxRings[slot] = n.
-        /* the ground thrown out, in the colours of the ground */
-        n = (IF r <= 12 THEN 24 ELSE IF r <= 20 THEN 40 ELSE 60).
+        n = (IF piR <= 12 THEN 24 ELSE IF piR <= 20 THEN 40 ELSE 60).
         DO k = 1 TO n:
-            SpawnDebris(cx, cy, DebrisColour(k), k MODULO 3 = 0, 12).
+            SpawnDebris(piCx, piCy, DebrisColour(k), k MODULO 3 = 0, 12).
         END.
-        DO k = 1 TO MINIMUM(mGame:Land:CrumbCount(), 60):
+        IF mGame:Phase <> BuddyPhase:Title THEN DO k = 1 TO MINIMUM(mGame:Land:CrumbCount(), 60):
             SpawnDebris(mGame:Land:CrumbX(k), mGame:Land:CrumbY(k), mGame:Land:CrumbColour(k), FALSE, 12).
         END.
     END METHOD.
@@ -1075,6 +1096,139 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         IF dx <> 0 OR dy <> 0 THEN mCanvas:ShiftView(0, 0, {&W}, {&H}, dx, dy).
     END METHOD.
 
+    /* ================================ the arrival and the title ================================ */
+
+    /* How long ago a buddy touched down, in milliseconds, in the first seconds of a match (they come down by parachute one every 150 ms from
+       300 ms, in turn order, at 2 pixels a frame); negative while it is still on its way, and its distance to fall is then 12 pixels above the
+       top of the map down to its place. */
+    METHOD PRIVATE INTEGER ArrivalAge(INPUT poBuddy AS Buddy, INPUT piOrder AS INTEGER):
+        DEFINE VARIABLE since AS INTEGER NO-UNDO.
+        DEFINE VARIABLE fall  AS INTEGER NO-UNDO.
+        since = mGame:ElapsedMs - mGame:MatchStartMs - (300 + 150 * piOrder).
+        fall = INTEGER(TRUNCATE((poBuddy:Y() + 12) * 1000 / 120, 0)).
+        RETURN since - fall.
+    END METHOD.
+
+    /* A buddy in the first seconds: not there yet, or falling under a parachute, or just landed and pleased about it. */
+    METHOD PRIVATE VOID DrawArriving(INPUT poBuddy AS Buddy, INPUT piKey AS INTEGER, INPUT piOrder AS INTEGER):
+        DEFINE VARIABLE since AS INTEGER NO-UNDO.
+        DEFINE VARIABLE lift    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE age   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE head  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE sway  AS INTEGER NO-UNDO.
+        IF poBuddy:State = BuddyState:Drowned THEN RETURN.
+        since = mGame:ElapsedMs - mGame:MatchStartMs - (300 + 150 * piOrder).
+        IF since < 0 THEN RETURN.
+        age = ArrivalAge(poBuddy, piOrder).
+        IF age < 0 THEN DO:
+            /* on the way down at 2 pixels a frame, in the air with the chute open over its head */
+            lift = (poBuddy:Y() + 12) - INTEGER(TRUNCATE(since * 120 / 1000, 0)).
+            sway = INTEGER(TRUNCATE(mGame:ElapsedMs / 600, 0)) MODULO 2.
+            DrawPose(poBuddy, "goon_jump_fall", lift).
+            head = poBuddy:Y() - lift - 12.
+            mSprites:Stamp("chute_0", 0, FALSE):DrawTo(mCanvas, poBuddy:X() - mSprites:OriginX("chute_0", FALSE) + sway, head - mSprites:OriginY("chute_0")).
+            RETURN.
+        END.
+        IF age < 150 THEN mSprites:Stamp("chute_1", 0, FALSE):DrawTo(mCanvas, poBuddy:X() - mSprites:OriginX("chute_1", FALSE), poBuddy:Y() - mSprites:OriginY("chute_1")).
+        IF age < 120 THEN DrawPose(poBuddy, "goon_land", 0).
+        ELSE IF age < 520 THEN DrawPose(poBuddy, "goon_grin", 0).
+        ELSE DrawGoon(poBuddy, piKey).
+    END METHOD.
+
+    /* The title screen: the name of the game in big gradient letters over the land, four goons being silly, and a rocket that comes
+       in from the left, bites the last S of BUDDIES, and leaves a scorched bite in it. It all runs on a loop of 8 seconds. */
+    METHOD PRIVATE VOID DrawTitle():
+        DEFINE VARIABLE t      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE loop1  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ink    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE top    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE bottom AS INTEGER NO-UNDO.
+        DEFINE VARIABLE p      AS DECIMAL NO-UNDO.
+        DEFINE VARIABLE rx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ry     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hd     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE r      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dy     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE d2     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE c      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE pose   AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE gx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE gy     AS INTEGER NO-UNDO.
+        t = mGame:ElapsedMs MODULO 8000.
+        loop1 = INTEGER(TRUNCATE(mGame:ElapsedMs / 8000, 0)).
+        ink = BuddiesLook:Colour(BuddyTint:Outline).
+        top = BuddiesLook:Colour(BuddyTint:TitleTop).
+        bottom = BuddiesLook:Colour(BuddyTint:TitleBottom).
+        Centred("BLAST", 5, top, bottom, ink, 34).
+        Centred("BUDDIES", 5, top, bottom, ink, 76).
+        /* the rocket arrives at 1500 ms, climbs on an arc and hits the top right corner of the last S at 2700 ms */
+        IF t >= 1500 AND t < 2700 THEN DO:
+            p = (t - 1500) / 1200.
+            rx = -10 + INTEGER(ROUND(304 * p, 0)).
+            ry = INTEGER(ROUND(120 - 40 * p - 30 * p * (1 - p), 0)).
+            hd = Heading:Nearest(304, INTEGER(ROUND(-40 - 30 * (1 - 2 * p), 0))).
+            IF mGame:ElapsedMs - mTrailLast >= 50 THEN DO:
+                mTrailLast = mGame:ElapsedMs.
+                mTrailX[mTrailNext] = rx - INTEGER(TRUNCATE(Heading:DirX(hd) * 5 / Heading:Scale(), 0)).
+                mTrailY[mTrailNext] = ry - INTEGER(TRUNCATE(Heading:DirY(hd) * 5 / Heading:Scale(), 0)).
+                mTrailMs[mTrailNext] = mGame:ElapsedMs.
+                mTrailNext = mTrailNext MODULO 12 + 1.
+            END.
+        END.
+        DrawTrail().
+        IF t >= 1500 AND t < 2700 THEN DO:
+            r = mSprites:Reach("rocket").
+            mSprites:Turned("rocket", hd, FALSE):DrawTo(mCanvas, rx - r, ry - r).
+        END.
+        IF t >= 2700 AND mTitleLoop <> loop1 THEN DO:
+            mTitleLoop = loop1.
+            AddBlast(294, 80, 12).
+        END.
+        /* the bite: the title within 7 pixels goes back to sky, a ring to 8.5 is smoke, and one to 10 is the scorch of the fire */
+        IF t >= 2700 THEN DO dy = -10 TO 10:
+            DO dx = -10 TO 10:
+                d2 = dx * dx + dy * dy.
+                IF d2 > 100 THEN NEXT.
+                c = mCanvas:ColourAt(294 + dx, 80 + dy).
+                IF c = mCanvas:BackAt(294 + dx, 80 + dy) THEN NEXT.
+                IF d2 <= 49 THEN mCanvas:Plot(294 + dx, 80 + dy, 0, mCanvas:BackAt(294 + dx, 80 + dy)).
+                ELSE IF d2 <= 72 THEN mCanvas:Plot(294 + dx, 80 + dy, 0, mSmoke[5]).
+                ELSE mCanvas:Plot(294 + dx, 80 + dy, 0, mBlast[4]).
+            END.
+        END.
+        /* sparks and puffs hanging round the bite for a second */
+        IF t >= 2700 AND t < 3700 THEN DO i = 0 TO 9:
+            hd = INTEGER(ROUND(i * 6.4, 0)).
+            mCanvas:Plot(294 + INTEGER(ROUND(Heading:DirX(hd) * 14 / Heading:Scale(), 0)), 80 + INTEGER(ROUND(Heading:DirY(hd) * 14 / Heading:Scale(), 0)), 0, mBlast[2]).
+            hd = INTEGER(ROUND(i * 6.4 + 3.2, 0)).
+            mCanvas:Plot(294 + INTEGER(ROUND(Heading:DirX(hd) * 18 / Heading:Scale(), 0)), 80 + INTEGER(ROUND(Heading:DirY(hd) * 18 / Heading:Scale(), 0)), 0, mSmoke[2]).
+        END.
+        /* four goons being silly on the hills, who all jump when the rocket lands */
+        DO i = 1 TO 4:
+            gx = INTEGER(ENTRY(i, "60,90,236,266")).
+            gy = mGame:Land:FirstGround(gx).
+            IF gy = ? THEN gy = 150.
+            IF t >= 2700 AND t < 3100 THEN pose = "goon_alarm_1".
+            ELSE IF t >= 3100 THEN pose = "goon_grin".
+            ELSE CASE i:
+                WHEN 1 THEN pose = "goon_dance_" + ENTRY(INTEGER(TRUNCATE(mGame:ElapsedMs / 150, 0)) MODULO 4 + 1, "1,2,3,2").
+                WHEN 2 THEN pose = "goon_grin".
+                WHEN 3 THEN pose = "goon_taunt".
+                OTHERWISE pose = "goon_dance_3".
+            END CASE.
+            DrawGoonAt(i, pose, gx, gy, i = 2 OR i = 4).
+        END.
+        /* the hint panel and the words on it */
+        mCanvas:BeginBatch().
+        Panel(45, 196, 293, 30, -1).
+        mCanvas:EndBatch().
+        Centred("ARROWS WALK AND AIM   ENTER JUMPS   SPACE FIRES", 1, BuddiesLook:Colour(BuddyTint:Label), BuddiesLook:Colour(BuddyTint:Label), -1, 201).
+        IF INTEGER(TRUNCATE(mGame:ElapsedMs / 500, 0)) MODULO 2 = 0 THEN
+            Centred("PRESS SPACE", 1, BuddiesLook:Colour(BuddyTint:Text), BuddiesLook:Colour(BuddyTint:Text), -1, 213).
+    END METHOD.
+
     /* ================================ the end of the game and the pause ================================ */
 
     /* Whether the game has been won or drawn. */
@@ -1169,7 +1323,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         END.
     END METHOD.
 
-    /* The seconds left on the clock of the phase, rounded up. */
+    /* The seconds left on the clock of the phase, rounded lift. */
     METHOD PRIVATE INTEGER SecondsLeft():
         RETURN INTEGER(TRUNCATE((mGame:TimeLeftMs + 999) / 1000, 0)).
     END METHOD.

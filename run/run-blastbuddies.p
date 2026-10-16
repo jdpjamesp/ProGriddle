@@ -61,7 +61,7 @@ DO ON ERROR UNDO, THROW:
     /* the clock ticks as often as Windows will let it: the game makes its own 60 frames a second out of the time it is given */
     oClock = NEW WinFormsClock().
     oClock:Interval = 15.
-    oGame = BlastBuddiesFactory:Create(NEW SeededRandom(iSeed), BuddySetup:Default()).
+    oGame = BlastBuddiesFactory:CreateWithTitle(NEW SeededRandom(iSeed), BuddySetup:Default()).
     oBrain = NEW SimulatingBrain(NEW SeededRandom(iSeed + 2), BuddySkill:Normal).
     oGame:Brain = oBrain.
 
@@ -90,7 +90,7 @@ DO ON ERROR UNDO, THROW:
                              oClock, oSettings, "blastbuddies").
     IF iAutoClose > 0 THEN oWindow:AutoCloseSeconds = iAutoClose.
 
-    /* the clock runs from the start: the buddies arrive, and the first turn is the person's. P pauses, F2 starts again */
+    /* the clock runs from the start: the title waits for Space, then the buddies arrive and the first turn is the person's. P pauses, F2 starts again */
     oController:Start().
 
     WAIT-FOR Application:Run(oWindow).

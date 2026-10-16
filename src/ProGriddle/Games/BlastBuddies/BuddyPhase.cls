@@ -1,5 +1,6 @@
 /* The phases of a Blast Buddies game, as the values of BlastBuddiesGame:Phase.
 
+     Title     the title screen, waiting for the fire key (only in a game made with a title)
      Arrival   the buddies come down onto the land at the start (a few seconds)
      Banner    the name of the team and buddy whose turn is next is shown, and the wind is rolled
      Turn      the buddy in turn walks, aims and fires, against the turn clock
@@ -15,6 +16,7 @@ ENUM ProGriddle.Games.BlastBuddies.BuddyPhase:
                 Retreat
                 Resolve
                 Winner
-                Draw.
+                Draw
+                Title.
 
 END ENUM.

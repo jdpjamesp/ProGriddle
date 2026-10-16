@@ -790,6 +790,115 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
         Assert:IsTrue(Somewhere(ColourMath:FromHex("FFFFFF"), mGame:CurrentBuddy:X() - 4, 150 - 12 - 14 - 14, mGame:CurrentBuddy:X() + 4, 150 - 12 - 14 - 4)).
     END METHOD.
 
+    /* a game with a title, its land left as the generator made it, and a painter for it */
+    METHOD PRIVATE VOID TitleStage(OUTPUT poGame AS BlastBuddiesGame, OUTPUT poPainter AS BlastBuddiesPainter):
+        poGame = BlastBuddiesFactory:CreateWithTitle(NEW SeededRandom(5), NEW BuddySetup(2, 3, 1, Theme:Meadow)).
+        poPainter = NEW BlastBuddiesPainter(NEW RecordingRenderer(), poGame, NEW SeededRandom(1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheTitleScreenHasTheBigNameFourGoonsAndAHintPanel():
+        DEFINE VARIABLE g  AS BlastBuddiesGame    NO-UNDO.
+        DEFINE VARIABLE p  AS BlastBuddiesPainter NO-UNDO.
+        DEFINE VARIABLE gy AS INTEGER             NO-UNDO.
+        DEFINE VARIABLE sp AS BuddySprites        NO-UNDO.
+        DEFINE VARIABLE st AS PixelStamp          NO-UNDO.
+        DEFINE VARIABLE sx AS INTEGER             NO-UNDO.
+        DEFINE VARIABLE sy AS INTEGER             NO-UNDO.
+        DEFINE VARIABLE ok AS LOGICAL             NO-UNDO INITIAL TRUE.
+        TitleStage(OUTPUT g, OUTPUT p).
+        p:Render(g:Grid, g).
+        mPainter = p.
+        mGame = g.
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("FFF2A0"), 119, 34, 264, 34)).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("FFF2A0"), 89, 76, 294, 76)).
+        Assert:Equals(ColourMath:FromHex("1C1426"), Px(46, 196)).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("B8AECB"), 51, 201, 330, 207)).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("FFFFFF"), 159, 213, 224, 219)).
+        /* the Reds dance on the hill at column 60 */
+        gy = g:Land:FirstGround(60).
+        sp = NEW BuddySprites().
+        st = sp:Stamp("goon_dance_1", 1, FALSE).
+        DO sy = 5 TO st:Height - 1:
+            DO sx = 0 TO st:Width - 1:
+                IF st:ColourAt(sx, sy) >= 0 AND Px(60 - sp:OriginX("goon_dance_1", FALSE) + sx, gy - sp:OriginY("goon_dance_1") + sy) <> st:ColourAt(sx, sy) THEN ok = FALSE.
+            END.
+        END.
+        Assert:IsTrue(ok).
+        sp:Dispose().
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheTitleRocketFliesInAndTakesABiteOutOfTheLastS():
+        DEFINE VARIABLE g     AS BlastBuddiesGame    NO-UNDO.
+        DEFINE VARIABLE p     AS BlastBuddiesPainter NO-UNDO.
+        DEFINE VARIABLE dx    AS INTEGER             NO-UNDO.
+        DEFINE VARIABLE dy    AS INTEGER             NO-UNDO.
+        DEFINE VARIABLE inkBefore AS INTEGER         NO-UNDO.
+        DEFINE VARIABLE inkAfter  AS INTEGER         NO-UNDO.
+        TitleStage(OUTPUT g, OUTPUT p).
+        mPainter = p.
+        mGame = g.
+        /* at 2 seconds the rocket is on its way */
+        DO dx = 1 TO 120:
+            g:Advance().
+        END.
+        p:Render(g:Grid, g).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("F4F4F0"), 100, 80, 135, 110)).
+        /* just before the hit the S is whole */
+        DO dx = 1 TO 38:
+            g:Advance().
+        END.
+        p:Render(g:Grid, g).
+        DO dy = -7 TO 7:
+            DO dx = -7 TO 7:
+                IF dx * dx + dy * dy <= 49 AND Px(294 + dx, 80 + dy) = ColourMath:FromHex("1C1426") THEN inkBefore = inkBefore + 1.
+            END.
+        END.
+        Assert:IsTrue(inkBefore > 0).
+        /* and when the blast has cleared there is a bite out of it */
+        DO dx = 1 TO 50:
+            g:Advance().
+        END.
+        p:Render(g:Grid, g).
+        DO dy = -7 TO 7:
+            DO dx = -7 TO 7:
+                IF dx * dx + dy * dy <= 49 AND Px(294 + dx, 80 + dy) = ColourMath:FromHex("1C1426") THEN inkAfter = inkAfter + 1.
+            END.
+        END.
+        Assert:Equals(0, inkAfter).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheBuddiesComeDownByParachuteOneAfterAnotherAndThenStand():
+        DEFINE VARIABLE g  AS BlastBuddiesGame    NO-UNDO.
+        DEFINE VARIABLE p  AS BlastBuddiesPainter NO-UNDO.
+        DEFINE VARIABLE i  AS INTEGER             NO-UNDO.
+        DEFINE VARIABLE b  AS Buddy               NO-UNDO.
+        DEFINE VARIABLE reds AS INTEGER           NO-UNDO.
+        TitleStage(OUTPUT g, OUTPUT p).
+        mPainter = p.
+        mGame = g.
+        reds = ColourMath:FromHex(ENTRY(2, BuddiesLook:ToneRow("Reds"))).
+        g:StartMatch().
+        b = g:Plan:TeamAt(1):BuddyAt(1).
+        g:Advance().
+        p:Render(g:Grid, g).
+        Assert:IsFalse(Somewhere(reds, b:X() - 8, b:Y() - 40, b:X() + 8, b:Y() - 14)).
+        /* at 600 ms the first is on its way under an orange and white parachute */
+        DO i = 1 TO 35:
+            g:Advance().
+        END.
+        p:Render(g:Grid, g).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("FF8A1E"), 0, 0, 383, 120)).
+        /* by four seconds everybody has landed and shows a health number */
+        DO i = 1 TO 220:
+            g:Advance().
+        END.
+        p:Render(g:Grid, g).
+        Assert:IsTrue(Somewhere(reds, b:X() - 8, b:Y() - 40, b:X() + 8, b:Y() - 14)).
+    END METHOD.
+
     @Test.
     METHOD PUBLIC VOID APainterNeedsARandomSourceToo():
         DEFINE VARIABLE p       AS BlastBuddiesPainter NO-UNDO.

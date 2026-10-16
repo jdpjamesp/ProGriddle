@@ -3,7 +3,8 @@
      Left, Right        walk (as long as the key is held), one pixel every 40 ms
      Up, Down           raise or lower the aim (as long as the key is held)
      Enter              hop; Enter twice within a quarter of a second makes a backflip
-     Space              hold to build up power, let go to fire (at full power it goes by itself)
+     Space              hold to build up power, let go to fire (at full power it goes by itself); starts the game from the title
+                        and starts a new one from the winner screen
 
    P pauses and R or F2 starts a new game (the window's own keys). + and - make the game faster and slower, in steps of 10 percent of
    the real speed, and the speed is kept as blastbuddies.speed.
@@ -45,6 +46,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInput FINAL IMPLEMENTS IGameInpu
     DEFINE PUBLIC PROPERTY StatusText AS CHARACTER NO-UNDO
         GET():
             CASE mGame:Phase:
+                WHEN BuddyPhase:Title THEN RETURN "Blast Buddies   Press Space to play".
                 WHEN BuddyPhase:Arrival THEN RETURN "Blast Buddies   Here they come".
                 WHEN BuddyPhase:Winner THEN RETURN SUBSTITUTE("Team &1 wins   Press R for a new game", mGame:WinnerTeam).
                 WHEN BuddyPhase:Draw THEN RETURN "A draw   Press R for a new game".
@@ -145,7 +147,12 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInput FINAL IMPLEMENTS IGameInpu
             WHEN "Space" THEN DO:
                 IF NOT mSpace THEN DO:
                     mSpace = TRUE.
-                    IF mGame:HumanTurn THEN mGame:StartCharge().
+                    CASE mGame:Phase:
+                        /* the title and the end screens wait for the fire key */
+                        WHEN BuddyPhase:Title THEN mGame:StartMatch().
+                        WHEN BuddyPhase:Winner OR WHEN BuddyPhase:Draw THEN mGame:Initialise().
+                        OTHERWISE IF mGame:HumanTurn THEN mGame:StartCharge().
+                    END CASE.
                 END.
                 RETURN TRUE.
             END.

@@ -364,6 +364,35 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID SpaceStartsTheMatchFromTheTitleAndANewGameFromTheEndScreen():
+        DEFINE VARIABLE g   AS BlastBuddiesGame  NO-UNDO.
+        DEFINE VARIABLE inp AS BlastBuddiesInput NO-UNDO.
+        DEFINE VARIABLE i   AS INTEGER           NO-UNDO.
+        g = BlastBuddiesFactory:CreateWithTitle(NEW SeededRandom(5), BuddySetup:Default()).
+        inp = NEW BlastBuddiesInput(g, mSettings).
+        Assert:IsTrue(inp:StatusText BEGINS "Blast Buddies   Press Space").
+        Assert:IsTrue(inp:HandleKey("Space")).
+        Assert:IsTrue(g:Phase = BuddyPhase:Arrival).
+        inp:ReleaseKey("Space").
+        Assert:IsFalse(g:Charging).
+        DO i = 1 TO BuddyRules:ArrivalFrames() + BuddyRules:BannerFrames():
+            g:Advance().
+        END.
+        DO i = 1 TO 3:
+            g:Plan:TeamAt(2):BuddyAt(i):Hurt(100).
+        END.
+        g:EndTurn().
+        DO i = 1 TO 500:
+            g:Advance().
+        END.
+        Assert:IsTrue(g:Phase = BuddyPhase:Winner).
+        inp:HandleKey("Space").
+        inp:ReleaseKey("Space").
+        Assert:IsTrue(g:Phase = BuddyPhase:Title).
+        g:Dispose().
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID InputNeedsAGameAndSettings():
         DEFINE VARIABLE inp     AS BlastBuddiesInput NO-UNDO.
         DEFINE VARIABLE lThrown AS LOGICAL           NO-UNDO.

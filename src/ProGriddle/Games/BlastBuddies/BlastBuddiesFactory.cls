@@ -19,6 +19,11 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesFactory FINAL:
         RETURN NEW Grid(NEW ArrayStore(Terrain:Width(), Terrain:Height(), Layers())).
     END METHOD.
 
+    /* A new game that begins with the title screen. */
+    METHOD PUBLIC STATIC BlastBuddiesGame CreateWithTitle(INPUT poRandom AS IRandom, INPUT poSetup AS BuddySetup):
+        RETURN NEW BlastBuddiesGame(CreateGrid(), poRandom, poSetup, TRUE).
+    END METHOD.
+
     /* A new game. poRandom makes the land, the starting places, the names and the wind, so a seeded one gives the same game every time. */
     METHOD PUBLIC STATIC BlastBuddiesGame Create(INPUT poRandom AS IRandom, INPUT poSetup AS BuddySetup):
         RETURN NEW BlastBuddiesGame(CreateGrid(), poRandom, poSetup).

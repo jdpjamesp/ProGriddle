@@ -30,6 +30,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
     DEFINE PRIVATE VARIABLE mExplosion AS Explosion    NO-UNDO.
     DEFINE PRIVATE VARIABLE mDeathT  AS INTEGER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mBrain   AS IBuddyBrain    NO-UNDO.
+    DEFINE PRIVATE VARIABLE mTitle   AS LOGICAL        NO-UNDO.
     DEFINE PRIVATE VARIABLE mWalkAcc AS INTEGER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mAimAcc  AS INTEGER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mJumpAt  AS INTEGER        NO-UNDO.
@@ -180,8 +181,24 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
             RETURN INTEGER(TRUNCATE(MAXIMUM(mTimer, 0) * 1000 / 60, 0)).
         END GET.
 
+    /* True when a game, and each new game, begins with the title screen and waits for the fire key. */
+    DEFINE PUBLIC PROPERTY HasTitle AS LOGICAL NO-UNDO
+        GET():
+            RETURN mTitle.
+        END GET.
+
+    /* The time (ElapsedMs) when the match began, which the arrival of the buddies by parachute counts from. */
+    DEFINE PUBLIC PROPERTY MatchStartMs AS INTEGER NO-UNDO GET. PRIVATE SET.
+
+    /* A game that begins at once with the buddies arriving. */
     CONSTRUCTOR PUBLIC BlastBuddiesGame(INPUT poGrid AS Grid, INPUT poRandom AS IRandom, INPUT poSetup AS BuddySetup):
+        THIS-OBJECT(poGrid, poRandom, poSetup, FALSE).
+    END CONSTRUCTOR.
+
+    /* A game that begins with the title screen when plTitle is true. */
+    CONSTRUCTOR PUBLIC BlastBuddiesGame(INPUT poGrid AS Grid, INPUT poRandom AS IRandom, INPUT poSetup AS BuddySetup, INPUT plTitle AS LOGICAL):
         SUPER("Blast Buddies", poGrid).
+        mTitle = plTitle.
         IF poGrid:Width <> Terrain:Width() OR poGrid:Height <> Terrain:Height() THEN
             UNDO, THROW NEW GridException("A Blast Buddies grid is " + STRING(Terrain:Width()) + " x " + STRING(Terrain:Height())).
         IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("A Blast Buddies game needs a random source").
@@ -215,11 +232,20 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
         Step().
     END METHOD.
 
-    /* Starts a new game with another setup: other teams, buddies, computer, skill or look. */
+    /* Starts a new game with another setup: other teams, buddies, computer, skill or look. It goes straight to the match, not the title. */
     METHOD PUBLIC VOID Restart(INPUT poSetup AS BuddySetup):
         IF NOT VALID-OBJECT(poSetup) THEN UNDO, THROW NEW GridException("A Blast Buddies game needs a setup").
         mSetup = poSetup.
         Initialise().
+        StartMatch().
+    END METHOD.
+
+    /* Leaves the title screen: the buddies arrive. Does nothing in any other phase. */
+    METHOD PUBLIC VOID StartMatch():
+        IF Phase <> BuddyPhase:Title THEN RETURN.
+        Phase = BuddyPhase:Arrival.
+        mTimer = BuddyRules:ArrivalFrames().
+        MatchStartMs = ElapsedMs.
     END METHOD.
 
     /* Ends the turn of the buddy in play, from the Turn or Retreat phase: everything now settles (Resolve). */
@@ -370,8 +396,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
         WinnerTeam = 0.
         CurrentBuddy = ?.
         Paused = FALSE.
-        Phase = BuddyPhase:Arrival.
+        Phase = (IF mTitle THEN BuddyPhase:Title ELSE BuddyPhase:Arrival).
         mTimer = BuddyRules:ArrivalFrames().
+        MatchStartMs = 0.
     END METHOD.
 
     /* One frame: every buddy moves under physics, and the phase clock runs. */
