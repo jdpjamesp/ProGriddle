@@ -1,6 +1,6 @@
 # Sound
 
-Games can have sound effects: 8 bit, mono, made from short recipes at start up, with no sound files. Tetris and Snake have it in the soft, warm voice of their Lantern Glass look, and Space Invaders and Asteroids in the square waves and noise of the arcade. Life, Minesweeper, Battleships and 2048 have none, on purpose. A game that has no sound is unchanged, and a machine with no sound device just stays quiet.
+Games can have sound effects: 8 bit, mono, made from short recipes at start up, with no sound files. Tetris and Snake have it in the soft, warm voice of their Lantern Glass look, Space Invaders and Asteroids in the square waves and noise of the arcade, and Blast Buddies in cheerful chiptune with a hiss that loops while a rocket flies. Life, Minesweeper, Battleships and 2048 have none, on purpose. A game that has no sound is unchanged, and a machine with no sound device just stays quiet.
 
 Sound is on by default. The M key (or the Sound button) switches it on and off in any game that has it, and the choice is saved.
 
@@ -98,7 +98,7 @@ Sounds that go on (the thrust, a saucer's hum) are not events but states, so the
 | `SoundRendererTests` | Passing the picture on, playing the polled cues in order, one cue per priority group, polling while muted, the errors |
 | `SoundSettingsTests` | The saved settings on a player, the switch, the errors |
 | `WaveOutPlayerTests` | The real player with silent sounds at volume 0: a sound started and seen to finish, nine sounds on eight voices, mute, disposal. They need a sound device and say nothing when there is none |
-| `TetrisCuesTests`, `SnakeCuesTests`, `InvadersCuesTests`, `AsteroidsCuesTests` | Each event of a real game reported once and in order, a new game forgetting the old one, the priority groups, the whole chain to a recording player |
-| `TetrisSoundsTests`, `SnakeSoundsTests`, `InvadersSoundsTests`, `AsteroidsSoundsTests` | Every cue has a recipe that makes sound, the loops are the recipes that start with `@`, and the bank fills |
+| `TetrisCuesTests`, `SnakeCuesTests`, `InvadersCuesTests`, `AsteroidsCuesTests`, `BuddyCuesTests` | Each event of a real game reported once and in order, a new game forgetting the old one, the priority groups, the whole chain to a recording player |
+| `TetrisSoundsTests`, `SnakeSoundsTests`, `InvadersSoundsTests`, `AsteroidsSoundsTests`, `BuddyCuesTests` | Every cue has a recipe that makes sound, the loops are the recipes that start with `@`, and the bank fills |
 
 The window smoke tests (`tools/gui-smoke-*.ps1`) cannot hear, so they prove only that a window with a sound device opens, plays and closes cleanly. What the sounds are like is checked by ear.

@@ -24,7 +24,7 @@ The games, each with its own page (click a picture):
 |:---:|:---:|:---:|
 | [<img src="assets/screenshots/tetris.png" width="260" alt="Tetris">](docs/games/tetris.md)<br>Tetris | [<img src="assets/screenshots/snake.png" width="260" alt="Snake">](docs/games/snake.md)<br>Snake | [<img src="assets/screenshots/asteroids.png" width="300" alt="Asteroids">](docs/games/asteroids.md)<br>Asteroids |
 | [<img src="assets/screenshots/spaceinvaders.png" width="220" alt="Space Invaders">](docs/games/spaceinvaders.md)<br>Space Invaders | [<img src="assets/screenshots/life.png" width="300" alt="Conway's Game of Life">](docs/games/life.md)<br>Conway's Game of Life | [<img src="assets/screenshots/minesweeper.png" width="300" alt="Minesweeper">](docs/games/minesweeper.md)<br>Minesweeper |
-| [<img src="assets/screenshots/battleships.png" width="300" alt="Battleships">](docs/games/battleships.md)<br>Battleships | [<img src="assets/screenshots/2048.png" width="300" alt="2048">](docs/games/2048.md)<br>2048 | |
+| [<img src="assets/screenshots/battleships.png" width="300" alt="Battleships">](docs/games/battleships.md)<br>Battleships | [<img src="assets/screenshots/2048.png" width="300" alt="2048">](docs/games/2048.md)<br>2048 | [Blast Buddies](docs/games/blast-buddies.md)<br>(a screenshot is to come) |
 
 The pictures are taken by `tools/take-screenshots.ps1`, which plays each game for a moment and saves its window to `assets/screenshots`.
 
@@ -428,6 +428,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter 
 | `tools/gui-smoke-spaceinvaders.ps1` | The same for Space Invaders: the title, the wave and its colours, held keys steering the cannon, a shot, pause, a new game, the saved window size. Takes over the keyboard for about a minute |
 | `tools/gui-smoke-asteroids.ps1` | The same for Asteroids: the traced title, the rule and hints, starting a game, the ship and the rocks, a held key turning the ship, the flame under thrust, a shot, pause (the picture freezes and dims), a new game, the saved window position. Takes over the keyboard for about a minute |
 | `tools/look-asteroids.ps1` | Saves a screenshot of the Asteroids title screen to `build/screenshots`, sending no keys |
+| `tools/gui-smoke-blastbuddies.ps1` | The same for Blast Buddies: the title, Space, the arrival by parachute, the first turn in the title bar, a held key and a shot, pause, R, the saved window size. Takes over the keyboard for about a minute |
+| `tools/look-blastbuddies.ps1` | Saves a screenshot of the Blast Buddies title screen to `build/screenshots`, sending no keys |
+| `tools/gen-blast-art.ps1` | Turns the designer's Blast Buddies art (`docs/design/blast-buddies-art.md`) into `BuddiesArt`, `BuddiesLook` and `TerrainThemes` (generated, committed) |
 | `tools/look-spaceinvaders.ps1` | Saves a screenshot of the Space Invaders title screen to `build/screenshots`, sending no keys |
 
 Results go to `build/test-results/results.xml` (plain) and `build/test-results/gui/results.xml` (WinForms). Screenshots from the smoke test go to `build/screenshots`.
@@ -438,7 +441,7 @@ Under `prowin -b` WinForms objects can be built and drawn to a bitmap, but there
 
 - [Adding a game](docs/adding-a-game.md): from one command to a finished game, step by step.
 - [Contributing](CONTRIBUTING.md): how a change goes, the rules of the codebase and what a good pull request looks like.
-- [Sound](docs/framework/sound.md): 8 bit sound effects made from recipes, how a game gets cues and sounds, the Windows player, the settings and how to add sound to a game. Tetris, Snake, Space Invaders and Asteroids have it.
+- [Sound](docs/framework/sound.md): 8 bit sound effects made from recipes, how a game gets cues and sounds, the Windows player, the settings and how to add sound to a game. Tetris, Snake, Space Invaders, Asteroids and Blast Buddies have it.
 - [OpenEdge environment notes](docs/framework/environment.md): running and testing, language gotchas, the ABL keywords to avoid.
 - [Performance notes](docs/framework/performance.md): the measurements behind the storage and rendering design.
 - [Accessibility](docs/accessibility.md): what works today, the known gaps, and how to keep a new game accessible.
@@ -466,4 +469,5 @@ Start any of them from the **ProGriddle Cookoff**, one window with a button for 
 - [2048](docs/games/2048.md): turn based, slide and join the tiles with the arrow keys, a best score, any board size from 2 x 2. Playable now.
 - [Snake](docs/games/snake.md): real time, steer with the arrow keys, eat to grow and speed up, two turns can wait for a quick corner, a best score, any board size from 5 x 5, and the Lantern Glass pixel look with a tongue, an eat wave, a crash fade and a gold win, and soft 8 bit sound effects (M switches them). Playable now.
 - [Asteroids](docs/games/asteroids.md): real time on a 320 x 240 pixel canvas in direct colour, vector outlines turned to 64 headings, a ship that turns, thrusts and drifts on a screen that wraps, rocks that split, saucers, hyperspace, debris and sparks, a traced title, a designed look, adjustable speed, chiptune sound effects with looping thrust and saucer hums (M switches them). Playable now.
+- [Blast Buddies](docs/games/blast-buddies.md): turn based artillery on a 384 x 240 pixel canvas of destructible ground coloured by one rule from the depth of each pixel, two to four teams of three or four buddies, wind, a charged bazooka shot, holes, scorch and the crumb rule, drowning, fall damage, gravestones, a computer player (Easy, Normal, Hard) that tries shots in slices, three themes, a title screen with a rocket that bites the title, the explosion recipe with a shake, and sound (M switches it). Playable now with the bazooka; the other weapons are planned.
 - [Space Invaders](docs/games/spaceinvaders.md): real time on the arcade's 224 x 256 grid in direct colour, one shot at a time, one invader moved a frame so the rack speeds up as it dies, crumbling shields, three bombs, the mystery saucer, a neon look, adjustable speed, the arcade's four note march and other sound effects (M switches them). Playable now.
