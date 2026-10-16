@@ -12,6 +12,11 @@ INTERFACE ProGriddle.Games.BlastBuddies.IBuddyBrain:
     DEFINE PUBLIC PROPERTY Stage AS BrainStage NO-UNDO
         GET.
 
+    /* How well it plays. It can be changed between turns. */
+    DEFINE PUBLIC PROPERTY Skill AS BuddySkill NO-UNDO
+        GET.
+        SET.
+
     /* A new turn: forget the last one. */
     METHOD PUBLIC VOID Reset().
 

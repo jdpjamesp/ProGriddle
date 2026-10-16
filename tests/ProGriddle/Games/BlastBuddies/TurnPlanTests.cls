@@ -164,6 +164,9 @@ CLASS ProGriddle.Games.BlastBuddies.TurnPlanTests:
         Assert:Equals(4, s:BuddiesEach).
         Assert:Equals(2, s:ComputerTeams).
         Assert:IsTrue(s:LandTheme = Theme:Candy).
+        Assert:IsFalse(s:RandomTheme).
+        Assert:IsTrue(s:Skill = BuddySkill:Normal).
+        Assert:IsTrue(NEW BuddySetup(2, 3, 0, Theme:Meadow, BuddySkill:Easy, TRUE):RandomTheme).
         s = BuddySetup:Default().
         Assert:Equals(2, s:Teams).
         Assert:Equals(3, s:BuddiesEach).

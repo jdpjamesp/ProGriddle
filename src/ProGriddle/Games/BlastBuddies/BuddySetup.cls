@@ -17,12 +17,21 @@ CLASS ProGriddle.Games.BlastBuddies.BuddySetup FINAL:
     /* How well the computer plays. */
     DEFINE PUBLIC PROPERTY Skill AS BuddySkill NO-UNDO GET. PRIVATE SET.
 
+    /* True when every new map picks its own look at random (LandTheme is then only what the picker shows). */
+    DEFINE PUBLIC PROPERTY RandomTheme AS LOGICAL NO-UNDO GET. PRIVATE SET.
+
     /* A game against a computer of Normal skill. */
     CONSTRUCTOR PUBLIC BuddySetup(INPUT piTeams AS INTEGER, INPUT piBuddiesEach AS INTEGER, INPUT piComputerTeams AS INTEGER, INPUT poTheme AS Theme):
         THIS-OBJECT(piTeams, piBuddiesEach, piComputerTeams, poTheme, BuddySkill:Normal).
     END CONSTRUCTOR.
 
     CONSTRUCTOR PUBLIC BuddySetup(INPUT piTeams AS INTEGER, INPUT piBuddiesEach AS INTEGER, INPUT piComputerTeams AS INTEGER, INPUT poTheme AS Theme, INPUT poSkill AS BuddySkill):
+        THIS-OBJECT(piTeams, piBuddiesEach, piComputerTeams, poTheme, poSkill, FALSE).
+    END CONSTRUCTOR.
+
+    CONSTRUCTOR PUBLIC BuddySetup(INPUT piTeams AS INTEGER, INPUT piBuddiesEach AS INTEGER, INPUT piComputerTeams AS INTEGER, INPUT poTheme AS Theme, INPUT poSkill AS BuddySkill,
+                                  INPUT plRandomTheme AS LOGICAL):
+        RandomTheme = plRandomTheme.
         IF piTeams < 2 OR piTeams > 4 THEN UNDO, THROW NEW GridException("A game has 2 to 4 teams, not " + STRING(piTeams)).
         IF piBuddiesEach < 3 OR piBuddiesEach > 4 THEN UNDO, THROW NEW GridException("A team has 3 or 4 buddies, not " + STRING(piBuddiesEach)).
         IF piComputerTeams < 0 OR piComputerTeams >= piTeams THEN UNDO, THROW NEW GridException("The computer plays 0 to " + STRING(piTeams - 1) + " teams").

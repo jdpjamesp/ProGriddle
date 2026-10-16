@@ -161,6 +161,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
             RETURN mSetup.
         END GET.
 
+    /* The look of the land of the map in play: the theme of the setup, or the one picked at random for a setup that asks for that. */
+    DEFINE PUBLIC PROPERTY MapTheme AS Theme NO-UNDO GET. PRIVATE SET.
+
     /* Milliseconds left of the phase clock (the turn clock in the Turn phase). */
     DEFINE PUBLIC PROPERTY TimeLeftMs AS INTEGER NO-UNDO
         GET():
@@ -200,6 +203,13 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
     METHOD PUBLIC VOID Advance():
         IF Paused THEN RETURN.
         Step().
+    END METHOD.
+
+    /* Starts a new game with another setup: other teams, buddies, computer, skill or look. */
+    METHOD PUBLIC VOID Restart(INPUT poSetup AS BuddySetup):
+        IF NOT VALID-OBJECT(poSetup) THEN UNDO, THROW NEW GridException("A Blast Buddies game needs a setup").
+        mSetup = poSetup.
+        Initialise().
     END METHOD.
 
     /* Ends the turn of the buddy in play, from the Turn or Retreat phase: everything now settles (Resolve). */
@@ -287,7 +297,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
         DEFINE VARIABLE teams  AS Team    NO-UNDO EXTENT 4.
         IF VALID-OBJECT(mTerrain) THEN mTerrain:Dispose().
         MapSerial = MapSerial + 1.
-        mTerrain = NEW Terrain(mSetup:LandTheme).
+        MapTheme = (IF mSetup:RandomTheme THEN Theme:GetEnum(mRandom:NextInt(3)) ELSE mSetup:LandTheme).
+        mTerrain = NEW Terrain(MapTheme).
+        IF VALID-OBJECT(mBrain) THEN mBrain:Skill = mSetup:Skill.
         gen = NEW TerrainGenerator().
         gen:Generate(mTerrain, mRandom).
         total = mSetup:Teams * mSetup:BuddiesEach.

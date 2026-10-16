@@ -21,7 +21,6 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrain FINAL IMPLEMENTS IBuddyBrain
     &SCOPED-DEFINE LEAST-THOUGHT 60
 
     DEFINE PRIVATE VARIABLE mRandom  AS IRandom        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSkill   AS BuddySkill     NO-UNDO.
     DEFINE PRIVATE VARIABLE mSim     AS ShotSimulator  NO-UNDO.
     DEFINE PRIVATE VARIABLE mPhysics AS BuddyPhysics   NO-UNDO.
     DEFINE PRIVATE VARIABLE mFrames  AS INTEGER        NO-UNDO.
@@ -50,6 +49,8 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrain FINAL IMPLEMENTS IBuddyBrain
     DEFINE PRIVATE VARIABLE mGoalPower AS INTEGER      NO-UNDO.
     DEFINE PRIVATE VARIABLE mLastX     AS INTEGER      NO-UNDO.
     DEFINE PRIVATE VARIABLE mStuck     AS INTEGER      NO-UNDO.
+
+    DEFINE PUBLIC PROPERTY Skill AS BuddySkill NO-UNDO GET. SET.
 
     DEFINE PUBLIC PROPERTY Stage AS BrainStage NO-UNDO GET. PRIVATE SET.
 
@@ -89,7 +90,7 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrain FINAL IMPLEMENTS IBuddyBrain
         IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("The computer player needs a random source").
         IF NOT VALID-OBJECT(poSkill) THEN UNDO, THROW NEW GridException("The computer player needs a skill").
         mRandom = poRandom.
-        mSkill = poSkill.
+        Skill = poSkill.
         mSim = NEW ShotSimulator().
         mPhysics = NEW BuddyPhysics().
         Stage = BrainStage:Idle.
@@ -111,12 +112,12 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrain FINAL IMPLEMENTS IBuddyBrain
     END METHOD.
 
     METHOD PRIVATE INTEGER PowerAt(INPUT piIndex AS INTEGER):
-        IF mSkill = BuddySkill:Easy THEN RETURN 40 + 20 * piIndex.
+        IF Skill = BuddySkill:Easy THEN RETURN 40 + 20 * piIndex.
         RETURN 30 + 10 * piIndex.
     END METHOD.
 
     METHOD PRIVATE INTEGER Powers():
-        IF mSkill = BuddySkill:Easy THEN RETURN 4.
+        IF Skill = BuddySkill:Easy THEN RETURN 4.
         RETURN 7.
     END METHOD.
 
@@ -213,7 +214,7 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrain FINAL IMPLEMENTS IBuddyBrain
                 IF mEi > Elevations() THEN ASSIGN mEi = 1 mTi = mTi + 1.
                 IF mTi > mTargets THEN ASSIGN mTi = 1 mCi = mCi + 1.
             END.
-            ELSE IF mSkill = BuddySkill:Hard AND mRefine < 25 THEN DO:
+            ELSE IF Skill = BuddySkill:Hard AND mRefine < 25 THEN DO:
                 /* round the best so far: 5 aims either side by 5 powers either side */
                 TryShot(poGame, mBestCand, mBestFace, MAXIMUM(0, MINIMUM(32, mBestElev - 2 + (mRefine MODULO 5))),
                         MAXIMUM(5, MINIMUM(100, mBestPower - 6 + 3 * INTEGER(TRUNCATE(mRefine / 5, 0))))).
@@ -279,7 +280,7 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrain FINAL IMPLEMENTS IBuddyBrain
     METHOD PRIVATE VOID Decide():
         DEFINE VARIABLE elevErr  AS INTEGER NO-UNDO.
         DEFINE VARIABLE powerErr AS INTEGER NO-UNDO.
-        CASE mSkill:
+        CASE Skill:
             WHEN BuddySkill:Easy THEN ASSIGN elevErr = 3 powerErr = 12.
             WHEN BuddySkill:Normal THEN ASSIGN elevErr = 1 powerErr = 5.
             OTHERWISE ASSIGN elevErr = 0 powerErr = 0.

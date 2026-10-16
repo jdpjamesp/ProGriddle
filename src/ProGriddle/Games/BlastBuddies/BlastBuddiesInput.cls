@@ -12,7 +12,11 @@
    repeat a key while another is pressed, so this class does not use the repeats. It remembers which keys are down (HandleKey when one goes
    down, ReleaseKey when it comes up, and an empty name when the window loses focus) and tells the game the state each time. When both
    keys of a pair are down the one pressed last wins. A key that arrives again while it is down (key repeat) does nothing, so one press
-   of Enter is one hop and one press of Space is one shot. */
+   of Enter is one hop and one press of Space is one shot.
+
+   The window offers five lists (IGameOptions), and choosing from one starts a new game with that setup, which the window keeps as
+   blastbuddies.teams, .buddies, .computer, .skill and .theme: Teams 2 to 4, Buddies each 3 or 4, Computer teams None or 1 to 3 (the last
+   teams are the computer's, and never all of them), Skill Easy, Normal or Hard, and Theme Meadow, Canyon, Candy or Random (a new look for every map). */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
@@ -20,7 +24,7 @@ USING ProGriddle.Games.BlastBuddies.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInput FINAL IMPLEMENTS IGameInput:
+CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInput FINAL IMPLEMENTS IGameInput, IGameOptions:
 
     DEFINE PRIVATE VARIABLE mGame     AS BlastBuddiesGame NO-UNDO.
     DEFINE PRIVATE VARIABLE mSettings AS ISettings        NO-UNDO.
@@ -201,6 +205,90 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInput FINAL IMPLEMENTS IGameInpu
         END.
         mGame:SetWalk(IF mLeft AND mRight THEN mWalkLatest ELSE IF mLeft THEN -1 ELSE IF mRight THEN 1 ELSE 0).
         mGame:SetAim(IF mUp AND mDown THEN mAimLatest ELSE IF mUp THEN -1 ELSE IF mDown THEN 1 ELSE 0).
+    END METHOD.
+
+
+    /* ---- options (IGameOptions) ---- */
+
+    DEFINE PUBLIC PROPERTY OptionCount AS INTEGER NO-UNDO
+        GET():
+            RETURN 5.
+        END GET.
+
+    METHOD PUBLIC CHARACTER OptionLabel(INPUT piOption AS INTEGER):
+        CASE piOption:
+            WHEN 1 THEN RETURN "Teams".
+            WHEN 2 THEN RETURN "Buddies".
+            WHEN 3 THEN RETURN "Computer".
+            WHEN 4 THEN RETURN "Skill".
+            WHEN 5 THEN RETURN "Land".
+            OTHERWISE UNDO, THROW NEW GridException("Blast Buddies has no option " + STRING(piOption)).
+        END CASE.
+    END METHOD.
+
+    METHOD PUBLIC CHARACTER OptionKey(INPUT piOption AS INTEGER):
+        CASE piOption:
+            WHEN 1 THEN RETURN "teams".
+            WHEN 2 THEN RETURN "buddies".
+            WHEN 3 THEN RETURN "computer".
+            WHEN 4 THEN RETURN "skill".
+            WHEN 5 THEN RETURN "theme".
+            OTHERWISE UNDO, THROW NEW GridException("Blast Buddies has no option " + STRING(piOption)).
+        END CASE.
+    END METHOD.
+
+    METHOD PUBLIC CHARACTER OptionNames(INPUT piOption AS INTEGER):
+        CASE piOption:
+            WHEN 1 THEN RETURN "2,3,4".
+            WHEN 2 THEN RETURN "3,4".
+            WHEN 3 THEN RETURN "None,1,2,3".
+            WHEN 4 THEN RETURN "Easy,Normal,Hard".
+            WHEN 5 THEN RETURN "Meadow,Canyon,Candy,Random".
+            OTHERWISE UNDO, THROW NEW GridException("Blast Buddies has no option " + STRING(piOption)).
+        END CASE.
+    END METHOD.
+
+    METHOD PUBLIC CHARACTER OptionValue(INPUT piOption AS INTEGER):
+        CASE piOption:
+            WHEN 1 THEN RETURN STRING(mGame:Setup:Teams).
+            WHEN 2 THEN RETURN STRING(mGame:Setup:BuddiesEach).
+            WHEN 3 THEN RETURN (IF mGame:Setup:ComputerTeams = 0 THEN "None" ELSE STRING(mGame:Setup:ComputerTeams)).
+            WHEN 4 THEN RETURN STRING(mGame:Setup:Skill).
+            WHEN 5 THEN RETURN (IF mGame:Setup:RandomTheme THEN "Random" ELSE STRING(mGame:Setup:LandTheme)).
+            OTHERWISE UNDO, THROW NEW GridException("Blast Buddies has no option " + STRING(piOption)).
+        END CASE.
+    END METHOD.
+
+    /* Chooses an item and starts a new game with it. A number of computer teams that leaves no team for a person is lowered to fit. */
+    METHOD PUBLIC VOID SetOption(INPUT piOption AS INTEGER, INPUT pcValue AS CHARACTER):
+        DEFINE VARIABLE teams    AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE buddies  AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE computer AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE skill1   AS BuddySkill NO-UNDO.
+        DEFINE VARIABLE land     AS Theme     NO-UNDO.
+        DEFINE VARIABLE random1  AS LOGICAL   NO-UNDO.
+        IF piOption < 1 OR piOption > 5 THEN UNDO, THROW NEW GridException("Blast Buddies has no option " + STRING(piOption)).
+        IF pcValue = ? OR LOOKUP(pcValue, OptionNames(piOption)) = 0 THEN
+            UNDO, THROW NEW GridException(SUBSTITUTE("&1 is not a choice for &2", pcValue, OptionLabel(piOption))).
+        teams = mGame:Setup:Teams.
+        buddies = mGame:Setup:BuddiesEach.
+        computer = mGame:Setup:ComputerTeams.
+        skill1 = mGame:Setup:Skill.
+        land = mGame:Setup:LandTheme.
+        random1 = mGame:Setup:RandomTheme.
+        CASE piOption:
+            WHEN 1 THEN teams = INTEGER(pcValue).
+            WHEN 2 THEN buddies = INTEGER(pcValue).
+            WHEN 3 THEN computer = (IF pcValue = "None" THEN 0 ELSE INTEGER(pcValue)).
+            WHEN 4 THEN skill1 = (IF pcValue = "Easy" THEN BuddySkill:Easy ELSE IF pcValue = "Normal" THEN BuddySkill:Normal ELSE BuddySkill:Hard).
+            OTHERWISE DO:
+                random1 = (pcValue = "Random").
+                IF NOT random1 THEN land = (IF pcValue = "Meadow" THEN Theme:Meadow ELSE IF pcValue = "Canyon" THEN Theme:Canyon ELSE Theme:Candy).
+            END.
+        END CASE.
+        computer = MINIMUM(computer, teams - 1).
+        mGame:Restart(NEW BuddySetup(teams, buddies, computer, land, skill1, random1)).
+        mNotice = SUBSTITUTE("&1 teams of &2   Computer &3   &4", teams, buddies, OptionValue(3), skill1).
     END METHOD.
 
     /* Faster or slower by a number of percent, kept for next time. */

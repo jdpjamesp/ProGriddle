@@ -234,6 +234,136 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID TheFiveOptionsAreTheirLabelsKeysNamesAndTheCurrentValues():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        Assert:Equals(5, mInput:OptionCount).
+        Assert:Equals("Teams", mInput:OptionLabel(1)).
+        Assert:Equals("Land", mInput:OptionLabel(5)).
+        Assert:Equals("teams,buddies,computer,skill,theme", mInput:OptionKey(1) + "," + mInput:OptionKey(2) + "," + mInput:OptionKey(3) + "," + mInput:OptionKey(4) + "," + mInput:OptionKey(5)).
+        Assert:Equals("2,3,4", mInput:OptionNames(1)).
+        Assert:Equals("3,4", mInput:OptionNames(2)).
+        Assert:Equals("None,1,2,3", mInput:OptionNames(3)).
+        Assert:Equals("Easy,Normal,Hard", mInput:OptionNames(4)).
+        Assert:Equals("Meadow,Canyon,Candy,Random", mInput:OptionNames(5)).
+        Assert:Equals("2", mInput:OptionValue(1)).
+        Assert:Equals("3", mInput:OptionValue(2)).
+        Assert:Equals("1", mInput:OptionValue(3)).
+        Assert:Equals("Normal", mInput:OptionValue(4)).
+        Assert:Equals("Meadow", mInput:OptionValue(5)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ChoosingAnOptionStartsANewGameWithThatSetup():
+        mInput:SetOption(1, "3").
+        Assert:Equals(3, mGame:Plan:TeamCount()).
+        Assert:Equals("3", mInput:OptionValue(1)).
+        mInput:SetOption(2, "4").
+        Assert:Equals(4, mGame:Plan:TeamAt(1):Count()).
+        mInput:SetOption(4, "Hard").
+        Assert:IsTrue(mGame:Setup:Skill = BuddySkill:Hard).
+        Assert:Equals("Hard", mInput:OptionValue(4)).
+        mInput:SetOption(5, "Canyon").
+        Assert:IsTrue(mGame:MapTheme = Theme:Canyon).
+        Assert:Equals("Canyon", mInput:OptionValue(5)).
+        Assert:IsTrue(mGame:Phase = BuddyPhase:Arrival).
+        Assert:IsTrue(mInput:TakeNotice() BEGINS "3 teams of 4").
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheComputerIsNeverAllTheTeamsAndRandomPicksAnyLook():
+        mInput:SetOption(1, "4").
+        mInput:SetOption(3, "3").
+        Assert:Equals("3", mInput:OptionValue(3)).
+        Assert:IsTrue(mGame:Plan:TeamAt(4):IsComputer).
+        Assert:IsFalse(mGame:Plan:TeamAt(1):IsComputer).
+        mInput:SetOption(1, "2").
+        Assert:Equals("1", mInput:OptionValue(3)).
+        mInput:SetOption(3, "None").
+        Assert:Equals("None", mInput:OptionValue(3)).
+        Assert:IsFalse(mGame:Plan:TeamAt(2):IsComputer).
+        mInput:SetOption(5, "Random").
+        Assert:Equals("Random", mInput:OptionValue(5)).
+        Assert:IsTrue(mGame:Setup:RandomTheme).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ABadOptionOrValueIsRefused():
+        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        DO ON ERROR UNDO, LEAVE:
+            mInput:SetOption(6, "x").
+            CATCH e AS GridException:
+                lThrown = TRUE.
+            END CATCH.
+        END.
+        Assert:IsTrue(lThrown).
+        lThrown = FALSE.
+        DO ON ERROR UNDO, LEAVE:
+            mInput:SetOption(1, "9").
+            CATCH e AS GridException:
+                lThrown = TRUE.
+            END CATCH.
+        END.
+        Assert:IsTrue(lThrown).
+        lThrown = FALSE.
+        DO ON ERROR UNDO, LEAVE:
+            mInput:OptionLabel(0).
+            CATCH e AS GridException:
+                lThrown = TRUE.
+            END CATCH.
+        END.
+        Assert:IsTrue(lThrown).
+        lThrown = FALSE.
+        DO ON ERROR UNDO, LEAVE:
+            mInput:OptionKey(7).
+            CATCH e AS GridException:
+                lThrown = TRUE.
+            END CATCH.
+        END.
+        Assert:IsTrue(lThrown).
+        lThrown = FALSE.
+        DO ON ERROR UNDO, LEAVE:
+            mInput:OptionNames(7).
+            CATCH e AS GridException:
+                lThrown = TRUE.
+            END CATCH.
+        END.
+        Assert:IsTrue(lThrown).
+        lThrown = FALSE.
+        DO ON ERROR UNDO, LEAVE:
+            mInput:OptionValue(7).
+            CATCH e AS GridException:
+                lThrown = TRUE.
+            END CATCH.
+        END.
+        Assert:IsTrue(lThrown).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ANewGameGivesTheComputerPlayerTheSkillOfTheSetup():
+        DEFINE VARIABLE brain AS SimulatingBrain NO-UNDO.
+        brain = NEW SimulatingBrain(NEW SeededRandom(1), BuddySkill:Easy).
+        mGame:Brain = brain.
+        mInput:SetOption(4, "Hard").
+        Assert:IsTrue(brain:Skill = BuddySkill:Hard).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID RestartingNeedsASetupAndTheMapIsInTheThemeOfTheSetup():
+        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        DO ON ERROR UNDO, LEAVE:
+            mGame:Restart(?).
+            CATCH e AS GridException:
+                lThrown = TRUE.
+            END CATCH.
+        END.
+        Assert:IsTrue(lThrown).
+        mGame:Restart(NEW BuddySetup(3, 3, 0, Theme:Candy)).
+        Assert:IsTrue(mGame:MapTheme = Theme:Candy).
+        Assert:IsTrue(mGame:Land:MapTheme = Theme:Candy).
+        Assert:Equals(3, mGame:Plan:TeamCount()).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID InputNeedsAGameAndSettings():
         DEFINE VARIABLE inp     AS BlastBuddiesInput NO-UNDO.
         DEFINE VARIABLE lThrown AS LOGICAL           NO-UNDO.

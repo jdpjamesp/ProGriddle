@@ -223,7 +223,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* The colour of a key in the theme of the map. */
     METHOD PRIVATE INTEGER Look(INPUT poKey AS ThemeKey):
-        RETURN TerrainThemes:Colour(mGame:Setup:LandTheme, poKey).
+        RETURN TerrainThemes:Colour(mGame:MapTheme, poKey).
     END METHOD.
 
     /* Everything that belongs to one map: the sky, the waves, the clouds and the ground, drawn from the beginning. */
