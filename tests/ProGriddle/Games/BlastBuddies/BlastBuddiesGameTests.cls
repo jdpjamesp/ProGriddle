@@ -686,6 +686,16 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID TheMapSerialCountsNewMapsAndElapsedMsIsTheGamesOwnClock():
+        Assert:Equals(1, mGame:MapSerial).
+        Frames(30).
+        Assert:Equals(500, mGame:ElapsedMs).
+        mGame:Initialise().
+        Assert:Equals(2, mGame:MapSerial).
+        Assert:Equals(0, mGame:ElapsedMs).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ANewGameClearsTheShellsAndTheBlastCounts():
         mGame:Shells:Launch(WeaponKind:Bazooka, 1, 50 * 256, 5 * 256, 0, -3000).
         mGame:Shells:Launch(WeaponKind:Bazooka, 1, 60 * 256, 50 * 256, 0, 0).

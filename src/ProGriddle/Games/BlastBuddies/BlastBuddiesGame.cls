@@ -54,6 +54,15 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
     /* The team that won (1 to 4) in the Winner phase, else 0. */
     DEFINE PUBLIC PROPERTY WinnerTeam AS INTEGER NO-UNDO GET. PRIVATE SET.
 
+    /* The time the game has run, from its own clock of 60 frames a second: what the pictures that move on their own are functions of. */
+    DEFINE PUBLIC PROPERTY ElapsedMs AS INTEGER NO-UNDO
+        GET():
+            RETURN INTEGER(TRUNCATE(FrameCount * 1000 / 60, 0)).
+        END GET.
+
+    /* Counts up with every new map, so the painter knows to start again. */
+    DEFINE PUBLIC PROPERTY MapSerial AS INTEGER NO-UNDO GET. PRIVATE SET.
+
     /* How many blasts there have been, where the last one was (the pixel and the radius), and how many shells have fallen in the water. */
     DEFINE PUBLIC PROPERTY BlastCount AS INTEGER NO-UNDO GET. PRIVATE SET.
     DEFINE PUBLIC PROPERTY LastBlastX AS INTEGER NO-UNDO GET. PRIVATE SET.
@@ -260,6 +269,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
         DEFINE VARIABLE buddy  AS Buddy   NO-UNDO.
         DEFINE VARIABLE teams  AS Team    NO-UNDO EXTENT 4.
         IF VALID-OBJECT(mTerrain) THEN mTerrain:Dispose().
+        MapSerial = MapSerial + 1.
         mTerrain = NEW Terrain(mSetup:LandTheme).
         gen = NEW TerrainGenerator().
         gen:Generate(mTerrain, mRandom).
