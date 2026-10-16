@@ -28,6 +28,8 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyTests:
         Assert:IsFalse(b:Landed).
         Assert:Equals(0, b:LastFallDamage).
         Assert:IsFalse(b:IsDead()).
+        Assert:IsFalse(b:Buried).
+        Assert:Equals(60, BuddyRules:DeathFrames()).
     END METHOD.
 
     @Test.

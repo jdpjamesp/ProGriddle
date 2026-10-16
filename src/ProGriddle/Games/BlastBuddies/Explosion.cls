@@ -31,7 +31,7 @@ CLASS ProGriddle.Games.BlastBuddies.Explosion FINAL:
         RETURN mDamage[piIndex].
     END METHOD.
 
-    /* Blows up at (piCx, piCy) with a radius and a damage at the centre. Every buddy of the plan that has not drowned is thrown, living or
+    /* Blows up at (piCx, piCy) with a radius and a damage at the centre. Every buddy of the plan that has not drowned and is not buried is thrown, living or
        dead, and the living are hurt. Returns how many buddies were hurt. */
     METHOD PUBLIC INTEGER Detonate(INPUT poTerrain AS Terrain, INPUT poPlan AS TurnPlan, INPUT poPhysics AS BuddyPhysics,
                                    INPUT piCx AS INTEGER, INPUT piCy AS INTEGER, INPUT piRadius AS INTEGER, INPUT piDamage AS INTEGER):
@@ -54,7 +54,7 @@ CLASS ProGriddle.Games.BlastBuddies.Explosion FINAL:
         DO i = 1 TO poPlan:TeamCount():
             DO j = 1 TO poPlan:TeamAt(i):Count():
                 b = poPlan:TeamAt(i):BuddyAt(j).
-                IF b:State = BuddyState:Drowned THEN NEXT.
+                IF b:State = BuddyState:Drowned OR b:Buried THEN NEXT.
                 /* the middle of the buddy is 5 pixels above its feet */
                 dx = b:X() - piCx.
                 dy = b:Y() - 5 - piCy.

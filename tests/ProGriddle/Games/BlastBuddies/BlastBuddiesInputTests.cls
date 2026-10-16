@@ -193,7 +193,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
             mGame:Plan:TeamAt(2):BuddyAt(i):Hurt(100).
         END.
         mGame:EndTurn().
-        Frames(BuddyRules:SettleFrames()).
+        Frames(700).
         Assert:IsTrue(mInput:StatusText BEGINS "Team 1 wins").
     END METHOD.
 
@@ -206,7 +206,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
             mGame:Plan:TeamAt(2):BuddyAt(i):Hurt(100).
         END.
         mGame:EndTurn().
-        Frames(BuddyRules:SettleFrames()).
+        Frames(700).
         Assert:IsTrue(mInput:StatusText BEGINS "A draw").
     END METHOD.
 

@@ -20,6 +20,10 @@ CLASS ProGriddle.Games.BlastBuddies.Buddy FINAL:
     DEFINE PUBLIC PROPERTY Landed AS LOGICAL NO-UNDO GET. SET.
     DEFINE PUBLIC PROPERTY LastFallDamage AS INTEGER NO-UNDO GET. SET.
 
+    /* True once the game has seen the buddy die and shown it (a dead buddy is buried one at a time at the end of a turn). A buried buddy
+       stays as a gravestone and blasts leave it alone. */
+    DEFINE PUBLIC PROPERTY Buried AS LOGICAL NO-UNDO GET. SET.
+
     /* 1 for facing right, -1 for facing left. */
     DEFINE PUBLIC PROPERTY Facing AS INTEGER NO-UNDO INITIAL 1 GET. SET.
 

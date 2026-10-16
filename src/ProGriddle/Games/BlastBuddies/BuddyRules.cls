@@ -170,4 +170,9 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyRules FINAL:
         RETURN 8.
     END METHOD.
 
+    /* How long a dying buddy is shown before it is buried, 1 second. */
+    METHOD PUBLIC STATIC INTEGER DeathFrames():
+        RETURN 60.
+    END METHOD.
+
 END CLASS.

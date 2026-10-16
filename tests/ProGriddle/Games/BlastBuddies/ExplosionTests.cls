@@ -120,6 +120,15 @@ CLASS ProGriddle.Games.BlastBuddies.ExplosionTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID ABuriedBuddyIsAGravestoneThatABlastLeavesAlone():
+        mTeam:BuddyAt(1):Hurt(100).
+        mTeam:BuddyAt(1):Buried = TRUE.
+        mX:Detonate(mT, mPlan, mP, 100, 145, 20, 50).
+        Assert:IsTrue(mTeam:BuddyAt(1):State = BuddyState:Standing).
+        Assert:Equals(0, mTeam:BuddyAt(1):VY).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ABuddyCannotLoseMoreThanItHas():
         mTeam:BuddyAt(1):Hurt(80).
         mX:Detonate(mT, mPlan, mP, 100, 145, 20, 50).

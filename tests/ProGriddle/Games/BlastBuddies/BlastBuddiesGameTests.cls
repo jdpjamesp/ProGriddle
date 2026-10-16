@@ -260,10 +260,54 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
             mGame:Plan:TeamAt(2):BuddyAt(i):Hurt(100).
         END.
         mGame:EndTurn().
-        Frames(BuddyRules:SettleFrames()).
+        Frames(400).
         Assert:IsTrue(mGame:Phase = BuddyPhase:Winner).
+        Assert:Equals(3, mGame:DeathCount).
         Assert:Equals(1, mGame:WinnerTeam).
         Assert:IsTrue(mGame:IsOver).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ADeadBuddyIsShownDyingForASecondThenBuriedAndPlayGoesOn():
+        ToTheFirstTurn().
+        mGame:Plan:TeamAt(2):BuddyAt(1):Hurt(100).
+        mGame:EndTurn().
+        Frames(BuddyRules:SettleFrames()).
+        Assert:IsTrue(mGame:Phase = BuddyPhase:Resolve).
+        Assert:IsTrue(mGame:DyingBuddy = mGame:Plan:TeamAt(2):BuddyAt(1)).
+        Assert:Equals(0, mGame:DeathPercent).
+        Frames(30).
+        Assert:Equals(50, mGame:DeathPercent).
+        Frames(30).
+        Assert:IsTrue(mGame:DyingBuddy = ?).
+        Assert:IsTrue(mGame:Plan:TeamAt(2):BuddyAt(1):Buried).
+        Assert:Equals(1, mGame:DeathCount).
+        Assert:Equals(0, mGame:DeathPercent).
+        Frames(BuddyRules:SettleFrames()).
+        Assert:IsTrue(mGame:Phase = BuddyPhase:Banner).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID BuddiesDieOneAtATimeInOrderOfTeamAndPlace():
+        ToTheFirstTurn().
+        mGame:Plan:TeamAt(2):BuddyAt(1):Hurt(100).
+        mGame:Plan:TeamAt(1):BuddyAt(3):Hurt(100).
+        mGame:Plan:TeamAt(1):BuddyAt(2):Hurt(100).
+        mGame:EndTurn().
+        Frames(BuddyRules:SettleFrames()).
+        Assert:IsTrue(mGame:DyingBuddy = mGame:Plan:TeamAt(1):BuddyAt(2)).
+        Frames(BuddyRules:DeathFrames() + BuddyRules:SettleFrames()).
+        Assert:IsTrue(mGame:DyingBuddy = mGame:Plan:TeamAt(1):BuddyAt(3)).
+        Frames(BuddyRules:DeathFrames() + BuddyRules:SettleFrames()).
+        Assert:IsTrue(mGame:DyingBuddy = mGame:Plan:TeamAt(2):BuddyAt(1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID WhenTheBuddyInTurnDiesTheTurnEndsAtOnce():
+        ToTheFirstTurn().
+        mGame:CurrentBuddy:Hurt(100).
+        Frames(1).
+        Assert:IsTrue(mGame:Phase = BuddyPhase:Resolve).
     END METHOD.
 
     @Test.
@@ -275,8 +319,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
             mGame:Plan:TeamAt(2):BuddyAt(i):Hurt(100).
         END.
         mGame:EndTurn().
-        Frames(BuddyRules:SettleFrames()).
+        Frames(700).
         Assert:IsTrue(mGame:Phase = BuddyPhase:Draw).
+        Assert:Equals(6, mGame:DeathCount).
         Assert:Equals(0, mGame:WinnerTeam).
         Assert:IsTrue(mGame:IsOver).
     END METHOD.

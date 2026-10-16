@@ -28,6 +28,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
     DEFINE PRIVATE VARIABLE mSettle  AS INTEGER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mShells  AS ShellPool      NO-UNDO.
     DEFINE PRIVATE VARIABLE mExplosion AS Explosion    NO-UNDO.
+    DEFINE PRIVATE VARIABLE mDeathT  AS INTEGER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mWalkAcc AS INTEGER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mAimAcc  AS INTEGER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mJumpAt  AS INTEGER        NO-UNDO.
@@ -70,6 +71,19 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
     DEFINE PUBLIC PROPERTY LastBlast AS Explosion NO-UNDO
         GET():
             RETURN mExplosion.
+        END GET.
+
+    /* The buddy being shown dying now, in the Resolve phase, or unknown. Buddies die one at a time, team 1 first. */
+    DEFINE PUBLIC PROPERTY DyingBuddy AS Buddy NO-UNDO GET. PRIVATE SET.
+
+    /* How many buddies have died and been buried so far. */
+    DEFINE PUBLIC PROPERTY DeathCount AS INTEGER NO-UNDO GET. PRIVATE SET.
+
+    /* How far through its death the dying buddy is, 0 to 100 percent. */
+    DEFINE PUBLIC PROPERTY DeathPercent AS INTEGER NO-UNDO
+        GET():
+            IF NOT VALID-OBJECT(DyingBuddy) THEN RETURN 0.
+            RETURN 100 - INTEGER(TRUNCATE(mDeathT * 100 / BuddyRules:DeathFrames(), 0)).
         END GET.
 
     /* The way the buddy in turn is being walked, -1 for left, 1 for right, 0 for not at all (see SetWalk). */
@@ -278,6 +292,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
         mAimAcc = 0.
         mJumpWas = 0.
         mShells:Clear().
+        DyingBuddy = ?.
+        DeathCount = 0.
+        mDeathT = 0.
         BlastCount = 0.
         LastBlastX = 0.
         LastBlastY = 0.
@@ -311,15 +328,22 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
         END.
         ApplyControls().
         StepShells().
+        IF (Phase = BuddyPhase:Turn OR Phase = BuddyPhase:Retreat) AND VALID-OBJECT(CurrentBuddy) THEN DO:
+            /* the buddy in turn has died, perhaps by its own rocket: the turn is over */
+            IF CurrentBuddy:IsDead() AND mShells:Count() = 0 THEN EndTurn().
+        END.
         CASE Phase:
             WHEN BuddyPhase:Arrival OR WHEN BuddyPhase:Banner OR WHEN BuddyPhase:Turn OR WHEN BuddyPhase:Retreat THEN DO:
                 mTimer = mTimer - 1.
                 IF mTimer <= 0 THEN PhaseEnded().
             END.
             WHEN BuddyPhase:Resolve THEN DO:
-                IF AnyoneInTheAir() OR mShells:Count() > 0 THEN mSettle = 0.
-                ELSE mSettle = mSettle + 1.
-                IF mSettle >= BuddyRules:SettleFrames() THEN BeginBanner().
+                IF VALID-OBJECT(DyingBuddy) THEN BuryTheDying().
+                ELSE DO:
+                    IF AnyoneInTheAir() OR mShells:Count() > 0 THEN mSettle = 0.
+                    ELSE mSettle = mSettle + 1.
+                    IF mSettle >= BuddyRules:SettleFrames() THEN NextDeathOrBanner().
+                END.
             END.
             OTHERWISE.
         END CASE.
@@ -464,6 +488,34 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
             END.
             OTHERWISE EndTurn().
         END CASE.
+    END METHOD.
+
+    /* Everything is still: the next buddy that has died is shown dying, or if there is none the next turn begins. */
+    METHOD PRIVATE VOID NextDeathOrBanner():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        DEFINE VARIABLE b AS Buddy   NO-UNDO.
+        DO i = 1 TO mPlan:TeamCount():
+            DO j = 1 TO mPlan:TeamAt(i):Count():
+                b = mPlan:TeamAt(i):BuddyAt(j).
+                IF b:IsDead() AND NOT b:Buried THEN DO:
+                    DyingBuddy = b.
+                    mDeathT = BuddyRules:DeathFrames().
+                    RETURN.
+                END.
+            END.
+        END.
+        BeginBanner().
+    END METHOD.
+
+    /* Counts down the death being shown; at the end the buddy is buried and everything is looked at again. */
+    METHOD PRIVATE VOID BuryTheDying():
+        mDeathT = mDeathT - 1.
+        IF mDeathT > 0 THEN RETURN.
+        DyingBuddy:Buried = TRUE.
+        DyingBuddy = ?.
+        DeathCount = DeathCount + 1.
+        mSettle = 0.
     END METHOD.
 
     /* Starts the next turn's banner with the next buddy and the wind, or ends the game if one team or none is left. */
