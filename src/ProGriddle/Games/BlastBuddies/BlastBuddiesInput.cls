@@ -14,6 +14,8 @@
    keys of a pair are down the one pressed last wins. A key that arrives again while it is down (key repeat) does nothing, so one press
    of Enter is one hop and one press of Space is one shot.
 
+   Sound (M) switches the sound on or off, when there is a sound device, and the window remembers the choice as sound.on.
+
    The window offers five lists (IGameOptions), and choosing from one starts a new game with that setup, which the window keeps as
    blastbuddies.teams, .buddies, .computer, .skill and .theme: Teams 2 to 4, Buddies each 3 or 4, Computer teams None or 1 to 3 (the last
    teams are the computer's, and never all of them), Skill Easy, Normal or Hard, and Theme Meadow, Canyon, Candy or Random (a new look for every map). */
@@ -28,6 +30,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInput FINAL IMPLEMENTS IGameInpu
 
     DEFINE PRIVATE VARIABLE mGame     AS BlastBuddiesGame NO-UNDO.
     DEFINE PRIVATE VARIABLE mSettings AS ISettings        NO-UNDO.
+    DEFINE PRIVATE VARIABLE mPlayer   AS ISoundPlayer     NO-UNDO.
     DEFINE PRIVATE VARIABLE mNotice   AS CHARACTER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mLeft     AS LOGICAL          NO-UNDO.
     DEFINE PRIVATE VARIABLE mRight    AS LOGICAL          NO-UNDO.
@@ -70,7 +73,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInput FINAL IMPLEMENTS IGameInpu
 
     DEFINE PUBLIC PROPERTY CommandNames AS CHARACTER NO-UNDO
         GET():
-            RETURN "".
+            RETURN (IF mPlayer:Working THEN "Sound:M" ELSE "").
         END GET.
 
     /* Always empty: the game draws its own words into the picture. */
@@ -89,11 +92,19 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInput FINAL IMPLEMENTS IGameInpu
             RETURN "".
         END GET.
 
+    /* A game with no sound. */
     CONSTRUCTOR PUBLIC BlastBuddiesInput(INPUT poGame AS BlastBuddiesGame, INPUT poSettings AS ISettings):
+        THIS-OBJECT(poGame, poSettings, NEW NullSoundPlayer()).
+    END CONSTRUCTOR.
+
+    /* A game whose sound is played by poPlayer. The Sound command and the M key are offered only when the player is working. */
+    CONSTRUCTOR PUBLIC BlastBuddiesInput(INPUT poGame AS BlastBuddiesGame, INPUT poSettings AS ISettings, INPUT poPlayer AS ISoundPlayer):
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("Blast Buddies input needs a game").
         IF NOT VALID-OBJECT(poSettings) THEN UNDO, THROW NEW GridException("Blast Buddies input needs settings").
+        IF NOT VALID-OBJECT(poPlayer) THEN UNDO, THROW NEW GridException("Blast Buddies input needs a sound player").
         mGame = poGame.
         mSettings = poSettings.
+        mPlayer = poPlayer.
         mGame:SpeedPercent = mSettings:GetInteger("blastbuddies.speed", 100).
     END CONSTRUCTOR.
 
@@ -184,7 +195,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInput FINAL IMPLEMENTS IGameInpu
     END METHOD.
 
     METHOD PUBLIC VOID Perform(INPUT pcCommand AS CHARACTER):
-        UNDO, THROW NEW GridException("Unknown Blast Buddies command: " + STRING(pcCommand)).
+        IF pcCommand = "Sound" THEN mNotice = SoundSettings:Toggle(mPlayer, mSettings).
+        ELSE UNDO, THROW NEW GridException("Unknown Blast Buddies command: " + STRING(pcCommand)).
     END METHOD.
 
     METHOD PUBLIC VOID PrimaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):

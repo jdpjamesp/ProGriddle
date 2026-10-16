@@ -71,6 +71,16 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
     DEFINE PUBLIC PROPERTY LastBlastRadius AS INTEGER NO-UNDO GET. PRIVATE SET.
     DEFINE PUBLIC PROPERTY WaterHits AS INTEGER NO-UNDO GET. PRIVATE SET.
 
+    /* Running counts that never go back (the sound looks at them to say what is new): hops and backflips made, pixels walked, steps of
+       aim, landings, buddies hurt by blasts, and buddies drowned. */
+    DEFINE PUBLIC PROPERTY HopCount AS INTEGER NO-UNDO GET. PRIVATE SET.
+    DEFINE PUBLIC PROPERTY FlipCount AS INTEGER NO-UNDO GET. PRIVATE SET.
+    DEFINE PUBLIC PROPERTY StepCount AS INTEGER NO-UNDO GET. PRIVATE SET.
+    DEFINE PUBLIC PROPERTY AimTicks AS INTEGER NO-UNDO GET. PRIVATE SET.
+    DEFINE PUBLIC PROPERTY LandCount AS INTEGER NO-UNDO GET. PRIVATE SET.
+    DEFINE PUBLIC PROPERTY HurtCount AS INTEGER NO-UNDO GET. PRIVATE SET.
+    DEFINE PUBLIC PROPERTY DrownCount AS INTEGER NO-UNDO GET. PRIVATE SET.
+
     /* The shells in the air, for the painter and the sound. */
     DEFINE PUBLIC PROPERTY Shells AS ShellPool NO-UNDO
         GET():
@@ -268,9 +278,11 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
         IF mJumpWas = 1 AND FrameCount - mJumpAt <= BuddyRules:DoubleJumpFrames() AND CurrentBuddy:State = BuddyState:Airborne THEN DO:
             mPhysics:Launch(CurrentBuddy, - CurrentBuddy:Facing * BuddyRules:FlipBack(), - BuddyRules:FlipLift()).
             mJumpWas = 2.
+            FlipCount = FlipCount + 1.
             RETURN.
         END.
         IF mPhysics:Hop(CurrentBuddy) THEN DO:
+            HopCount = HopCount + 1.
             mJumpWas = 1.
             mJumpAt = FrameCount.
         END.
@@ -335,6 +347,13 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
         DeathCount = 0.
         mDeathT = 0.
         BlastCount = 0.
+        HopCount = 0.
+        FlipCount = 0.
+        StepCount = 0.
+        AimTicks = 0.
+        LandCount = 0.
+        HurtCount = 0.
+        DrownCount = 0.
         LastBlastX = 0.
         LastBlastY = 0.
         LastBlastRadius = 0.
@@ -357,12 +376,16 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
 
     /* One frame: every buddy moves under physics, and the phase clock runs. */
     METHOD PRIVATE VOID Step():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        DEFINE VARIABLE i          AS INTEGER NO-UNDO.
+        DEFINE VARIABLE j          AS INTEGER NO-UNDO.
+        DEFINE VARIABLE wasDrowned AS LOGICAL NO-UNDO.
         FrameCount = FrameCount + 1.
         DO i = 1 TO mPlan:TeamCount():
             DO j = 1 TO mPlan:TeamAt(i):Count():
+                wasDrowned = (mPlan:TeamAt(i):BuddyAt(j):State = BuddyState:Drowned).
                 mPhysics:Step(mPlan:TeamAt(i):BuddyAt(j), mTerrain).
+                IF mPlan:TeamAt(i):BuddyAt(j):Landed THEN LandCount = LandCount + 1.
+                IF NOT wasDrowned AND mPlan:TeamAt(i):BuddyAt(j):State = BuddyState:Drowned THEN DrownCount = DrownCount + 1.
             END.
         END.
         IF Phase = BuddyPhase:Turn AND VALID-OBJECT(mBrain) AND VALID-OBJECT(CurrentBuddy) THEN DO:
@@ -403,7 +426,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
             mWalkAcc = mWalkAcc + BuddyRules:WalkGain().
             IF mWalkAcc >= BuddyRules:WalkNeeded() THEN DO:
                 mWalkAcc = mWalkAcc - BuddyRules:WalkNeeded().
-                mPhysics:Walk(CurrentBuddy, mTerrain, WalkDirection).
+                IF mPhysics:Walk(CurrentBuddy, mTerrain, WalkDirection) THEN StepCount = StepCount + 1.
             END.
         END.
         IF Phase <> BuddyPhase:Turn THEN RETURN.
@@ -411,6 +434,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
             mAimAcc = mAimAcc + 1.
             IF mAimAcc >= BuddyRules:AimRepeatFrames() THEN DO:
                 mAimAcc = 0.
+                IF Aim + AimDirection >= 0 AND Aim + AimDirection <= 32 THEN AimTicks = AimTicks + 1.
                 Aim = MAXIMUM(0, MINIMUM(32, Aim + AimDirection)).
             END.
         END.
@@ -513,6 +537,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
     METHOD PRIVATE VOID Detonate(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piRadius AS INTEGER, INPUT piDamage AS INTEGER):
         mExplosion:Detonate(mTerrain, mPlan, mPhysics, piX, piY, piRadius, piDamage).
         BlastCount = BlastCount + 1.
+        HurtCount = HurtCount + mExplosion:HitCount().
         LastBlastX = piX.
         LastBlastY = piY.
         LastBlastRadius = piRadius.

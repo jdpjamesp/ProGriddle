@@ -696,6 +696,40 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID TheRunningCountsGoUpWithWhatHappensAndStartAgainWithANewGame():
+        ToTheFirstTurn().
+        Flatten(mGame:CurrentBuddy).
+        Assert:Equals(0, mGame:HopCount).
+        mGame:Jump().
+        Frames(3).
+        mGame:Jump().
+        Assert:Equals(1, mGame:HopCount).
+        Assert:Equals(1, mGame:FlipCount).
+        Frames(80).
+        Assert:IsTrue(mGame:LandCount >= 1).
+        mGame:SetWalk(1).
+        Frames(30).
+        mGame:SetWalk(0).
+        Assert:IsTrue(mGame:StepCount >= 8).
+        mGame:SetAim(1).
+        Frames(9).
+        mGame:SetAim(0).
+        Assert:Equals(3, mGame:AimTicks).
+        mGame:Land:FillRect(mGame:CurrentBuddy:X(), mGame:CurrentBuddy:Y() - 100, mGame:CurrentBuddy:X() + 60, mGame:CurrentBuddy:Y() - 1, FALSE).
+        mGame:Land:FillRect(mGame:CurrentBuddy:X(), mGame:CurrentBuddy:Y(), mGame:CurrentBuddy:X() + 60, mGame:CurrentBuddy:Y() + 20, TRUE).
+        mGame:Shells:Launch(WeaponKind:Bazooka, 1, mGame:CurrentBuddy:X256 + 40 * 256, mGame:CurrentBuddy:Y256 - 60 * 256, 0, 2048).
+        mGame:Plan:TeamAt(2):BuddyAt(1):PlaceAt(mGame:CurrentBuddy:X() + 40, mGame:CurrentBuddy:Y()).
+        Frames(20).
+        Assert:IsTrue(mGame:HurtCount >= 1).
+        Assert:Equals(0, mGame:DrownCount).
+        mGame:Plan:TeamAt(2):BuddyAt(2):PlaceAt(-50, 150).
+        Frames(2).
+        Assert:Equals(1, mGame:DrownCount).
+        mGame:Initialise().
+        Assert:Equals(0, mGame:HopCount + mGame:FlipCount + mGame:StepCount + mGame:AimTicks + mGame:LandCount + mGame:HurtCount + mGame:DrownCount).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ANewGameClearsTheShellsAndTheBlastCounts():
         mGame:Shells:Launch(WeaponKind:Bazooka, 1, 50 * 256, 5 * 256, 0, -3000).
         mGame:Shells:Launch(WeaponKind:Bazooka, 1, 60 * 256, 50 * 256, 0, 0).

@@ -225,7 +225,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
         mInput:SecondaryAction(1, 1).
         mInput:TertiaryAction(1, 1).
         DO ON ERROR UNDO, LEAVE:
-            mInput:Perform("Sound").
+            mInput:Perform("Fly").
             CATCH e AS GridException:
                 lThrown = TRUE.
             END CATCH.
