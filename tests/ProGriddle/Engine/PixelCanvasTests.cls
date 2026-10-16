@@ -684,7 +684,7 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
             CASE piWhich:
                 WHEN 1 THEN mCanvas:BeginBatch().
                 WHEN 2 THEN mCanvas:EndBatch().
-                WHEN 3 THEN mCanvas:Plot(1, 1, {&KIND-FX}, 5).
+                WHEN 3 THEN mCanvas:ShiftView(0, 0, 3, 3, 1, 1).
                 WHEN 4 THEN mCanvas:Unplot(1, 1).
                 WHEN 5 THEN mCanvas:Erase(mSprite, 0, 0, {&KIND-ALIEN}).
                 WHEN 6 THEN mCanvas:Draw(mSprite, 0, 0, {&KIND-ALIEN}, 1, 2, 3).
@@ -766,6 +766,19 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID APlotInABatchShowsOnlyWhenTheBatchEndsAndIsClippedAtTheEdges():
+        mCanvas:BeginBatch().
+        mCanvas:Plot(3, 2, {&KIND-FX}, 777).
+        mCanvas:Plot(-1, 2, {&KIND-FX}, 777).
+        mCanvas:Plot(99, 2, {&KIND-FX}, 777).
+        Assert:Equals(100, mCanvas:ColourAt(3, 2)).
+        mCanvas:EndBatch().
+        Assert:Equals(777, mCanvas:ColourAt(3, 2)).
+        Assert:Equals({&KIND-FX}, mCanvas:KindAt(3, 2)).
+        Assert:Equals(1, mCanvas:CountKind({&KIND-FX})).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID ABatchCanBeRunAgainAndAgain():
         DEFINE VARIABLE i AS INTEGER NO-UNDO.
         DO i = 1 TO 5:
@@ -835,6 +848,43 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
         END.
         SET-SIZE(cells) = 0.
         Assert:IsTrue(thrown).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID FillRectFillsARectangleWithAColourAndAKindAndClipsAtTheEdges():
+        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        DEFINE VARIABLE alike AS LOGICAL NO-UNDO INITIAL TRUE.
+        mCanvas:FillRect(2, 3, 4, 2, {&KIND-FX}, 777).
+        Assert:Equals(8, mCanvas:CountKind({&KIND-FX})).
+        Assert:Equals(777, mCanvas:ColourAt(2, 3)).
+        Assert:Equals(777, mCanvas:ColourAt(5, 4)).
+        Assert:Equals(100, mCanvas:ColourAt(6, 3)).
+        Assert:Equals(100, mCanvas:ColourAt(2, 5)).
+        /* in a batch it gives the same picture as the lines, and shows when the batch ends */
+        mCanvas:Restore().
+        mCanvas:BeginBatch().
+        mCanvas:FillRect(2, 3, 4, 2, {&KIND-FX}, 777).
+        mCanvas:FillRect(10, 8, 9, 9, {&KIND-BOMB}, 888).
+        mCanvas:FillRect(-3, 0, 5, 1, {&KIND-ALIEN}, 555).
+        mCanvas:FillRect(0, 9, 1, 5, {&KIND-ALIEN}, 666).
+        Assert:Equals(100, mCanvas:ColourAt(2, 3)).
+        mCanvas:EndBatch().
+        Assert:Equals(8, mCanvas:CountKind({&KIND-FX})).
+        Assert:Equals(777, mCanvas:ColourAt(5, 4)).
+        Assert:Equals(100, mCanvas:ColourAt(6, 4)).
+        Assert:Equals(4, mCanvas:CountKind({&KIND-BOMB})).
+        Assert:Equals(888, mCanvas:ColourAt(11, 9)).
+        Assert:Equals(555, mCanvas:ColourAt(0, 0)).
+        Assert:Equals(555, mCanvas:ColourAt(1, 0)).
+        Assert:Equals(100, mCanvas:ColourAt(2, 0)).
+        Assert:Equals(666, mCanvas:ColourAt(0, 9)).
+        Assert:Equals({&KIND-ALIEN}, mCanvas:KindAt(0, 9)).
+        /* a rectangle wholly off the board does nothing */
+        mCanvas:BeginBatch().
+        mCanvas:FillRect(50, 50, 3, 3, {&KIND-FX}, 1).
+        mCanvas:EndBatch().
+        Assert:Equals(8, mCanvas:CountKind({&KIND-FX})).
     END METHOD.
 
     @Test.

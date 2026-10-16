@@ -36,10 +36,11 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
     /* work memory for the block copy: the raw bytes of the store, and a layer of zeros */
     DEFINE PRIVATE VARIABLE mWork    AS MEMPTR      NO-UNDO.
     DEFINE PRIVATE VARIABLE mZero    AS MEMPTR      NO-UNDO.
+    DEFINE PRIVATE VARIABLE mRow     AS MEMPTR      NO-UNDO.
     /* true between BeginBatch and EndBatch, when mWork holds the picture being drawn */
     DEFINE PRIVATE VARIABLE mBatch   AS LOGICAL     NO-UNDO.
 
-    &SCOPED-DEFINE NOT-IN-BATCH IF mBatch THEN UNDO, THROW NEW GridException("The canvas is in a batch: only DrawLine and Restore work until EndBatch").
+    &SCOPED-DEFINE NOT-IN-BATCH IF mBatch THEN UNDO, THROW NEW GridException("The canvas is in a batch: only DrawLine, FillRect, Plot, PutCells and Restore work until EndBatch").
 
     DEFINE PUBLIC PROPERTY Width AS INTEGER NO-UNDO
         GET():
@@ -72,6 +73,7 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
     METHOD PUBLIC VOID Dispose():
         SET-SIZE(mWork) = 0.
         SET-SIZE(mZero) = 0.
+        SET-SIZE(mRow) = 0.
     END METHOD.
 
     METHOD PUBLIC LOGICAL InBounds(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
@@ -247,12 +249,16 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
         END.
     END METHOD.
 
-    /* Colours one cell, giving it a kind. A cell outside the board is ignored. */
+    /* Colours one cell, giving it a kind. A cell outside the board is ignored. In a batch it goes into the batch. */
     METHOD PUBLIC VOID Plot(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piKind AS INTEGER, INPUT piColour AS INTEGER):
         DEFINE VARIABLE idx AS INTEGER NO-UNDO.
-        {&NOT-IN-BATCH}
         IF NOT InBounds(piX, piY) THEN RETURN.
         idx = piY * mWidth + piX.
+        IF mBatch THEN DO:
+            PUT-LONG(mWork, (mKind - 1) * mWidth * mHeight * 4 + idx * 4 + 1) = piKind.
+            PUT-LONG(mWork, (mView - 1) * mWidth * mHeight * 4 + idx * 4 + 1) = piColour.
+            RETURN.
+        END.
         mStore:SetCellAt(mKind, idx, piKind).
         mStore:SetCellAt(mView, idx, piColour).
     END METHOD.
@@ -340,6 +346,57 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
             IF x < 0 OR x >= mWidth OR y < 0 OR y >= mHeight THEN NEXT.
             IF mBatch THEN PUT-LONG(mWork, viewBase + (y * mWidth + x) * 4) = GET-LONG(pmCells, i * 12 + 9).
             ELSE mStore:SetCellAt(mView, y * mWidth + x, GET-LONG(pmCells, i * 12 + 9)).
+        END.
+    END METHOD.
+
+    /* Fills a rectangle with one colour and one kind, a row at a time: the first row is made once and the others are copied from it,
+       so a plate of a hundred cells is far quicker than the same lines drawn one by one. The part outside the board is skipped. In a
+       batch it goes into the batch. */
+    METHOD PUBLIC VOID FillRect(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER,
+                                INPUT piKind AS INTEGER, INPUT piColour AS INTEGER):
+        DEFINE VARIABLE x0       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x1       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y        AS INTEGER NO-UNDO.
+        DEFINE VARIABLE i        AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n        AS INTEGER NO-UNDO.
+        DEFINE VARIABLE plane    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE viewBase AS INTEGER NO-UNDO.
+        DEFINE VARIABLE kindBase AS INTEGER NO-UNDO.
+        x0 = MAXIMUM(piX, 0).
+        x1 = MINIMUM(piX + piW - 1, mWidth - 1).
+        IF x1 < x0 THEN RETURN.
+        IF NOT mBatch THEN DO:
+            DO y = MAXIMUM(piY, 0) TO MINIMUM(piY + piH - 1, mHeight - 1):
+                DrawLine(x0, y, x1, y, piKind, piColour).
+            END.
+            RETURN.
+        END.
+        n = x1 - x0 + 1.
+        plane = mWidth * mHeight * 4.
+        viewBase = (mView - 1) * plane + 1.
+        kindBase = (mKind - 1) * plane + 1.
+        IF n = 1 THEN DO:
+            DO y = MAXIMUM(piY, 0) TO MINIMUM(piY + piH - 1, mHeight - 1):
+                PUT-LONG(mWork, kindBase + (y * mWidth + x0) * 4) = piKind.
+                PUT-LONG(mWork, viewBase + (y * mWidth + x0) * 4) = piColour.
+            END.
+            RETURN.
+        END.
+        IF GET-SIZE(mRow) < n * 4 THEN DO:
+            SET-SIZE(mRow) = 0.
+            SET-SIZE(mRow) = mWidth * 4.
+        END.
+        DO i = 0 TO n - 1:
+            PUT-LONG(mRow, i * 4 + 1) = piColour.
+        END.
+        DO y = MAXIMUM(piY, 0) TO MINIMUM(piY + piH - 1, mHeight - 1):
+            COPY-LOB FROM mRow FOR n * 4 TO mWork OVERLAY AT viewBase + (y * mWidth + x0) * 4.
+        END.
+        DO i = 0 TO n - 1:
+            PUT-LONG(mRow, i * 4 + 1) = piKind.
+        END.
+        DO y = MAXIMUM(piY, 0) TO MINIMUM(piY + piH - 1, mHeight - 1):
+            COPY-LOB FROM mRow FOR n * 4 TO mWork OVERLAY AT kindBase + (y * mWidth + x0) * 4.
         END.
     END METHOD.
 

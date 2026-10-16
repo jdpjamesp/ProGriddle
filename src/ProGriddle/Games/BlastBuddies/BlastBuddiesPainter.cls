@@ -31,7 +31,13 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     DEFINE PRIVATE VARIABLE mCanvas    AS PixelCanvas   NO-UNDO.
     DEFINE PRIVATE VARIABLE mSkyGrid   AS Grid          NO-UNDO.
     DEFINE PRIVATE VARIABLE mSky       AS PixelCanvas   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWave      AS PixelStamp    NO-UNDO EXTENT 4.
+    /* the colours of the sky canvas once it is drawn, for a quick look at any pixel of it (the view layer is the first third) */
+    DEFINE PRIVATE VARIABLE mSkyMem    AS MEMPTR        NO-UNDO.
+    /* the lowest row any cloud reaches, so the pixels below need no look at the clouds */
+    DEFINE PRIVATE VARIABLE mCloudLow  AS INTEGER       NO-UNDO.
+    /* the four frames of waves as lists of cells (across, down from the wave row, colour), 48 cells of 12 bytes each, and how many each has */
+    DEFINE PRIVATE VARIABLE mWaveCells AS MEMPTR        NO-UNDO.
+    DEFINE PRIVATE VARIABLE mWaveCount AS INTEGER       NO-UNDO EXTENT 4.
     DEFINE PRIVATE VARIABLE mSprites   AS BuddySprites   NO-UNDO.
     DEFINE PRIVATE VARIABLE mText      AS TextStampCache NO-UNDO.
     DEFINE PRIVATE VARIABLE mDisposed  AS LOGICAL       NO-UNDO.
@@ -161,6 +167,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         mText = NEW TextStampCache(64).
         SET-SIZE(mRing) = 3200 * 12.
         SET-SIZE(mShoreMem) = 2688 * 4.
+        SET-SIZE(mWaveCells) = 4 * 48 * 12.
+        SET-SIZE(mSkyMem) = {&W} * {&H} * 4 * 3.
         DO i = 1 TO 5:
             mSmoke[i] = ColourMath:FromHex(ENTRY(i, BuddiesLook:ToneRow("Smoke"))).
         END.
@@ -195,12 +203,17 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         END.
         SyncClouds().
         SyncLand().
+        /* the sea and everything that moves over it go into the picture in one batch (the title reads the picture back, so it is not part of it) */
+        mCanvas:BeginBatch().
         mCanvas:Restore().
         DrawWater().
         IF mGame:Phase = BuddyPhase:Title THEN DO:
+            mCanvas:EndBatch().
             SyncBlasts().
             DrawTitle().
+            mCanvas:BeginBatch().
             DrawBlasts().
+            mCanvas:EndBatch().
             mInner:Render(mGame:Grid, poGame).
             RETURN.
         END.
@@ -211,6 +224,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         DrawSplashRings().
         DrawAim().
         DrawDamage().
+        mCanvas:EndBatch().
         IF IsOver() THEN DO:
             /* the picture as it ended is dimmed once and kept, and the end screen goes over it */
             mCanvas:DimRect(0, 0, {&W}, {&H}, 35, BuddiesLook:Colour(BuddyTint:Ink)).
@@ -232,15 +246,14 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         DEFINE VARIABLE i AS INTEGER NO-UNDO.
         IF mDisposed THEN RETURN.
         mDisposed = TRUE.
-        DO i = 1 TO 4:
-            IF VALID-OBJECT(mWave[i]) THEN mWave[i]:Dispose().
-        END.
         IF VALID-OBJECT(mCanvas) THEN mCanvas:Dispose().
         IF VALID-OBJECT(mSky) THEN mSky:Dispose().
         IF VALID-OBJECT(mSprites) THEN mSprites:Dispose().
         IF VALID-OBJECT(mText) THEN mText:Dispose().
         SET-SIZE(mRing) = 0.
         SET-SIZE(mShoreMem) = 0.
+        SET-SIZE(mWaveCells) = 0.
+        SET-SIZE(mSkyMem) = 0.
         IF VALID-OBJECT(mSkyGrid) THEN mSkyGrid:Dispose().
     END METHOD.
 
@@ -259,9 +272,6 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         mWater = Look(ThemeKey:Water).
         mCloud = Look(ThemeKey:Cloud).
         mCloudShade = Look(ThemeKey:CloudShade).
-        DO i = 1 TO 4:
-            IF VALID-OBJECT(mWave[i]) THEN mWave[i]:Dispose().
-        END.
         MakeWaves().
         mCloudX[1] = 40.
         mCloudY[1] = 30.
@@ -280,16 +290,19 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         mLastMs = mGame:ElapsedMs.
         DrawSky().
         mSky:BakeView().
+        CAST(mSkyGrid:Store, ArrayStore):CopyBytesTo(mSkyMem).
+        mCloudLow = MAXIMUM(mCloudY[1], mCloudY[2], mCloudY[3], mCloudY[4]) + 3.
         mCanvas:LoadBack(mSky).
         mCanvas:Restore().
+        FillShore().
         mCanvas:BeginBatch().
-        PutLand(0, 0, {&W} - 1, {&H} - 1).
+        PutLand(0, 0, {&W} - 1, {&SHORE}).
         DO i = 1 TO 4:
             PutBox(CloudLeft(i), CloudTop(i), CloudRight(i), CloudBottom(i)).
         END.
+        PutSea().
         mCanvas:EndBatch().
         mCanvas:BakeView().
-        FillShore().
         mGame:Land:ClearDirty().
     END METHOD.
 
@@ -334,17 +347,22 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         DEFINE VARIABLE f      AS INTEGER   NO-UNDO.
         DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
         DEFINE VARIABLE ch     AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE colours AS INTEGER  NO-UNDO EXTENT 48.
+        DEFINE VARIABLE n      AS INTEGER   NO-UNDO.
         rows[1] = "....FF.........." + "..FTTTF......FF." + "FTTTTTTTF..FTTTT".
         rows[2] = "........FF......" + "......FTTTF....." + ".FF..FTTTTTTTF..".
         rows[3] = "............FF.." + ".F........FTTTF." + "TTTF.....FTTTTTT".
         rows[4] = "FF.............." + "TTF..........FTT" + "TTTTTF..FF..FTTT".
         DO f = 1 TO 4:
+            mWaveCount[f] = 0.
             DO i = 1 TO 48:
                 ch = SUBSTRING(rows[f], i, 1).
-                colours[i] = (IF ch = "F" THEN Look(ThemeKey:Foam) ELSE IF ch = "T" THEN Look(ThemeKey:WaterTop) ELSE -1).
+                IF ch <> "F" AND ch <> "T" THEN NEXT.
+                n = (f - 1) * 48 + mWaveCount[f].
+                PUT-LONG(mWaveCells, n * 12 + 1) = (i - 1) MODULO 16.
+                PUT-LONG(mWaveCells, n * 12 + 5) = INTEGER(TRUNCATE((i - 1) / 16, 0)).
+                PUT-LONG(mWaveCells, n * 12 + 9) = (IF ch = "F" THEN Look(ThemeKey:Foam) ELSE Look(ThemeKey:WaterTop)).
+                mWaveCount[f] = mWaveCount[f] + 1.
             END.
-            mWave[f] = NEW PixelStamp(16, 3, colours).
         END.
     END METHOD.
 
@@ -449,25 +467,31 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         DEFINE VARIABLE y     AS INTEGER NO-UNDO.
         DEFINE VARIABLE n     AS INTEGER NO-UNDO.
         DEFINE VARIABLE c     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE land  AS Terrain NO-UNDO.
+        land = mGame:Land.
         piL = MAXIMUM(piL, 0).
         piT = MAXIMUM(piT, 0).
         piR = MINIMUM(piR, {&W} - 1).
-        piB = MINIMUM(piB, {&H} - 1).
+        piB = MINIMUM(piB, {&SHORE} + {&SHORE-ROWS} - 1).
         IF piL > piR OR piT > piB THEN RETURN.
+        /* the sea covers every row below the shore row and is part of the picture, so only the rows down to the last of the shore are
+           coloured here: the ground where there is ground, the back of the sea where there is not */
         DO ON ERROR UNDO, THROW:
             SET-SIZE(cells) = (piR - piL + 1) * (piB - piT + 1) * 12.
             DO y = piT TO piB:
                 DO x = piL TO piR:
-                    c = mGame:Land:ShadeAt(x, y).
+                    c = land:ShadeAt(x, y).
                     IF c = ? THEN DO:
-                        c = CloudAt(x, y).
-                        IF c < 0 THEN c = mSky:ColourAt(x, y).
+                        c = (IF y > mCloudLow THEN -1 ELSE CloudAt(x, y)).
+                        IF c < 0 THEN c = GET-LONG(mSkyMem, (y * {&W} + x) * 4 + 1).
+                        IF y >= {&SHORE} THEN PUT-LONG(mShoreMem, ((y - {&SHORE}) * {&W} + x) * 4 + 1) = -1.
+                        IF y > {&SHORE} THEN c = mWaterBack.
                     END.
+                    ELSE IF y >= {&SHORE} THEN PUT-LONG(mShoreMem, ((y - {&SHORE}) * {&W} + x) * 4 + 1) = c.
                     PUT-LONG(cells, n * 12 + 1) = x.
                     PUT-LONG(cells, n * 12 + 5) = y.
                     PUT-LONG(cells, n * 12 + 9) = c.
                     n = n + 1.
-                    IF y >= {&SHORE} AND y < {&SHORE} + {&SHORE-ROWS} THEN PUT-LONG(mShoreMem, ((y - {&SHORE}) * {&W} + x) * 4 + 1) = (IF mGame:Land:IsSolid(x, y) THEN c ELSE -1).
                 END.
             END.
             mCanvas:PutCells(cells, n, 0, 0).
@@ -1009,7 +1033,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     END METHOD.
 
     /* The blasts as they go: the white flash, the fireball in bands that cool, the shock ring, the smoke, the glow of the scorch cooling,
-       and the pieces of ground in the air. */
+       and the pieces of ground in the air. Must be called in a batch. */
     METHOD PRIVATE VOID DrawBlasts():
         DEFINE VARIABLE s     AS INTEGER NO-UNDO.
         DEFINE VARIABLE t     AS INTEGER NO-UNDO.
@@ -1036,7 +1060,6 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
             IF ms - mFxMs[s] >= 0 AND ms - mFxMs[s] < 800 THEN active = TRUE.
         END.
         IF active THEN DO:
-            mCanvas:BeginBatch().
             DO s = 1 TO 4:
                 t = ms - mFxMs[s].
                 IF t < 0 OR t >= 800 THEN NEXT.
@@ -1060,7 +1083,6 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
                     END.
                 END.
             END.
-            mCanvas:EndBatch().
             DO s = 1 TO 4:
                 t = ms - mFxMs[s].
                 IF t < 0 THEN NEXT.
@@ -1322,22 +1344,22 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* A panel in a batch: a dark plate with a lighter line on its second row and its second last, and the four corner pixels left out so it
        looks rounded. A frame colour of -1 is no frame, else the outer edge is drawn in it. */
     METHOD PRIVATE VOID Panel(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER, INPUT piFrame AS INTEGER):
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
         DEFINE VARIABLE plate AS INTEGER NO-UNDO.
         DEFINE VARIABLE rule  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE edge  AS INTEGER NO-UNDO.
         plate = BuddiesLook:Colour(BuddyTint:Panel).
         rule = BuddiesLook:Colour(BuddyTint:PanelRule).
-        DO y = piY TO piY + piH - 1:
-            IF y = piY OR y = piY + piH - 1 THEN
-                mCanvas:DrawLine(piX + 1, y, piX + piW - 2, y, 0, (IF piFrame >= 0 THEN piFrame ELSE plate)).
-            ELSE DO:
-                mCanvas:DrawLine(piX, y, piX + piW - 1, y, 0, plate).
-                IF y = piY + 1 OR y = piY + piH - 2 THEN mCanvas:DrawLine(piX + 1, y, piX + piW - 2, y, 0, rule).
-                IF piFrame >= 0 THEN DO:
-                    mCanvas:DrawLine(piX, y, piX, y, 0, piFrame).
-                    mCanvas:DrawLine(piX + piW - 1, y, piX + piW - 1, y, 0, piFrame).
-                END.
-            END.
+        edge = (IF piFrame >= 0 THEN piFrame ELSE plate).
+        /* the top and bottom rows lack their corners, the rows between are the plate with a rule one row in from the top and bottom, and
+           a frame colour makes the two end cells of the rows between */
+        mCanvas:FillRect(piX + 1, piY, piW - 2, 1, 0, edge).
+        mCanvas:FillRect(piX + 1, piY + piH - 1, piW - 2, 1, 0, edge).
+        mCanvas:FillRect(piX, piY + 1, piW, piH - 2, 0, plate).
+        mCanvas:FillRect(piX + 1, piY + 1, piW - 2, 1, 0, rule).
+        mCanvas:FillRect(piX + 1, piY + piH - 2, piW - 2, 1, 0, rule).
+        IF piFrame >= 0 THEN DO:
+            mCanvas:FillRect(piX, piY + 1, 1, piH - 2, 0, piFrame).
+            mCanvas:FillRect(piX + piW - 1, piY + 1, 1, piH - 2, 0, piFrame).
         END.
     END METHOD.
 
@@ -1365,6 +1387,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         DEFINE VARIABLE hurtC   AS INTEGER NO-UNDO.
         DEFINE VARIABLE goodC   AS INTEGER NO-UNDO.
         DEFINE VARIABLE ruleC   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE tone2   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE tone3   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE tone4   AS INTEGER NO-UNDO.
         DEFINE VARIABLE phase1  AS BuddyPhase NO-UNDO.
         phase1 = mGame:Phase.
         playing = (phase1 = BuddyPhase:Turn OR phase1 = BuddyPhase:Retreat).
@@ -1397,18 +1422,20 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
             len = INTEGER(ROUND(team:TotalHealth() / 400 * 120, 0)).
             IF len < 1 THEN NEXT.
             c = 225 + 3 * (t - 1).
-            mCanvas:DrawLine(130, c, 130 + len - 1, c, 0, ColourMath:FromHex(ENTRY(2, tones))).
-            mCanvas:DrawLine(130, c + 1, 130 + len - 1, c + 1, 0, ColourMath:FromHex(ENTRY(3, tones))).
+            tone2 = ColourMath:FromHex(ENTRY(2, tones)).
+            tone3 = ColourMath:FromHex(ENTRY(3, tones)).
+            tone4 = ColourMath:FromHex(ENTRY(4, tones)).
+            mCanvas:DrawLine(130, c, 130 + len - 1, c, 0, tone2).
+            mCanvas:DrawLine(130, c + 1, 130 + len - 1, c + 1, 0, tone3).
             DO i = 0 TO len - 1:
                 CASE team:Number:
-                    WHEN 2 THEN IF i MODULO 4 = 3 THEN mCanvas:DrawLine(130 + i, c, 130 + i, c + 1, 0, ColourMath:FromHex(ENTRY(4, tones))).
-                    WHEN 3 THEN mCanvas:DrawLine(130 + i, c, 130 + i, c + 1, 0, ColourMath:FromHex(ENTRY((IF i MODULO 2 = 0 THEN 2 ELSE 3), tones))).
-                    WHEN 4 THEN IF i MODULO 6 >= 4 THEN mCanvas:DrawLine(130 + i, c, 130 + i, c + 1, 0, ColourMath:FromHex(ENTRY(4, tones))).
+                    WHEN 2 THEN IF i MODULO 4 = 3 THEN mCanvas:DrawLine(130 + i, c, 130 + i, c + 1, 0, tone4).
+                    WHEN 3 THEN mCanvas:DrawLine(130 + i, c, 130 + i, c + 1, 0, (IF i MODULO 2 = 0 THEN tone2 ELSE tone3)).
+                    WHEN 4 THEN IF i MODULO 6 >= 4 THEN mCanvas:DrawLine(130 + i, c, 130 + i, c + 1, 0, tone4).
                     OTHERWISE.
                 END CASE.
             END.
         END.
-        mCanvas:EndBatch().
         /* the words and numbers on the plates */
         IF playing THEN DO:
             words = STRING(secs).
@@ -1428,6 +1455,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
             mSprites:Stamp("icon_bazooka", 0, FALSE):DrawTo(mCanvas, 112, 7).
         END.
         mText:Get("WIND", 1, BuddiesLook:Colour(BuddyTint:Label), BuddiesLook:Colour(BuddyTint:Label), -1):DrawTo(mCanvas, 302, 8).
+        mCanvas:EndBatch().
     END METHOD.
 
     /* The banner across the middle of the screen at the start of a turn: the buddy that plays and the team. */
@@ -1453,31 +1481,55 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* ================================ the water ================================ */
 
-    /* The sea over the background, then the ground that stands in it. A swell behind (a column starts one row lower when ((x + b) div 8) is
-       even, b stepping every 120 ms), the four frames of waves (a new one every 200 ms) and the body of the sea from row 229. */
-    METHOD PRIVATE VOID DrawWater():
-        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE topRow AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c   AS INTEGER NO-UNDO.
-        b = INTEGER(TRUNCATE(mGame:ElapsedMs / 120, 0)).
-        mCanvas:BeginBatch().
-        DO x = 0 TO {&W} - 1:
-            topRow = (IF INTEGER(TRUNCATE((x + b) / 8, 0)) MODULO 2 = 0 THEN 223 ELSE 222).
-            mCanvas:DrawLine(x, topRow, x, {&WATER} + 2, 0, mWaterBack).
+    /* The sea below the shore row, in the background: the back of the sea from row 223 to the row above the body, with the ground that
+       stands in it, and the body from row 229. Must be called in a batch, after the ground and clouds are put and the shore is filled. */
+    METHOD PRIVATE VOID PutSea():
+        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        DO y = {&SHORE} + 1 TO {&WATER} + 2:
+            mCanvas:DrawLine(0, y, {&W} - 1, y, 0, mWaterBack).
         END.
         DO y = {&WATER} + 3 TO {&H} - 1:
             mCanvas:DrawLine(0, y, {&W} - 1, y, 0, mWater).
         END.
-        mCanvas:EndBatch().
-        DO x = 0 TO {&W} - 1 BY 16:
-            mWave[(INTEGER(TRUNCATE(mGame:ElapsedMs / 200, 0)) MODULO 4) + 1]:DrawTo(mCanvas, x, {&WATER}).
-        END.
-        DO y = 0 TO {&SHORE-ROWS} - 1:
+        DO y = 1 TO {&SHORE-ROWS} - 1:
             DO x = 0 TO {&W} - 1:
                 c = GET-LONG(mShoreMem, (y * {&W} + x) * 4 + 1).
-                IF c >= 0 THEN mCanvas:Plot(x, {&SHORE} + y, {&KIND-LAND}, c).
+                IF c >= 0 THEN mCanvas:Plot(x, {&SHORE} + y, 0, c).
+            END.
+        END.
+    END METHOD.
+
+    /* The moving part of the water, over the picture with the sea and the ground in it: a swell behind (a column starts one row lower when
+       ((x + b) div 8) is even, b stepping every 120 ms, and only the top row of it is not already in the background) and the four frames
+       of waves (a new one every 200 ms). Neither goes over ground. Must be called in a batch. */
+    METHOD PRIVATE VOID DrawWater():
+        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE b    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE span AS INTEGER NO-UNDO.
+        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE f    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ax   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ay   AS INTEGER NO-UNDO.
+        b = INTEGER(TRUNCATE(mGame:ElapsedMs / 120, 0)).
+        x = 0.
+        DO WHILE x < {&W}:
+            /* the run of columns that share one block of eight */
+            span = 8 - ((x + b) MODULO 8).
+            IF INTEGER(TRUNCATE((x + b) / 8, 0)) MODULO 2 <> 0 THEN
+                DO i = x TO MINIMUM(x + span, {&W}) - 1:
+                    IF GET-LONG(mShoreMem, i * 4 + 1) < 0 THEN mCanvas:Plot(i, {&SHORE}, 0, mWaterBack).
+                END.
+            x = x + span.
+        END.
+        f = (INTEGER(TRUNCATE(mGame:ElapsedMs / 200, 0)) MODULO 4) + 1.
+        DO x = 0 TO {&W} - 1 BY 16:
+            DO i = 0 TO mWaveCount[f] - 1:
+                ax = x + GET-LONG(mWaveCells, ((f - 1) * 48 + i) * 12 + 1).
+                ay = {&WATER} + GET-LONG(mWaveCells, ((f - 1) * 48 + i) * 12 + 5).
+                IF ax < {&W} AND GET-LONG(mShoreMem, ((ay - {&SHORE}) * {&W} + ax) * 4 + 1) < 0 THEN
+                    mCanvas:Plot(ax, ay, 0, GET-LONG(mWaveCells, ((f - 1) * 48 + i) * 12 + 9)).
             END.
         END.
     END METHOD.
