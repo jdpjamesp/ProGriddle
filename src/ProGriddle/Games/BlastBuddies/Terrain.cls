@@ -34,6 +34,10 @@ CLASS ProGriddle.Games.BlastBuddies.Terrain FINAL:
     DEFINE PRIVATE VARIABLE mBlast3  AS INTEGER   NO-UNDO.
     DEFINE PRIVATE VARIABLE mBlast4  AS INTEGER   NO-UNDO.
     DEFINE PRIVATE VARIABLE mBlast5  AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mCrumbs  AS INTEGER   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mCrumbX  AS INTEGER   NO-UNDO EXTENT 4000.
+    DEFINE PRIVATE VARIABLE mCrumbY  AS INTEGER   NO-UNDO EXTENT 4000.
+    DEFINE PRIVATE VARIABLE mCrumbC  AS INTEGER   NO-UNDO EXTENT 4000.
     DEFINE PRIVATE VARIABLE mDirtyL  AS INTEGER   NO-UNDO INITIAL ?.
     DEFINE PRIVATE VARIABLE mDirtyT  AS INTEGER   NO-UNDO.
     DEFINE PRIVATE VARIABLE mDirtyR  AS INTEGER   NO-UNDO.
@@ -201,6 +205,162 @@ CLASS ProGriddle.Games.BlastBuddies.Terrain FINAL:
         END.
         MarkDirty(piCx - piRadius - 4, piCy - piRadius - 4, piCx + piRadius + 4, piCy + piRadius + 18).
         RETURN removed.
+    END METHOD.
+
+    /* The crumb rule: after a blast at (piCx, piCy) with a radius, flood fills (4 way) from every ground pixel in the box 8 pixels wider than
+       the blast each way, and every piece of ground of 24 pixels or fewer is turned to air, so no specks float in the sky. Bigger pieces stay,
+       a floating island is part of the fun. The pixels that were removed can be read with CrumbX, CrumbY and CrumbColour (the colour the
+       pixel had) until the next call, so the painter can throw them out as debris. Returns how many were removed. */
+    METHOD PUBLIC INTEGER Crumble(INPUT piCx AS INTEGER, INPUT piCy AS INTEGER, INPUT piRadius AS INTEGER):
+        DEFINE VARIABLE bl   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE bt   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE br   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE bb   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE bw   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE q    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE nq   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE qx   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE qy   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE nx   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ny   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE j    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE head AS INTEGER NO-UNDO.
+        DEFINE VARIABLE vi   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE v    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE big  AS LOGICAL NO-UNDO.
+        DEFINE VARIABLE dup  AS LOGICAL NO-UNDO.
+        DEFINE VARIABLE minX AS INTEGER NO-UNDO.
+        DEFINE VARIABLE maxX AS INTEGER NO-UNDO.
+        DEFINE VARIABLE maxY AS INTEGER NO-UNDO.
+        DEFINE VARIABLE minY AS INTEGER NO-UNDO.
+        DEFINE VARIABLE comp AS INTEGER NO-UNDO EXTENT 24.
+        DEFINE VARIABLE mark AS MEMPTR  NO-UNDO.
+        IF piRadius < 1 THEN UNDO, THROW NEW GridException("A blast has a radius of at least 1").
+        mCrumbs = 0.
+        bl = MAXIMUM(piCx - piRadius - 8, 0).
+        bt = MAXIMUM(piCy - piRadius - 8, 0).
+        br = MINIMUM(piCx + piRadius + 8, {&MAP-WIDTH} - 1).
+        bb = MINIMUM(piCy + piRadius + 8, {&MAP-HEIGHT} - 1).
+        IF bl > br OR bt > bb THEN RETURN 0.
+        bw = br - bl + 1.
+        minX = {&MAP-WIDTH}.
+        minY = {&MAP-HEIGHT}.
+        maxX = -1.
+        maxY = -1.
+        SET-SIZE(mark) = bw * (bb - bt + 1).
+        DO ON ERROR UNDO, THROW:
+            DO y = bt TO bb:
+                DO x = bl TO br:
+                    IF GET-BYTE(mMap, y * {&MAP-WIDTH} + x + 1) = 0 OR GET-BYTE(mark, (y - bt) * bw + x - bl + 1) <> 0 THEN NEXT.
+                    /* grow the piece from this pixel, a breadth first fill that gives up when the piece passes 24 pixels */
+                    n = 1.
+                    head = 1.
+                    big = FALSE.
+                    comp[1] = y * {&MAP-WIDTH} + x + 1.
+                    PUT-BYTE(mark, (y - bt) * bw + x - bl + 1) = 2.
+                    DO WHILE head <= n AND NOT big:
+                        q = comp[head] - 1.
+                        head = head + 1.
+                        qx = q MODULO {&MAP-WIDTH}.
+                        qy = INTEGER(TRUNCATE(q / {&MAP-WIDTH}, 0)).
+                        DO k = 1 TO 4:
+                            CASE k:
+                                WHEN 1 THEN ASSIGN nx = qx - 1 ny = qy.
+                                WHEN 2 THEN ASSIGN nx = qx + 1 ny = qy.
+                                WHEN 3 THEN ASSIGN nx = qx ny = qy - 1.
+                                OTHERWISE ASSIGN nx = qx ny = qy + 1.
+                            END CASE.
+                            IF nx < 0 OR nx >= {&MAP-WIDTH} OR ny < 0 OR ny >= {&MAP-HEIGHT} THEN NEXT.
+                            nq = ny * {&MAP-WIDTH} + nx + 1.
+                            IF GET-BYTE(mMap, nq) = 0 THEN NEXT.
+                            IF nx >= bl AND nx <= br AND ny >= bt AND ny <= bb THEN DO:
+                                /* inside the box, the marks say it all: 2 is this piece, 1 is a piece already known to be big */
+                                vi = (ny - bt) * bw + nx - bl + 1.
+                                v = GET-BYTE(mark, vi).
+                                IF v = 2 THEN NEXT.
+                                IF v = 1 THEN big = TRUE.
+                                ELSE IF n = 24 THEN DO:
+                                    PUT-BYTE(mark, vi) = 1.
+                                    big = TRUE.
+                                END.
+                                ELSE DO:
+                                    PUT-BYTE(mark, vi) = 2.
+                                    n = n + 1.
+                                    comp[n] = nq.
+                                END.
+                            END.
+                            ELSE DO:
+                                dup = FALSE.
+                                DO j = 1 TO n:
+                                    IF comp[j] = nq THEN dup = TRUE.
+                                END.
+                                IF dup THEN NEXT.
+                                IF n = 24 THEN big = TRUE.
+                                ELSE ASSIGN n = n + 1
+                                            comp[n] = nq.
+                            END.
+                            IF big THEN LEAVE.
+                        END.
+                    END.
+                    IF big THEN DO:
+                        /* a big piece stays: its pixels are marked as known so nothing is grown from them again */
+                        DO j = 1 TO n:
+                            q = comp[j] - 1.
+                            nx = q MODULO {&MAP-WIDTH}.
+                            ny = INTEGER(TRUNCATE(q / {&MAP-WIDTH}, 0)).
+                            IF nx >= bl AND nx <= br AND ny >= bt AND ny <= bb THEN PUT-BYTE(mark, (ny - bt) * bw + nx - bl + 1) = 1.
+                        END.
+                        NEXT.
+                    END.
+                    /* a small piece: note the colours while it is all there, then turn it to air */
+                    DO j = 1 TO n:
+                        q = comp[j] - 1.
+                        nx = q MODULO {&MAP-WIDTH}.
+                        ny = INTEGER(TRUNCATE(q / {&MAP-WIDTH}, 0)).
+                        IF mCrumbs < EXTENT(mCrumbX) THEN DO:
+                            mCrumbs = mCrumbs + 1.
+                            mCrumbX[mCrumbs] = nx.
+                            mCrumbY[mCrumbs] = ny.
+                            mCrumbC[mCrumbs] = ShadeAt(nx, ny).
+                        END.
+                        minX = MINIMUM(minX, nx).
+                        maxX = MAXIMUM(maxX, nx).
+                        minY = MINIMUM(minY, ny).
+                        maxY = MAXIMUM(maxY, ny).
+                    END.
+                    DO j = 1 TO n:
+                        PUT-BYTE(mMap, comp[j]) = 0.
+                    END.
+                END.
+            END.
+            FINALLY:
+                SET-SIZE(mark) = 0.
+            END FINALLY.
+        END.
+        IF maxX >= 0 THEN MarkDirty(minX - 1, minY - 1, maxX + 1, maxY + 18).
+        RETURN mCrumbs.
+    END METHOD.
+
+    /* The column of crumb i (1 to the count Crumble returned) of the last Crumble. */
+    METHOD PUBLIC INTEGER CrumbX(INPUT piIndex AS INTEGER):
+        IF piIndex < 1 OR piIndex > mCrumbs THEN UNDO, THROW NEW GridException("There is no crumb " + STRING(piIndex)).
+        RETURN mCrumbX[piIndex].
+    END METHOD.
+
+    /* The row of crumb i of the last Crumble. */
+    METHOD PUBLIC INTEGER CrumbY(INPUT piIndex AS INTEGER):
+        IF piIndex < 1 OR piIndex > mCrumbs THEN UNDO, THROW NEW GridException("There is no crumb " + STRING(piIndex)).
+        RETURN mCrumbY[piIndex].
+    END METHOD.
+
+    /* The colour crumb i of the last Crumble had before it was removed. */
+    METHOD PUBLIC INTEGER CrumbColour(INPUT piIndex AS INTEGER):
+        IF piIndex < 1 OR piIndex > mCrumbs THEN UNDO, THROW NEW GridException("There is no crumb " + STRING(piIndex)).
+        RETURN mCrumbC[piIndex].
     END METHOD.
 
     /* Grows the dirty box to hold a rectangle, clipped to the map. */

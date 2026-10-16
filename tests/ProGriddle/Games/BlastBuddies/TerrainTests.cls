@@ -402,6 +402,152 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID ASpeckOfOnePixelInTheSkyNearABlastCrumblesAndKeepsItsColour():
+        DEFINE VARIABLE colour AS INTEGER NO-UNDO.
+        mT:SetSolid(200, 100, TRUE).
+        colour = mT:ShadeAt(200, 100).
+        Assert:Equals(1, mT:Crumble(200, 100, 20)).
+        Assert:IsFalse(mT:IsSolid(200, 100)).
+        Assert:Equals(200, mT:CrumbX(1)).
+        Assert:Equals(100, mT:CrumbY(1)).
+        Assert:Equals(colour, mT:CrumbColour(1)).
+        Assert:Equals(Look(ThemeKey:Top1), mT:CrumbColour(1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID APieceOfTwentyFourPixelsCrumblesButOneOfTwentyFiveStays():
+        mT:FillRect(180, 80, 185, 83, TRUE).
+        mT:FillRect(190, 90, 194, 94, TRUE).
+        Assert:Equals(24, mT:Crumble(200, 100, 20)).
+        Assert:IsFalse(mT:IsSolid(180, 80)).
+        Assert:IsFalse(mT:IsSolid(185, 83)).
+        Assert:IsTrue(mT:IsSolid(190, 90)).
+        Assert:IsTrue(mT:IsSolid(194, 94)).
+        Assert:Equals(25, mT:SolidCount()).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ABiggerFloatingIslandAndGroundAndAnythingJoinedToThemStay():
+        mT:FillRect(0, 150, 383, 239, TRUE).
+        mT:FillRect(210, 100, 260, 110, TRUE).
+        mT:FillRect(150, 148, 152, 149, TRUE).
+        Assert:Equals(0, mT:Crumble(200, 100, 20)).
+        Assert:IsTrue(mT:IsSolid(210, 100)).
+        Assert:IsTrue(mT:IsSolid(260, 110)).
+        Assert:IsTrue(mT:IsSolid(151, 148)).
+        Assert:Equals(384 * 90 + 51 * 11 + 6, mT:SolidCount()).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ALongThinLineIsOneBigPieceEvenWhenMostOfItIsOutsideTheBox():
+        mT:FillRect(100, 100, 300, 100, TRUE).
+        Assert:Equals(0, mT:Crumble(200, 100, 20)).
+        Assert:Equals(201, mT:SolidCount()).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID OnlyPiecesInsideTheBoxEightPixelsPastTheBlastAreLookedAt():
+        mT:SetSolid(228, 100, TRUE).
+        mT:SetSolid(229, 120, TRUE).
+        mT:SetSolid(200, 128, TRUE).
+        mT:SetSolid(200, 130, TRUE).
+        Assert:Equals(2, mT:Crumble(200, 100, 20)).
+        Assert:IsFalse(mT:IsSolid(228, 100)).
+        Assert:IsTrue(mT:IsSolid(229, 120)).
+        Assert:IsTrue(mT:IsSolid(200, 130)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID APieceThatCrossesTheBoxEdgeIsMeasuredWhole():
+        /* 10 pixels in a row starting in the box and going out of it: only 10, so it crumbles even though the box ends in the middle of it */
+        mT:FillRect(224, 100, 233, 100, TRUE).
+        Assert:Equals(10, mT:Crumble(200, 100, 20)).
+        Assert:Equals(0, mT:SolidCount()).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ARoundHoleCutsNothingOffButAnIslandLeftInAHoleCrumbles():
+        mT:FillRect(0, 100, 383, 239, TRUE).
+        mT:Carve(100, 130, 15).
+        Assert:Equals(0, mT:Crumble(100, 130, 15)).
+        /* a chunk of 3 x 5 left floating in a hollow */
+        mT:FillRect(240, 140, 262, 160, FALSE).
+        mT:FillRect(250, 150, 252, 154, TRUE).
+        Assert:Equals(15, mT:Crumble(251, 150, 10)).
+        Assert:IsFalse(mT:IsSolid(251, 152)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID CrumbleMarksTheReshadeBoxAroundWhatItRemovedOnlyWhenItRemovedSomething():
+        mT:Crumble(100, 100, 20).
+        Assert:IsFalse(mT:HasDirty()).
+        mT:SetSolid(105, 100, TRUE).
+        mT:Crumble(100, 100, 20).
+        Assert:IsTrue(mT:HasDirty()).
+        Assert:Equals(104, mT:DirtyLeft()).
+        Assert:Equals(99, mT:DirtyTop()).
+        Assert:Equals(106, mT:DirtyRight()).
+        Assert:Equals(118, mT:DirtyBottom()).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID CrumbsAreOnlyThereForTheLastCrumble():
+        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        mT:SetSolid(100, 100, TRUE).
+        mT:Crumble(100, 100, 20).
+        mT:Crumble(100, 100, 20).
+        DO ON ERROR UNDO, LEAVE:
+            mT:CrumbX(1).
+            CATCH e AS GridException:
+                lThrown = TRUE.
+            END CATCH.
+        END.
+        Assert:IsTrue(lThrown).
+        lThrown = FALSE.
+        DO ON ERROR UNDO, LEAVE:
+            mT:CrumbY(1).
+            CATCH e AS GridException:
+                lThrown = TRUE.
+            END CATCH.
+        END.
+        Assert:IsTrue(lThrown).
+        lThrown = FALSE.
+        DO ON ERROR UNDO, LEAVE:
+            mT:CrumbColour(1).
+            CATCH e AS GridException:
+                lThrown = TRUE.
+            END CATCH.
+        END.
+        Assert:IsTrue(lThrown).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ACrumbleWithNoRadiusIsRefused():
+        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        DO ON ERROR UNDO, LEAVE:
+            mT:Crumble(10, 10, 0).
+            CATCH e AS GridException:
+                lThrown = TRUE.
+            END CATCH.
+        END.
+        Assert:IsTrue(lThrown).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ACrumbleOnTheMapEdgeIsClippedAndTheTimeOfABigOneIsShort():
+        DEFINE VARIABLE ms AS INTEGER NO-UNDO.
+        mT:FillRect(0, 100, 383, 239, TRUE).
+        mT:Carve(200, 110, 30).
+        ETIME(TRUE).
+        mT:Crumble(200, 110, 30).
+        ms = ETIME.
+        MESSAGE "timing: crumble box for radius 30 took" ms "ms".
+        Assert:IsTrue(ms < 50, "took " + STRING(ms) + " ms").
+        Assert:Equals(0, mT:Crumble(0, 0, 5)).
+        Assert:Equals(0, mT:Crumble(383, 239, 5)).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID DisposeCanBeCalledTwice():
         mT:Dispose().
         mT:Dispose().
