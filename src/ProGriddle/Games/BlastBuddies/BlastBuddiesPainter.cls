@@ -40,6 +40,20 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     DEFINE PRIVATE VARIABLE mPrevX     AS INTEGER       NO-UNDO EXTENT 16 INITIAL -1.
     DEFINE PRIVATE VARIABLE mMoveMs    AS INTEGER       NO-UNDO EXTENT 16 INITIAL -100000.
     DEFINE PRIVATE VARIABLE mLandMs    AS INTEGER       NO-UNDO EXTENT 16 INITIAL -100000.
+    /* the smoke of a rocket's trail: where each puff is, when it was made, and where the next goes */
+    DEFINE PRIVATE VARIABLE mTrailX    AS INTEGER       NO-UNDO EXTENT 12.
+    DEFINE PRIVATE VARIABLE mTrailY    AS INTEGER       NO-UNDO EXTENT 12.
+    DEFINE PRIVATE VARIABLE mTrailMs   AS INTEGER       NO-UNDO EXTENT 12 INITIAL -100000.
+    DEFINE PRIVATE VARIABLE mTrailNext AS INTEGER       NO-UNDO INITIAL 1.
+    DEFINE PRIVATE VARIABLE mTrailLast AS INTEGER       NO-UNDO INITIAL -100000.
+    /* the smoke tones, lightest first */
+    DEFINE PRIVATE VARIABLE mSmoke     AS INTEGER       NO-UNDO EXTENT 5.
+    /* the damage numbers floating up: whose, how much, and when they began; and how many blasts have been looked at */
+    DEFINE PRIVATE VARIABLE mDmgBuddy  AS Buddy         NO-UNDO EXTENT 16.
+    DEFINE PRIVATE VARIABLE mDmgAmount AS INTEGER       NO-UNDO EXTENT 16.
+    DEFINE PRIVATE VARIABLE mDmgMs     AS INTEGER       NO-UNDO EXTENT 16 INITIAL -100000.
+    DEFINE PRIVATE VARIABLE mDmgNext   AS INTEGER       NO-UNDO INITIAL 1.
+    DEFINE PRIVATE VARIABLE mBlastsSeen AS INTEGER      NO-UNDO.
     /* the team tones 1 and 2 */
     DEFINE PRIVATE VARIABLE mTone1     AS INTEGER       NO-UNDO EXTENT 4.
     DEFINE PRIVATE VARIABLE mTone2     AS INTEGER       NO-UNDO EXTENT 4.
@@ -88,6 +102,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         mSky = NEW PixelCanvas(mSkyGrid).
         mSprites = NEW BuddySprites().
         mText = NEW TextStampCache(64).
+        DO i = 1 TO 5:
+            mSmoke[i] = ColourMath:FromHex(ENTRY(i, BuddiesLook:ToneRow("Smoke"))).
+        END.
         DO i = 1 TO 4:
             mTone1[i] = ColourMath:FromHex(ENTRY(1, BuddiesLook:ToneRow(ENTRY(i, "Reds,Blues,Teals,Grapes")))).
             mTone2[i] = ColourMath:FromHex(ENTRY(2, BuddiesLook:ToneRow(ENTRY(i, "Reds,Blues,Teals,Grapes")))).
@@ -108,6 +125,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         mCanvas:Restore().
         DrawWater().
         DrawBuddies().
+        DrawShells().
+        DrawAim().
+        DrawDamage().
         mInner:Render(mGame:Grid, poGame).
     END METHOD.
 
@@ -513,6 +533,134 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         IF poBuddy = mGame:CurrentBuddy AND (mGame:Phase = BuddyPhase:Turn OR mGame:Phase = BuddyPhase:Retreat) THEN DO:
             words = poBuddy:BuddyName.
             mText:Get(words, 1, mTone1[poBuddy:Team], mTone1[poBuddy:Team], ink):DrawTo(mCanvas, poBuddy:X() - INTEGER(TRUNCATE(PixelFont:WidthOf(words) / 2, 0)), head - 24).
+        END.
+    END METHOD.
+
+    /* ================================ shots, aim and damage ================================ */
+
+    /* The rockets in the air, each turned to the way it is flying, with its exhaust behind it and a trail of smoke that fades. */
+    METHOD PRIVATE VOID DrawShells():
+        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hd   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE px   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE py   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE r    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ex   AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE age  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE tone AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ms   AS INTEGER NO-UNDO.
+        ms = mGame:ElapsedMs.
+        DO i = 1 TO ShellPool:Capacity():
+            IF NOT mGame:Shells:Active(i) THEN NEXT.
+            px = BuddyRules:Pixel(mGame:Shells:X(i)).
+            py = BuddyRules:Pixel(mGame:Shells:Y(i)).
+            hd = Heading:Nearest(mGame:Shells:VX(i), mGame:Shells:VY(i)).
+            /* a puff of smoke from the tail every 50 ms */
+            IF ms - mTrailLast >= 50 THEN DO:
+                mTrailLast = ms.
+                mTrailX[mTrailNext] = px - INTEGER(TRUNCATE(Heading:DirX(hd) * 5 / Heading:Scale(), 0)).
+                mTrailY[mTrailNext] = py - INTEGER(TRUNCATE(Heading:DirY(hd) * 5 / Heading:Scale(), 0)).
+                mTrailMs[mTrailNext] = ms.
+                mTrailNext = mTrailNext MODULO 12 + 1.
+            END.
+        END.
+        /* the trail, oldest puffs palest */
+        DO i = 1 TO 12:
+            age = ms - mTrailMs[i].
+            IF age < 0 OR age >= 600 THEN NEXT.
+            tone = MINIMUM(5, 1 + INTEGER(TRUNCATE(age / 120, 0))).
+            mCanvas:Plot(mTrailX[i], mTrailY[i], 0, mSmoke[tone]).
+            mCanvas:Plot(mTrailX[i] - 1, mTrailY[i], 0, mSmoke[tone]).
+            mCanvas:Plot(mTrailX[i] + 1, mTrailY[i], 0, mSmoke[tone]).
+            mCanvas:Plot(mTrailX[i], mTrailY[i] - 1, 0, mSmoke[tone]).
+            mCanvas:Plot(mTrailX[i], mTrailY[i] + 1, 0, mSmoke[tone]).
+        END.
+        DO i = 1 TO ShellPool:Capacity():
+            IF NOT mGame:Shells:Active(i) THEN NEXT.
+            px = BuddyRules:Pixel(mGame:Shells:X(i)).
+            py = BuddyRules:Pixel(mGame:Shells:Y(i)).
+            hd = Heading:Nearest(mGame:Shells:VX(i), mGame:Shells:VY(i)).
+            ex = "exhaust_" + STRING(INTEGER(TRUNCATE(ms / 50, 0)) MODULO 2).
+            r = mSprites:Reach(ex).
+            mSprites:Turned(ex, hd, FALSE):DrawTo(mCanvas, px - INTEGER(TRUNCATE(Heading:DirX(hd) * 5 / Heading:Scale(), 0)) - r,
+                                                  py - INTEGER(TRUNCATE(Heading:DirY(hd) * 5 / Heading:Scale(), 0)) - r).
+            r = mSprites:Reach("rocket").
+            mSprites:Turned("rocket", hd, FALSE):DrawTo(mCanvas, px - r, py - r).
+            /* a shot above the top of the map is marked by an arrow in its column */
+            IF py < 0 THEN DO:
+                mCanvas:Plot(px, 1, 0, BuddiesLook:Colour(BuddyTint:Flash)).
+                mCanvas:Plot(px - 1, 1, 0, BuddiesLook:Colour(BuddyTint:Ink)).
+                mCanvas:Plot(px + 1, 1, 0, BuddiesLook:Colour(BuddyTint:Ink)).
+                mCanvas:Plot(px, 2, 0, BuddiesLook:Colour(BuddyTint:Ink)).
+            END.
+        END.
+    END METHOD.
+
+    /* The reticle 28 pixels out along the aim of the buddy in turn, and while fire is held the dots that grow along the aim. */
+    METHOD PRIVATE VOID DrawAim():
+        DEFINE VARIABLE b      AS Buddy   NO-UNDO.
+        DEFINE VARIABLE hd     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE pivX   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE pivY   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE d      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dx     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dy     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE rname  AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE colour AS INTEGER NO-UNDO.
+        b = mGame:CurrentBuddy.
+        IF NOT VALID-OBJECT(b) OR mGame:Phase <> BuddyPhase:Turn OR b:IsDead() THEN RETURN.
+        hd = mGame:AimHeading.
+        pivX = b:X() + (IF b:Facing < 0 THEN -3 ELSE 3).
+        pivY = b:Y() - 5.
+        dx = Heading:DirX(hd).
+        dy = Heading:DirY(hd).
+        n = MINIMUM(16, INTEGER(TRUNCATE(mGame:Charge * 16 / BuddyRules:ChargeFrames(), 0)) + (IF mGame:Charge > 0 THEN 1 ELSE 0)).
+        DO k = 0 TO n - 1:
+            /* dot k is 2 x 1 pixels, 6 + 1.6 k from the pivot and 2 rows above the aim line */
+            d = 6 * 1024 + INTEGER(TRUNCATE(1.6 * k * 1024, 0)).
+            colour = ColourMath:Mix(BuddiesLook:Colour(BuddyTint:Good), BuddiesLook:Colour(BuddyTint:Hurt), k, 15).
+            mCanvas:Plot(pivX + INTEGER(ROUND(dx * d / 1024 / 1024, 0)), pivY + INTEGER(ROUND(dy * d / 1024 / 1024, 0)) - 2, 0, colour).
+            mCanvas:Plot(pivX + INTEGER(ROUND(dx * d / 1024 / 1024, 0)) + 1, pivY + INTEGER(ROUND(dy * d / 1024 / 1024, 0)) - 2, 0, colour).
+        END.
+        rname = "reticle_" + STRING(INTEGER(TRUNCATE(mGame:ElapsedMs / 300, 0)) MODULO 2).
+        mSprites:Stamp(rname, 0, FALSE):DrawTo(mCanvas, pivX + INTEGER(ROUND(dx * 28 / 1024, 0)) - mSprites:OriginX(rname, FALSE),
+                                               pivY + INTEGER(ROUND(dy * 28 / 1024, 0)) - mSprites:OriginY(rname)).
+    END METHOD.
+
+    /* Damage numbers float up over the buddies the last blast hurt, 1 pixel every 40 ms for 24 pixels, and a squeal bubble over one that
+       lost 10 or more. A new blast starts the numbers when the picture is next drawn. */
+    METHOD PRIVATE VOID DrawDamage():
+        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE age    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE b      AS Buddy   NO-UNDO.
+        DEFINE VARIABLE words  AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE colour AS INTEGER NO-UNDO.
+        DEFINE VARIABLE head   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ms     AS INTEGER NO-UNDO.
+        ms = mGame:ElapsedMs.
+        IF mGame:BlastCount > mBlastsSeen THEN DO:
+            mBlastsSeen = mGame:BlastCount.
+            DO i = 1 TO mGame:LastBlast:HitCount():
+                mDmgBuddy[mDmgNext] = mGame:LastBlast:HitBuddy(i).
+                mDmgAmount[mDmgNext] = mGame:LastBlast:HitDamage(i).
+                mDmgMs[mDmgNext] = ms.
+                mDmgNext = mDmgNext MODULO 16 + 1.
+            END.
+        END.
+        DO i = 1 TO 16:
+            age = ms - mDmgMs[i].
+            IF age < 0 OR age >= 960 THEN NEXT.
+            b = mDmgBuddy[i].
+            IF NOT VALID-OBJECT(b) OR b:State = BuddyState:Drowned THEN NEXT.
+            head = b:Y() - 12 + 2.
+            words = STRING(mDmgAmount[i]).
+            colour = (IF age >= 760 THEN mSmoke[3] ELSE BuddiesLook:Colour(BuddyTint:Hurt)).
+            mText:Get(words, 1, colour, colour, BuddiesLook:Colour(BuddyTint:Outline)):DrawTo(mCanvas,
+                b:X() - INTEGER(TRUNCATE(PixelFont:WidthOf(words) / 2, 0)), head - 20 - INTEGER(TRUNCATE(age / 40, 0))).
+            IF age < 700 AND mDmgAmount[i] >= 10 THEN
+                mSprites:Stamp("bubble_oof", 0, FALSE):DrawTo(mCanvas, b:X() + 3 - mSprites:OriginX("bubble_oof", FALSE), head - 2 - mSprites:OriginY("bubble_oof")).
         END.
     END METHOD.
 

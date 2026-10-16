@@ -371,6 +371,111 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
         sp:Dispose().
     END METHOD.
 
+    /* the buddies in a row on the floor, the first of team 1 at column 100 and the first of team 2 at 136, the rest well away */
+    METHOD PRIVATE VOID SetTheStage():
+        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        Floor().
+        DO k = 0 TO 5:
+            mGame:Plan:TeamAt(k MODULO 2 + 1):BuddyAt(INTEGER(TRUNCATE(k / 2, 0)) + 1):PlaceAt(250 + 20 * k, 150).
+        END.
+        mGame:Plan:TeamAt(1):BuddyAt(1):PlaceAt(100, 150).
+        mGame:Plan:TeamAt(2):BuddyAt(1):PlaceAt(136, 150).
+        Frames(BuddyRules:ArrivalFrames() + BuddyRules:BannerFrames()).
+        mGame:CurrentBuddy:Facing = 1.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ARocketInFlightIsDrawnTurnedToItsCourseWithATrailOfSmokeBehindIt():
+        DEFINE VARIABLE sp  AS BuddySprites NO-UNDO.
+        DEFINE VARIABLE st  AS PixelStamp   NO-UNDO.
+        DEFINE VARIABLE sx  AS INTEGER      NO-UNDO.
+        DEFINE VARIABLE sy  AS INTEGER      NO-UNDO.
+        DEFINE VARIABLE ok  AS LOGICAL      NO-UNDO INITIAL TRUE.
+        sp = NEW BuddySprites().
+        st = sp:Stamp("rocket", 0, FALSE).
+        mGame:Shells:Launch(WeaponKind:Bazooka, 1, 200 * 256, 100 * 256, 1024, 0).
+        mPainter:Render(mGame:Grid, mGame).
+        DO sy = 0 TO st:Height - 1:
+            DO sx = 0 TO st:Width - 1:
+                IF st:ColourAt(sx, sy) >= 0 AND Px(200 - 5 + sx, 100 - 3 + sy) <> st:ColourAt(sx, sy) THEN ok = FALSE.
+            END.
+        END.
+        Assert:IsTrue(ok).
+        mGame:Shells:Move(1, 300 * 256, 60 * 256, 1024, 0).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(ColourMath:FromHex(ENTRY(1, BuddiesLook:ToneRow("Smoke"))), Px(195, 100)).
+        sp:Dispose().
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AShotAboveTheTopOfTheMapIsMarkedByAnArrowInItsColumn():
+        mGame:Shells:Launch(WeaponKind:Bazooka, 1, 200 * 256, -20 * 256, 0, -100).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(ColourMath:FromHex("FFFFFF"), Px(200, 1)).
+        Assert:Equals(ColourMath:FromHex("1C1426"), Px(200, 2)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheReticleSitsTwentyEightPixelsOutAlongTheAimOfTheGoonInTurn():
+        DEFINE VARIABLE sp    AS BuddySprites NO-UNDO.
+        DEFINE VARIABLE st    AS PixelStamp NO-UNDO.
+        DEFINE VARIABLE rname AS CHARACTER  NO-UNDO.
+        DEFINE VARIABLE cx    AS INTEGER    NO-UNDO.
+        DEFINE VARIABLE cy    AS INTEGER    NO-UNDO.
+        DEFINE VARIABLE sx    AS INTEGER    NO-UNDO.
+        DEFINE VARIABLE sy    AS INTEGER    NO-UNDO.
+        DEFINE VARIABLE ok    AS LOGICAL    NO-UNDO INITIAL TRUE.
+        SetTheStage().
+        Assert:IsTrue(mGame:Phase = BuddyPhase:Turn).
+        mPainter:Render(mGame:Grid, mGame).
+        rname = "reticle_" + STRING(INTEGER(TRUNCATE(mGame:ElapsedMs / 300, 0)) MODULO 2).
+        cx = 100 + 3 + INTEGER(ROUND(Heading:DirX(mGame:AimHeading) * 28 / 1024, 0)).
+        cy = 150 - 5 + INTEGER(ROUND(Heading:DirY(mGame:AimHeading) * 28 / 1024, 0)).
+        sp = NEW BuddySprites().
+        st = sp:Stamp(rname, 0, FALSE).
+        DO sy = 0 TO st:Height - 1:
+            DO sx = 0 TO st:Width - 1:
+                IF st:ColourAt(sx, sy) >= 0 AND Px(cx - 4 + sx, cy - 4 + sy) <> st:ColourAt(sx, sy) THEN ok = FALSE.
+            END.
+        END.
+        Assert:IsTrue(ok).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID HoldingFireGrowsADotForEverySixthOfTheChargeInGoldTowardsRed():
+        SetTheStage().
+        mGame:StartCharge().
+        Frames(30).
+        mPainter:Render(mGame:Grid, mGame).
+        /* 30 of 90 frames: 5 dots and the one that has begun; dot 0 is 6 pixels out and 2 rows up, in gold */
+        Assert:Equals(ColourMath:FromHex("FFC23A"),
+                      Px(100 + 3 + INTEGER(ROUND(Heading:DirX(mGame:AimHeading) * 6 / 1024, 0)), 150 - 5 + INTEGER(ROUND(Heading:DirY(mGame:AimHeading) * 6 / 1024, 0)) - 2)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ABlastFloatsTheDamageNumberUpOverTheBuddyItHurtAndASquealBubble():
+        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hurt   AS LOGICAL NO-UNDO.
+        DEFINE VARIABLE bubble AS LOGICAL NO-UNDO.
+        SetTheStage().
+        mGame:SetAim(1).
+        Frames(12).
+        mGame:SetAim(0).
+        mGame:StartCharge().
+        Frames(45).
+        mGame:ReleaseCharge().
+        Frames(25).
+        Assert:IsTrue(mGame:BlastCount >= 1).
+        mPainter:Render(mGame:Grid, mGame).
+        DO y = 20 TO 140:
+            DO x = 110 TO 230:
+                IF Px(x, y) = ColourMath:FromHex("FF5A4A") THEN hurt = TRUE.
+            END.
+        END.
+        Assert:IsTrue(hurt).
+    END METHOD.
+
     @Test.
     METHOD PUBLIC VOID TheHealthIsWrittenOverALivingGoonInItsTeamColour():
         DEFINE VARIABLE found AS LOGICAL NO-UNDO.
