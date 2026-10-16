@@ -293,6 +293,200 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
         Assert:IsFalse(mGame:IsOver).
     END METHOD.
 
+    /* flat open ground 40 pixels either side of the buddy in turn, with clear air over it, so walking is not stopped by the random land */
+    METHOD PRIVATE VOID Flatten(INPUT poBuddy AS Buddy):
+        mGame:Land:FillRect(poBuddy:X() - 40, poBuddy:Y() - 30, poBuddy:X() + 40, poBuddy:Y() - 1, FALSE).
+        mGame:Land:FillRect(poBuddy:X() - 40, poBuddy:Y(), poBuddy:X() + 40, poBuddy:Y() + 20, TRUE).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AHeldWalkMovesTheBuddyInTurnOnePixelEveryFortyMilliseconds():
+        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        ToTheFirstTurn().
+        Flatten(mGame:CurrentBuddy).
+        x0 = mGame:CurrentBuddy:X().
+        mGame:SetWalk(1).
+        Frames(12).
+        Assert:Equals(x0 + 5, mGame:CurrentBuddy:X()).
+        Assert:Equals(1, mGame:CurrentBuddy:Facing).
+        mGame:SetWalk(-1).
+        Frames(12).
+        Assert:Equals(x0, mGame:CurrentBuddy:X()).
+        Assert:Equals(-1, mGame:CurrentBuddy:Facing).
+        mGame:SetWalk(0).
+        Frames(12).
+        Assert:Equals(x0, mGame:CurrentBuddy:X()).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID WalkingStillWorksInTheRetreat():
+        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        ToTheFirstTurn().
+        Flatten(mGame:CurrentBuddy).
+        x0 = mGame:CurrentBuddy:X().
+        mGame:BeginRetreat().
+        mGame:SetWalk(1).
+        Frames(12).
+        Assert:Equals(x0 + 5, mGame:CurrentBuddy:X()).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID NobodyWalksInTheBannerOrAfterTheTurnHasChanged():
+        DEFINE VARIABLE b  AS Buddy   NO-UNDO.
+        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        Frames(BuddyRules:ArrivalFrames()).
+        b = mGame:CurrentBuddy.
+        Flatten(b).
+        x0 = b:X().
+        mGame:SetWalk(1).
+        Frames(12).
+        Assert:Equals(x0, b:X()).
+        Assert:IsTrue(mGame:Phase = BuddyPhase:Banner).
+        Frames(BuddyRules:BannerFrames()).
+        Assert:Equals(0, mGame:WalkDirection).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AWalkDirectionIsMinusOneZeroOrOne():
+        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        DO ON ERROR UNDO, LEAVE:
+            mGame:SetWalk(2).
+            CATCH e AS GridException:
+                lThrown = TRUE.
+            END CATCH.
+        END.
+        Assert:IsTrue(lThrown).
+        lThrown = FALSE.
+        DO ON ERROR UNDO, LEAVE:
+            mGame:SetAim(-2).
+            CATCH e AS GridException:
+                lThrown = TRUE.
+            END CATCH.
+        END.
+        Assert:IsTrue(lThrown).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheAimMovesOneStepEveryThreeFramesAndStopsAtStraightUpAndStraightDown():
+        ToTheFirstTurn().
+        Assert:Equals(12, mGame:Aim).
+        mGame:SetAim(-1).
+        Frames(3).
+        Assert:Equals(11, mGame:Aim).
+        Frames(300).
+        Assert:Equals(0, mGame:Aim).
+        mGame:SetAim(1).
+        Frames(300).
+        Assert:Equals(32, mGame:Aim).
+        mGame:SetAim(0).
+        Frames(30).
+        Assert:Equals(32, mGame:Aim).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheAimHeadingFollowsTheWayTheBuddyFaces():
+        ToTheFirstTurn().
+        mGame:CurrentBuddy:Facing = 1.
+        Assert:Equals(12, mGame:AimHeading).
+        mGame:CurrentBuddy:Facing = -1.
+        Assert:Equals(52, mGame:AimHeading).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID HoldingFireBuildsPowerAndLettingGoFiresAndStartsTheRetreat():
+        ToTheFirstTurn().
+        mGame:StartCharge().
+        Assert:IsTrue(mGame:Charging).
+        Frames(45).
+        Assert:Equals(50, mGame:PowerPercent).
+        mGame:ReleaseCharge().
+        Assert:Equals(1, mGame:ShotsFired).
+        Assert:Equals(50, mGame:LastPower).
+        Assert:IsFalse(mGame:Charging).
+        Assert:Equals(0, mGame:PowerPercent).
+        Assert:IsTrue(mGame:Phase = BuddyPhase:Retreat).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID FullPowerFiresByItself():
+        ToTheFirstTurn().
+        mGame:StartCharge().
+        Frames(BuddyRules:ChargeFrames()).
+        Assert:Equals(1, mGame:ShotsFired).
+        Assert:Equals(100, mGame:LastPower).
+        Assert:IsTrue(mGame:Phase = BuddyPhase:Retreat).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ThereIsNoChargingOutsideATurnOrWhilePausedAndNoShotWithoutACharge():
+        mGame:StartCharge().
+        Assert:IsFalse(mGame:Charging).
+        ToTheFirstTurn().
+        mGame:ReleaseCharge().
+        Assert:Equals(0, mGame:ShotsFired).
+        mGame:Paused = TRUE.
+        mGame:StartCharge().
+        Assert:IsFalse(mGame:Charging).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AHopLeavesTheGroundAndASecondJumpWithinAQuarterOfASecondIsABackflip():
+        ToTheFirstTurn().
+        Flatten(mGame:CurrentBuddy).
+        mGame:CurrentBuddy:Facing = 1.
+        mGame:Jump().
+        Assert:IsTrue(mGame:CurrentBuddy:State = BuddyState:Airborne).
+        Assert:IsTrue(mGame:CurrentBuddy:VX > 0).
+        Frames(5).
+        mGame:Jump().
+        Assert:IsTrue(mGame:CurrentBuddy:VX < 0).
+        Assert:IsTrue(mGame:CurrentBuddy:VY < 0).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ASecondJumpLaterThanAQuarterOfASecondDoesNothing():
+        ToTheFirstTurn().
+        Flatten(mGame:CurrentBuddy).
+        mGame:CurrentBuddy:Facing = 1.
+        mGame:Jump().
+        Frames(16).
+        mGame:Jump().
+        Assert:IsTrue(mGame:CurrentBuddy:VX > 0).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheComputersTurnIsNotAHumanTurnAndTheNextTurnResetsTheAim():
+        ToTheFirstTurn().
+        Assert:IsTrue(mGame:HumanTurn).
+        mGame:SetAim(1).
+        Frames(30).
+        mGame:SetAim(0).
+        Assert:Equals(22, mGame:Aim).
+        mGame:EndTurn().
+        Frames(BuddyRules:SettleFrames()).
+        Assert:Equals(12, mGame:Aim).
+        Frames(BuddyRules:BannerFrames()).
+        Assert:IsTrue(mGame:Phase = BuddyPhase:Turn).
+        Assert:IsFalse(mGame:HumanTurn).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AnIdleHumanTurnIsNotHumanInTheBanner():
+        Frames(BuddyRules:ArrivalFrames()).
+        Assert:IsTrue(mGame:Phase = BuddyPhase:Banner).
+        Assert:IsFalse(mGame:HumanTurn).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheNewAimPropertiesStartAtTheirDefaults():
+        Assert:Equals(12, mGame:Aim).
+        Assert:Equals(0, mGame:AimHeading).
+        Assert:Equals(0, mGame:AimDirection).
+        Assert:Equals(0, mGame:WalkDirection).
+        Assert:Equals(0, mGame:Charge).
+        Assert:IsFalse(mGame:Charging).
+    END METHOD.
+
     @Test.
     METHOD PUBLIC VOID ThreeTeamsOfFourMakeTwelveBuddiesWithTheLastOnesPlayedByTheComputer():
         DEFINE VARIABLE g AS BlastBuddiesGame NO-UNDO.

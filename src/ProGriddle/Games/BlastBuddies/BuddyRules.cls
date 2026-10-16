@@ -94,4 +94,33 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyRules FINAL:
         RETURN 10.
     END METHOD.
 
+    /* The aim is a number of steps from straight up (0) through level (16) to straight down (32), and a new turn starts at AimStart. A
+       held aim key moves it one step every AimRepeatFrames. */
+    METHOD PUBLIC STATIC INTEGER AimStart():
+        RETURN 12.
+    END METHOD.
+
+    METHOD PUBLIC STATIC INTEGER AimRepeatFrames():
+        RETURN 3.
+    END METHOD.
+
+    /* Holding the fire key for this many frames (1.5 s) is full power, and the shot goes by itself when it is reached. */
+    METHOD PUBLIC STATIC INTEGER ChargeFrames():
+        RETURN 90.
+    END METHOD.
+
+    /* A second jump key within this many frames (250 ms) of a hop turns it into a backflip. */
+    METHOD PUBLIC STATIC INTEGER DoubleJumpFrames():
+        RETURN 15.
+    END METHOD.
+
+    /* Walking is one pixel every 40 ms: a held direction adds WalkGain every frame, and a pixel is walked each time WalkNeeded is reached. */
+    METHOD PUBLIC STATIC INTEGER WalkGain():
+        RETURN 5.
+    END METHOD.
+
+    METHOD PUBLIC STATIC INTEGER WalkNeeded():
+        RETURN 12.
+    END METHOD.
+
 END CLASS.

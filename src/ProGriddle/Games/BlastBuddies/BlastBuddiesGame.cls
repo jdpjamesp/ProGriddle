@@ -26,6 +26,10 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
     DEFINE PRIVATE VARIABLE mAcc     AS INTEGER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mTimer   AS INTEGER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mSettle  AS INTEGER        NO-UNDO.
+    DEFINE PRIVATE VARIABLE mWalkAcc AS INTEGER        NO-UNDO.
+    DEFINE PRIVATE VARIABLE mAimAcc  AS INTEGER        NO-UNDO.
+    DEFINE PRIVATE VARIABLE mJumpAt  AS INTEGER        NO-UNDO.
+    DEFINE PRIVATE VARIABLE mJumpWas AS INTEGER        NO-UNDO.
 
     /* True while the game is stopped: the clock and the moves do nothing. */
     DEFINE PUBLIC PROPERTY Paused AS LOGICAL NO-UNDO GET. SET.
@@ -46,6 +50,45 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
 
     /* The team that won (1 to 4) in the Winner phase, else 0. */
     DEFINE PUBLIC PROPERTY WinnerTeam AS INTEGER NO-UNDO GET. PRIVATE SET.
+
+    /* The way the buddy in turn is being walked, -1 for left, 1 for right, 0 for not at all (see SetWalk). */
+    DEFINE PUBLIC PROPERTY WalkDirection AS INTEGER NO-UNDO GET. PRIVATE SET.
+
+    /* The way the aim is being moved: -1 raises it, 1 lowers it, 0 leaves it. */
+    DEFINE PUBLIC PROPERTY AimDirection AS INTEGER NO-UNDO GET. PRIVATE SET.
+
+    /* The aim of the buddy in turn: steps from straight up (0), through level (16), to straight down (32), on the side it faces. */
+    DEFINE PUBLIC PROPERTY Aim AS INTEGER NO-UNDO GET. PRIVATE SET.
+
+    /* True while the fire key is held, building up power. */
+    DEFINE PUBLIC PROPERTY Charging AS LOGICAL NO-UNDO GET. PRIVATE SET.
+
+    /* Frames the fire key has been held, 0 to 90. */
+    DEFINE PUBLIC PROPERTY Charge AS INTEGER NO-UNDO GET. PRIVATE SET.
+
+    /* How many shots have been fired, and the power (percent) of the last one. */
+    DEFINE PUBLIC PROPERTY ShotsFired AS INTEGER NO-UNDO GET. PRIVATE SET.
+    DEFINE PUBLIC PROPERTY LastPower AS INTEGER NO-UNDO GET. PRIVATE SET.
+
+    /* The power now, 0 to 100 percent of the charge. */
+    DEFINE PUBLIC PROPERTY PowerPercent AS INTEGER NO-UNDO
+        GET():
+            RETURN INTEGER(TRUNCATE(MINIMUM(Charge, BuddyRules:ChargeFrames()) * 100 / BuddyRules:ChargeFrames(), 0)).
+        END GET.
+
+    /* The aim as one of the 64 headings of Heading (0 up, 16 right, 32 down, 48 left), taking the way the buddy faces into account. */
+    DEFINE PUBLIC PROPERTY AimHeading AS INTEGER NO-UNDO
+        GET():
+            IF NOT VALID-OBJECT(CurrentBuddy) THEN RETURN 0.
+            RETURN (IF CurrentBuddy:Facing >= 0 THEN Aim ELSE Heading:Wrap(64 - Aim)).
+        END GET.
+
+    /* True when a person controls the buddy in turn: the turn is on and the team is not played by the computer. */
+    DEFINE PUBLIC PROPERTY HumanTurn AS LOGICAL NO-UNDO
+        GET():
+            RETURN VALID-OBJECT(CurrentBuddy) AND (Phase = BuddyPhase:Turn OR Phase = BuddyPhase:Retreat)
+                   AND NOT mPlan:TeamAt(CurrentBuddy:Team):IsComputer.
+        END GET.
 
     /* The order of play, with the teams. */
     DEFINE PUBLIC PROPERTY Plan AS TurnPlan NO-UNDO
@@ -117,6 +160,49 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
         mTimer = BuddyRules:RetreatFrames().
     END METHOD.
 
+    /* Walks the buddy in turn in a direction (-1, 0, 1) for as long as it is set: one pixel every 40 ms. Works in the Turn and Retreat
+       phases. The window leaves it alone on a computer team (see HumanTurn), and the computer calls it itself. */
+    METHOD PUBLIC VOID SetWalk(INPUT piDirection AS INTEGER):
+        IF piDirection < -1 OR piDirection > 1 THEN UNDO, THROW NEW GridException("A walk direction is -1, 0 or 1").
+        WalkDirection = piDirection.
+        IF piDirection = 0 THEN mWalkAcc = 0.
+    END METHOD.
+
+    /* Moves the aim for as long as it is set: -1 raises it, 1 lowers it, 0 stops. */
+    METHOD PUBLIC VOID SetAim(INPUT piDirection AS INTEGER):
+        IF piDirection < -1 OR piDirection > 1 THEN UNDO, THROW NEW GridException("An aim direction is -1, 0 or 1").
+        AimDirection = piDirection.
+        IF piDirection = 0 THEN mAimAcc = 0.
+    END METHOD.
+
+    /* The fire key went down: power builds up while it is held. Only in the Turn phase, before a shot. */
+    METHOD PUBLIC VOID StartCharge():
+        IF Phase <> BuddyPhase:Turn OR Paused OR Charging THEN RETURN.
+        Charging = TRUE.
+        Charge = 0.
+    END METHOD.
+
+    /* The fire key came up: the shot goes with the power built up so far. Does nothing if no charge was started. */
+    METHOD PUBLIC VOID ReleaseCharge():
+        IF NOT Charging OR Paused THEN RETURN.
+        FireShot().
+    END METHOD.
+
+    /* The jump key: a hop the way the buddy faces; a second press within 250 ms turns it into a backflip. */
+    METHOD PUBLIC VOID Jump():
+        IF Paused OR (Phase <> BuddyPhase:Turn AND Phase <> BuddyPhase:Retreat) OR NOT VALID-OBJECT(CurrentBuddy) THEN RETURN.
+        IF CurrentBuddy:IsDead() THEN RETURN.
+        IF mJumpWas = 1 AND FrameCount - mJumpAt <= BuddyRules:DoubleJumpFrames() AND CurrentBuddy:State = BuddyState:Airborne THEN DO:
+            mPhysics:Launch(CurrentBuddy, - CurrentBuddy:Facing * BuddyRules:FlipBack(), - BuddyRules:FlipLift()).
+            mJumpWas = 2.
+            RETURN.
+        END.
+        IF mPhysics:Hop(CurrentBuddy) THEN DO:
+            mJumpWas = 1.
+            mJumpAt = FrameCount.
+        END.
+    END METHOD.
+
     METHOD PUBLIC OVERRIDE VOID Dispose():
         IF VALID-OBJECT(mTerrain) THEN mTerrain:Dispose().
         SUPER:Dispose().
@@ -165,6 +251,16 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
         END.
         mAcc = 0.
         mSettle = 0.
+        mWalkAcc = 0.
+        mAimAcc = 0.
+        mJumpWas = 0.
+        WalkDirection = 0.
+        AimDirection = 0.
+        Charging = FALSE.
+        Charge = 0.
+        ShotsFired = 0.
+        LastPower = 0.
+        Aim = BuddyRules:AimStart().
         FrameCount = 0.
         Wind = 0.
         WinnerTeam = 0.
@@ -184,6 +280,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
                 mPhysics:Step(mPlan:TeamAt(i):BuddyAt(j), mTerrain).
             END.
         END.
+        ApplyControls().
         CASE Phase:
             WHEN BuddyPhase:Arrival OR WHEN BuddyPhase:Banner OR WHEN BuddyPhase:Turn OR WHEN BuddyPhase:Retreat THEN DO:
                 mTimer = mTimer - 1.
@@ -198,6 +295,44 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
         END CASE.
     END METHOD.
 
+    /* What the player has asked of the buddy in turn this frame: a pixel walked, a step of aim, power built up. */
+    METHOD PRIVATE VOID ApplyControls():
+        IF NOT (Phase = BuddyPhase:Turn OR Phase = BuddyPhase:Retreat) THEN DO:
+            mWalkAcc = 0.
+            Charging = FALSE.
+            RETURN.
+        END.
+        IF NOT VALID-OBJECT(CurrentBuddy) OR CurrentBuddy:IsDead() THEN RETURN.
+        IF WalkDirection <> 0 AND CurrentBuddy:State = BuddyState:Standing THEN DO:
+            mWalkAcc = mWalkAcc + BuddyRules:WalkGain().
+            IF mWalkAcc >= BuddyRules:WalkNeeded() THEN DO:
+                mWalkAcc = mWalkAcc - BuddyRules:WalkNeeded().
+                mPhysics:Walk(CurrentBuddy, mTerrain, WalkDirection).
+            END.
+        END.
+        IF Phase <> BuddyPhase:Turn THEN RETURN.
+        IF AimDirection <> 0 THEN DO:
+            mAimAcc = mAimAcc + 1.
+            IF mAimAcc >= BuddyRules:AimRepeatFrames() THEN DO:
+                mAimAcc = 0.
+                Aim = MAXIMUM(0, MINIMUM(32, Aim + AimDirection)).
+            END.
+        END.
+        IF Charging THEN DO:
+            Charge = Charge + 1.
+            IF Charge >= BuddyRules:ChargeFrames() THEN FireShot().
+        END.
+    END METHOD.
+
+    /* The shot goes, with the power built up. The weapon itself comes next; for now the shot is counted and the retreat begins. */
+    METHOD PRIVATE VOID FireShot():
+        LastPower = PowerPercent.
+        ShotsFired = ShotsFired + 1.
+        Charging = FALSE.
+        Charge = 0.
+        BeginRetreat().
+    END METHOD.
+
     /* The clock of the phase has run out. */
     METHOD PRIVATE VOID PhaseEnded():
         CASE Phase:
@@ -205,6 +340,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
             WHEN BuddyPhase:Banner THEN DO:
                 Phase = BuddyPhase:Turn.
                 mTimer = BuddyRules:TurnFrames().
+                WalkDirection = 0.
+                AimDirection = 0.
             END.
             OTHERWISE EndTurn().
         END CASE.
@@ -231,6 +368,12 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
                 Generation = Generation + 1.
                 Phase = BuddyPhase:Banner.
                 mTimer = BuddyRules:BannerFrames().
+                Aim = BuddyRules:AimStart().
+                mJumpWas = 0.
+                WalkDirection = 0.
+                AimDirection = 0.
+                mWalkAcc = 0.
+                mAimAcc = 0.
             END.
         END CASE.
     END METHOD.
