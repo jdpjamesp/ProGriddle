@@ -77,6 +77,15 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     DEFINE PRIVATE VARIABLE mDbLive    AS LOGICAL       NO-UNDO EXTENT 256.
     DEFINE PRIVATE VARIABLE mDbNext    AS INTEGER       NO-UNDO INITIAL 1.
     DEFINE PRIVATE VARIABLE mLastFrame AS INTEGER       NO-UNDO.
+    /* when each buddy was first seen buried (its gravestone rises from then), and when it went into the water, and where */
+    DEFINE PRIVATE VARIABLE mPrevBuried AS LOGICAL      NO-UNDO EXTENT 16.
+    DEFINE PRIVATE VARIABLE mBuriedMs  AS INTEGER       NO-UNDO EXTENT 16 INITIAL -100000.
+    DEFINE PRIVATE VARIABLE mSinkMs    AS INTEGER       NO-UNDO EXTENT 16 INITIAL -100000.
+    DEFINE PRIVATE VARIABLE mSinkX     AS INTEGER       NO-UNDO EXTENT 16.
+    /* the rings of the splashes: the column and the time of each */
+    DEFINE PRIVATE VARIABLE mSplX      AS INTEGER       NO-UNDO EXTENT 4.
+    DEFINE PRIVATE VARIABLE mSplMs     AS INTEGER       NO-UNDO EXTENT 4 INITIAL -100000.
+    DEFINE PRIVATE VARIABLE mSplNext   AS INTEGER       NO-UNDO INITIAL 1.
     /* the team tones 1 and 2 */
     DEFINE PRIVATE VARIABLE mTone1     AS INTEGER       NO-UNDO EXTENT 4.
     DEFINE PRIVATE VARIABLE mTone2     AS INTEGER       NO-UNDO EXTENT 4.
@@ -167,6 +176,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         SyncBlasts().
         DrawShells().
         DrawBlasts().
+        DrawSplashRings().
         DrawAim().
         DrawDamage().
         ApplyShake().
@@ -488,8 +498,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         DO i = 1 TO mGame:Plan:TeamCount():
             DO j = 1 TO mGame:Plan:TeamAt(i):Count():
                 b = mGame:Plan:TeamAt(i):BuddyAt(j).
-                IF b:State = BuddyState:Drowned THEN NEXT.
-                IF b:Buried THEN DrawGravestone(b).
+                IF b:State = BuddyState:Drowned THEN DrawSinking((b:Team - 1) * 4 + j).
+                ELSE IF b:Buried THEN DrawGravestone(b, (b:Team - 1) * 4 + j).
+                ELSE IF b = mGame:DyingBuddy THEN DrawDying(b, (b:Team - 1) * 4 + j).
                 ELSE DrawGoon(b, (b:Team - 1) * 4 + j).
             END.
         END.
@@ -504,8 +515,25 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* Notes what a buddy has been doing since the last picture: when it walked, and when it came down. */
     METHOD PRIVATE VOID Track(INPUT poBuddy AS Buddy, INPUT piKey AS INTEGER):
-        IF poBuddy:X() <> mPrevX[piKey] AND mPrevX[piKey] >= 0 AND poBuddy:State = BuddyState:Standing THEN mMoveMs[piKey] = mGame:ElapsedMs.
-        IF mPrevState[piKey] = INTEGER(BuddyState:Airborne) AND poBuddy:State = BuddyState:Standing THEN mLandMs[piKey] = mGame:ElapsedMs.
+        DEFINE VARIABLE ms AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k  AS INTEGER NO-UNDO.
+        ms = mGame:ElapsedMs.
+        IF poBuddy:X() <> mPrevX[piKey] AND mPrevX[piKey] >= 0 AND poBuddy:State = BuddyState:Standing THEN mMoveMs[piKey] = ms.
+        IF mPrevState[piKey] = INTEGER(BuddyState:Airborne) AND poBuddy:State = BuddyState:Standing THEN mLandMs[piKey] = ms.
+        /* into the water: a splash where it went in, and a goon that sinks. One seen for the first time already drowned only has the splash. */
+        IF poBuddy:State = BuddyState:Drowned AND mPrevState[piKey] <> INTEGER(BuddyState:Drowned) AND mPrevX[piKey] >= 0 THEN DO:
+            mSinkMs[piKey] = ms.
+            mSinkX[piKey] = MAXIMUM(0, MINIMUM({&W} - 1, poBuddy:X())).
+            mSplX[mSplNext] = mSinkX[piKey].
+            mSplMs[mSplNext] = ms.
+            mSplNext = mSplNext MODULO 4 + 1.
+            DO k = 1 TO 10:
+                SpawnDebris(mSinkX[piKey], {&WATER} - 1, (IF k MODULO 2 = 0 THEN Look(ThemeKey:Foam) ELSE Look(ThemeKey:WaterTop)), FALSE, 5).
+            END.
+        END.
+        /* buried: the gravestone rises out of the ground from now, unless it was there when the painter first saw the buddy */
+        IF poBuddy:Buried AND NOT mPrevBuried[piKey] THEN mBuriedMs[piKey] = (IF mPrevX[piKey] >= 0 THEN ms ELSE -100000).
+        mPrevBuried[piKey] = poBuddy:Buried.
         mPrevX[piKey] = poBuddy:X().
         mPrevState[piKey] = INTEGER(poBuddy:State).
     END METHOD.
@@ -538,29 +566,119 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     END METHOD.
 
     METHOD PRIVATE VOID DrawGoon(INPUT poBuddy AS Buddy, INPUT piKey AS INTEGER):
-        DEFINE VARIABLE pose  AS CHARACTER NO-UNDO.
+        DrawPose(poBuddy, FrameFor(poBuddy, piKey), 0).
+    END METHOD.
+
+    /* A goon in a picture, piUp pixels above where it stands, with its mark, and the bazooka in its hands when it aims. */
+    METHOD PRIVATE VOID DrawPose(INPUT poBuddy AS Buddy, INPUT pcPose AS CHARACTER, INPUT piUp AS INTEGER):
         DEFINE VARIABLE mirror AS LOGICAL   NO-UNDO.
         DEFINE VARIABLE x      AS INTEGER   NO-UNDO.
         DEFINE VARIABLE y      AS INTEGER   NO-UNDO.
         DEFINE VARIABLE mark   AS CHARACTER NO-UNDO.
         DEFINE VARIABLE head   AS INTEGER   NO-UNDO.
         DEFINE VARIABLE r      AS INTEGER   NO-UNDO.
-        pose = FrameFor(poBuddy, piKey).
         mirror = poBuddy:Facing < 0.
         x = poBuddy:X().
-        y = poBuddy:Y().
-        mSprites:Stamp(pose, poBuddy:Team, mirror):DrawTo(mCanvas, x - mSprites:OriginX(pose, mirror), y - mSprites:OriginY(pose)).
-        head = y - mSprites:OriginY(pose) + mSprites:HeadTop(pose).
+        y = poBuddy:Y() - piUp.
+        mSprites:Stamp(pcPose, poBuddy:Team, mirror):DrawTo(mCanvas, x - mSprites:OriginX(pcPose, mirror), y - mSprites:OriginY(pcPose)).
+        head = y - mSprites:OriginY(pcPose) + mSprites:HeadTop(pcPose).
         mark = ENTRY(poBuddy:Team, "mark_reds,mark_blues,mark_teals,mark_grapes").
         mSprites:Stamp(mark, 0, mirror):DrawTo(mCanvas, x - mSprites:OriginX(mark, mirror), head + 1 - mSprites:HeightOf(mark)).
-        IF pose = "goon_aim" THEN DO:
+        IF pcPose = "goon_aim" THEN DO:
             r = mSprites:Reach("held_bazooka").
             mSprites:Turned("held_bazooka", mGame:AimHeading, mirror):DrawTo(mCanvas, x + (IF mirror THEN -3 ELSE 3) - r, y - 5 - r).
         END.
     END METHOD.
 
-    METHOD PRIVATE VOID DrawGravestone(INPUT poBuddy AS Buddy):
-        mSprites:Stamp("gravestone", 0, FALSE):DrawTo(mCanvas, poBuddy:X() - mSprites:OriginX("gravestone", FALSE), poBuddy:Y() - mSprites:OriginY("gravestone")).
+    /* A buddy that has died, shown dying for a second: the alarm frames with a skull over its head, and then a puff of smoke where it was. */
+    METHOD PRIVATE VOID DrawDying(INPUT poBuddy AS Buddy, INPUT piKey AS INTEGER):
+        DEFINE VARIABLE t    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hd   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE tone AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cx   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cy   AS INTEGER NO-UNDO.
+        t = mGame:DeathPercent * 10.
+        IF t < 200 THEN DrawPose(poBuddy, "goon_alarm_1", 0).
+        ELSE IF t < 400 THEN DrawPose(poBuddy, "goon_alarm_2", 6).
+        ELSE IF t < 600 THEN DrawPose(poBuddy, "goon_alarm_3", 0).
+        IF t < 600 THEN
+            mSprites:Stamp("ico_skull", 0, FALSE):DrawTo(mCanvas, poBuddy:X() - mSprites:OriginX("ico_skull", FALSE), poBuddy:Y() - 12 - 8 - mSprites:OriginY("ico_skull")).
+        ELSE DO:
+            /* eight puffs round the middle of the goon, one tone paler to darker every 80 ms, drifting up */
+            tone = 1 + INTEGER(TRUNCATE((t - 600) / 80, 0)).
+            IF tone <= 5 THEN DO i = 0 TO 7:
+                hd = i * 8.
+                cx = poBuddy:X() + INTEGER(ROUND(Heading:DirX(hd) * 6 / Heading:Scale(), 0)).
+                cy = poBuddy:Y() - 6 + INTEGER(ROUND(Heading:DirY(hd) * 6 / Heading:Scale(), 0)) - INTEGER(TRUNCATE((t - 600) / 60, 0)).
+                mCanvas:Plot(cx, cy, 0, mSmoke[tone]).
+                mCanvas:Plot(cx - 1, cy, 0, mSmoke[tone]).
+                mCanvas:Plot(cx + 1, cy, 0, mSmoke[tone]).
+                mCanvas:Plot(cx, cy - 1, 0, mSmoke[tone]).
+                mCanvas:Plot(cx, cy + 1, 0, mSmoke[tone]).
+            END.
+        END.
+    END METHOD.
+
+    /* The gravestone of a buried buddy: it rises out of the ground a pixel every 55 ms, clipped at the ground line, and a halo floats
+       up over it and then bobs. */
+    METHOD PRIVATE VOID DrawGravestone(INPUT poBuddy AS Buddy, INPUT piKey AS INTEGER):
+        DEFINE VARIABLE age  AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE rise AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE st   AS PixelStamp NO-UNDO.
+        DEFINE VARIABLE sx   AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE sy   AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE x0   AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE y0   AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE hy   AS INTEGER   NO-UNDO.
+        age = MAXIMUM(mGame:ElapsedMs - mBuriedMs[piKey], 0).
+        rise = MAXIMUM(0, 11 - INTEGER(TRUNCATE(age / 55, 0))).
+        st = mSprites:Stamp("gravestone", 0, FALSE).
+        x0 = poBuddy:X() - mSprites:OriginX("gravestone", FALSE).
+        y0 = poBuddy:Y() - mSprites:OriginY("gravestone").
+        IF rise = 0 THEN st:DrawTo(mCanvas, x0, y0).
+        ELSE DO sy = 0 TO st:Height - 1 - rise:
+            DO sx = 0 TO st:Width - 1:
+                IF st:ColourAt(sx, sy) >= 0 THEN mCanvas:Plot(x0 + sx, y0 + rise + sy, 0, st:ColourAt(sx, sy)).
+            END.
+        END.
+        IF rise = 0 THEN DO:
+            /* the halo: from the head top up 16 pixels over 640 ms, then 1 pixel up and down every 400 ms */
+            hy = poBuddy:Y() - 12 - MINIMUM(16, MAXIMUM(0, INTEGER(TRUNCATE((age - 600) / 40, 0)))) - (IF age >= 1240 THEN INTEGER(TRUNCATE(age / 400, 0)) MODULO 2 ELSE 0).
+            mSprites:Stamp("halo", 0, FALSE):DrawTo(mCanvas, poBuddy:X() - mSprites:OriginX("halo", FALSE), hy - mSprites:OriginY("halo")).
+        END.
+    END METHOD.
+
+    /* A buddy that has gone into the water: the sinking goon goes down a pixel every 60 ms, clipped at the water line, and the ring of
+       the splash spreads out along the line. */
+    METHOD PRIVATE VOID DrawSinking(INPUT piKey AS INTEGER):
+        DEFINE VARIABLE age AS INTEGER    NO-UNDO.
+        DEFINE VARIABLE k   AS INTEGER    NO-UNDO.
+        DEFINE VARIABLE st  AS PixelStamp NO-UNDO.
+        DEFINE VARIABLE sx  AS INTEGER    NO-UNDO.
+        DEFINE VARIABLE sy  AS INTEGER    NO-UNDO.
+        age = mGame:ElapsedMs - mSinkMs[piKey].
+        IF age < 0 OR age >= 720 THEN RETURN.
+        k = INTEGER(TRUNCATE(age / 60, 0)).
+        st = mSprites:Stamp("goon_sink", INTEGER(TRUNCATE((piKey - 1) / 4, 0)) + 1, FALSE).
+        DO sy = 0 TO st:Height - 1:
+            DO sx = 0 TO st:Width - 1:
+                IF st:ColourAt(sx, sy) >= 0 AND {&WATER} + k - mSprites:OriginY("goon_sink") + sy < {&WATER} THEN
+                    mCanvas:Plot(mSinkX[piKey] - mSprites:OriginX("goon_sink", FALSE) + sx, {&WATER} + k - mSprites:OriginY("goon_sink") + sy, 0, st:ColourAt(sx, sy)).
+            END.
+        END.
+    END METHOD.
+
+    /* The rings of the splashes along the water line: foam on either side of where something went in, a pixel a frame for 6 frames. */
+    METHOD PRIVATE VOID DrawSplashRings():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DEFINE VARIABLE f AS INTEGER NO-UNDO.
+        DO i = 1 TO 4:
+            f = INTEGER(TRUNCATE((mGame:ElapsedMs - mSplMs[i]) * 60 / 1000, 0)).
+            IF f < 0 OR f > 5 THEN NEXT.
+            mCanvas:Plot(mSplX[i] - 1 - f, {&WATER}, 0, Look(ThemeKey:Foam)).
+            mCanvas:Plot(mSplX[i] + 1 + f, {&WATER}, 0, Look(ThemeKey:Foam)).
+        END.
     END METHOD.
 
     /* The health over a goon in its team colour, and the name of the goon whose turn it is. */
@@ -761,10 +879,10 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         /* the ground thrown out, in the colours of the ground */
         n = (IF r <= 12 THEN 24 ELSE IF r <= 20 THEN 40 ELSE 60).
         DO k = 1 TO n:
-            SpawnDebris(cx, cy, DebrisColour(k), k MODULO 3 = 0).
+            SpawnDebris(cx, cy, DebrisColour(k), k MODULO 3 = 0, 12).
         END.
         DO k = 1 TO MINIMUM(mGame:Land:CrumbCount(), 60):
-            SpawnDebris(mGame:Land:CrumbX(k), mGame:Land:CrumbY(k), mGame:Land:CrumbColour(k), FALSE).
+            SpawnDebris(mGame:Land:CrumbX(k), mGame:Land:CrumbY(k), mGame:Land:CrumbColour(k), FALSE, 12).
         END.
     END METHOD.
 
@@ -780,10 +898,10 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     END METHOD.
 
     /* Throws a piece of ground out from a place: at an angle upwards (200 to 340 degrees), 1.5 to 3.5 pixels a frame. */
-    METHOD PRIVATE VOID SpawnDebris(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piColour AS INTEGER, INPUT plWide AS LOGICAL):
+    METHOD PRIVATE VOID SpawnDebris(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piColour AS INTEGER, INPUT plWide AS LOGICAL, INPUT piSpread AS INTEGER):
         DEFINE VARIABLE hd    AS INTEGER NO-UNDO.
         DEFINE VARIABLE speed AS INTEGER NO-UNDO.
-        hd = mRandom:NextInt(25) - 12.
+        hd = mRandom:NextInt(2 * piSpread + 1) - piSpread.
         speed = 384 + mRandom:NextInt(513).
         mDbX[mDbNext] = piX * 256.
         mDbY[mDbNext] = piY * 256.

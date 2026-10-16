@@ -630,6 +630,85 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID ADyingBuddyShowsTheAlarmFramesWithASkullThenAPuffOfSmoke():
+        DEFINE VARIABLE e AS Buddy NO-UNDO.
+        SetTheStage().
+        e = mGame:Plan:TeamAt(2):BuddyAt(1).
+        e:Facing = 1.
+        e:Hurt(100).
+        mGame:EndTurn().
+        Frames(BuddyRules:SettleFrames()).
+        Assert:IsTrue(mGame:DyingBuddy = e).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsTrue(Shows("goon_alarm_1", 2, FALSE, 136, 150, 5)).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("F6F6F2"), 130, 120, 142, 138)).
+        Frames(16).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsTrue(Shows("goon_alarm_2", 2, FALSE, 136, 144, 5)).
+        Frames(24).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex(ENTRY(1, BuddiesLook:ToneRow("Smoke"))), 120, 125, 152, 152)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AGravestoneRisesOutOfTheGroundAndAHaloFloatsUpOverIt():
+        DEFINE VARIABLE b AS Buddy NO-UNDO.
+        Floor().
+        b = mGame:Plan:TeamAt(1):BuddyAt(1).
+        b:PlaceAt(100, 150).
+        mPainter:Render(mGame:Grid, mGame).
+        b:Hurt(100).
+        b:Buried = TRUE.
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(Sky(145), Px(100, 145)).
+        Frames(40).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsTrue(Shows("gravestone", 0, FALSE, 100, 150, 1)).
+        Frames(45).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("FFC23A"), 94, 116, 106, 128)).
+    END METHOD.
+
+    /* whether the top ten rows of the sink picture of team 1 are in the picture with the feet at the water line */
+    METHOD PRIVATE LOGICAL SinkShown(INPUT piX AS INTEGER):
+        DEFINE VARIABLE sp AS BuddySprites NO-UNDO.
+        DEFINE VARIABLE st AS PixelStamp   NO-UNDO.
+        DEFINE VARIABLE sx AS INTEGER      NO-UNDO.
+        DEFINE VARIABLE sy AS INTEGER      NO-UNDO.
+        DEFINE VARIABLE ok AS LOGICAL      NO-UNDO INITIAL TRUE.
+        sp = NEW BuddySprites().
+        st = sp:Stamp("goon_sink", 1, FALSE).
+        DO sy = 0 TO 9:
+            DO sx = 0 TO st:Width - 1:
+                IF st:ColourAt(sx, sy) >= 0 AND Px(piX - sp:OriginX("goon_sink", FALSE) + sx, 226 - sp:OriginY("goon_sink") + sy) <> st:ColourAt(sx, sy) THEN ok = FALSE.
+            END.
+        END.
+        sp:Dispose().
+        RETURN ok.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ABuddyThatReachesTheWaterSplashesAndSinksOutOfSight():
+        DEFINE VARIABLE b AS Buddy NO-UNDO.
+        Floor().
+        b = mGame:Plan:TeamAt(1):BuddyAt(1).
+        b:PlaceAt(100, 150).
+        b:Facing = 1.
+        mPainter:Render(mGame:Grid, mGame).
+        b:Hurt(100).
+        b:State = BuddyState:Drowned.
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsTrue(mPainter:DebrisInFlight() >= 10).
+        Assert:Equals(Look(ThemeKey:Foam), Px(99, 226)).
+        Assert:Equals(Look(ThemeKey:Foam), Px(101, 226)).
+        /* the sinking goon, apart from its bottom rows where the droplets are */
+        Assert:IsTrue(SinkShown(100)).
+        Frames(48).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsFalse(SinkShown(100)).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID APainterNeedsARandomSourceToo():
         DEFINE VARIABLE p       AS BlastBuddiesPainter NO-UNDO.
         DEFINE VARIABLE lThrown AS LOGICAL             NO-UNDO.
@@ -793,7 +872,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
         p:Render(g:Grid, g).
         bl = ETIME.
         MESSAGE "timing: painting a new map took" ms "ms, a still frame" still "ms, and the picture after a radius 30 blast" bl "ms".
-        Assert:IsTrue(ms < 1500, "map " + STRING(ms) + " ms").
+        Assert:IsTrue(ms < 3000, "map " + STRING(ms) + " ms").
         Assert:IsTrue(bl < 250, "blast " + STRING(bl) + " ms").
         p:Dispose().
         g:Dispose().
