@@ -708,6 +708,72 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
         Assert:IsFalse(SinkShown(100)).
     END METHOD.
 
+    /* the stage set, team 2 wiped out and the game run on until the Winner phase */
+    METHOD PRIVATE VOID TeamOneWins():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        SetTheStage().
+        DO i = 1 TO 3:
+            mGame:Plan:TeamAt(2):BuddyAt(i):Hurt(100).
+        END.
+        mGame:EndTurn().
+        Frames(400).
+        Assert:IsTrue(mGame:Phase = BuddyPhase:Winner).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheWinnerScreenDimsTheLastPictureOnceAndPutsABandOverIt():
+        TeamOneWins().
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(ColourMath:FromHex("FF9A3C"), Px(0, 60)).
+        Assert:Equals(ColourMath:FromHex("FF9A3C"), Px(383, 123)).
+        Assert:Equals(ColourMath:FromHex("1C1426"), Px(0, 80)).
+        Assert:Equals(ColourMath:Mix(Sky(10), ColourMath:FromHex("1C1426"), 35, 100), Px(2, 10)).
+        /* a second picture is not dimmed again */
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(ColourMath:Mix(Sky(10), ColourMath:FromHex("1C1426"), 35, 100), Px(2, 10)).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("FFF2A0"), 0, 70, 383, 70)).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("B8AECB"), 0, 98, 383, 104)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheWinnersDanceInTheFramesOneTwoThreeTwo():
+        DEFINE VARIABLE n AS CHARACTER NO-UNDO.
+        TeamOneWins().
+        mPainter:Render(mGame:Grid, mGame).
+        n = ENTRY(INTEGER(TRUNCATE(mGame:ElapsedMs / 150, 0)) MODULO 4 + 1, "1,2,3,2").
+        Assert:IsTrue(Shows("goon_dance_" + n, 1, FALSE, 100, 150 - (IF n = "3" THEN 2 ELSE 0), 5)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID WhenNobodyWinsTheBandSaysSo():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        SetTheStage().
+        DO i = 1 TO 3:
+            mGame:Plan:TeamAt(1):BuddyAt(i):Hurt(100).
+            mGame:Plan:TeamAt(2):BuddyAt(i):Hurt(100).
+        END.
+        mGame:EndTurn().
+        Frames(700).
+        Assert:IsTrue(mGame:Phase = BuddyPhase:Draw).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(ColourMath:FromHex("FF9A3C"), Px(0, 60)).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("B8AECB"), 0, 70, 383, 70)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID APausedGameShowsABandAndKeepsThePicture():
+        mPainter:Render(mGame:Grid, mGame).
+        mGame:Paused = TRUE.
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(ColourMath:FromHex("FF9A3C"), Px(0, 96)).
+        Assert:Equals(ColourMath:FromHex("1C1426"), Px(0, 110)).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("FFFFFF"), 100, 101, 290, 122)).
+        Assert:Equals(Sky(60), Px(2, 60)).
+        mGame:Paused = FALSE.
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsTrue(Px(0, 96) <> ColourMath:FromHex("FF9A3C")).
+    END METHOD.
+
     @Test.
     METHOD PUBLIC VOID APainterNeedsARandomSourceToo():
         DEFINE VARIABLE p       AS BlastBuddiesPainter NO-UNDO.

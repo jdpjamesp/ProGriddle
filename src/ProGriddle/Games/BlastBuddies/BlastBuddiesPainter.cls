@@ -86,6 +86,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     DEFINE PRIVATE VARIABLE mSplX      AS INTEGER       NO-UNDO EXTENT 4.
     DEFINE PRIVATE VARIABLE mSplMs     AS INTEGER       NO-UNDO EXTENT 4 INITIAL -100000.
     DEFINE PRIVATE VARIABLE mSplNext   AS INTEGER       NO-UNDO INITIAL 1.
+    /* the map whose last picture, dimmed, is baked into the background for the winner screen */
+    DEFINE PRIVATE VARIABLE mOverSerial AS INTEGER      NO-UNDO INITIAL -1.
     /* the team tones 1 and 2 */
     DEFINE PRIVATE VARIABLE mTone1     AS INTEGER       NO-UNDO EXTENT 4.
     DEFINE PRIVATE VARIABLE mTone2     AS INTEGER       NO-UNDO EXTENT 4.
@@ -168,6 +170,13 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     METHOD PUBLIC VOID Render(INPUT poGrid AS Grid, INPUT poGame AS IGame):
         IF NOT VALID-OBJECT(poGame) OR NOT TYPE-OF(poGame, BlastBuddiesGame) THEN UNDO, THROW NEW GridException("A Blast Buddies painter draws a Blast Buddies game").
         IF mSerial <> mGame:MapSerial THEN StartMap().
+        IF IsOver() AND mOverSerial = mSerial THEN DO:
+            /* the last picture stays, dimmed, with the end screen on it */
+            mCanvas:Restore().
+            DrawEndScreen().
+            mInner:Render(mGame:Grid, poGame).
+            RETURN.
+        END.
         SyncClouds().
         SyncLand().
         mCanvas:Restore().
@@ -179,9 +188,19 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         DrawSplashRings().
         DrawAim().
         DrawDamage().
+        IF IsOver() THEN DO:
+            /* the picture as it ended is dimmed once and kept, and the end screen goes over it */
+            mCanvas:DimRect(0, 0, {&W}, {&H}, 35, BuddiesLook:Colour(BuddyTint:Ink)).
+            mCanvas:BakeView().
+            mOverSerial = mSerial.
+            DrawEndScreen().
+            mInner:Render(mGame:Grid, poGame).
+            RETURN.
+        END.
         ApplyShake().
         DrawHud().
         DrawBanner().
+        DrawPaused().
         mInner:Render(mGame:Grid, poGame).
     END METHOD.
 
@@ -1048,6 +1067,71 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
             END.
         END.
         IF dx <> 0 OR dy <> 0 THEN mCanvas:ShiftView(0, 0, {&W}, {&H}, dx, dy).
+    END METHOD.
+
+    /* ================================ the end of the game and the pause ================================ */
+
+    /* Whether the game has been won or drawn. */
+    METHOD PRIVATE LOGICAL IsOver():
+        RETURN mGame:Phase = BuddyPhase:Winner OR mGame:Phase = BuddyPhase:Draw.
+    END METHOD.
+
+    /* The dark band across the middle of the screen that carries the banner words, with orange rules on the given rows. */
+    METHOD PRIVATE VOID BandPanel(INPUT piY AS INTEGER, INPUT piH AS INTEGER, INPUT piRules AS CHARACTER):
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        mCanvas:BeginBatch().
+        Panel(0, piY, 384, piH, -1).
+        DO i = 1 TO NUM-ENTRIES(piRules):
+            mCanvas:DrawLine(0, piY + INTEGER(ENTRY(i, piRules)), 383, piY + INTEGER(ENTRY(i, piRules)), 0, BuddiesLook:Colour(BuddyTint:Accent)).
+        END.
+        mCanvas:EndBatch().
+    END METHOD.
+
+    /* Words centred across the screen. */
+    METHOD PRIVATE VOID Centred(INPUT pcWords AS CHARACTER, INPUT piScale AS INTEGER, INPUT piTop AS INTEGER, INPUT piBottom AS INTEGER,
+                                INPUT piEdge AS INTEGER, INPUT piY AS INTEGER):
+        mText:Get(pcWords, piScale, piTop, piBottom, piEdge):DrawTo(mCanvas, INTEGER(TRUNCATE(({&W} - PixelFont:WidthOf(pcWords) * piScale) / 2, 0)), piY).
+    END METHOD.
+
+    /* The winning team dances, and the band says who won, or that nobody did. */
+    METHOD PRIVATE VOID DrawEndScreen():
+        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE j       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hop     AS LOGICAL NO-UNDO.
+        DEFINE VARIABLE b       AS Buddy   NO-UNDO.
+        DEFINE VARIABLE names   AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE ink     AS INTEGER NO-UNDO.
+        ink = BuddiesLook:Colour(BuddyTint:Outline).
+        IF mGame:Phase = BuddyPhase:Winner THEN DO:
+            /* the dance is the frames 1, 2, 3, 2 a hundred and fifty milliseconds each, with a hop of 2 pixels on the third */
+            hop = (ENTRY(INTEGER(TRUNCATE(mGame:ElapsedMs / 150, 0)) MODULO 4 + 1, "1,2,3,2") = "3").
+            DO j = 1 TO mGame:Plan:TeamAt(mGame:WinnerTeam):Count():
+                b = mGame:Plan:TeamAt(mGame:WinnerTeam):BuddyAt(j).
+                IF b:IsDead() THEN NEXT.
+                DrawPose(b, "goon_dance_" + ENTRY(INTEGER(TRUNCATE(mGame:ElapsedMs / 150, 0)) MODULO 4 + 1, "1,2,3,2"), (IF hop THEN 2 ELSE 0)).
+                n = n + 1.
+                names = names + (IF names = "" THEN "" ELSE " AND ") + b:BuddyName.
+            END.
+            BandPanel(60, 64, "0,1,62,63").
+            Centred(TeamName(mGame:WinnerTeam) + " WIN", 3, BuddiesLook:Colour(BuddyTint:TitleTop), BuddiesLook:Colour(BuddyTint:Good), ink, 70).
+            Centred((IF n >= 3 THEN STRING(n) + " BUDDIES" ELSE names) + " STILL STANDING", 1, BuddiesLook:Colour(BuddyTint:Label), BuddiesLook:Colour(BuddyTint:Label), -1, 98).
+        END.
+        ELSE DO:
+            BandPanel(60, 64, "0,1,62,63").
+            Centred("NOBODY WINS", 3, BuddiesLook:Colour(BuddyTint:Label), mSmoke[4], ink, 70).
+            Centred("EVERY BUDDY WENT BOOM", 1, BuddiesLook:Colour(BuddyTint:Label), BuddiesLook:Colour(BuddyTint:Label), -1, 98).
+        END.
+        IF INTEGER(TRUNCATE(mGame:ElapsedMs / 500, 0)) MODULO 2 = 0 THEN
+            Centred("PRESS SPACE", 1, BuddiesLook:Colour(BuddyTint:Text), BuddiesLook:Colour(BuddyTint:Text), -1, 110).
+    END METHOD.
+
+    /* While the game is paused the picture stands still and a band says so. */
+    METHOD PRIVATE VOID DrawPaused():
+        IF NOT mGame:Paused THEN RETURN.
+        BandPanel(96, 40, "0,39").
+        Centred("PAUSED", 3, BuddiesLook:Colour(BuddyTint:Text), BuddiesLook:Colour(BuddyTint:Text), BuddiesLook:Colour(BuddyTint:Outline), 101).
+        Centred("P TO PLAY ON   ESC TO QUIT", 1, BuddiesLook:Colour(BuddyTint:Label), BuddiesLook:Colour(BuddyTint:Label), -1, 125).
     END METHOD.
 
     /* ================================ the HUD and the banner ================================ */
