@@ -13,8 +13,9 @@ CLASS ProGriddle.Games.BlastBuddies.BuddySprites FINAL:
 
     /* the stamps by sprite, tone row (0 for its own, 1 to 4 for a team) and mirror: ((sprite - 1) * 5 + row) * 2 + mirror + 1 */
     DEFINE PRIVATE VARIABLE mStamp  AS PixelStamp NO-UNDO EXTENT 720.
-    /* the turned stamps by sprite, mirror and heading: ((sprite - 1) * 2 + mirror) * 64 + heading + 1; only weapons are turned */
-    DEFINE PRIVATE VARIABLE mTurned AS PixelStamp NO-UNDO EXTENT 9216.
+    /* the turned stamps by turnable sprite, mirror and heading: ((turnable - 1) * 2 + mirror) * 64 + heading + 1. Only the sprites that are turned
+       have a place (a class can hold only about 32000 bytes of variables, so the table is small) */
+    DEFINE PRIVATE VARIABLE mTurned AS PixelStamp NO-UNDO EXTENT 1024.
     DEFINE PRIVATE VARIABLE mNames  AS CHARACTER  NO-UNDO.
     DEFINE PRIVATE VARIABLE mDisposed AS LOGICAL  NO-UNDO.
 
@@ -128,6 +129,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddySprites FINAL:
        mirrored first and then turned by the heading it is given. The stamp is Reach x 2 + 1 square, and the pivot is its middle. */
     METHOD PUBLIC PixelStamp Turned(INPUT pcName AS CHARACTER, INPUT piHeading AS INTEGER, INPUT plMirror AS LOGICAL):
         DEFINE VARIABLE slot  AS INTEGER    NO-UNDO.
+        DEFINE VARIABLE turnable AS INTEGER NO-UNDO.
         DEFINE VARIABLE src   AS PixelStamp NO-UNDO.
         DEFINE VARIABLE r     AS INTEGER    NO-UNDO.
         DEFINE VARIABLE size  AS INTEGER    NO-UNDO.
@@ -142,7 +144,9 @@ CLASS ProGriddle.Games.BlastBuddies.BuddySprites FINAL:
         DEFINE VARIABLE sy    AS INTEGER    NO-UNDO.
         DEFINE VARIABLE cols  AS INTEGER    NO-UNDO EXTENT.
         hd = Heading:Wrap(piHeading).
-        slot = ((IndexOf(pcName) - 1) * 2 + (IF plMirror THEN 1 ELSE 0)) * 64 + hd + 1.
+        turnable = LOOKUP(pcName, "held_bazooka,held_shotgun,rocket,exhaust_0,exhaust_1,missile,flare_0,flare_1").
+        IF turnable = 0 THEN UNDO, THROW NEW GridException("The sprite " + STRING(pcName) + " is not one that is turned").
+        slot = ((turnable - 1) * 2 + (IF plMirror THEN 1 ELSE 0)) * 64 + hd + 1.
         IF VALID-OBJECT(mTurned[slot]) THEN RETURN mTurned[slot].
         src = Stamp(pcName, 0, plMirror).
         r = Reach(pcName).

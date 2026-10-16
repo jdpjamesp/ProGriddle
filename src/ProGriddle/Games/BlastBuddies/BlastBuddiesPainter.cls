@@ -61,9 +61,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     DEFINE PRIVATE VARIABLE mFxR       AS INTEGER       NO-UNDO EXTENT 4.
     DEFINE PRIVATE VARIABLE mFxMs      AS INTEGER       NO-UNDO EXTENT 4 INITIAL -100000.
     DEFINE PRIVATE VARIABLE mFxRings   AS INTEGER       NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mRingX     AS INTEGER       NO-UNDO EXTENT 3200.
-    DEFINE PRIVATE VARIABLE mRingY     AS INTEGER       NO-UNDO EXTENT 3200.
-    DEFINE PRIVATE VARIABLE mRingS     AS INTEGER       NO-UNDO EXTENT 3200.
+    /* the scorch ring pixels of all four blasts, three whole numbers each (column, row, step), in memory: a class can hold only about
+       32000 bytes of variables, so the big tables are not variables */
+    DEFINE PRIVATE VARIABLE mRing      AS MEMPTR        NO-UNDO.
     DEFINE PRIVATE VARIABLE mFxNext    AS INTEGER       NO-UNDO INITIAL 1.
     DEFINE PRIVATE VARIABLE mFxSeen    AS INTEGER       NO-UNDO.
     DEFINE PRIVATE VARIABLE mTitleLoop AS INTEGER       NO-UNDO INITIAL -1.
@@ -100,7 +100,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     DEFINE PRIVATE VARIABLE mCloud     AS INTEGER       NO-UNDO.
     DEFINE PRIVATE VARIABLE mCloudShade AS INTEGER      NO-UNDO.
     /* the colour of the ground in the seven rows the sea is drawn over, row by row, -1 for none */
-    DEFINE PRIVATE VARIABLE mShore     AS INTEGER       NO-UNDO EXTENT 2688.
+    DEFINE PRIVATE VARIABLE mShoreMem  AS MEMPTR        NO-UNDO.
     /* the clouds: where each began, its size, how far all have drifted, and the time of the last drift */
     DEFINE PRIVATE VARIABLE mCloudX    AS INTEGER       NO-UNDO EXTENT 4.
     DEFINE PRIVATE VARIABLE mCloudY    AS INTEGER       NO-UNDO EXTENT 4.
@@ -159,6 +159,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         mSky = NEW PixelCanvas(mSkyGrid).
         mSprites = NEW BuddySprites().
         mText = NEW TextStampCache(64).
+        SET-SIZE(mRing) = 3200 * 12.
+        SET-SIZE(mShoreMem) = 2688 * 4.
         DO i = 1 TO 5:
             mSmoke[i] = ColourMath:FromHex(ENTRY(i, BuddiesLook:ToneRow("Smoke"))).
         END.
@@ -237,6 +239,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         IF VALID-OBJECT(mSky) THEN mSky:Dispose().
         IF VALID-OBJECT(mSprites) THEN mSprites:Dispose().
         IF VALID-OBJECT(mText) THEN mText:Dispose().
+        SET-SIZE(mRing) = 0.
+        SET-SIZE(mShoreMem) = 0.
         IF VALID-OBJECT(mSkyGrid) THEN mSkyGrid:Dispose().
     END METHOD.
 
@@ -463,7 +467,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
                     PUT-LONG(cells, n * 12 + 5) = y.
                     PUT-LONG(cells, n * 12 + 9) = c.
                     n = n + 1.
-                    IF y >= {&SHORE} AND y < {&SHORE} + {&SHORE-ROWS} THEN mShore[(y - {&SHORE}) * {&W} + x + 1] = (IF mGame:Land:IsSolid(x, y) THEN c ELSE -1).
+                    IF y >= {&SHORE} AND y < {&SHORE} + {&SHORE-ROWS} THEN PUT-LONG(mShoreMem, ((y - {&SHORE}) * {&W} + x) * 4 + 1) = (IF mGame:Land:IsSolid(x, y) THEN c ELSE -1).
                 END.
             END.
             mCanvas:PutCells(cells, n, 0, 0).
@@ -505,7 +509,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         DEFINE VARIABLE y AS INTEGER NO-UNDO.
         DO y = {&SHORE} TO {&SHORE} + {&SHORE-ROWS} - 1:
             DO x = 0 TO {&W} - 1:
-                mShore[(y - {&SHORE}) * {&W} + x + 1] = (IF mGame:Land:IsSolid(x, y) THEN mGame:Land:ShadeAt(x, y) ELSE -1).
+                PUT-LONG(mShoreMem, ((y - {&SHORE}) * {&W} + x) * 4 + 1) = (IF mGame:Land:IsSolid(x, y) THEN mGame:Land:ShadeAt(x, y) ELSE -1).
             END.
         END.
     END METHOD.
@@ -930,9 +934,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
                 stp = mGame:Land:ScorchStep(x, y).
                 IF stp = 0 OR n >= 800 THEN NEXT.
                 n = n + 1.
-                mRingX[(slot - 1) * 800 + n] = x.
-                mRingY[(slot - 1) * 800 + n] = y.
-                mRingS[(slot - 1) * 800 + n] = stp.
+                PUT-LONG(mRing, ((slot - 1) * 800 + n - 1) * 12 + 1) = x.
+                PUT-LONG(mRing, ((slot - 1) * 800 + n - 1) * 12 + 5) = y.
+                PUT-LONG(mRing, ((slot - 1) * 800 + n - 1) * 12 + 9) = stp.
             END.
         END.
         mFxRings[slot] = n.
@@ -1071,8 +1075,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
                 /* the scorch glows and cools over 600 ms */
                 IF t < 600 THEN DO i = 1 TO mFxRings[s]:
                     n = (s - 1) * 800 + i.
-                    IF mGame:Land:ScorchStep(mRingX[n], mRingY[n]) = mRingS[n] THEN
-                        mCanvas:Plot(mRingX[n], mRingY[n], {&KIND-LAND}, mGame:Land:ScorchColour(mRingS[n], t)).
+                    IF mGame:Land:ScorchStep(GET-LONG(mRing, (n - 1) * 12 + 1), GET-LONG(mRing, (n - 1) * 12 + 5)) = GET-LONG(mRing, (n - 1) * 12 + 9) THEN
+                        mCanvas:Plot(GET-LONG(mRing, (n - 1) * 12 + 1), GET-LONG(mRing, (n - 1) * 12 + 5), {&KIND-LAND},
+                                     mGame:Land:ScorchColour(GET-LONG(mRing, (n - 1) * 12 + 9), t)).
                 END.
             END.
         END.
@@ -1471,7 +1476,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         END.
         DO y = 0 TO {&SHORE-ROWS} - 1:
             DO x = 0 TO {&W} - 1:
-                c = mShore[y * {&W} + x + 1].
+                c = GET-LONG(mShoreMem, (y * {&W} + x) * 4 + 1).
                 IF c >= 0 THEN mCanvas:Plot(x, {&SHORE} + y, {&KIND-LAND}, c).
             END.
         END.
