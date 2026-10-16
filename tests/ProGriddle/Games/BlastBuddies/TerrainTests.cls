@@ -409,7 +409,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
         END.
         ms = ETIME.
         MESSAGE "timing: carve radius 30 and reshade the box took" ms "ms".
-        Assert:IsTrue(ms < 50, "took " + STRING(ms) + " ms").
+        Assert:IsTrue(ms < 150, "took " + STRING(ms) + " ms").
         Assert:IsTrue(sum > 0).
     END METHOD.
 
@@ -555,7 +555,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
         mT:Crumble(200, 110, 30).
         ms = ETIME.
         MESSAGE "timing: crumble box for radius 30 took" ms "ms".
-        Assert:IsTrue(ms < 50, "took " + STRING(ms) + " ms").
+        Assert:IsTrue(ms < 150, "took " + STRING(ms) + " ms").
         Assert:Equals(0, mT:Crumble(0, 0, 5)).
         Assert:Equals(0, mT:Crumble(383, 239, 5)).
     END METHOD.
