@@ -715,6 +715,12 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
             words = poBuddy:BuddyName.
             mText:Get(words, 1, mTone1[poBuddy:Team], mTone1[poBuddy:Team], ink):DrawTo(mCanvas, poBuddy:X() - INTEGER(TRUNCATE(PixelFont:WidthOf(words) / 2, 0)), head - 24).
         END.
+        /* the computer's thought bubble, bobbing a pixel every 300 ms, over the buddy it is thinking for */
+        IF poBuddy = mGame:CurrentBuddy AND VALID-OBJECT(mGame:Brain) THEN DO:
+            IF mGame:Brain:Thinking THEN
+                mSprites:Stamp("ico_think", 0, FALSE):DrawTo(mCanvas, poBuddy:X() - mSprites:OriginX("ico_think", FALSE),
+                    head - 14 - 4 - INTEGER(TRUNCATE(mGame:ElapsedMs / 300, 0)) MODULO 2 - mSprites:OriginY("ico_think")).
+        END.
     END METHOD.
 
     /* ================================ shots, aim and damage ================================ */

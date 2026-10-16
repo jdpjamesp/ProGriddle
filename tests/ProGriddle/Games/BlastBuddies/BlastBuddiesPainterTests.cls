@@ -775,6 +775,22 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID WhileTheComputerThinksAThoughtBubbleBobsOverItsBuddy():
+        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        mGame:Brain = NEW SimulatingBrain(NEW SeededRandom(2), BuddySkill:Hard).
+        Floor().
+        DO k = 0 TO 5:
+            mGame:Plan:TeamAt(k MODULO 2 + 1):BuddyAt(INTEGER(TRUNCATE(k / 2, 0)) + 1):PlaceAt(60 + 40 * k, 150).
+        END.
+        Frames(BuddyRules:ArrivalFrames() + BuddyRules:BannerFrames()).
+        mGame:EndTurn().
+        Frames(BuddyRules:SettleFrames() + BuddyRules:BannerFrames() + 5).
+        Assert:IsTrue(mGame:Brain:Thinking).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("FFFFFF"), mGame:CurrentBuddy:X() - 4, 150 - 12 - 14 - 14, mGame:CurrentBuddy:X() + 4, 150 - 12 - 14 - 4)).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID APainterNeedsARandomSourceToo():
         DEFINE VARIABLE p       AS BlastBuddiesPainter NO-UNDO.
         DEFINE VARIABLE lThrown AS LOGICAL             NO-UNDO.

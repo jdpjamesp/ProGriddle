@@ -14,11 +14,21 @@ CLASS ProGriddle.Games.BlastBuddies.BuddySetup FINAL:
     DEFINE PUBLIC PROPERTY ComputerTeams AS INTEGER NO-UNDO GET. PRIVATE SET.
     DEFINE PUBLIC PROPERTY LandTheme AS Theme NO-UNDO GET. PRIVATE SET.
 
+    /* How well the computer plays. */
+    DEFINE PUBLIC PROPERTY Skill AS BuddySkill NO-UNDO GET. PRIVATE SET.
+
+    /* A game against a computer of Normal skill. */
     CONSTRUCTOR PUBLIC BuddySetup(INPUT piTeams AS INTEGER, INPUT piBuddiesEach AS INTEGER, INPUT piComputerTeams AS INTEGER, INPUT poTheme AS Theme):
+        THIS-OBJECT(piTeams, piBuddiesEach, piComputerTeams, poTheme, BuddySkill:Normal).
+    END CONSTRUCTOR.
+
+    CONSTRUCTOR PUBLIC BuddySetup(INPUT piTeams AS INTEGER, INPUT piBuddiesEach AS INTEGER, INPUT piComputerTeams AS INTEGER, INPUT poTheme AS Theme, INPUT poSkill AS BuddySkill):
         IF piTeams < 2 OR piTeams > 4 THEN UNDO, THROW NEW GridException("A game has 2 to 4 teams, not " + STRING(piTeams)).
         IF piBuddiesEach < 3 OR piBuddiesEach > 4 THEN UNDO, THROW NEW GridException("A team has 3 or 4 buddies, not " + STRING(piBuddiesEach)).
         IF piComputerTeams < 0 OR piComputerTeams >= piTeams THEN UNDO, THROW NEW GridException("The computer plays 0 to " + STRING(piTeams - 1) + " teams").
         IF NOT VALID-OBJECT(poTheme) THEN UNDO, THROW NEW GridException("A game needs a theme").
+        IF NOT VALID-OBJECT(poSkill) THEN UNDO, THROW NEW GridException("A game needs a skill for the computer").
+        Skill = poSkill.
         Teams = piTeams.
         BuddiesEach = piBuddiesEach.
         ComputerTeams = piComputerTeams.

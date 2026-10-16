@@ -29,6 +29,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
     DEFINE PRIVATE VARIABLE mShells  AS ShellPool      NO-UNDO.
     DEFINE PRIVATE VARIABLE mExplosion AS Explosion    NO-UNDO.
     DEFINE PRIVATE VARIABLE mDeathT  AS INTEGER        NO-UNDO.
+    DEFINE PRIVATE VARIABLE mBrain   AS IBuddyBrain    NO-UNDO.
     DEFINE PRIVATE VARIABLE mWalkAcc AS INTEGER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mAimAcc  AS INTEGER        NO-UNDO.
     DEFINE PRIVATE VARIABLE mJumpAt  AS INTEGER        NO-UNDO.
@@ -134,6 +135,15 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
                    AND NOT mPlan:TeamAt(CurrentBuddy:Team):IsComputer.
         END GET.
 
+    /* The computer player that plays the teams the computer plays, or unknown for a game of people only. */
+    DEFINE PUBLIC PROPERTY Brain AS IBuddyBrain NO-UNDO
+        GET():
+            RETURN mBrain.
+        END GET.
+        SET(INPUT poBrain AS IBuddyBrain):
+            mBrain = poBrain.
+        END SET.
+
     /* The order of play, with the teams. */
     DEFINE PUBLIC PROPERTY Plan AS TurnPlan NO-UNDO
         GET():
@@ -232,6 +242,13 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
     METHOD PUBLIC VOID ReleaseCharge():
         IF NOT Charging OR Paused THEN RETURN.
         FireShot().
+    END METHOD.
+
+    /* Turns the buddy in turn to face a way (-1 or 1), if it is standing. The computer uses it, a person turns by walking. */
+    METHOD PUBLIC VOID Face(INPUT piDirection AS INTEGER):
+        IF piDirection <> -1 AND piDirection <> 1 THEN UNDO, THROW NEW GridException("A direction is -1 or 1, not " + STRING(piDirection)).
+        IF NOT (Phase = BuddyPhase:Turn OR Phase = BuddyPhase:Retreat) OR NOT VALID-OBJECT(CurrentBuddy) THEN RETURN.
+        IF CurrentBuddy:State = BuddyState:Standing THEN CurrentBuddy:Facing = piDirection.
     END METHOD.
 
     /* The jump key: a hop the way the buddy faces; a second press within 250 ms turns it into a backflip. */
@@ -335,6 +352,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
             DO j = 1 TO mPlan:TeamAt(i):Count():
                 mPhysics:Step(mPlan:TeamAt(i):BuddyAt(j), mTerrain).
             END.
+        END.
+        IF Phase = BuddyPhase:Turn AND VALID-OBJECT(mBrain) AND VALID-OBJECT(CurrentBuddy) THEN DO:
+            IF mPlan:TeamAt(CurrentBuddy:Team):IsComputer AND NOT CurrentBuddy:IsDead() THEN mBrain:Drive(THIS-OBJECT).
         END.
         ApplyControls().
         StepShells().
@@ -493,6 +513,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
             WHEN BuddyPhase:Banner THEN DO:
                 Phase = BuddyPhase:Turn.
                 mTimer = BuddyRules:TurnFrames().
+                IF VALID-OBJECT(mBrain) THEN mBrain:Reset().
                 WalkDirection = 0.
                 AimDirection = 0.
             END.
