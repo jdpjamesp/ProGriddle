@@ -446,6 +446,18 @@ CLASS ProGriddle.Games.BlastBuddies.Terrain FINAL:
         RETURN d.
     END METHOD.
 
+    /* The row of the first ground going down a column from the sky, or unknown if the column has none (or is outside the map). */
+    METHOD PUBLIC INTEGER FirstGround(INPUT piX AS INTEGER):
+        DEFINE VARIABLE p AS INTEGER NO-UNDO.
+        DEFINE VARIABLE e AS INTEGER NO-UNDO.
+        IF piX < 0 OR piX >= {&MAP-WIDTH} THEN RETURN ?.
+        e = {&MAP-WIDTH} * {&MAP-HEIGHT}.
+        DO p = piX + 1 TO e BY {&MAP-WIDTH}:
+            IF GET-BYTE(mMap, p) > 0 THEN RETURN INTEGER(TRUNCATE((p - 1) / {&MAP-WIDTH}, 0)).
+        END.
+        RETURN ?.
+    END METHOD.
+
     /* The row where the bedrock starts in a column: 200 plus a slow wave of up to 3 either way. */
     METHOD PUBLIC INTEGER RockY(INPUT piX AS INTEGER):
         IF piX < 0 OR piX >= {&MAP-WIDTH} THEN UNDO, THROW NEW GridException("The column " + STRING(piX) + " is outside the map").

@@ -133,6 +133,18 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID FirstGroundIsTheTopMostGroundOfAColumnAndUnknownWithNone():
+        mT:FillRect(50, 90, 60, 239, TRUE).
+        mT:SetSolid(70, 20, TRUE).
+        Assert:Equals(90, mT:FirstGround(55)).
+        Assert:Equals(20, mT:FirstGround(70)).
+        Assert:Equals(90, mT:FirstGround(60)).
+        Assert:IsTrue(mT:FirstGround(100) = ?).
+        Assert:IsTrue(mT:FirstGround(-1) = ?).
+        Assert:IsTrue(mT:FirstGround(384) = ?).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID RockYIsTheBedrockLineWithASlowWave():
         DEFINE VARIABLE x AS INTEGER NO-UNDO.
         Assert:Equals(200, mT:RockY(0)).
