@@ -128,6 +128,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         DrawShells().
         DrawAim().
         DrawDamage().
+        DrawHud().
+        DrawBanner().
         mInner:Render(mGame:Grid, poGame).
     END METHOD.
 
@@ -662,6 +664,145 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
             IF age < 700 AND mDmgAmount[i] >= 10 THEN
                 mSprites:Stamp("bubble_oof", 0, FALSE):DrawTo(mCanvas, b:X() + 3 - mSprites:OriginX("bubble_oof", FALSE), head - 2 - mSprites:OriginY("bubble_oof")).
         END.
+    END METHOD.
+
+    /* ================================ the HUD and the banner ================================ */
+
+    /* The team name in capitals. */
+    METHOD PRIVATE CHARACTER TeamName(INPUT piTeam AS INTEGER):
+        RETURN ENTRY(piTeam, "REDS,BLUES,TEALS,GRAPES").
+    END METHOD.
+
+    /* A panel in a batch: a dark plate with a lighter line on its second row and its second last, and the four corner pixels left out so it
+       looks rounded. A frame colour of -1 is no frame, else the outer edge is drawn in it. */
+    METHOD PRIVATE VOID Panel(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER, INPUT piFrame AS INTEGER):
+        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE plate AS INTEGER NO-UNDO.
+        DEFINE VARIABLE rule  AS INTEGER NO-UNDO.
+        plate = BuddiesLook:Colour(BuddyTint:Panel).
+        rule = BuddiesLook:Colour(BuddyTint:PanelRule).
+        DO y = piY TO piY + piH - 1:
+            IF y = piY OR y = piY + piH - 1 THEN
+                mCanvas:DrawLine(piX + 1, y, piX + piW - 2, y, 0, (IF piFrame >= 0 THEN piFrame ELSE plate)).
+            ELSE DO:
+                mCanvas:DrawLine(piX, y, piX + piW - 1, y, 0, plate).
+                IF y = piY + 1 OR y = piY + piH - 2 THEN mCanvas:DrawLine(piX + 1, y, piX + piW - 2, y, 0, rule).
+                IF piFrame >= 0 THEN DO:
+                    mCanvas:DrawLine(piX, y, piX, y, 0, piFrame).
+                    mCanvas:DrawLine(piX + piW - 1, y, piX + piW - 1, y, 0, piFrame).
+                END.
+            END.
+        END.
+    END METHOD.
+
+    /* The seconds left on the clock of the phase, rounded up. */
+    METHOD PRIVATE INTEGER SecondsLeft():
+        RETURN INTEGER(TRUNCATE((mGame:TimeLeftMs + 999) / 1000, 0)).
+    END METHOD.
+
+    /* The timer, the buddy in turn, the wind, and the health of the teams. */
+    METHOD PRIVATE VOID DrawHud():
+        DEFINE VARIABLE secs    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE playing AS LOGICAL NO-UNDO.
+        DEFINE VARIABLE frame1  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE digits  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE words   AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE lit     AS LOGICAL NO-UNDO.
+        DEFINE VARIABLE w       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE t       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE team    AS Team    NO-UNDO.
+        DEFINE VARIABLE len     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE c       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE tones   AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE ink     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hurtC   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE goodC   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE ruleC   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE phase1  AS BuddyPhase NO-UNDO.
+        phase1 = mGame:Phase.
+        playing = (phase1 = BuddyPhase:Turn OR phase1 = BuddyPhase:Retreat).
+        secs = SecondsLeft().
+        ink = BuddiesLook:Colour(BuddyTint:Outline).
+        hurtC = BuddiesLook:Colour(BuddyTint:Hurt).
+        goodC = BuddiesLook:Colour(BuddyTint:Good).
+        ruleC = BuddiesLook:Colour(BuddyTint:PanelRule).
+        /* the plates, in one batch */
+        frame1 = BuddiesLook:Colour(BuddyTint:Accent).
+        IF phase1 = BuddyPhase:Turn AND secs <= 10 AND INTEGER(TRUNCATE(mGame:TimeLeftMs / 500, 0)) MODULO 2 = 1 THEN frame1 = BuddiesLook:Colour(BuddyTint:Warn).
+        mCanvas:BeginBatch().
+        Panel(4, 4, 30, 24, frame1).
+        Panel(38, 4, 92, 24, -1).
+        Panel(296, 4, 84, 24, -1).
+        Panel(124, 222, 136, 18, -1).
+        /* the chevrons of the wind: ten of them, the first |wind| lit from the end the wind comes from */
+        DO i = 0 TO 9:
+            lit = (IF mGame:Wind >= 0 THEN i < mGame:Wind ELSE i >= 10 + mGame:Wind).
+            DO c = 0 TO 4:
+                w = (IF c < 3 THEN c ELSE 4 - c).
+                IF mGame:Wind < 0 THEN w = 2 - w.
+                mCanvas:DrawLine(304 + 4 * i + w, 18 + c, 304 + 4 * i + w, 18 + c, 0, (IF lit THEN ColourMath:Mix(goodC, hurtC, i, 9) ELSE ruleC)).
+            END.
+        END.
+        /* the bars of the teams: the sum of the health of their buddies, a quarter of a pixel for each point of 400, with a pattern each */
+        DO t = 1 TO mGame:Plan:TeamCount():
+            team = mGame:Plan:TeamAt(t).
+            tones = BuddiesLook:ToneRow(ENTRY(team:Number, "Reds,Blues,Teals,Grapes")).
+            len = INTEGER(ROUND(team:TotalHealth() / 400 * 120, 0)).
+            IF len < 1 THEN NEXT.
+            c = 225 + 3 * (t - 1).
+            mCanvas:DrawLine(130, c, 130 + len - 1, c, 0, ColourMath:FromHex(ENTRY(2, tones))).
+            mCanvas:DrawLine(130, c + 1, 130 + len - 1, c + 1, 0, ColourMath:FromHex(ENTRY(3, tones))).
+            DO i = 0 TO len - 1:
+                CASE team:Number:
+                    WHEN 2 THEN IF i MODULO 4 = 3 THEN mCanvas:DrawLine(130 + i, c, 130 + i, c + 1, 0, ColourMath:FromHex(ENTRY(4, tones))).
+                    WHEN 3 THEN mCanvas:DrawLine(130 + i, c, 130 + i, c + 1, 0, ColourMath:FromHex(ENTRY((IF i MODULO 2 = 0 THEN 2 ELSE 3), tones))).
+                    WHEN 4 THEN IF i MODULO 6 >= 4 THEN mCanvas:DrawLine(130 + i, c, 130 + i, c + 1, 0, ColourMath:FromHex(ENTRY(4, tones))).
+                    OTHERWISE.
+                END CASE.
+            END.
+        END.
+        mCanvas:EndBatch().
+        /* the words and numbers on the plates */
+        IF playing THEN DO:
+            words = STRING(secs).
+            digits = (IF secs <= 10 AND phase1 = BuddyPhase:Turn THEN BuddiesLook:Colour(BuddyTint:Warn) ELSE
+                      IF phase1 = BuddyPhase:Retreat THEN BuddiesLook:Colour(BuddyTint:Label) ELSE BuddiesLook:Colour(BuddyTint:Text)).
+        END.
+        ELSE DO:
+            words = STRING(INTEGER(TRUNCATE(BuddyRules:TurnFrames() / 60, 0))).
+            digits = BuddiesLook:Colour(BuddyTint:Label).
+        END.
+        mText:Get(words, 2, digits, digits, -1):DrawTo(mCanvas, 4 + INTEGER(TRUNCATE((30 - PixelFont:WidthOf(words) * 2) / 2, 0)), 9).
+        IF VALID-OBJECT(mGame:CurrentBuddy) AND phase1 <> BuddyPhase:Arrival THEN DO:
+            words = mGame:CurrentBuddy:BuddyName.
+            mText:Get(words, 1, mTone2[mGame:CurrentBuddy:Team], mTone2[mGame:CurrentBuddy:Team], -1):DrawTo(mCanvas, 44, 8).
+            words = TeamName(mGame:CurrentBuddy:Team).
+            mText:Get(words, 1, BuddiesLook:Colour(BuddyTint:Label), BuddiesLook:Colour(BuddyTint:Label), -1):DrawTo(mCanvas, 44, 18).
+            mSprites:Stamp("icon_bazooka", 0, FALSE):DrawTo(mCanvas, 112, 7).
+        END.
+        mText:Get("WIND", 1, BuddiesLook:Colour(BuddyTint:Label), BuddiesLook:Colour(BuddyTint:Label), -1):DrawTo(mCanvas, 302, 8).
+    END METHOD.
+
+    /* The banner across the middle of the screen at the start of a turn: the buddy that plays and the team. */
+    METHOD PRIVATE VOID DrawBanner():
+        DEFINE VARIABLE words AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE b     AS Buddy     NO-UNDO.
+        DEFINE VARIABLE accent AS INTEGER  NO-UNDO.
+        IF mGame:Phase <> BuddyPhase:Banner OR NOT VALID-OBJECT(mGame:CurrentBuddy) THEN RETURN.
+        b = mGame:CurrentBuddy.
+        accent = BuddiesLook:Colour(BuddyTint:Accent).
+        mCanvas:BeginBatch().
+        Panel(0, 96, 384, 40, -1).
+        mCanvas:DrawLine(0, 96, 383, 96, 0, accent).
+        mCanvas:DrawLine(0, 135, 383, 135, 0, accent).
+        mCanvas:EndBatch().
+        words = b:BuddyName.
+        mText:Get(words, 3, mTone1[b:Team], mTone1[b:Team], BuddiesLook:Colour(BuddyTint:Outline)):DrawTo(mCanvas,
+            INTEGER(TRUNCATE((384 - PixelFont:WidthOf(words) * 3) / 2, 0)), 101).
+        words = TeamName(b:Team) + " TURN" + (IF mGame:Plan:TeamAt(b:Team):IsComputer THEN "   COMPUTER" ELSE "").
+        mText:Get(words, 1, BuddiesLook:Colour(BuddyTint:Label), BuddiesLook:Colour(BuddyTint:Label), -1):DrawTo(mCanvas,
+            INTEGER(TRUNCATE((384 - PixelFont:WidthOf(words)) / 2, 0)), 125).
     END METHOD.
 
     /* ================================ the water ================================ */

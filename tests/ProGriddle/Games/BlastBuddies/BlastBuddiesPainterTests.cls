@@ -181,29 +181,29 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheShoreStandsInTheWavesAndTheBodyOfTheSeaCoversTheRest():
-        mGame:Land:FillRect(100, 200, 200, 239, TRUE).
+        mGame:Land:FillRect(10, 200, 110, 239, TRUE).
         mPainter:Render(mGame:Grid, mGame).
-        Assert:Equals(mGame:Land:ShadeAt(150, 226), Px(150, 226)).
-        Assert:Equals(mGame:Land:ShadeAt(150, 228), Px(150, 228)).
-        Assert:Equals(Look(ThemeKey:Water), Px(150, 229)).
-        Assert:Equals(mGame:Land:ShadeAt(150, 225), Px(150, 225)).
+        Assert:Equals(mGame:Land:ShadeAt(60, 226), Px(60, 226)).
+        Assert:Equals(mGame:Land:ShadeAt(60, 228), Px(60, 228)).
+        Assert:Equals(Look(ThemeKey:Water), Px(60, 229)).
+        Assert:Equals(mGame:Land:ShadeAt(60, 225), Px(60, 225)).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID AShoreBlownAwayIsWaterAgain():
-        mGame:Land:FillRect(100, 200, 200, 239, TRUE).
+        mGame:Land:FillRect(10, 200, 110, 239, TRUE).
         mPainter:Render(mGame:Grid, mGame).
-        mGame:Land:Carve(150, 226, 15).
+        mGame:Land:Carve(60, 226, 15).
         mPainter:Render(mGame:Grid, mGame).
-        Assert:Equals(Look(ThemeKey:WaterBack), Px(152, 227)).
-        Assert:Equals(Look(ThemeKey:Foam), Px(150, 227)).
+        Assert:Equals(Look(ThemeKey:WaterBack), Px(60, 227)).
+        Assert:Equals(Look(ThemeKey:Foam), Px(62, 227)).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID CloudsAreCirclesInARowWithAShadedUnderside():
         mPainter:Render(mGame:Grid, mGame).
         Assert:Equals(Look(ThemeKey:Cloud), Px(35, 28)).
-        Assert:Equals(Look(ThemeKey:Cloud), Px(49, 26)).
+        Assert:Equals(Look(ThemeKey:Cloud), Px(40, 31)).
         Assert:Equals(Look(ThemeKey:CloudShade), Px(49, 32)).
         Assert:Equals(Sky(36), Px(35, 36)).
     END METHOD.
@@ -474,6 +474,96 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
             END.
         END.
         Assert:IsTrue(hurt).
+    END METHOD.
+
+    /* whether a colour is anywhere in a rectangle of the picture */
+    METHOD PRIVATE LOGICAL Somewhere(INPUT piColour AS INTEGER, INPUT piX1 AS INTEGER, INPUT piY1 AS INTEGER, INPUT piX2 AS INTEGER, INPUT piY2 AS INTEGER):
+        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        DO y = piY1 TO piY2:
+            DO x = piX1 TO piX2:
+                IF Px(x, y) = piColour THEN RETURN TRUE.
+            END.
+        END.
+        RETURN FALSE.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ThePanelsHaveRoundedCornersAFrameOnTheTimerAndALighterLineInside():
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(Sky(4), Px(4, 4)).
+        Assert:Equals(ColourMath:FromHex("FF9A3C"), Px(5, 4)).
+        Assert:Equals(ColourMath:FromHex("FF9A3C"), Px(4, 12)).
+        Assert:Equals(ColourMath:FromHex("4A3E5A"), Px(10, 5)).
+        Assert:Equals(ColourMath:FromHex("1C1426"), Px(6, 7)).
+        /* the active goon and wind panels have no frame, and the corner of the wind panel is left out */
+        Assert:Equals(Sky(4), Px(296, 4)).
+        Assert:Equals(ColourMath:FromHex("1C1426"), Px(297, 4)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheTimerShowsTheSecondsOfTheTurnInWhiteAndInRedForTheLastTen():
+        SetTheStage().
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("FFFFFF"), 6, 9, 31, 23)).
+        Frames(BuddyRules:TurnFrames() - 9 * 60).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("FF4A3A"), 6, 9, 31, 23)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheActiveGoonPanelHasTheNameTheTeamAndTheWeapon():
+        SetTheStage().
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex(ENTRY(2, BuddiesLook:ToneRow("Reds"))), 44, 8, 100, 15)).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("B8AECB"), 44, 18, 100, 25)).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("6E8A3A"), 112, 7, 126, 21)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheWindShowsAsManyLitChevronsAsItsStrength():
+        DEFINE VARIABLE lit AS INTEGER NO-UNDO.
+        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
+        SetTheStage().
+        mPainter:Render(mGame:Grid, mGame).
+        /* the tip of a chevron is its middle row, and unlit ones are the colour of the panel rule */
+        DO i = 0 TO 9:
+            IF Px(304 + 4 * i + (IF mGame:Wind < 0 THEN 0 ELSE 2), 20) <> ColourMath:FromHex("4A3E5A") THEN lit = lit + 1.
+        END.
+        Assert:Equals(ABSOLUTE(mGame:Wind), lit).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheTeamBarsAreAPixelForEveryThirdOfAPointWithAPatternEach():
+        mPainter:Render(mGame:Grid, mGame).
+        /* 300 health of 400 is 90 pixels of 120 */
+        Assert:Equals(ColourMath:FromHex(ENTRY(2, BuddiesLook:ToneRow("Reds"))), Px(130, 225)).
+        Assert:Equals(ColourMath:FromHex(ENTRY(3, BuddiesLook:ToneRow("Reds"))), Px(130 + 89, 226)).
+        Assert:IsTrue(Px(130 + 90, 225) <> ColourMath:FromHex(ENTRY(2, BuddiesLook:ToneRow("Reds")))).
+        /* the Blues have every fourth column in tone 4 */
+        Assert:Equals(ColourMath:FromHex(ENTRY(2, BuddiesLook:ToneRow("Blues"))), Px(130, 228)).
+        Assert:Equals(ColourMath:FromHex(ENTRY(4, BuddiesLook:ToneRow("Blues"))), Px(133, 228)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheBannerAtTheStartOfATurnNamesTheBuddyAndTheTeam():
+        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        Floor().
+        DO k = 0 TO 5:
+            mGame:Plan:TeamAt(k MODULO 2 + 1):BuddyAt(INTEGER(TRUNCATE(k / 2, 0)) + 1):PlaceAt(250 + 20 * k, 150).
+        END.
+        Frames(BuddyRules:ArrivalFrames()).
+        Assert:IsTrue(mGame:Phase = BuddyPhase:Banner).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(ColourMath:FromHex("FF9A3C"), Px(0, 96)).
+        Assert:Equals(ColourMath:FromHex("FF9A3C"), Px(383, 135)).
+        Assert:Equals(ColourMath:FromHex("1C1426"), Px(0, 110)).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex(ENTRY(1, BuddiesLook:ToneRow("Reds"))), 100, 101, 290, 122)).
+        Assert:IsTrue(Somewhere(ColourMath:FromHex("B8AECB"), 100, 125, 290, 132)).
+        Frames(BuddyRules:BannerFrames()).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsTrue(mGame:Phase = BuddyPhase:Turn).
+        Assert:IsTrue(Px(0, 96) <> ColourMath:FromHex("FF9A3C")).
     END METHOD.
 
     @Test.
