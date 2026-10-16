@@ -419,6 +419,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
         mT:SetSolid(200, 100, TRUE).
         colour = mT:ShadeAt(200, 100).
         Assert:Equals(1, mT:Crumble(200, 100, 20)).
+        Assert:Equals(1, mT:CrumbCount()).
         Assert:IsFalse(mT:IsSolid(200, 100)).
         Assert:Equals(200, mT:CrumbX(1)).
         Assert:Equals(100, mT:CrumbY(1)).

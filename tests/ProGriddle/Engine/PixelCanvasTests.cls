@@ -204,6 +204,60 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID ShiftViewMovesARectangleOfColoursAndTheCellsItCoversTakeItsPlace():
+        mCanvas:Plot(3, 4, 0, 7).
+        mCanvas:Plot(4, 4, 0, 8).
+        mCanvas:ShiftView(0, 0, 12, 10, 2, 1).
+        Assert:Equals(7, mCanvas:ColourAt(5, 5)).
+        Assert:Equals(8, mCanvas:ColourAt(6, 5)).
+        /* the old place now holds what was two to the left and one up of it */
+        Assert:Equals(100, mCanvas:ColourAt(3, 4)).
+        Assert:Equals(100, mCanvas:ColourAt(0, 0)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ShiftViewLeavesTheCellsItExposesAsTheyWere():
+        mCanvas:Plot(0, 0, 0, 5).
+        mCanvas:Plot(1, 1, 0, 6).
+        mCanvas:ShiftView(0, 0, 12, 10, 1, 1).
+        Assert:Equals(5, mCanvas:ColourAt(0, 0)).
+        Assert:Equals(6, mCanvas:ColourAt(2, 2)).
+        Assert:Equals(5, mCanvas:ColourAt(1, 1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ShiftViewDropsWhatGoesOffTheBoardAndOnlyMovesItsRectangle():
+        mCanvas:Plot(1, 1, 0, 5).
+        mCanvas:Plot(6, 6, 0, 6).
+        mCanvas:Plot(2, 2, 0, 4).
+        mCanvas:ShiftView(0, 0, 6, 6, -1, -1).
+        Assert:Equals(5, mCanvas:ColourAt(0, 0)).
+        Assert:Equals(4, mCanvas:ColourAt(1, 1)).
+        /* only the rectangle moved: (6, 6) is outside it */
+        Assert:Equals(6, mCanvas:ColourAt(6, 6)).
+        mCanvas:ShiftView(6, 6, 6, 4, 3, 3).
+        Assert:Equals(6, mCanvas:ColourAt(9, 9)).
+        /* nothing to move, or no room, does nothing */
+        mCanvas:ShiftView(0, 0, 12, 10, 0, 0).
+        mCanvas:ShiftView(20, 20, 4, 4, 1, 1).
+        Assert:Equals(5, mCanvas:ColourAt(0, 0)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ShiftViewIsRefusedInABatch():
+        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        mCanvas:BeginBatch().
+        DO ON ERROR UNDO, LEAVE:
+            mCanvas:ShiftView(0, 0, 4, 4, 1, 0).
+            CATCH e AS GridException:
+                lThrown = TRUE.
+            END CATCH.
+        END.
+        mCanvas:EndBatch().
+        Assert:IsTrue(lThrown).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID DimScalesEveryShowingColourButNotTheKindsOrTheBackground():
         mCanvas:Plot(2, 3, {&KIND-SHOT}, ColourMath:Rgb(200, 100, 40)).
         mCanvas:Dim(50).

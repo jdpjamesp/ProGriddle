@@ -28,7 +28,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
             END.
         END.
         mInner = NEW RecordingRenderer().
-        mPainter = NEW BlastBuddiesPainter(mInner, mGame).
+        mPainter = NEW BlastBuddiesPainter(mInner, mGame, NEW SeededRandom(1)).
     END METHOD.
 
     @TearDown.
@@ -70,7 +70,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
         DEFINE VARIABLE p       AS BlastBuddiesPainter NO-UNDO.
         DEFINE VARIABLE lThrown AS LOGICAL             NO-UNDO.
         DO ON ERROR UNDO, LEAVE:
-            p = NEW BlastBuddiesPainter(?, mGame).
+            p = NEW BlastBuddiesPainter(?, mGame, NEW SeededRandom(1)).
             CATCH e AS GridException:
                 lThrown = TRUE.
             END CATCH.
@@ -78,7 +78,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
         Assert:IsTrue(lThrown).
         lThrown = FALSE.
         DO ON ERROR UNDO, LEAVE:
-            p = NEW BlastBuddiesPainter(mInner, ?).
+            p = NEW BlastBuddiesPainter(mInner, ?, NEW SeededRandom(1)).
             CATCH e AS GridException:
                 lThrown = TRUE.
             END CATCH.
@@ -566,6 +566,82 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
         Assert:IsTrue(Px(0, 96) <> ColourMath:FromHex("FF9A3C")).
     END METHOD.
 
+    /* a shell dropped from above onto the floor at column 200, so a radius 20 blast goes off there, with the painter's picture of the quiet
+       moment before it already made */
+    METHOD PRIVATE VOID DropAShell():
+        Floor().
+        mPainter:Render(mGame:Grid, mGame).
+        mGame:Shells:Launch(WeaponKind:Bazooka, 1, 200 * 256, 100 * 256, 0, 2048).
+        Frames(10).
+        Assert:Equals(1, mGame:BlastCount).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ABlastBeginsWithAWhiteFlashThenAFireballWhoseMiddleIsTheHottestColour():
+        DropAShell().
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(ColourMath:FromHex("FFFFFF"), Px(mGame:LastBlastX, mGame:LastBlastY - 8)).
+        Frames(8).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(ColourMath:FromHex(ENTRY(1, BuddiesLook:ToneRow("Blast"))), Px(mGame:LastBlastX, mGame:LastBlastY - 2)).
+        /* near the edge of the fireball it is a cooler colour */
+        Assert:IsTrue(Px(mGame:LastBlastX, mGame:LastBlastY - 8) <> ColourMath:FromHex(ENTRY(1, BuddiesLook:ToneRow("Blast")))).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ABlastThrowsOutFortyPiecesOfGroundThatLandAndAreGone():
+        DropAShell().
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsTrue(mPainter:DebrisInFlight() >= 40).
+        Frames(5).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsTrue(mPainter:DebrisInFlight() > 0).
+        Frames(120).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(0, mPainter:DebrisInFlight()).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheScorchRingGlowsAndCoolsToItsOwnColourOverSixHundredMilliseconds():
+        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
+        DropAShell().
+        mPainter:Render(mGame:Grid, mGame).
+        cx = mGame:LastBlastX.
+        cy = mGame:LastBlastY.
+        Assert:Equals(1, mGame:Land:ScorchStep(cx + 21, cy)).
+        /* the blast shakes the first picture a pixel to the right, so the ring pixel at cx + 21 is seen at cx + 22 */
+        Assert:Equals(ColourMath:FromHex(ENTRY(3, BuddiesLook:ToneRow("Blast"))), Px(cx + 22, cy)).
+        Frames(40).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(Look(ThemeKey:Scorch1), Px(cx + 21, cy)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ARadiusTwentyBlastShakesThePictureOnePixelAndLeavesTheHudAlone():
+        DropAShell().
+        mPainter:Render(mGame:Grid, mGame).
+        /* shifted a pixel to the right, the edge of the sun at 329 is seen at 330 */
+        Assert:Equals(Look(ThemeKey:Sun), Px(316 + 14, 44)).
+        Assert:Equals(ColourMath:FromHex("FF9A3C"), Px(5, 4)).
+        Frames(10).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(Sky(44), Px(316 + 14, 44)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID APainterNeedsARandomSourceToo():
+        DEFINE VARIABLE p       AS BlastBuddiesPainter NO-UNDO.
+        DEFINE VARIABLE lThrown AS LOGICAL             NO-UNDO.
+        DO ON ERROR UNDO, LEAVE:
+            p = NEW BlastBuddiesPainter(mInner, mGame, ?).
+            CATCH e AS GridException:
+                lThrown = TRUE.
+            END CATCH.
+        END.
+        Assert:IsTrue(lThrown).
+    END METHOD.
+
     @Test.
     METHOD PUBLIC VOID TheHealthIsWrittenOverALivingGoonInItsTeamColour():
         DEFINE VARIABLE found AS LOGICAL NO-UNDO.
@@ -704,7 +780,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
         DEFINE VARIABLE bl AS INTEGER             NO-UNDO.
         DEFINE VARIABLE still AS INTEGER           NO-UNDO.
         g = BlastBuddiesFactory:Create(NEW SeededRandom(2), BuddySetup:Default()).
-        p = NEW BlastBuddiesPainter(NEW RecordingRenderer(), g).
+        p = NEW BlastBuddiesPainter(NEW RecordingRenderer(), g, NEW SeededRandom(1)).
         ETIME(TRUE).
         p:Render(g:Grid, g).
         ms = ETIME.

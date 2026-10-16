@@ -343,6 +343,51 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
         END.
     END METHOD.
 
+    /* Moves the colours of a rectangle of the picture (the view layer) by piDx across and piDy down, for shaking the picture. What the
+       rectangle covered at its new place is replaced, and the cells it leaves are left as they were. Parts that would go off the board are
+       dropped. Kinds do not move. Throws GridException while a batch is open. */
+    METHOD PUBLIC VOID ShiftView(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER,
+                                 INPUT piDx AS INTEGER, INPUT piDy AS INTEGER):
+        DEFINE VARIABLE bytes    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE viewBase AS INTEGER NO-UNDO.
+        DEFINE VARIABLE tmp      AS MEMPTR  NO-UNDO.
+        DEFINE VARIABLE r        AS INTEGER NO-UNDO.
+        DEFINE VARIABLE yy       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE lo       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hi       AS INTEGER NO-UNDO.
+        {&NOT-IN-BATCH}
+        piX = MAXIMUM(piX, 0).
+        piY = MAXIMUM(piY, 0).
+        piW = MINIMUM(piW, mWidth - piX).
+        piH = MINIMUM(piH, mHeight - piY).
+        IF piW < 1 OR piH < 1 OR (piDx = 0 AND piDy = 0) THEN RETURN.
+        bytes = mWidth * mHeight * 4.
+        IF GET-SIZE(mWork) <> bytes * 3 THEN DO:
+            SET-SIZE(mWork) = 0.
+            SET-SIZE(mWork) = bytes * 3.
+        END.
+        viewBase = (mView - 1) * bytes + 1.
+        mStore:CopyBytesTo(mWork).
+        DO ON ERROR UNDO, THROW:
+            SET-SIZE(tmp) = piW * piH * 4.
+            DO r = 0 TO piH - 1:
+                COPY-LOB FROM mWork STARTING AT viewBase + ((piY + r) * mWidth + piX) * 4 FOR piW * 4 TO tmp OVERLAY AT r * piW * 4 + 1.
+            END.
+            lo = MAXIMUM(0, piX + piDx).
+            hi = MINIMUM(mWidth - 1, piX + piDx + piW - 1).
+            IF lo <= hi THEN DO r = 0 TO piH - 1:
+                yy = piY + r + piDy.
+                IF yy < 0 OR yy >= mHeight THEN NEXT.
+                COPY-LOB FROM tmp STARTING AT r * piW * 4 + (lo - (piX + piDx)) * 4 + 1 FOR (hi - lo + 1) * 4
+                         TO mWork OVERLAY AT viewBase + (yy * mWidth + lo) * 4.
+            END.
+            mStore:CopyBytesFrom(mWork).
+            FINALLY:
+                SET-SIZE(tmp) = 0.
+            END FINALLY.
+        END.
+    END METHOD.
+
     /* Puts one cell back to empty space: its background colour and kind 0. */
     METHOD PUBLIC VOID Unplot(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
         DEFINE VARIABLE idx AS INTEGER NO-UNDO.

@@ -54,6 +54,29 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     DEFINE PRIVATE VARIABLE mDmgMs     AS INTEGER       NO-UNDO EXTENT 16 INITIAL -100000.
     DEFINE PRIVATE VARIABLE mDmgNext   AS INTEGER       NO-UNDO INITIAL 1.
     DEFINE PRIVATE VARIABLE mBlastsSeen AS INTEGER      NO-UNDO.
+    /* the blasts being shown: where, how big, when it went off, and the pixels of its scorch ring (up to 800 each, in blocks of 800) */
+    DEFINE PRIVATE VARIABLE mRandom    AS IRandom       NO-UNDO.
+    DEFINE PRIVATE VARIABLE mFxX       AS INTEGER       NO-UNDO EXTENT 4.
+    DEFINE PRIVATE VARIABLE mFxY       AS INTEGER       NO-UNDO EXTENT 4.
+    DEFINE PRIVATE VARIABLE mFxR       AS INTEGER       NO-UNDO EXTENT 4.
+    DEFINE PRIVATE VARIABLE mFxMs      AS INTEGER       NO-UNDO EXTENT 4 INITIAL -100000.
+    DEFINE PRIVATE VARIABLE mFxRings   AS INTEGER       NO-UNDO EXTENT 4.
+    DEFINE PRIVATE VARIABLE mRingX     AS INTEGER       NO-UNDO EXTENT 3200.
+    DEFINE PRIVATE VARIABLE mRingY     AS INTEGER       NO-UNDO EXTENT 3200.
+    DEFINE PRIVATE VARIABLE mRingS     AS INTEGER       NO-UNDO EXTENT 3200.
+    DEFINE PRIVATE VARIABLE mFxNext    AS INTEGER       NO-UNDO INITIAL 1.
+    DEFINE PRIVATE VARIABLE mFxSeen    AS INTEGER       NO-UNDO.
+    DEFINE PRIVATE VARIABLE mBlast     AS INTEGER       NO-UNDO EXTENT 5.
+    /* the pieces of ground thrown out by blasts: where, how fast (256ths of a pixel), what colour, how wide, and whether it is still flying */
+    DEFINE PRIVATE VARIABLE mDbX       AS INTEGER       NO-UNDO EXTENT 256.
+    DEFINE PRIVATE VARIABLE mDbY       AS INTEGER       NO-UNDO EXTENT 256.
+    DEFINE PRIVATE VARIABLE mDbVX      AS INTEGER       NO-UNDO EXTENT 256.
+    DEFINE PRIVATE VARIABLE mDbVY      AS INTEGER       NO-UNDO EXTENT 256.
+    DEFINE PRIVATE VARIABLE mDbC       AS INTEGER       NO-UNDO EXTENT 256.
+    DEFINE PRIVATE VARIABLE mDbWide    AS LOGICAL       NO-UNDO EXTENT 256.
+    DEFINE PRIVATE VARIABLE mDbLive    AS LOGICAL       NO-UNDO EXTENT 256.
+    DEFINE PRIVATE VARIABLE mDbNext    AS INTEGER       NO-UNDO INITIAL 1.
+    DEFINE PRIVATE VARIABLE mLastFrame AS INTEGER       NO-UNDO.
     /* the team tones 1 and 2 */
     DEFINE PRIVATE VARIABLE mTone1     AS INTEGER       NO-UNDO EXTENT 4.
     DEFINE PRIVATE VARIABLE mTone2     AS INTEGER       NO-UNDO EXTENT 4.
@@ -91,12 +114,28 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         END GET.
 
     /* Throws GridException for no renderer or no game. */
-    CONSTRUCTOR PUBLIC BlastBuddiesPainter(INPUT poInner AS IGridRenderer, INPUT poGame AS BlastBuddiesGame):
+    /* How many pieces of ground thrown out by blasts are still in the air. */
+    METHOD PUBLIC INTEGER DebrisInFlight():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        DO i = 1 TO 256:
+            IF mDbLive[i] THEN n = n + 1.
+        END.
+        RETURN n.
+    END METHOD.
+
+    /* poRandom is for the effects (the pieces of ground thrown out by a blast). Throws GridException for no renderer, game or random source. */
+    CONSTRUCTOR PUBLIC BlastBuddiesPainter(INPUT poInner AS IGridRenderer, INPUT poGame AS BlastBuddiesGame, INPUT poRandom AS IRandom):
         DEFINE VARIABLE i AS INTEGER NO-UNDO.
         IF NOT VALID-OBJECT(poInner) THEN UNDO, THROW NEW GridException("A Blast Buddies painter needs a renderer to hand the picture to").
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("A Blast Buddies painter needs a game").
+        IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("A Blast Buddies painter needs a random source").
         mInner = poInner.
         mGame = poGame.
+        mRandom = poRandom.
+        DO i = 1 TO 5:
+            mBlast[i] = ColourMath:FromHex(ENTRY(i, BuddiesLook:ToneRow("Blast"))).
+        END.
         mCanvas = NEW PixelCanvas(poGame:Grid).
         mSkyGrid = NEW Grid(NEW ArrayStore({&W}, {&H}, "view,kind,back")).
         mSky = NEW PixelCanvas(mSkyGrid).
@@ -125,9 +164,12 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         mCanvas:Restore().
         DrawWater().
         DrawBuddies().
+        SyncBlasts().
         DrawShells().
+        DrawBlasts().
         DrawAim().
         DrawDamage().
+        ApplyShake().
         DrawHud().
         DrawBanner().
         mInner:Render(mGame:Grid, poGame).
@@ -664,6 +706,230 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
             IF age < 700 AND mDmgAmount[i] >= 10 THEN
                 mSprites:Stamp("bubble_oof", 0, FALSE):DrawTo(mCanvas, b:X() + 3 - mSprites:OriginX("bubble_oof", FALSE), head - 2 - mSprites:OriginY("bubble_oof")).
         END.
+    END METHOD.
+
+    /* ================================ explosions ================================ */
+
+    /* Starts showing any blast that has gone off since the last picture: its place, the pixels of its scorch ring, and the pieces of
+       ground it throws out (24, 40 or 60 by its size, and one for every crumb the crumb rule took). */
+    METHOD PRIVATE VOID SyncBlasts():
+        DEFINE VARIABLE slot  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cx    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cy    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE r     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE d2    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE stp   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE frames AS INTEGER NO-UNDO.
+        /* the pieces already in the air fly on by the frames that have passed */
+        frames = mGame:FrameCount - mLastFrame.
+        mLastFrame = mGame:FrameCount.
+        IF frames < 0 THEN frames = 0.
+        StepDebris(MINIMUM(frames, 90)).
+        IF mGame:BlastCount <= mFxSeen THEN DO:
+            IF mGame:BlastCount < mFxSeen THEN mFxSeen = mGame:BlastCount.
+            RETURN.
+        END.
+        mFxSeen = mGame:BlastCount.
+        slot = mFxNext.
+        mFxNext = mFxNext MODULO 4 + 1.
+        cx = mGame:LastBlastX.
+        cy = mGame:LastBlastY.
+        r = mGame:LastBlastRadius.
+        mFxX[slot] = cx.
+        mFxY[slot] = cy.
+        mFxR[slot] = r.
+        mFxMs[slot] = mGame:ElapsedMs.
+        /* the scorch ring: the ground from the edge of the hole to 3 pixels beyond it */
+        n = 0.
+        DO y = MAXIMUM(cy - r - 3, 0) TO MINIMUM(cy + r + 3, 239):
+            DO x = MAXIMUM(cx - r - 3, 0) TO MINIMUM(cx + r + 3, 383):
+                d2 = (x - cx) * (x - cx) + (y - cy) * (y - cy).
+                IF d2 <= r * r OR d2 > (r + 3) * (r + 3) THEN NEXT.
+                stp = mGame:Land:ScorchStep(x, y).
+                IF stp = 0 OR n >= 800 THEN NEXT.
+                n = n + 1.
+                mRingX[(slot - 1) * 800 + n] = x.
+                mRingY[(slot - 1) * 800 + n] = y.
+                mRingS[(slot - 1) * 800 + n] = stp.
+            END.
+        END.
+        mFxRings[slot] = n.
+        /* the ground thrown out, in the colours of the ground */
+        n = (IF r <= 12 THEN 24 ELSE IF r <= 20 THEN 40 ELSE 60).
+        DO k = 1 TO n:
+            SpawnDebris(cx, cy, DebrisColour(k), k MODULO 3 = 0).
+        END.
+        DO k = 1 TO MINIMUM(mGame:Land:CrumbCount(), 60):
+            SpawnDebris(mGame:Land:CrumbX(k), mGame:Land:CrumbY(k), mGame:Land:CrumbColour(k), FALSE).
+        END.
+    END METHOD.
+
+    /* The colours the pieces thrown out take in turn: the surface bands, the soil and the speckled soil, and the deep. */
+    METHOD PRIVATE INTEGER DebrisColour(INPUT piIndex AS INTEGER):
+        CASE piIndex MODULO 5:
+            WHEN 0 THEN RETURN Look(ThemeKey:Top2).
+            WHEN 1 THEN RETURN Look(ThemeKey:Soil).
+            WHEN 2 THEN RETURN Look(ThemeKey:SoilSpeck).
+            WHEN 3 THEN RETURN Look(ThemeKey:Deep).
+            OTHERWISE RETURN Look(ThemeKey:Top1).
+        END CASE.
+    END METHOD.
+
+    /* Throws a piece of ground out from a place: at an angle upwards (200 to 340 degrees), 1.5 to 3.5 pixels a frame. */
+    METHOD PRIVATE VOID SpawnDebris(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piColour AS INTEGER, INPUT plWide AS LOGICAL):
+        DEFINE VARIABLE hd    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE speed AS INTEGER NO-UNDO.
+        hd = mRandom:NextInt(25) - 12.
+        speed = 384 + mRandom:NextInt(513).
+        mDbX[mDbNext] = piX * 256.
+        mDbY[mDbNext] = piY * 256.
+        mDbVX[mDbNext] = INTEGER(TRUNCATE(Heading:DirX(hd) * speed / Heading:Scale(), 0)).
+        mDbVY[mDbNext] = INTEGER(TRUNCATE(Heading:DirY(hd) * speed / Heading:Scale(), 0)).
+        mDbC[mDbNext] = piColour.
+        mDbWide[mDbNext] = plWide.
+        mDbLive[mDbNext] = TRUE.
+        mDbNext = mDbNext MODULO 256 + 1.
+    END METHOD.
+
+    /* Flies every piece of ground on by some frames: gravity pulls it down, and it is gone when it lands on the ground (it does not stick),
+       reaches the water or leaves the sides. */
+    METHOD PRIVATE VOID StepDebris(INPUT piFrames AS INTEGER):
+        DEFINE VARIABLE f  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE px AS INTEGER NO-UNDO.
+        DEFINE VARIABLE py AS INTEGER NO-UNDO.
+        DO f = 1 TO piFrames:
+            DO i = 1 TO 256:
+                IF NOT mDbLive[i] THEN NEXT.
+                mDbVY[i] = mDbVY[i] + BuddyRules:Gravity().
+                mDbX[i] = mDbX[i] + mDbVX[i].
+                mDbY[i] = mDbY[i] + mDbVY[i].
+                px = BuddyRules:Pixel(mDbX[i]).
+                py = BuddyRules:Pixel(mDbY[i]).
+                IF px < 0 OR px >= {&W} OR py >= {&WATER} OR (py >= 0 AND mGame:Land:IsSolid(px, py)) THEN mDbLive[i] = FALSE.
+            END.
+        END.
+    END METHOD.
+
+    /* A filled disc in a batch, one line a row. */
+    METHOD PRIVATE VOID Disc(INPUT piCx AS INTEGER, INPUT piCy AS INTEGER, INPUT pdRadius AS DECIMAL, INPUT piColour AS INTEGER):
+        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
+        DEFINE VARIABLE w  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE r  AS INTEGER NO-UNDO.
+        r = INTEGER(TRUNCATE(pdRadius, 0)).
+        DO dy = - r TO r:
+            w = INTEGER(TRUNCATE(SQRT(pdRadius * pdRadius - dy * dy), 0)).
+            mCanvas:DrawLine(piCx - w, piCy + dy, piCx + w, piCy + dy, 0, piColour).
+        END.
+    END METHOD.
+
+    /* The blasts as they go: the white flash, the fireball in bands that cool, the shock ring, the smoke, the glow of the scorch cooling,
+       and the pieces of ground in the air. */
+    METHOD PRIVATE VOID DrawBlasts():
+        DEFINE VARIABLE s     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE t     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE r     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE big   AS DECIMAL NO-UNDO.
+        DEFINE VARIABLE b     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE active   AS LOGICAL NO-UNDO.
+        DEFINE VARIABLE ms    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE tone  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE sx    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE sy    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE rad   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE hd    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE bands AS DECIMAL NO-UNDO EXTENT 4.
+        bands[1] = 0.35.
+        bands[2] = 0.6.
+        bands[3] = 0.85.
+        bands[4] = 1.0.
+        ms = mGame:ElapsedMs.
+        DO s = 1 TO 4:
+            IF ms - mFxMs[s] >= 0 AND ms - mFxMs[s] < 800 THEN active = TRUE.
+        END.
+        IF active THEN DO:
+            mCanvas:BeginBatch().
+            DO s = 1 TO 4:
+                t = ms - mFxMs[s].
+                IF t < 0 OR t >= 800 THEN NEXT.
+                r = mFxR[s].
+                IF t < 33 THEN Disc(mFxX[s], mFxY[s], 0.8 * r, BuddiesLook:Colour(BuddyTint:Flash)).
+                ELSE IF t < 400 THEN DO:
+                    big = r * MINIMUM(1.0, 0.5 + (t - 33) / 134).
+                    IF t >= 160 THEN big = big * MAXIMUM(0.3, 1.0 - (t - 160) / 400).
+                    DO b = 4 TO 1 BY -1:
+                        k = b - 1 + (IF t >= 100 THEN INTEGER(TRUNCATE((t - 100) / 60, 0)) ELSE 0).
+                        IF k <= 4 THEN Disc(mFxX[s], mFxY[s], bands[b] * big, mBlast[k + 1]).
+                    END.
+                END.
+                /* smoke: round(r / 4) discs of radius 2.5 in a row above the hole, rising and ageing */
+                IF t >= 200 THEN DO:
+                    tone = 2 + INTEGER(TRUNCATE((t - 200) / 150, 0)).
+                    IF tone <= 5 THEN DO i = 0 TO INTEGER(ROUND(r / 4, 0)) - 1:
+                        sx = mFxX[s] - INTEGER(ROUND(r * 0.6, 0)) + 6 * i.
+                        sy = mFxY[s] - r - 6 - (IF i MODULO 2 = 1 THEN 3 ELSE 0) - INTEGER(TRUNCATE((t - 200) / 60, 0)).
+                        Disc(sx, sy, 2.5, mSmoke[tone]).
+                    END.
+                END.
+            END.
+            mCanvas:EndBatch().
+            DO s = 1 TO 4:
+                t = ms - mFxMs[s].
+                IF t < 0 THEN NEXT.
+                r = mFxR[s].
+                /* the shock ring: 60 pixels, a pixel for every 6 degrees, moving out until 250 ms */
+                IF t >= 33 AND t < 250 THEN DO i = 0 TO 59:
+                    hd = INTEGER(ROUND(i * 64 / 60, 0)).
+                    rad = r + 2 + INTEGER(TRUNCATE((t - 33) / 20, 0)).
+                    mCanvas:Plot(mFxX[s] + INTEGER(ROUND(Heading:DirX(hd) * rad / Heading:Scale(), 0)),
+                                 mFxY[s] + INTEGER(ROUND(Heading:DirY(hd) * rad / Heading:Scale(), 0)), 0, mBlast[2]).
+                END.
+                /* the scorch glows and cools over 600 ms */
+                IF t < 600 THEN DO i = 1 TO mFxRings[s]:
+                    n = (s - 1) * 800 + i.
+                    IF mGame:Land:ScorchStep(mRingX[n], mRingY[n]) = mRingS[n] THEN
+                        mCanvas:Plot(mRingX[n], mRingY[n], {&KIND-LAND}, mGame:Land:ScorchColour(mRingS[n], t)).
+                END.
+            END.
+        END.
+        DO i = 1 TO 256:
+            IF NOT mDbLive[i] THEN NEXT.
+            sx = BuddyRules:Pixel(mDbX[i]).
+            sy = BuddyRules:Pixel(mDbY[i]).
+            mCanvas:Plot(sx, sy, 0, mDbC[i]).
+            IF mDbWide[i] THEN mCanvas:Plot(sx + 1, sy, 0, mDbC[i]).
+        END.
+    END METHOD.
+
+    /* Shakes the whole picture, but not the HUD (which is drawn after): a radius 30 blast moves it 2 pixels for 5 frames, a radius 20
+       blast 1 pixel for 3, and smaller ones not at all. */
+    METHOD PRIVATE VOID ApplyShake():
+        DEFINE VARIABLE s  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE f  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dx AS INTEGER NO-UNDO.
+        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
+        DEFINE VARIABLE t  AS INTEGER NO-UNDO.
+        DO s = 1 TO 4:
+            t = mGame:ElapsedMs - mFxMs[s].
+            IF t < 0 OR t >= 84 THEN NEXT.
+            f = INTEGER(TRUNCATE(t * 60 / 1000, 0)).
+            IF mFxR[s] >= 30 AND f <= 4 THEN DO:
+                dx = INTEGER(ENTRY(f + 1, "2,-2,1,-1,0")).
+                dy = INTEGER(ENTRY(f + 1, "1,-1,0,0,0")).
+            END.
+            ELSE IF mFxR[s] >= 20 AND f <= 2 THEN DO:
+                dx = INTEGER(ENTRY(f + 1, "1,-1,0")).
+                dy = 0.
+            END.
+        END.
+        IF dx <> 0 OR dy <> 0 THEN mCanvas:ShiftView(0, 0, {&W}, {&H}, dx, dy).
     END METHOD.
 
     /* ================================ the HUD and the banner ================================ */

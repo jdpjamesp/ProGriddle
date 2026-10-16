@@ -345,6 +345,11 @@ CLASS ProGriddle.Games.BlastBuddies.Terrain FINAL:
         RETURN mCrumbs.
     END METHOD.
 
+    /* How many pixels the last Crumble removed. */
+    METHOD PUBLIC INTEGER CrumbCount():
+        RETURN mCrumbs.
+    END METHOD.
+
     /* The column of crumb i (1 to the count Crumble returned) of the last Crumble. */
     METHOD PUBLIC INTEGER CrumbX(INPUT piIndex AS INTEGER):
         IF piIndex < 1 OR piIndex > mCrumbs THEN UNDO, THROW NEW GridException("There is no crumb " + STRING(piIndex)).
