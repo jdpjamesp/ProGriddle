@@ -145,6 +145,12 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyTests:
         Assert:Equals(154, BuddyRules:HopForward()).
         Assert:Equals(465, BuddyRules:FlipLift()).
         Assert:Equals(96, BuddyRules:FlipBack()).
+        Assert:Equals(300, BuddyRules:ArrivalFrames()).
+        Assert:Equals(90, BuddyRules:BannerFrames()).
+        Assert:Equals(2700, BuddyRules:TurnFrames()).
+        Assert:Equals(180, BuddyRules:RetreatFrames()).
+        Assert:Equals(30, BuddyRules:SettleFrames()).
+        Assert:Equals(10, BuddyRules:WindMax()).
     END METHOD.
 
 END CLASS.

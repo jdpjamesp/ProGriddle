@@ -67,4 +67,31 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyRules FINAL:
         RETURN 96.
     END METHOD.
 
+    /* How long the phases last, in frames of a sixtieth of a second: the arrival 5 s, the banner 1.5 s, a turn 45 s, the retreat after a
+       shot 3 s. Resolve ends when everything has been still for SettleFrames. */
+    METHOD PUBLIC STATIC INTEGER ArrivalFrames():
+        RETURN 300.
+    END METHOD.
+
+    METHOD PUBLIC STATIC INTEGER BannerFrames():
+        RETURN 90.
+    END METHOD.
+
+    METHOD PUBLIC STATIC INTEGER TurnFrames():
+        RETURN 2700.
+    END METHOD.
+
+    METHOD PUBLIC STATIC INTEGER RetreatFrames():
+        RETURN 180.
+    END METHOD.
+
+    METHOD PUBLIC STATIC INTEGER SettleFrames():
+        RETURN 30.
+    END METHOD.
+
+    /* The wind is a whole number from minus this to this each turn. */
+    METHOD PUBLIC STATIC INTEGER WindMax():
+        RETURN 10.
+    END METHOD.
+
 END CLASS.
