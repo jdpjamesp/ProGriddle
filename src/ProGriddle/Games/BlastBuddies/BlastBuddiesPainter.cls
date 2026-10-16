@@ -4,7 +4,7 @@
    What is kept in the picture's background (the back layer of the canvas): the sky with the sun and the far hills, the clouds, and the
    ground, coloured by the rule of Terrain. Only what changes is coloured again: when a blast has dirtied a box of the ground
    (Terrain:HasDirty) that box is, and when the clouds drift (1 pixel every 800 ms, less in wind) their boxes are. What is drawn every
-   frame, over the background: the water (a swell behind, four frames of waves, the body of the sea) and the strip of shore that
+   pose, over the background: the water (a swell behind, four frames of waves, the body of the sea) and the strip of shore that
    stands in the waves.
 
    The painter owns a canvas, a sky canvas and stamps: the owner calls Dispose (a destructor does it as a safety net). */
@@ -32,7 +32,17 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     DEFINE PRIVATE VARIABLE mSkyGrid   AS Grid          NO-UNDO.
     DEFINE PRIVATE VARIABLE mSky       AS PixelCanvas   NO-UNDO.
     DEFINE PRIVATE VARIABLE mWave      AS PixelStamp    NO-UNDO EXTENT 4.
+    DEFINE PRIVATE VARIABLE mSprites   AS BuddySprites   NO-UNDO.
+    DEFINE PRIVATE VARIABLE mText      AS TextStampCache NO-UNDO.
     DEFINE PRIVATE VARIABLE mDisposed  AS LOGICAL       NO-UNDO.
+    /* what each buddy (team - 1) * 4 + place was doing at the last picture: its state and column, when it last moved and when it last landed */
+    DEFINE PRIVATE VARIABLE mPrevState AS INTEGER       NO-UNDO EXTENT 16.
+    DEFINE PRIVATE VARIABLE mPrevX     AS INTEGER       NO-UNDO EXTENT 16 INITIAL -1.
+    DEFINE PRIVATE VARIABLE mMoveMs    AS INTEGER       NO-UNDO EXTENT 16 INITIAL -100000.
+    DEFINE PRIVATE VARIABLE mLandMs    AS INTEGER       NO-UNDO EXTENT 16 INITIAL -100000.
+    /* the team tones 1 and 2 */
+    DEFINE PRIVATE VARIABLE mTone1     AS INTEGER       NO-UNDO EXTENT 4.
+    DEFINE PRIVATE VARIABLE mTone2     AS INTEGER       NO-UNDO EXTENT 4.
     DEFINE PRIVATE VARIABLE mSerial    AS INTEGER       NO-UNDO INITIAL -1.
     /* the colours of the sea and the sky, got once for the theme of the map */
     DEFINE PRIVATE VARIABLE mWaterBack AS INTEGER       NO-UNDO.
@@ -68,6 +78,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* Throws GridException for no renderer or no game. */
     CONSTRUCTOR PUBLIC BlastBuddiesPainter(INPUT poInner AS IGridRenderer, INPUT poGame AS BlastBuddiesGame):
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
         IF NOT VALID-OBJECT(poInner) THEN UNDO, THROW NEW GridException("A Blast Buddies painter needs a renderer to hand the picture to").
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("A Blast Buddies painter needs a game").
         mInner = poInner.
@@ -75,6 +86,12 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         mCanvas = NEW PixelCanvas(poGame:Grid).
         mSkyGrid = NEW Grid(NEW ArrayStore({&W}, {&H}, "view,kind,back")).
         mSky = NEW PixelCanvas(mSkyGrid).
+        mSprites = NEW BuddySprites().
+        mText = NEW TextStampCache(64).
+        DO i = 1 TO 4:
+            mTone1[i] = ColourMath:FromHex(ENTRY(1, BuddiesLook:ToneRow(ENTRY(i, "Reds,Blues,Teals,Grapes")))).
+            mTone2[i] = ColourMath:FromHex(ENTRY(2, BuddiesLook:ToneRow(ENTRY(i, "Reds,Blues,Teals,Grapes")))).
+        END.
     END CONSTRUCTOR.
 
     DESTRUCTOR PUBLIC BlastBuddiesPainter():
@@ -90,6 +107,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         SyncLand().
         mCanvas:Restore().
         DrawWater().
+        DrawBuddies().
         mInner:Render(mGame:Grid, poGame).
     END METHOD.
 
@@ -103,6 +121,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         END.
         IF VALID-OBJECT(mCanvas) THEN mCanvas:Dispose().
         IF VALID-OBJECT(mSky) THEN mSky:Dispose().
+        IF VALID-OBJECT(mSprites) THEN mSprites:Dispose().
+        IF VALID-OBJECT(mText) THEN mText:Dispose().
         IF VALID-OBJECT(mSkyGrid) THEN mSkyGrid:Dispose().
     END METHOD.
 
@@ -385,6 +405,115 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         mCanvas:EndBatch().
         mCanvas:BakeView().
         mGame:Land:ClearDirty().
+    END METHOD.
+
+    /* ================================ the buddies ================================ */
+
+    /* Draws every buddy that is still on the map: the goon in the pose of what it is doing, in its team colours and facing the way it
+       faces, its team mark on the head, the bazooka in its hands when it aims, and the numbers over it. A buried buddy is a gravestone. */
+    METHOD PRIVATE VOID DrawBuddies():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        DEFINE VARIABLE b AS Buddy   NO-UNDO.
+        DO i = 1 TO mGame:Plan:TeamCount():
+            DO j = 1 TO mGame:Plan:TeamAt(i):Count():
+                b = mGame:Plan:TeamAt(i):BuddyAt(j).
+                Track(b, (b:Team - 1) * 4 + j).
+            END.
+        END.
+        DO i = 1 TO mGame:Plan:TeamCount():
+            DO j = 1 TO mGame:Plan:TeamAt(i):Count():
+                b = mGame:Plan:TeamAt(i):BuddyAt(j).
+                IF b:State = BuddyState:Drowned THEN NEXT.
+                IF b:Buried THEN DrawGravestone(b).
+                ELSE DrawGoon(b, (b:Team - 1) * 4 + j).
+            END.
+        END.
+        DO i = 1 TO mGame:Plan:TeamCount():
+            DO j = 1 TO mGame:Plan:TeamAt(i):Count():
+                b = mGame:Plan:TeamAt(i):BuddyAt(j).
+                IF b:State = BuddyState:Drowned OR b:IsDead() THEN NEXT.
+                DrawLabels(b, (b:Team - 1) * 4 + j).
+            END.
+        END.
+    END METHOD.
+
+    /* Notes what a buddy has been doing since the last picture: when it walked, and when it came down. */
+    METHOD PRIVATE VOID Track(INPUT poBuddy AS Buddy, INPUT piKey AS INTEGER):
+        IF poBuddy:X() <> mPrevX[piKey] AND mPrevX[piKey] >= 0 AND poBuddy:State = BuddyState:Standing THEN mMoveMs[piKey] = mGame:ElapsedMs.
+        IF mPrevState[piKey] = INTEGER(BuddyState:Airborne) AND poBuddy:State = BuddyState:Standing THEN mLandMs[piKey] = mGame:ElapsedMs.
+        mPrevX[piKey] = poBuddy:X().
+        mPrevState[piKey] = INTEGER(poBuddy:State).
+    END METHOD.
+
+    /* Whether a shot is in the air within 48 pixels of a buddy, which worries it. */
+    METHOD PRIVATE LOGICAL ShotNear(INPUT poBuddy AS Buddy):
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO ShellPool:Capacity():
+            IF mGame:Shells:Active(i) AND ABSOLUTE(BuddyRules:Pixel(mGame:Shells:X(i)) - poBuddy:X()) <= 48
+               AND ABSOLUTE(BuddyRules:Pixel(mGame:Shells:Y(i)) - poBuddy:Y()) <= 48 THEN RETURN TRUE.
+        END.
+        RETURN FALSE.
+    END METHOD.
+
+    /* The picture a goon is in now. */
+    METHOD PRIVATE CHARACTER FrameFor(INPUT poBuddy AS Buddy, INPUT piKey AS INTEGER):
+        DEFINE VARIABLE ms AS INTEGER NO-UNDO.
+        DEFINE VARIABLE t  AS INTEGER NO-UNDO.
+        ms = mGame:ElapsedMs.
+        t = ms + piKey * 977.
+        IF poBuddy:IsDead() THEN RETURN "goon_flinch".
+        IF poBuddy:State = BuddyState:Airborne THEN RETURN (IF poBuddy:VY < 0 THEN "goon_jump_rise" ELSE "goon_jump_fall").
+        IF ms - mLandMs[piKey] < 120 THEN RETURN "goon_land".
+        IF ms - mMoveMs[piKey] < 150 THEN RETURN "goon_walk_" + STRING(INTEGER(TRUNCATE((poBuddy:X() MODULO 12) / 3, 0)) + 1).
+        IF mGame:Phase = BuddyPhase:Turn AND poBuddy = mGame:CurrentBuddy THEN RETURN "goon_aim".
+        IF ShotNear(poBuddy) THEN RETURN "goon_worried".
+        IF t MODULO 3200 < 100 THEN RETURN "goon_blink".
+        IF (ms + piKey * 1313) MODULO 7000 < 700 THEN RETURN "goon_look_back".
+        RETURN "goon_idle_" + STRING(INTEGER(TRUNCATE(ms / 600, 0)) MODULO 2 + 1).
+    END METHOD.
+
+    METHOD PRIVATE VOID DrawGoon(INPUT poBuddy AS Buddy, INPUT piKey AS INTEGER):
+        DEFINE VARIABLE pose  AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE mirror AS LOGICAL   NO-UNDO.
+        DEFINE VARIABLE x      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE y      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE mark   AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE head   AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE r      AS INTEGER   NO-UNDO.
+        pose = FrameFor(poBuddy, piKey).
+        mirror = poBuddy:Facing < 0.
+        x = poBuddy:X().
+        y = poBuddy:Y().
+        mSprites:Stamp(pose, poBuddy:Team, mirror):DrawTo(mCanvas, x - mSprites:OriginX(pose, mirror), y - mSprites:OriginY(pose)).
+        head = y - mSprites:OriginY(pose) + mSprites:HeadTop(pose).
+        mark = ENTRY(poBuddy:Team, "mark_reds,mark_blues,mark_teals,mark_grapes").
+        mSprites:Stamp(mark, 0, mirror):DrawTo(mCanvas, x - mSprites:OriginX(mark, mirror), head + 1 - mSprites:HeightOf(mark)).
+        IF pose = "goon_aim" THEN DO:
+            r = mSprites:Reach("held_bazooka").
+            mSprites:Turned("held_bazooka", mGame:AimHeading, mirror):DrawTo(mCanvas, x + (IF mirror THEN -3 ELSE 3) - r, y - 5 - r).
+        END.
+    END METHOD.
+
+    METHOD PRIVATE VOID DrawGravestone(INPUT poBuddy AS Buddy):
+        mSprites:Stamp("gravestone", 0, FALSE):DrawTo(mCanvas, poBuddy:X() - mSprites:OriginX("gravestone", FALSE), poBuddy:Y() - mSprites:OriginY("gravestone")).
+    END METHOD.
+
+    /* The health over a goon in its team colour, and the name of the goon whose turn it is. */
+    METHOD PRIVATE VOID DrawLabels(INPUT poBuddy AS Buddy, INPUT piKey AS INTEGER):
+        DEFINE VARIABLE pose AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE head  AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE words  AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE ink   AS INTEGER   NO-UNDO.
+        pose = FrameFor(poBuddy, piKey).
+        head = poBuddy:Y() - mSprites:OriginY(pose) + mSprites:HeadTop(pose).
+        ink = BuddiesLook:Colour(BuddyTint:Ink).
+        words = STRING(poBuddy:Health).
+        mText:Get(words, 1, mTone2[poBuddy:Team], mTone2[poBuddy:Team], ink):DrawTo(mCanvas, poBuddy:X() - INTEGER(TRUNCATE(PixelFont:WidthOf(words) / 2, 0)), head - 14).
+        IF poBuddy = mGame:CurrentBuddy AND (mGame:Phase = BuddyPhase:Turn OR mGame:Phase = BuddyPhase:Retreat) THEN DO:
+            words = poBuddy:BuddyName.
+            mText:Get(words, 1, mTone1[poBuddy:Team], mTone1[poBuddy:Team], ink):DrawTo(mCanvas, poBuddy:X() - INTEGER(TRUNCATE(PixelFont:WidthOf(words) / 2, 0)), head - 24).
+        END.
     END METHOD.
 
     /* ================================ the water ================================ */
