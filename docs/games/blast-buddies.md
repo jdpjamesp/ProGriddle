@@ -1,5 +1,7 @@
 # Blast Buddies
 
+![Blast Buddies on the Canyon land: two teams on rolling hills, the buddy in turn with its bazooka and aim reticle, the timer, wind and team health bars](../../assets/screenshots/blastbuddies.png)
+
 Turn based artillery on ground that blows away. Two to four teams of three or four round, glossy buddies (one big lens each, in four team colours) stand on rolling hills over the sea. Each turn one buddy walks, aims, charges and fires a bazooka, the rocket bends in the wind, and every blast digs a hole. Knock the other teams into the holes, or into the water. The last team standing wins. A person can play against the computer, or two or more people can share the keyboard turn by turn.
 
 The picture is the designer's "Sunny Side" look (`docs/design/blast-buddies-art.md`): a noon sky with a sun, far hills and drifting clouds, three themes of land (Meadow, Canyon and Candy) coloured by one rule from how deep each pixel is below the nearest air, a sparkling sea, and explosions with a flash, a fireball, a shock ring, smoke and flying earth. The board is 384 x 240 pixels in direct colour, scaled to fill the window.

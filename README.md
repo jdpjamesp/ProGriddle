@@ -24,7 +24,7 @@ The games, each with its own page (click a picture):
 |:---:|:---:|:---:|
 | [<img src="assets/screenshots/tetris.png" width="260" alt="Tetris">](docs/games/tetris.md)<br>Tetris | [<img src="assets/screenshots/snake.png" width="260" alt="Snake">](docs/games/snake.md)<br>Snake | [<img src="assets/screenshots/asteroids.png" width="300" alt="Asteroids">](docs/games/asteroids.md)<br>Asteroids |
 | [<img src="assets/screenshots/spaceinvaders.png" width="220" alt="Space Invaders">](docs/games/spaceinvaders.md)<br>Space Invaders | [<img src="assets/screenshots/life.png" width="300" alt="Conway's Game of Life">](docs/games/life.md)<br>Conway's Game of Life | [<img src="assets/screenshots/minesweeper.png" width="300" alt="Minesweeper">](docs/games/minesweeper.md)<br>Minesweeper |
-| [<img src="assets/screenshots/battleships.png" width="300" alt="Battleships">](docs/games/battleships.md)<br>Battleships | [<img src="assets/screenshots/2048.png" width="300" alt="2048">](docs/games/2048.md)<br>2048 | [Blast Buddies](docs/games/blast-buddies.md)<br>(a screenshot is to come) |
+| [<img src="assets/screenshots/battleships.png" width="300" alt="Battleships">](docs/games/battleships.md)<br>Battleships | [<img src="assets/screenshots/2048.png" width="300" alt="2048">](docs/games/2048.md)<br>2048 | [<img src="assets/screenshots/blastbuddies.png" width="300" alt="Blast Buddies">](docs/games/blast-buddies.md)<br>Blast Buddies |
 
 The pictures are taken by `tools/take-screenshots.ps1`, which plays each game for a moment and saves its window to `assets/screenshots`.
 
