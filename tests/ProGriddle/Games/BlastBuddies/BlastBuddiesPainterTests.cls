@@ -900,6 +900,22 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID APainterThatSkipsUnchangedDrawsOnlyWhenTheGameHasMovedOn():
+        mPainter:SkipUnchanged = TRUE.
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(1, mInner:RenderCount).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(1, mInner:RenderCount).
+        mGame:Advance().
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(2, mInner:RenderCount).
+        mGame:Paused = TRUE.
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(3, mInner:RenderCount).
+        Assert:IsTrue(mPainter:SkipUnchanged).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID APainterNeedsARandomSourceToo():
         DEFINE VARIABLE p       AS BlastBuddiesPainter NO-UNDO.
         DEFINE VARIABLE lThrown AS LOGICAL             NO-UNDO.

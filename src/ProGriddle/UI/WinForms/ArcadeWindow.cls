@@ -85,9 +85,9 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
         THIS-OBJECT:StartPosition = FormStartPosition:CenterScreen.
         THIS-OBJECT:FormBorderStyle = FormBorderStyle:FixedSingle.
         THIS-OBJECT:MaximizeBox = FALSE.
-        /* two small chips to a row, 56 pixels a row, so the usual window holds four rows (eight games) without growing;
-           a catalog with more than eight scrolls inside the list */
-        rowsShown = MINIMUM(4, MAXIMUM(2, INTEGER(TRUNCATE((mCatalog:Count + 1) / 2, 0)))).
+        /* two small chips to a row, 46 pixels a row, so the usual window holds five rows (ten games) without growing;
+           a catalog with more than ten scrolls inside the list */
+        rowsShown = MINIMUM(5, MAXIMUM(2, INTEGER(TRUNCATE((mCatalog:Count + 1) / 2, 0)))).
         THIS-OBJECT:ClientSize = NEW Size(1120, 650).
         THIS-OBJECT:BackColor = Color:FromArgb(10, 14, 22).
         THIS-OBJECT:ForeColor = Color:FromArgb(245, 239, 230).
@@ -111,7 +111,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
         /* the chips sit in a panel that wraps them two to a row and scrolls when there are more */
         flow = NEW FlowLayoutPanel().
         flow:Location = NEW Point(46, 372).
-        flow:Size = NEW Size(510, rowsShown * 56 + 6).
+        flow:Size = NEW Size(510, rowsShown * 46 + 6).
         flow:FlowDirection = FlowDirection:LeftToRight.
         flow:WrapContents = TRUE.
         flow:AutoScroll = TRUE.
@@ -278,8 +278,8 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
     METHOD PRIVATE Button NewChip(INPUT piPlace AS INTEGER):
         DEFINE VARIABLE btn AS Button NO-UNDO.
         btn = NEW Button().
-        btn:Size = NEW Size(232, 46).
-        btn:Margin = NEW Padding(0, 0, 10, 10).
+        btn:Size = NEW Size(232, 40).
+        btn:Margin = NEW Padding(0, 0, 10, 6).
         btn:Name = mCatalog:ProgramAt(piPlace).
         btn:Text = mTitles[piPlace].
         btn:AccessibleName = mTitles[piPlace].

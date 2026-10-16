@@ -214,13 +214,13 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
     END METHOD.
 
     @Test.
-    METHOD PUBLIC VOID TheChipsAreSmallAndSitTwoToARowFiftySixPixelsApart():
+    METHOD PUBLIC VOID TheChipsAreSmallAndSitTwoToARowFortySixPixelsApart():
         DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
         DO ON ERROR UNDO, THROW:
             w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(Games(4)), mLauncher).
             Assert:Equals(232, w:ButtonFor("run/run-g1.p"):Width).
-            Assert:Equals(46, w:ButtonFor("run/run-g1.p"):Height).
-            Assert:Equals(w:ButtonFor("run/run-g1.p"):Height + 10, w:ButtonFor("run/run-g3.p"):Top - w:ButtonFor("run/run-g1.p"):Top).
+            Assert:Equals(40, w:ButtonFor("run/run-g1.p"):Height).
+            Assert:Equals(w:ButtonFor("run/run-g1.p"):Height + 6, w:ButtonFor("run/run-g3.p"):Top - w:ButtonFor("run/run-g1.p"):Top).
             Assert:Equals(w:ButtonFor("run/run-g1.p"):Top, w:ButtonFor("run/run-g2.p"):Top).
             FINALLY:
                 IF VALID-OBJECT(w) THEN DO:

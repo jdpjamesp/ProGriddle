@@ -93,6 +93,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     DEFINE PRIVATE VARIABLE mTone1     AS INTEGER       NO-UNDO EXTENT 4.
     DEFINE PRIVATE VARIABLE mTone2     AS INTEGER       NO-UNDO EXTENT 4.
     DEFINE PRIVATE VARIABLE mSerial    AS INTEGER       NO-UNDO INITIAL -1.
+    DEFINE PRIVATE VARIABLE mLastKey   AS CHARACTER     NO-UNDO.
     /* the colours of the sea and the sky, got once for the theme of the map */
     DEFINE PRIVATE VARIABLE mWaterBack AS INTEGER       NO-UNDO.
     DEFINE PRIVATE VARIABLE mWater     AS INTEGER       NO-UNDO.
@@ -118,6 +119,11 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
         GET():
             RETURN mGame:Grid.
         END GET.
+
+    /* True in the window: a redraw asked for when the game has not moved on (a frame, a phase, the pause, the charge) draws nothing, because
+       every repeat of a held key asks for one and the picture takes tens of milliseconds. Off by default, so a test can change the game and
+       draw it again. */
+    DEFINE PUBLIC PROPERTY SkipUnchanged AS LOGICAL NO-UNDO INITIAL FALSE GET. SET.
 
     /* How far the clouds have drifted since the map began, in pixels (negative to the left). */
     DEFINE PUBLIC PROPERTY CloudDrift AS INTEGER NO-UNDO
@@ -169,7 +175,14 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* Draws the game on the canvas and gives the grid to the window's renderer. Throws GridException for a game that is not a Blast
        Buddies game. */
     METHOD PUBLIC VOID Render(INPUT poGrid AS Grid, INPUT poGame AS IGame):
+        DEFINE VARIABLE key AS CHARACTER NO-UNDO.
         IF NOT VALID-OBJECT(poGame) OR NOT TYPE-OF(poGame, BlastBuddiesGame) THEN UNDO, THROW NEW GridException("A Blast Buddies painter draws a Blast Buddies game").
+        /* a redraw asked for with nothing changed since the last picture (every repeat of a held key asks for one) costs nothing */
+        IF SkipUnchanged THEN DO:
+            key = SUBSTITUTE("&1|&2|&3|&4|&5", mGame:FrameCount, mGame:MapSerial, INTEGER(mGame:Phase), mGame:Paused, mGame:Charging).
+            IF key = mLastKey THEN RETURN.
+            mLastKey = key.
+        END.
         IF mSerial <> mGame:MapSerial THEN StartMap().
         IF IsOver() AND mOverSerial = mSerial THEN DO:
             /* the last picture stays, dimmed, with the end screen on it */

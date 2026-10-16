@@ -78,6 +78,7 @@ DO ON ERROR UNDO, THROW:
     oPlayer = NEW WaveOutPlayer(oBank).
     SoundSettings:Apply(oPlayer, oSettings).
     oSound = NEW SoundRenderer(oPainter, NEW BuddyCues(), oPlayer).
+    oPainter:SkipUnchanged = TRUE.
     oController = NEW RealTimeController(oGame, oSound, oClock).
 
     /* a window the shape of the picture, as big as the screen has room for, up to 3 pixels to a pixel of the picture. The toolbar and
