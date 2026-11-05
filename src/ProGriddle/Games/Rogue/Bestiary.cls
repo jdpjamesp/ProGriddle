@@ -55,7 +55,7 @@ CLASS ProGriddle.Games.Rogue.Bestiary FINAL:
         RETURN ENTRY(INTEGER(poKind) + 1, "0d0,1d2,1d2/1d5/1d5,1d8/1d8/3d10,1d2,0d0,4d3/3d5,1d8,0d0,2d12/2d4,1d4,1d1,3d4/3d4/2d5,0d0,1d8,4d4,1d5/1d5,1d6,1d3,1d8/1d8/2d6,1d9/1d9/2d9,1d19,1d6,4d4,1d6/1d6,1d8").
     END METHOD.
 
-    /* The chance out of 100 that the monster is carrying gold. */
+    /* The chance out of 100 that the monster is carrying an item. */
     METHOD PUBLIC STATIC INTEGER Carry(INPUT poKind AS MonsterKind):
         RETURN INTEGER(ENTRY(INTEGER(poKind) + 1, "0,0,15,100,0,0,20,0,0,70,0,0,40,100,15,0,0,0,0,50,0,20,0,30,30,0")).
     END METHOD.

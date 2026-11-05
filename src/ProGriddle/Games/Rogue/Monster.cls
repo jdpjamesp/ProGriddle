@@ -1,7 +1,6 @@
 /* One monster on the level: what it is, where it is and its state. A record with no rules of its own (what it does on its turn is in
    MonsterTurns). Awake is false while it sleeps: a sleeping monster stays put until the hero comes near and it wakes. Held, Confused,
-   Slowed and Hasted count turns left, and Stunned the turns it cannot act. Cancelled monsters have lost their special power. Gold is
-   what it drops when it dies. Seen is true once the hero has laid eyes on it, so a monster found by a potion is still named properly. */
+   Slowed and Hasted count turns left. Cancelled monsters have lost their special power. Gold is what it has stolen and drops when it dies. Seen is true once the hero has laid eyes on it, so a monster found by a potion is still named properly. */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
 USING ProGriddle.Games.Rogue.*.
@@ -63,6 +62,11 @@ CLASS ProGriddle.Games.Rogue.Monster FINAL:
         SET.
 
     DEFINE PUBLIC PROPERTY Gold AS INTEGER NO-UNDO
+        GET.
+        SET.
+
+    /* The item it carries and drops when it dies (a thing it was born with, or one it stole). */
+    DEFINE PUBLIC PROPERTY Carried AS Item NO-UNDO
         GET.
         SET.
 
