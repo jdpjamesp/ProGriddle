@@ -96,7 +96,17 @@ CLASS ProGriddle.Games.Rogue.Hero FINAL:
     DEFINE PUBLIC PROPERTY SensesFood AS INTEGER NO-UNDO
         GET.
         SET.
-    /* Turns left in which the hero's touch confuses the monster it hits (the scroll of monster confusion). */
+
+    /* How far the hero has got to the next hit point (counted by Upkeep), and the stage of hunger already told about, 0 satisfied to
+       4 starved, so each is said only once as the stomach empties. */
+    DEFINE PUBLIC PROPERTY HealCounter AS INTEGER NO-UNDO
+        GET.
+        SET.
+
+    DEFINE PUBLIC PROPERTY HungerStage AS INTEGER NO-UNDO
+        GET.
+        SET.
+    /* True while the hero's touch confuses the monster it hits (the scroll of monster confusion). */
     DEFINE PUBLIC PROPERTY ConfusingTouch AS LOGICAL NO-UNDO
         GET.
         SET.

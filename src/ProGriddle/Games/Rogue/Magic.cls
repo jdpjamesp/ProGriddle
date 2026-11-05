@@ -103,6 +103,7 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
         IF NOT Gear:Holds(poWorld, piSlot, ItemType:Food, "That's disgusting!") THEN RETURN FALSE.
         oFood = UseOne(poWorld, piSlot).
         poWorld:Hero:Nutrition = MINIMUM(RogueRules:StomachSize(), poWorld:Hero:Nutrition + Foods:Nutrition(FoodKind:GetEnum(oFood:Kind))).
+        poWorld:Hero:HungerStage = Upkeep:StageOf(poWorld:Hero:Nutrition).
         poWorld:Say(IF oFood:Kind = INTEGER(FoodKind:Mango) THEN "My, that was a yummy mango." ELSE "Yum, that tasted good.").
         RETURN TRUE.
     END METHOD.
