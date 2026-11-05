@@ -9,11 +9,14 @@
       -All         plain tests, then WinForms tests, exit code 0 only when both pass
 .PARAMETER Filter
     Optional wildcard on test class file names, for example "Grid*".
+.PARAMETER Folder
+    Optional text that the path of a test class must contain, for example "Games/Rogue" for every test of one game.
 .PARAMETER Dlc
     OpenEdge install directory. Defaults to $env:DLC, then C:\Progress\OpenEdge.
 #>
 param(
     [string]$Filter = '*Tests.cls',
+    [string]$Folder = '',
     [switch]$Gui,
     [switch]$All,
     [string]$Dlc = $(if ($env:DLC) { $env:DLC } else { 'C:\Progress\OpenEdge' })
@@ -85,6 +88,7 @@ function Invoke-Suite([string]$Name, [string[]]$Classes, [string]$Exe, [string[]
 
 $everything = Get-ChildItem $testRoot -Recurse -Filter $Filter -File |
     ForEach-Object { $_.FullName.Substring($testRoot.Length + 1).Replace('\', '/') }
+if ($Folder -ne '') { $everything = @($everything | Where-Object { $_ -like "*$Folder*" }) }
 $guiClasses = @($everything | Where-Object { $_ -match '/UI/WinForms/' })
 $plainClasses = @($everything | Where-Object { $_ -notmatch '/UI/WinForms/' })
 
