@@ -196,7 +196,7 @@ The ProGriddle Cookoff (`run/run-arcade.p`) is one window with a button for ever
 
 On Windows you can also double click `cookoff.bat` in the repository root, which does the same from any folder (it uses the install named by the `DLC` environment variable, or `C:\Progress\OpenEdge`).
 
-Each game has a chip with its title and a colour: the one its run file asks for, or else one worked out from its title, so a game keeps its colour whatever else is added. The chips are small, two to a row, so the usual window holds eight games and the list scrolls beyond that. Pointing at a chip shows that game's description under the COOKOFF badge. A click starts the game in a prowin of its own, so the Cookoff stays open and several games can be played at once. While a game is running its chip is outlined in its colour and says PLAYING in green, and goes back to normal when the game's window closes.
+Each game has a chip with its title and a colour: the one its run file asks for, or else one worked out from its title, so a game keeps its colour whatever else is added. The chips are small, two to a row, so the usual window holds ten games per tab and the list scrolls beyond that. Pointing at a chip shows that game's description under the COOKOFF badge. A click starts the game in a prowin of its own, so the Cookoff stays open and several games can be played at once. While a game is running its chip is outlined in its colour and says PLAYING in green, and goes back to normal when the game's window closes.
 
 Nothing is registered anywhere. The Cookoff looks in the `run` folder for files named `run-*.p`, so **a new game appears as soon as its run file exists**. A run file can describe itself with one line in its header comment (and the comment must not close on that line):
 
@@ -205,6 +205,14 @@ Nothing is registered anywhere. The Cookoff looks in the `run` folder for files 
 ```
 
 The words before the first bar are the button's title and the words after it the line shown beside the button. An optional third part after a second bar names the colour of the chip, one of `red`, `orange`, `blue`, `purple`, `green`, `yellow` or `teal` (the four games here use the colours of the Cookoff artwork, for example `Arcade: Tetris | Falling blocks. | purple`). Without the line the title comes from the file name (`run-battleships.p` is Battleships) and there is no description. A run file that is not a game says `Arcade: hidden` (`run/run-arcade.p` does). Games are listed by title.
+
+A second line in the same comment puts the game in a group:
+
+```
+   Category: Puzzle
+```
+
+Once any game names a category the Cookoff shows a row of tabs above the chips: one tab for each category in alphabetical order, then **Other** for games with no `Category` line, and **All** at the end. The first tab is selected when the Cookoff opens. A tab shows only the games of its group, so the window stays the same size however many games there are. With no categories at all there are no tabs. The games here use Arcade, Puzzle, Strategy and Simulation, but a category is just a word, so use any. `tools/new-game.ps1 -Category Puzzle` writes the line for you (it defaults to Other).
 
 It is built from the same pieces as the games: `IGameCatalog` and `DirectoryGameCatalog` (the list of games, in `Engine`), `IGameLauncher` (starts a program, with `ProcessGameLauncher` in `UI.WinForms` starting a real prowin) and `ArcadeWindow` (the window), wired together in `run/run-arcade.p`. The look comes from the Cookoff artwork and is drawn in code by `CookoffBackdrop` (the navy backdrop, the wordmark, the badge and the board of mixed games), so it stays sharp and needs no image files. Only the window icon is a file, `assets/progriddle.ico`. A game does not need to know about the Cookoff.
 

@@ -302,4 +302,165 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
         mWindow:AccentNameFor("run/run-zzz.p").
     END METHOD.
 
+    /* Games in four categories (one of them none), in the form the fixed catalog takes. */
+    METHOD PRIVATE CHARACTER SortedGames():
+        RETURN "run/run-a.p|Alpha|1||Puzzle;run/run-b.p|Beta|2||Arcade;run/run-c.p|Gamma|3||Puzzle;"
+             + "run/run-d.p|Delta|4;run/run-e.p|Eta|5||Arcade".
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID WithNoCategoriesThereAreNoTabs():
+        Assert:Equals("", mWindow:TabNames).
+        Assert:Equals("All", mWindow:ShownTab).
+        Assert:Equals(2, mWindow:ShownCount).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID CategoriesBecomeTabsInOrderThenOtherThenAll():
+        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(SortedGames()), mLauncher).
+            Assert:Equals("Arcade,Puzzle,Other,All", w:TabNames).
+            Assert:Equals("Puzzle", w:TabFor("Puzzle"):Text).
+            Assert:Equals("Puzzle games", w:TabFor("Puzzle"):AccessibleName).
+            Assert:Equals("Arcade", w:ShownTab).
+            Assert:Equals(2, w:ShownCount).
+            w:ShowTab("All").
+            Assert:Equals(5, w:ShownCount).
+            FINALLY:
+                IF VALID-OBJECT(w) THEN DO:
+                    w:ReleaseResources().
+                    w:Dispose().
+                END.
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheFirstTabIsShowingWhenTheWindowOpens():
+        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog("a|Alpha|1||Zoo;b|Beta|2||Puzzle"), mLauncher).
+            Assert:Equals("Puzzle,Zoo,All", w:TabNames).
+            Assert:Equals("Puzzle", w:ShownTab).
+            Assert:IsTrue(w:IsShown("b")).
+            Assert:IsFalse(w:IsShown("a")).
+            FINALLY:
+                IF VALID-OBJECT(w) THEN DO:
+                    w:ReleaseResources().
+                    w:Dispose().
+                END.
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ATabShowsOnlyTheGamesOfItsCategory():
+        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(SortedGames()), mLauncher).
+            w:ShowTab("Puzzle").
+            Assert:Equals("Puzzle", w:ShownTab).
+            Assert:Equals(2, w:ShownCount).
+            Assert:IsTrue(w:IsShown("run/run-a.p")).
+            Assert:IsTrue(w:IsShown("run/run-c.p")).
+            Assert:IsFalse(w:IsShown("run/run-b.p")).
+            Assert:IsFalse(w:IsShown("run/run-d.p")).
+            w:ShowTab("Other").
+            Assert:Equals(1, w:ShownCount).
+            Assert:IsTrue(w:IsShown("run/run-d.p")).
+            w:ShowTab("All").
+            Assert:Equals(5, w:ShownCount).
+            Assert:IsTrue(w:IsShown("run/run-b.p")).
+            FINALLY:
+                IF VALID-OBJECT(w) THEN DO:
+                    w:ReleaseResources().
+                    w:Dispose().
+                END.
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ATabButtonIsNamedAfterTheCategoryItShows():
+        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(SortedGames()), mLauncher).
+            Assert:Equals("Arcade", w:TabFor("Arcade"):Name).
+            Assert:Equals("All", w:TabFor("All"):Name).
+            FINALLY:
+                IF VALID-OBJECT(w) THEN DO:
+                    w:ReleaseResources().
+                    w:Dispose().
+                END.
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ACategoryIsMatchedIgnoringCaseAndSpaces():
+        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog("a|Alpha|1||puzzle;b|Beta|2||  Puzzle "), mLauncher).
+            Assert:Equals("puzzle,All", w:TabNames).
+            w:ShowTab("puzzle").
+            Assert:Equals(2, w:ShownCount).
+            FINALLY:
+                IF VALID-OBJECT(w) THEN DO:
+                    w:ReleaseResources().
+                    w:Dispose().
+                END.
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheTabsKeepTheWindowTheSameSizeAndTheCaptionShort():
+        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(SortedGames()), mLauncher).
+            Assert:Equals(650, w:ClientSize:Height).
+            Assert:Equals("5 games in 3 groups, all cooking on the same grid.", w:Caption).
+            FINALLY:
+                IF VALID-OBJECT(w) THEN DO:
+                    w:ReleaseResources().
+                    w:Dispose().
+                END.
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AGameStillStartsFromAFilteredList():
+        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(SortedGames()), mLauncher).
+            w:ShowTab("Arcade").
+            w:Play("run/run-e.p").
+            Assert:Equals("run/run-e.p", mLauncher:Launched).
+            Assert:Equals("Started Eta", w:StatusLine).
+            FINALLY:
+                IF VALID-OBJECT(w) THEN DO:
+                    w:ReleaseResources().
+                    w:Dispose().
+                END.
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test (expected="ProGriddle.Core.GridException").
+    METHOD PUBLIC VOID AskingIfAGameThatIsNotThereIsShownThrows():
+        mWindow:IsShown("run/run-zzz.p").
+    END METHOD.
+
+    @Test (expected="ProGriddle.Core.GridException").
+    METHOD PUBLIC VOID ShowingATabThatIsNotThereThrows():
+        mWindow:ShowTab("Puzzle").
+    END METHOD.
+
+    @Test (expected="ProGriddle.Core.GridException").
+    METHOD PUBLIC VOID AskingForATabThatIsNotThereThrows():
+        mWindow:TabFor("Puzzle").
+    END METHOD.
+
 END CLASS.

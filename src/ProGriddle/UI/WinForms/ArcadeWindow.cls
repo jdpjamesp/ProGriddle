@@ -5,6 +5,12 @@
    names all the games. The games come from the catalog, so adding a game adds a chip without changing
    this class. A chip's colour is the one its run file asks for, or one worked out from its title.
 
+   When any game names a category (a Category line in its run file) a row of tabs sits above the chips:
+   one tab for each category in order, then Other for games with none, and All at the end, so a list
+   that scrolls starts with groups, not with the catch-all. A tab hides the
+   chips of the other categories, so the window stays the same size however many games there are. With
+   no categories there are no tabs.
+
    It knows nothing about any game. Call ReleaseResources (the window does when it closes) to stop the
    timers that watch for games that have finished and that close the window for scripted runs. */
 USING Progress.Lang.*.
@@ -26,6 +32,13 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
     DEFINE PRIVATE VARIABLE mButtons   AS Button         NO-UNDO EXTENT.
     DEFINE PRIVATE VARIABLE mTitles    AS CHARACTER      NO-UNDO EXTENT.
     DEFINE PRIVATE VARIABLE mBlurbs    AS CHARACTER      NO-UNDO EXTENT.
+    DEFINE PRIVATE VARIABLE mCategoryOf AS CHARACTER     NO-UNDO EXTENT.
+    DEFINE PRIVATE VARIABLE mTabs      AS Button         NO-UNDO EXTENT.
+    DEFINE PRIVATE VARIABLE mTabList   AS CHARACTER      NO-UNDO.
+    DEFINE PRIVATE VARIABLE mShown     AS CHARACTER      NO-UNDO INITIAL "All".
+    DEFINE PRIVATE VARIABLE mFlow      AS FlowLayoutPanel NO-UNDO.
+    DEFINE PRIVATE VARIABLE mTabFlow   AS FlowLayoutPanel NO-UNDO.
+    DEFINE PRIVATE VARIABLE mTabFont   AS Font           NO-UNDO.
     DEFINE PRIVATE VARIABLE mBackdrop  AS CookoffBackdrop NO-UNDO.
     DEFINE PRIVATE VARIABLE mStatus    AS Label          NO-UNDO.
     DEFINE PRIVATE VARIABLE mWatcher   AS Timer          NO-UNDO.
@@ -39,6 +52,29 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
     DEFINE PUBLIC PROPERTY GameCount AS INTEGER NO-UNDO
         GET():
             RETURN mCatalog:Count.
+        END GET.
+
+    /* The names of the tabs, comma separated, All last, or an empty string when the window has no tabs. */
+    DEFINE PUBLIC PROPERTY TabNames AS CHARACTER NO-UNDO
+        GET():
+            RETURN mTabList.
+        END GET.
+
+    /* The tab that is showing: the first one when the window opens, All when there are no tabs. */
+    DEFINE PUBLIC PROPERTY ShownTab AS CHARACTER NO-UNDO
+        GET():
+            RETURN mShown.
+        END GET.
+
+    /* How many game chips are showing under the tab that is selected. */
+    DEFINE PUBLIC PROPERTY ShownCount AS INTEGER NO-UNDO
+        GET():
+            DEFINE VARIABLE i AS INTEGER NO-UNDO.
+            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            DO i = 1 TO mCatalog:Count:
+                IF InShownTab(i) THEN n = n + 1.
+            END.
+            RETURN n.
         END GET.
 
     /* The text of the line at the bottom: what was last started, or why it could not be. */
@@ -72,7 +108,6 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
 
     CONSTRUCTOR PUBLIC ArcadeWindow(INPUT pcTitle AS CHARACTER, INPUT poCatalog AS IGameCatalog, INPUT poLauncher AS IGameLauncher):
         DEFINE VARIABLE i    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE flow AS FlowLayoutPanel NO-UNDO.
         DEFINE VARIABLE rowsShown AS INTEGER NO-UNDO.
         SUPER().
         IF pcTitle = ? OR pcTitle = "" THEN UNDO, THROW NEW GridException("An arcade needs a title").
@@ -109,28 +144,36 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
         mBackdrop:Dock = DockStyle:Fill.
 
         /* the chips sit in a panel that wraps them two to a row and scrolls when there are more */
-        flow = NEW FlowLayoutPanel().
-        flow:Location = NEW Point(46, 372).
-        flow:Size = NEW Size(510, rowsShown * 46 + 6).
-        flow:FlowDirection = FlowDirection:LeftToRight.
-        flow:WrapContents = TRUE.
-        flow:AutoScroll = TRUE.
-        flow:BackColor = Color:Transparent.
+        mFlow = NEW FlowLayoutPanel().
+        mFlow:Location = NEW Point(46, 372).
+        mFlow:Size = NEW Size(510, rowsShown * 46 + 6).
+        mFlow:FlowDirection = FlowDirection:LeftToRight.
+        mFlow:WrapContents = TRUE.
+        mFlow:AutoScroll = TRUE.
+        mFlow:BackColor = Color:Transparent.
 
         IF mCatalog:Count > 0 THEN DO:
             EXTENT(mButtons) = mCatalog:Count.
             EXTENT(mTitles) = mCatalog:Count.
             EXTENT(mBlurbs) = mCatalog:Count.
+            EXTENT(mCategoryOf) = mCatalog:Count.
             DO i = 1 TO mCatalog:Count:
                 mTitles[i] = mCatalog:TitleAt(i).
                 mBlurbs[i] = mCatalog:BlurbAt(i).
+                mCategoryOf[i] = CategoryLabel(mCatalog:CategoryAt(i)).
                 mButtons[i] = NewChip(i).
-                flow:Controls:Add(mButtons[i]).
+                mFlow:Controls:Add(mButtons[i]).
             END.
         END.
-        mBackdrop:Controls:Add(flow).
+        mBackdrop:Controls:Add(mFlow).
 
-        mDefaultCaption = NamesLine().
+        mTabList = TabsFor().
+        IF mTabList <> "" THEN DO:
+            BuildTabs().
+            ShowTab(ENTRY(1, mTabList)).
+        END.
+
+        mDefaultCaption = (IF mTabList <> "" THEN GroupsLine() ELSE NamesLine()).
         mBackdrop:Caption = mDefaultCaption.
 
         THIS-OBJECT:Controls:Add(mBackdrop).
@@ -162,6 +205,39 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
         RETURN ENTRY(AccentNumber(place) + 1, "red,orange,blue,purple,green,yellow,teal").
     END METHOD.
 
+    /* The tab button with this name (All, a category, or Other), for tests and scripts. */
+    METHOD PUBLIC Button TabFor(INPUT pcName AS CHARACTER):
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        n = LOOKUP(pcName, mTabList).
+        IF n = 0 THEN UNDO, THROW NEW GridException("The arcade has no tab " + STRING(pcName)).
+        RETURN mTabs[n].
+    END METHOD.
+
+    /* True when the chip of the game started by this program is showing under the tab that is selected.
+       (A control reports itself hidden until its window is shown, so this answers from the tab.) */
+    METHOD PUBLIC LOGICAL IsShown(INPUT pcProgram AS CHARACTER):
+        DEFINE VARIABLE place AS INTEGER NO-UNDO.
+        place = PlaceOf(pcProgram).
+        IF place = 0 THEN UNDO, THROW NEW GridException("The arcade has no game " + STRING(pcProgram)).
+        RETURN InShownTab(place).
+    END METHOD.
+
+    /* Shows only the games of one category, as a click on its tab does: All, or a name in TabNames. The
+       list goes back to the top. */
+    METHOD PUBLIC VOID ShowTab(INPUT pcName AS CHARACTER):
+        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        n = LOOKUP(pcName, mTabList).
+        IF n = 0 THEN UNDO, THROW NEW GridException("The arcade has no tab " + STRING(pcName)).
+        mShown = ENTRY(n, mTabList).
+        mFlow:SuspendLayout().
+        DO n = 1 TO mCatalog:Count:
+            mButtons[n]:Visible = InShownTab(n).
+        END.
+        mFlow:ResumeLayout().
+        mFlow:AutoScrollPosition = NEW Point(0, 0).
+        StyleTabs().
+    END METHOD.
+
     /* True while the launcher says this game is running, which is when its chip shows PLAYING. */
     METHOD PUBLIC LOGICAL IsPlaying(INPUT pcProgram AS CHARACTER):
         RETURN mLauncher:IsRunning(pcProgram).
@@ -183,6 +259,10 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
         DEFINE VARIABLE i AS INTEGER NO-UNDO.
         IF mReleased THEN RETURN.
         mReleased = TRUE.
+        IF EXTENT(mTabs) <> ? THEN
+            DO i = 1 TO EXTENT(mTabs):
+                mTabs[i]:Click:Unsubscribe(OnTab).
+            END.
         mWatcher:Stop().
         mWatcher:Tick:Unsubscribe(OnWatch).
         mWatcher:Dispose().
@@ -200,6 +280,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
         mBackdrop:ReleaseResources().
         mChipFont:Dispose().
         mTagFont:Dispose().
+        IF VALID-OBJECT(mTabFont) THEN mTabFont:Dispose().
     END METHOD.
 
     /* Starts the game whose program is given, as a click on its chip does. A game that is already
@@ -231,6 +312,97 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
             names = names + (IF i = 1 THEN "" ELSE IF i = mCatalog:Count THEN " and " ELSE ", ") + mTitles[i].
         END.
         RETURN names + ", all cooking on the same grid.".
+    END METHOD.
+
+    /* The tab a game goes under: its category, or Other when it has none. */
+    METHOD PRIVATE CHARACTER CategoryLabel(INPUT pcCategory AS CHARACTER):
+        IF pcCategory = ? OR TRIM(pcCategory) = "" THEN RETURN "Other".
+        RETURN REPLACE(TRIM(pcCategory), ",", " ").
+    END METHOD.
+
+    /* Whether the chip at a place belongs under the tab that is showing. */
+    METHOD PRIVATE LOGICAL InShownTab(INPUT piPlace AS INTEGER):
+        RETURN mShown = "All" OR mCategoryOf[piPlace] = mShown.
+    END METHOD.
+
+    /* The tab names: the categories in alphabetical order, then Other, then All last. Empty when no game named a
+       category, because then there is nothing to choose between. */
+    METHOD PRIVATE CHARACTER TabsFor():
+        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE j      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE n      AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE named  AS LOGICAL   NO-UNDO.
+        DEFINE VARIABLE other  AS LOGICAL   NO-UNDO.
+        DEFINE VARIABLE cats   AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE swap   AS CHARACTER NO-UNDO.
+        DO i = 1 TO mCatalog:Count:
+            IF TRIM(mCatalog:CategoryAt(i)) <> "" THEN named = TRUE.
+            IF mCategoryOf[i] = "Other" THEN other = TRUE.
+            ELSE IF LOOKUP(mCategoryOf[i], cats) = 0 THEN cats = cats + (IF cats = "" THEN "" ELSE ",") + mCategoryOf[i].
+        END.
+        IF NOT named THEN RETURN "".
+        n = NUM-ENTRIES(cats).
+        DO i = 1 TO n - 1:
+            DO j = i + 1 TO n:
+                IF ENTRY(j, cats) < ENTRY(i, cats) THEN DO:
+                    swap = ENTRY(i, cats).
+                    ENTRY(i, cats) = ENTRY(j, cats).
+                    ENTRY(j, cats) = swap.
+                END.
+            END.
+        END.
+        RETURN cats + (IF other THEN (IF cats = "" THEN "" ELSE ",") + "Other" ELSE "") + (IF cats = "" AND NOT other THEN "" ELSE ",") + "All".
+    END METHOD.
+
+    /* The row of tab buttons in the gap between the caption and the chips. */
+    METHOD PRIVATE VOID BuildTabs():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        mTabFont = NEW Font("Consolas", System.Convert:ToSingle(13), FontStyle:Bold, GraphicsUnit:Pixel).
+        mTabFlow = NEW FlowLayoutPanel().
+        mTabFlow:Location = NEW Point(46, 338).
+        mTabFlow:Size = NEW Size(510, 30).
+        mTabFlow:FlowDirection = FlowDirection:LeftToRight.
+        mTabFlow:WrapContents = FALSE.
+        mTabFlow:BackColor = Color:Transparent.
+        EXTENT(mTabs) = NUM-ENTRIES(mTabList).
+        DO i = 1 TO NUM-ENTRIES(mTabList):
+            mTabs[i] = NEW Button().
+            mTabs[i]:Name = ENTRY(i, mTabList).
+            mTabs[i]:Text = ENTRY(i, mTabList).
+            mTabs[i]:AccessibleName = ENTRY(i, mTabList) + " games".
+            mTabs[i]:Size = NEW Size(24 + 9 * LENGTH(ENTRY(i, mTabList)), 28).
+            mTabs[i]:Margin = NEW Padding(0, 0, 6, 0).
+            mTabs[i]:Font = mTabFont.
+            mTabs[i]:BackColor = Color:FromArgb(15, 20, 29).
+            mTabs[i]:FlatStyle = FlatStyle:Flat.
+            mTabs[i]:FlatAppearance:BorderSize = 1.
+            mTabs[i]:Cursor = Cursors:Hand.
+            mTabs[i]:Click:Subscribe(OnTab).
+            mTabFlow:Controls:Add(mTabs[i]).
+        END.
+        mBackdrop:Controls:Add(mTabFlow).
+        StyleTabs().
+    END METHOD.
+
+    /* The tab that is showing is outlined and lettered in the Cookoff orange, the others are quiet. */
+    METHOD PRIVATE VOID StyleTabs():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        IF EXTENT(mTabs) = ? THEN RETURN.
+        DO i = 1 TO EXTENT(mTabs):
+            IF mTabs[i]:Name = mShown THEN DO:
+                mTabs[i]:ForeColor = Color:FromArgb(255, 255, 138, 61).
+                mTabs[i]:FlatAppearance:BorderColor = Color:FromArgb(255, 255, 138, 61).
+            END.
+            ELSE DO:
+                mTabs[i]:ForeColor = Color:FromArgb(255, 160, 168, 182).
+                mTabs[i]:FlatAppearance:BorderColor = Color:FromArgb(38, 46, 60).
+            END.
+        END.
+    END METHOD.
+
+    /* The caption when there are tabs: a short line, because the names of many games would run into them. */
+    METHOD PRIVATE CHARACTER GroupsLine():
+        RETURN SUBSTITUTE("&1 games in &2 groups, all cooking on the same grid.", mCatalog:Count, NUM-ENTRIES(mTabList) - 1).
     END METHOD.
 
     /* The number of the accent colour of the chip at a place, 0 to 6 for red, orange, blue, purple, green,
@@ -315,6 +487,10 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
 
     METHOD PRIVATE VOID OnPlay(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
         Play(CAST(poSender, Button):Name).
+    END METHOD.
+
+    METHOD PRIVATE VOID OnTab(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
+        ShowTab(CAST(poSender, Button):Name).
     END METHOD.
 
     METHOD PRIVATE VOID OnPoint(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):

@@ -101,7 +101,7 @@ Any game with real interaction deserves a smoke test in the style of `tools/gui-
 - **Compile.** `tools/compile.ps1` lists no problems.
 - **The page.** Edit `docs/games/pong.md` so it describes your game: how to play, controls, settings, how it uses the framework, tests, design notes.
 - **The README.** Add a line to the Games list in `README.md` that links the page. A game is not finished until the page exists and is linked.
-- **The Cookoff.** Make sure the `Arcade:` line in `run/run-pong.p` says what you want on the button: `Arcade: Title | one line about it | colour`. The colour is optional (red, orange, blue, purple, green, yellow or teal), and a game that names none gets one worked out from its title, which stays the same whatever else is added. `Arcade: hidden` keeps a run file out of the Cookoff, and a run file with no such line gets a button titled from its file name.
+- **The Cookoff.** Make sure the `Arcade:` line in `run/run-pong.p` says what you want on the button: `Arcade: Title | one line about it | colour`. The colour is optional (red, orange, blue, purple, green, yellow or teal), and a game that names none gets one worked out from its title, which stays the same whatever else is added. Add a `Category: Puzzle` line under it to choose the Cookoff tab the game appears on (a game with none goes under Other). `Arcade: hidden` keeps a run file out of the Cookoff, and a run file with no such line gets a button titled from its file name.
 - **The framework.** If the game needed the framework to change, it changed in `Core` or `Engine` with its own tests, not as a special case for your game.
 - **Commits.** Small, one per sub step, with messages that say what and why.
 
