@@ -30,7 +30,7 @@ Optional entries after the program name: a settings file (`default` for `%APPDAT
 | `d` `t` `z` | Drop, throw (with a direction), zap a wand (with a direction) |
 | `M` `D` | The messages so far, and what you have discovered |
 | `?` | The help screen |
-| `Q` | Give up |
+| `Q` | Give up (it asks "Really quit?": `y` to give up, anything else to carry on) |
 | Escape | Give up a question (which thing? which way?) |
 | Enter, F2 or the New game button | A new game (when one has ended) |
 | The **Keys** button | Switch between the vi keys and the number pad and arrows (kept as `rogue.keys`) |

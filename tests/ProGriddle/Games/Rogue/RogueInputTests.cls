@@ -188,6 +188,8 @@ CLASS ProGriddle.Games.Rogue.RogueInputTests:
         mInput:ShiftDown = TRUE.
         mInput:HandleKey("Q").
         mInput:ShiftDown = FALSE.
+        Assert:Equals(RogueMode:Confirm, mGame:Mode).
+        mInput:HandleKey("Y").
         Assert:IsTrue(mGame:IsOver).
         Assert:Equals(1, mScores:Count).
         Assert:Equals(250, mScores:ScoreAt(1)).
@@ -202,6 +204,7 @@ CLASS ProGriddle.Games.Rogue.RogueInputTests:
         mInput:ShiftDown = TRUE.
         mInput:HandleKey("Q").
         mInput:ShiftDown = FALSE.
+        mInput:HandleKey("Y").
         mInput:HandleKey("Return").
         Assert:Equals(RogueMode:Play, mGame:Mode).
         mGame:World:ClearLevel().
@@ -210,6 +213,7 @@ CLASS ProGriddle.Games.Rogue.RogueInputTests:
         mInput:ShiftDown = TRUE.
         mInput:HandleKey("Q").
         mInput:ShiftDown = FALSE.
+        mInput:HandleKey("Y").
         Assert:Equals(2, mScores:Count).
     END METHOD.
 

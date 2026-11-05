@@ -8,6 +8,7 @@
      PickItem       a pack letter "a" to "w" for the command that asked (quaff what?), or "ESC" to give up
      PickDirection  a direction "1" to "9" for the throw or the zap, or "ESC"
      Overlay        (Showing says which) any token closes the screen on show (the pack, the help, the messages, what has been discovered)
+     Confirm        "y" to give up (after "S-q"), anything else to carry on
      Over           the hero is dead or has left with the amulet: "ENTER" starts a new game
 
    A command that takes time lets the monsters take theirs, the hero's hunger, healing and timers go on, and what the hero can see is
@@ -96,6 +97,7 @@ CLASS ProGriddle.Games.Rogue.RogueGame FINAL INHERITS AbstractGame IMPLEMENTS IT
             WHEN RogueMode:PickItem THEN PickedItem(pcToken).
             WHEN RogueMode:PickDirection THEN PickedDirection(pcToken).
             WHEN RogueMode:Overlay THEN CloseOverlay().
+            WHEN RogueMode:Confirm THEN Confirmed(pcToken).
             OTHERWISE DO:
                 IF pcToken = "ENTER" THEN Initialise().
             END.
@@ -166,9 +168,8 @@ CLASS ProGriddle.Games.Rogue.RogueGame FINAL INHERITS AbstractGame IMPLEMENTS IT
             WHEN ">" THEN GoDown().
             WHEN "<" THEN GoUp().
             WHEN "S-q" THEN DO:
-                mWorld:Say("You quit.").
-                Fighting:Die(mWorld, "quit").
-                EndAction().
+                Asking = "Really quit? (y or n)".
+                Mode = RogueMode:Confirm.
             END.
             WHEN "v" THEN mWorld:Say("Rogue, in ProGriddle. The Amulet of Yendor lies on the 26th level.").
         END CASE.
@@ -203,6 +204,16 @@ CLASS ProGriddle.Games.Rogue.RogueGame FINAL INHERITS AbstractGame IMPLEMENTS IT
         Mode = RogueMode:Play.
     END METHOD.
 
+    /* A token while the game waits for a yes or no to giving up: "y" gives up, anything else carries on. */
+    METHOD PRIVATE VOID Confirmed(INPUT pcToken AS CHARACTER):
+        Asking = "".
+        Mode = RogueMode:Play.
+        IF pcToken <> "y" THEN RETURN.
+        mWorld:Messages:BeginTurn().
+        mWorld:Say("You quit.").
+        Fighting:Die(mWorld, "quit").
+        EndAction().
+    END METHOD.
     /* A token while the game waits for an item. */
     METHOD PRIVATE VOID PickedItem(INPUT pcToken AS CHARACTER):
         DEFINE VARIABLE slot  AS INTEGER NO-UNDO.

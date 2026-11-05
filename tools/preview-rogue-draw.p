@@ -71,6 +71,7 @@ DO ON ERROR UNDO, THROW:
             oScores:Add(310, 3, "a bat", FALSE).
             oGame:World:Hero:Gold = 640.
             oGame:Command("S-q").
+            oGame:Command("y").
         END.
     END CASE.
 

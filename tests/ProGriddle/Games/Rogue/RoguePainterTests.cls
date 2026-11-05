@@ -319,6 +319,7 @@ CLASS ProGriddle.Games.Rogue.RoguePainterTests:
     METHOD PUBLIC VOID ADeadHeroGetsATombstoneAndTheListOfScores():
         mScores:Add(500, 4, "a bat", FALSE).
         mGame:Command("S-q").
+        mGame:Command("y").
         Draw().
         Assert:IsTrue(Lit(17, 1, Tint(RogueTint:Title)) > 0).
         Assert:IsTrue(Lit(27, 4, Tint(RogueTint:Wall)) > 0).

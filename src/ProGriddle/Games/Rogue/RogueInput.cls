@@ -95,7 +95,7 @@ CLASS ProGriddle.Games.Rogue.RogueInput FINAL IMPLEMENTS IGameInput, IModifierKe
     /* A key went down: the game gets its token. Gives true when the key meant something to the game. */
     METHOD PUBLIC LOGICAL HandleKey(INPUT pcKey AS CHARACTER):
         DEFINE VARIABLE token AS CHARACTER NO-UNDO.
-        token = RogueKeys:Token(pcKey, ShiftDown, ViKeys, mGame:Mode = RogueMode:PickItem).
+        token = RogueKeys:Token(pcKey, ShiftDown, ViKeys, mGame:Mode = RogueMode:PickItem OR mGame:Mode = RogueMode:Confirm).
         IF token = "" THEN RETURN FALSE.
         mGame:Command(token).
         KeepScore().

@@ -425,11 +425,31 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
     END METHOD.
 
     @Test.
-    METHOD PUBLIC VOID QuittingEndsTheGameWithTheCauseQuit():
+    METHOD PUBLIC VOID QuittingAsksFirstAndThenEndsTheGameWithTheCauseQuit():
         mGame:Command("S-q").
+        Assert:Equals(RogueMode:Confirm, mGame:Mode).
+        Assert:IsTrue(INDEX(mGame:Asking, "Really quit?") > 0).
+        Assert:IsFalse(mGame:World:Dead).
+        mGame:Command("y").
         Assert:IsTrue(mGame:World:Dead).
         Assert:Equals("quit", mGame:World:Cause).
         Assert:IsTrue(mGame:IsOver).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AnythingButYesCarriesOnPlaying():
+        mGame:Command("S-q").
+        mGame:Command("n").
+        Assert:Equals(RogueMode:Play, mGame:Mode).
+        Assert:Equals("", mGame:Asking).
+        Assert:IsFalse(mGame:World:Dead).
+        mGame:Command("S-q").
+        mGame:Command("ESC").
+        Assert:Equals(RogueMode:Play, mGame:Mode).
+        mGame:Command("S-q").
+        mGame:Command("6").
+        Assert:IsFalse(mGame:World:Dead).
+        Assert:Equals(0, mGame:Turn).
     END METHOD.
 
     @Test.
