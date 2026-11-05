@@ -16,7 +16,8 @@
    SetOption, then redraws, since a choice may replace the game's grid, and shows the game's notice.
 
    The game's own keys (IGameInput:HandleKey) are offered every key press first, and told when keys
-   come up, so a real time game can use the arrow keys. The game's BannerText, such as PAUSED, is
+   come up, so a real time game can use the arrow keys. An input that also implements IModifierKeys is told
+   whether Shift is down before each key. The game's BannerText, such as PAUSED, is
    kept over the board while it is not empty.
 
    Keys: see KeyMap. A turn based game only answers to the new game keys (R and F2). The mouse
@@ -473,6 +474,8 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
         /* an open pattern list needs its arrow keys and letters for itself */
         IF (VALID-OBJECT(mPicker) AND mPicker:DroppedDown) OR OptionListOpen() THEN RETURN.
         keyName = STRING(e:KeyCode).
+        /* an input that cares about Shift (a game with a command on > or a capital letter) is told before each key */
+        IF TYPE-OF(mInput, IModifierKeys) THEN CAST(mInput, IModifierKeys):ShiftDown = e:Shift.
         /* the game's own keys come first, so a real time game can use the arrows and the space bar */
         IF mInput:HandleKey(keyName) THEN DO:
             mController:Refresh().
