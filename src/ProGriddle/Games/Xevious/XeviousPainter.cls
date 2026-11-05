@@ -117,9 +117,9 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
         SyncGround().
         BakeScorches().
         mCanvas:Restore().
-        DrawLight().
         mCanvas:BeginBatch().
-        IF mGame:Phase <> XeviousPhase:Title THEN DrawWorld().
+        DrawLight().
+        IF mGame:Phase <> XeviousPhase:Title AND mGame:Phase <> XeviousPhase:GameOver THEN DrawWorld().
         DrawStrips().
         mCanvas:EndBatch().
         DrawVeils().
@@ -221,8 +221,16 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     /* Makes the background the ground for the game as it is: built whole when the stage changes or the ground jumps (a stage
        begins, a ship comes back at a checkpoint), and scrolled down a row at a time as the ground goes by. */
     METHOD PRIVATE VOID SyncGround():
-        DEFINE VARIABLE d AS INTEGER NO-UNDO.
+        DEFINE VARIABLE d     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE veil  AS INTEGER NO-UNDO.
         d = mGame:Distance.
+        /* the title and the game over screen show the land under a veil of Ink, which is made in the colours of the tiles once, so it costs
+           nothing in a frame */
+        veil = (IF mGame:Phase = XeviousPhase:Title THEN 55 ELSE IF mGame:Phase = XeviousPhase:GameOver THEN 50 ELSE 0).
+        IF veil <> mSprites:Veil THEN DO:
+            mSprites:Veil = veil.
+            mBakedDistance = -1.
+        END.
         IF mBakedDistance < 0 OR mGame:Stage <> mBakedStage OR d < mBakedDistance OR d - mBakedDistance > 24 THEN DO:
             RebuildGround().
             RETURN.
@@ -638,9 +646,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Veils over the field for the screens that stop the game: game over and the pause. */
     METHOD PRIVATE VOID DrawVeils():
-        IF mGame:Phase = XeviousPhase:Title THEN mCanvas:DimRect(0, {&STRIP}, {&WIDTH}, {&FIELD}, 55, Colour(XeviousTint:Ink)).
-        ELSE IF mGame:Phase = XeviousPhase:GameOver THEN mCanvas:DimRect(0, {&STRIP}, {&WIDTH}, {&FIELD}, 50, Colour(XeviousTint:Ink)).
-        ELSE IF mGame:Paused THEN mCanvas:DimRect(0, {&STRIP}, {&WIDTH}, {&FIELD}, 60, Colour(XeviousTint:Strip)).
+        IF mGame:Phase = XeviousPhase:Title OR mGame:Phase = XeviousPhase:GameOver THEN RETURN.
+        IF mGame:Paused THEN mCanvas:DimRect(0, {&STRIP}, {&WIDTH}, {&FIELD}, 60, Colour(XeviousTint:Strip)).
         ELSE IF mGame:Phase = XeviousPhase:StageClear THEN mCanvas:DimRect(16, 56, 192, 160, 82, Colour(XeviousTint:Strip)).
         ELSE IF mGame:Phase = XeviousPhase:Playing AND mGame:StageAge < 120 THEN DO:
             /* the band of the area start opens from its middle line over 10 frames and closes over the last 10 */
@@ -687,8 +694,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
             Blit(XeviousBoxes:AirPicture(XeviousAir:GetEnum(CallAir(i))), x, 112).
             Words((IF CallAir(i) = INTEGER(XeviousAir:Bacura) THEN "?" ELSE STRING(XeviousRules:AirPoints(XeviousAir:GetEnum(CallAir(i))))),
                   1, XeviousTint:Signal, XeviousTint:Signal, x, 132, FALSE).
-            Blit(XeviousBoxes:GroundPicture(XeviousGround:GetEnum(i + 1 + (IF i >= 4 THEN 1 ELSE 0))), x, 170).
-            Words(STRING(XeviousRules:GroundPoints(XeviousGround:GetEnum(i + 1 + (IF i >= 4 THEN 1 ELSE 0)))), 1, XeviousTint:Signal, XeviousTint:Signal, x, 190, FALSE).
+            Blit(XeviousBoxes:GroundPicture(XeviousGround:GetEnum(CallGround(i))), x, 170).
+            Words(STRING(XeviousRules:GroundPoints(XeviousGround:GetEnum(CallGround(i)))), 1, XeviousTint:Signal, XeviousTint:Signal, x, 190, FALSE).
         END.
         IF mGame:Frames MODULO 60 < 40 THEN Words("PUSH FIRE", 2, XeviousTint:Text, XeviousTint:Text, -1, 216, TRUE).
         Words("ARROWS FLY  Z ZAP  X BOMB", 1, XeviousTint:TextDim, XeviousTint:TextDim, -1, 244, TRUE).
@@ -697,6 +704,11 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     /* The air enemies of the roll call, as numbers of XeviousAir: Whirl, Skate, Kite, Swift and Anvil. */
     METHOD PRIVATE INTEGER CallAir(INPUT piIndex AS INTEGER):
         RETURN INTEGER(ENTRY(piIndex + 1, "0,1,2,6,7")).
+    END METHOD.
+
+    /* The ground targets of the roll call, as numbers of XeviousGround: Barra, Zolbak, Logram, Derota and GaruBarra. */
+    METHOD PRIVATE INTEGER CallGround(INPUT piIndex AS INTEGER):
+        RETURN INTEGER(ENTRY(piIndex + 1, "0,1,2,3,5")).
     END METHOD.
 
     METHOD PRIVATE VOID DrawAreaStart():

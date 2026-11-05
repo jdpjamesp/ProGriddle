@@ -798,7 +798,6 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     END METHOD.
 
     METHOD PRIVATE VOID StepOver():
-        StepScroll().
         IF NOT (ZapHeld OR BombHeld) THEN mFireReady = TRUE.
         ELSE IF mFireReady AND PhaseFrames >= 90 THEN DO:
             mFireReady = FALSE.

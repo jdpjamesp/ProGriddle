@@ -498,28 +498,46 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
 
     /* Dims one rectangle of what is showing, the way a pause dims a well: every colour in it moves piPercent percent of the way
        to piToColour (55 with a near black leaves 45 percent of the colour). The part of the rectangle that is off the
-       board is skipped, and the kinds and the background are not touched, so Restore undoes it. Call it once for a screen,
-       not every frame. */
+       board is skipped, and the kinds and the background are not touched, so Restore undoes it. In a batch it goes into the batch.
+       Outside a batch it copies the board out and back, so a screen is dimmed with one call and not a row at a time. */
     METHOD PUBLIC VOID DimRect(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER,
                                INPUT piPercent AS INTEGER, INPUT piToColour AS INTEGER):
         DEFINE VARIABLE x       AS INTEGER NO-UNDO.
         DEFINE VARIABLE y       AS INTEGER NO-UNDO.
         DEFINE VARIABLE idx     AS INTEGER NO-UNDO.
         DEFINE VARIABLE colour  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lastIn  AS INTEGER NO-UNDO INITIAL ?.
-        DEFINE VARIABLE lastOut AS INTEGER NO-UNDO.
-        {&NOT-IN-BATCH}
+        DEFINE VARIABLE k        AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cacheIn  AS INTEGER NO-UNDO EXTENT 61.
+        DEFINE VARIABLE cacheOut AS INTEGER NO-UNDO EXTENT 61.
+        DEFINE VARIABLE bytes   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE base    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x0      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x1      AS INTEGER NO-UNDO.
+        x0 = MAXIMUM(0, piX).
+        x1 = MINIMUM(mWidth - 1, piX + piWidth - 1).
+        IF x0 > x1 OR MAXIMUM(0, piY) > MINIMUM(mHeight - 1, piY + piHeight - 1) THEN RETURN.
+        /* the board is copied out once (unless a batch has it out already), worked on as memory, which is much quicker than a cell at a
+           time through the store, and copied back */
+        bytes = mWidth * mHeight * 4.
+        IF GET-SIZE(mWork) <> bytes * 3 THEN DO:
+            SET-SIZE(mWork) = 0.
+            SET-SIZE(mWork) = bytes * 3.
+        END.
+        base = (mView - 1) * bytes + 1.
+        IF NOT mBatch THEN mStore:CopyBytesTo(mWork).
         DO y = MAXIMUM(0, piY) TO MINIMUM(mHeight - 1, piY + piHeight - 1):
-            DO x = MAXIMUM(0, piX) TO MINIMUM(mWidth - 1, piX + piWidth - 1):
-                idx = y * mWidth + x.
-                colour = mStore:GetCellAt(mView, idx).
-                IF colour <> lastIn THEN DO:
-                    lastIn = colour.
-                    lastOut = ColourMath:Mix(colour, piToColour, piPercent, 100).
+            DO x = x0 TO x1:
+                idx = base + (y * mWidth + x) * 4.
+                colour = GET-LONG(mWork, idx).
+                k = colour MODULO 61 + 1.
+                IF cacheIn[k] <> colour + 1 THEN DO:
+                    cacheIn[k] = colour + 1.
+                    cacheOut[k] = ColourMath:Mix(colour, piToColour, piPercent, 100).
                 END.
-                mStore:SetCellAt(mView, idx, lastOut).
+                PUT-LONG(mWork, idx) = cacheOut[k].
             END.
         END.
+        IF NOT mBatch THEN mStore:CopyBytesFrom(mWork).
     END METHOD.
 
     /* Moves the rows of the background (the back layer) from piY down for piHeight rows by piRows rows, the way a scrolling land
@@ -623,8 +641,9 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
         DEFINE VARIABLE idx      AS INTEGER NO-UNDO.
         DEFINE VARIABLE viewBase AS INTEGER NO-UNDO.
         DEFINE VARIABLE colour   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lastIn   AS INTEGER NO-UNDO INITIAL ?.
-        DEFINE VARIABLE lastOut  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k        AS INTEGER NO-UNDO.
+        DEFINE VARIABLE cacheIn  AS INTEGER NO-UNDO EXTENT 61.
+        DEFINE VARIABLE cacheOut AS INTEGER NO-UNDO EXTENT 61.
         IF piPercent = ? OR piPercent < 0 OR piPercent > 100 THEN UNDO, THROW NEW GridException("A tint is 0 to 100 percent, not " + STRING(piPercent)).
         IF piCount > 0 AND GET-SIZE(pmCells) < piCount * 12 THEN
             UNDO, THROW NEW GridException(SUBSTITUTE("&1 cells need &2 bytes, not &3", piCount, piCount * 12, GET-SIZE(pmCells))).
@@ -635,12 +654,13 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
             IF x < 0 OR x >= mWidth OR y < 0 OR y >= mHeight THEN NEXT.
             idx = y * mWidth + x.
             colour = (IF mBatch THEN GET-LONG(mWork, viewBase + idx * 4) ELSE mStore:GetCellAt(mView, idx)).
-            IF colour <> lastIn THEN DO:
-                lastIn = colour.
-                lastOut = ColourMath:Mix(colour, piColour, piPercent, 100).
+            k = colour MODULO 61 + 1.
+            IF cacheIn[k] <> colour + 1 THEN DO:
+                cacheIn[k] = colour + 1.
+                cacheOut[k] = ColourMath:Mix(colour, piColour, piPercent, 100).
             END.
-            IF mBatch THEN PUT-LONG(mWork, viewBase + idx * 4) = lastOut.
-            ELSE mStore:SetCellAt(mView, idx, lastOut).
+            IF mBatch THEN PUT-LONG(mWork, viewBase + idx * 4) = cacheOut[k].
+            ELSE mStore:SetCellAt(mView, idx, cacheOut[k]).
         END.
     END METHOD.
 

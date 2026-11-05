@@ -34,6 +34,20 @@ CLASS ProGriddle.Games.Xevious.XeviousSprites FINAL:
             RETURN mMood.
         END GET.
 
+    /* How many percent of the way to Ink the ground tiles are made (0 for none): a veil for the title and the game over screens, made
+       in the colours of the tiles once. Setting it makes the tiles again, as they are asked for. */
+    DEFINE PUBLIC PROPERTY Veil AS INTEGER NO-UNDO INITIAL 0
+        GET.
+        SET(INPUT piPercent AS INTEGER):
+            DEFINE VARIABLE i AS INTEGER NO-UNDO.
+            IF piPercent = ? OR piPercent < 0 OR piPercent > 100 THEN UNDO, THROW NEW GridException("A veil is 0 to 100 percent, not " + STRING(piPercent)).
+            IF piPercent = Veil THEN RETURN.
+            Veil = piPercent.
+            DO i = 1 TO {&TILES}:
+                mTileMade[i] = FALSE.
+            END.
+        END SET.
+
     CONSTRUCTOR PUBLIC XeviousSprites():
         SET-SIZE(mTiles) = {&TILES} * {&TILE-BYTES}.
     END CONSTRUCTOR.
@@ -153,6 +167,7 @@ CLASS ProGriddle.Games.Xevious.XeviousSprites FINAL:
                     lastIn = ch.
                     lastOut = XeviousLook:CodeColour(ch, mDry).
                     IF pct > 0 THEN lastOut = ColourMath:Mix(lastOut, tint, pct, 100).
+                    IF Veil > 0 THEN lastOut = ColourMath:Mix(lastOut, XeviousLook:Colour(XeviousTint:Ink), Veil, 100).
                 END.
                 PUT-LONG(mTiles, n * {&TILE-BYTES} + y * 64 + x * 4 + 1) = lastOut.
             END.

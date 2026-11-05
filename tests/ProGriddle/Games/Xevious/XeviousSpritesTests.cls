@@ -185,4 +185,25 @@ CLASS ProGriddle.Games.Xevious.XeviousSpritesTests:
         Assert:Equals(12, XeviousBoxes:GroundHeight(XeviousGround:Barra)).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID AVeilDarkensTheTilesTowardsInkAndIsKeptBetweenZeroAndOneHundred():
+        DEFINE VARIABLE plain  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        mSprites:ForArea(3).
+        plain = mSprites:TilePixel(XeviousTilePicture:Open2, 0, 0).
+        Assert:Equals(0, mSprites:Veil).
+        mSprites:Veil = 50.
+        Assert:Equals(50, mSprites:Veil).
+        Assert:Equals(ColourMath:Mix(plain, XeviousLook:Colour(XeviousTint:Ink), 50, 100), mSprites:TilePixel(XeviousTilePicture:Open2, 0, 0)).
+        mSprites:Veil = 0.
+        Assert:Equals(plain, mSprites:TilePixel(XeviousTilePicture:Open2, 0, 0)).
+        DO ON ERROR UNDO, THROW:
+            mSprites:Veil = 101.
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(1, thrown).
+    END METHOD.
+
 END CLASS.
