@@ -684,4 +684,13 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
         Assert:IsFalse(Magic:SpringTrap(mWorld, TrapKind:Teleport)).
     END METHOD.
 
+
+    @Test.
+    METHOD PUBLIC VOID MappingTheLevelShowsEverythingThatIsNotRock():
+        Build("5").
+        Magic:MapTheLevel(mWorld).
+        Assert:IsTrue(mWorld:Cave:IsSeen(5, 5)).
+        Assert:IsTrue(mWorld:Cave:IsSeen(4, 4)).
+        Assert:IsFalse(mWorld:Cave:IsSeen(40, 12)).
+    END METHOD.
 END CLASS.

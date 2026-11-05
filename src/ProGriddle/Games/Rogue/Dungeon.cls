@@ -148,6 +148,18 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
             END.
         END.
     END METHOD.
+    /* Forgets the rooms of the level that was built: for a level that is then cleared and made by hand, so nothing asks about rooms that
+       are no longer there. */
+    METHOD PUBLIC VOID Forget():
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO i = 1 TO 9:
+            mReal[i] = FALSE.
+            mLit[i] = FALSE.
+        END.
+        DO i = 1 TO 81:
+            mLinked[i] = FALSE.
+        END.
+    END METHOD.
     /* Builds a whole level for a depth on the map: the map is emptied first. */
     METHOD PUBLIC VOID Build(INPUT piDepth AS INTEGER):
         DEFINE VARIABLE i AS INTEGER NO-UNDO.

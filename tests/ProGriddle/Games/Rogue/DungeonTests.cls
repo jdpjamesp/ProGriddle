@@ -287,6 +287,18 @@ CLASS ProGriddle.Games.Rogue.DungeonTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID ForgettingTheRoomsLeavesNoneToAskAbout():
+        DEFINE VARIABLE oDungeon AS Dungeon NO-UNDO.
+        oDungeon = Build(5, 3).
+        Assert:IsTrue(oDungeon:RealRooms >= 5).
+        oDungeon:Forget().
+        Assert:Equals(0, oDungeon:RealRooms).
+        Assert:IsFalse(oDungeon:IsRoom(0)).
+        Assert:IsFalse(oDungeon:Linked(0, 1)).
+        Assert:IsFalse(oDungeon:IsLit(4)).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID BadDepthsRoomsAndNoMapAreRefused():
         DEFINE VARIABLE oDungeon AS Dungeon NO-UNDO.
         DEFINE VARIABLE thrown   AS INTEGER NO-UNDO.

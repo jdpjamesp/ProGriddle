@@ -453,4 +453,18 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
         Assert:IsFalse(mWorld:Hero:ConfusingTouch).
     END METHOD.
 
+
+    @Test.
+    METHOD PUBLIC VOID LosingALevelLowersTheRankTheExperienceAndTheMostHitPoints():
+        Build("5").
+        mWorld:Hero:Rank = 4.
+        mWorld:Hero:Experience = 100.
+        mWorld:Hero:MaxHp = 40.
+        mWorld:Hero:Hp = 40.
+        Fighting:LoseLevel(mWorld, "a wraith").
+        Assert:Equals(3, mWorld:Hero:Rank).
+        Assert:Equals(20, mWorld:Hero:Experience).
+        Assert:IsTrue(mWorld:Hero:MaxHp < 40).
+        Assert:IsFalse(mWorld:Dead).
+    END METHOD.
 END CLASS.

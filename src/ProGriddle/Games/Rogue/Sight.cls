@@ -18,6 +18,10 @@ CLASS ProGriddle.Games.Rogue.Sight FINAL:
         DEFINE VARIABLE x      AS INTEGER NO-UNDO.
         DEFINE VARIABLE y      AS INTEGER NO-UNDO.
         DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x0     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x1     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y0     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y1     AS INTEGER NO-UNDO.
         DEFINE VARIABLE oMonster AS Monster NO-UNDO.
         hx = poWorld:Hero:X.
         hy = poWorld:Hero:Y.
@@ -31,8 +35,19 @@ CLASS ProGriddle.Games.Rogue.Sight FINAL:
             END.
             room = poWorld:Cave:RoomAt(hx, hy).
             IF room > 0 AND poWorld:RoomLit(room) THEN DO:
-                DO y = 0 TO poWorld:Cave:Height - 1:
-                    DO x = 0 TO poWorld:Cave:Width - 1:
+                /* a room the builder made is looked at inside its own walls, anything else (a room made by hand) over the whole map */
+                IF poWorld:Builder:IsRoom(room - 1) AND poWorld:Builder:LeftOf(room - 1) >= 0 THEN ASSIGN
+                    x0 = poWorld:Builder:LeftOf(room - 1)
+                    x1 = poWorld:Builder:RightOf(room - 1)
+                    y0 = poWorld:Builder:TopOf(room - 1)
+                    y1 = poWorld:Builder:BottomOf(room - 1).
+                ELSE ASSIGN
+                    x0 = 0
+                    x1 = poWorld:Cave:Width - 1
+                    y0 = 0
+                    y1 = poWorld:Cave:Height - 1.
+                DO y = y0 TO y1:
+                    DO x = x0 TO x1:
                         IF poWorld:Cave:RoomAt(x, y) = room THEN Reveal(poWorld, x, y, TRUE).
                     END.
                 END.

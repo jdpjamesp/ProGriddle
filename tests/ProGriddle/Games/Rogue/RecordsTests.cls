@@ -154,4 +154,19 @@ CLASS ProGriddle.Games.Rogue.RecordsTests:
         Assert:IsTrue(VALID-OBJECT(oHero:HeldBy)).
     END METHOD.
 
+
+    @Test.
+    METHOD PUBLIC VOID TheStartingNumbersAreTwelveHitPointsAndSixteenStrength():
+        Assert:Equals(12, RogueRules:StartHp()).
+        Assert:Equals(16, RogueRules:StartStrength()).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID AFlytrapsGripStartsAtNothing():
+        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
+        oMonster = NEW Monster(MonsterKind:VenusFlytrap, 8).
+        Assert:Equals(0, oMonster:Grip).
+        oMonster:Grip = 3.
+        Assert:Equals(3, oMonster:Grip).
+    END METHOD.
 END CLASS.

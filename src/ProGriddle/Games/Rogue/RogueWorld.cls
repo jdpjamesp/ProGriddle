@@ -205,6 +205,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
     METHOD PUBLIC VOID ClearLevel():
         EmptyLists().
         Cave:ClearAll().
+        Builder:Forget().
         StairsX = -1.
         StairsY = -1.
     END METHOD.
