@@ -2,6 +2,7 @@
    the concrete classes and wires them together.
 
    Arcade: Life | Conway's cellular automaton. Draw patterns, pick a rule set and watch them evolve. | orange
+   Category: Simulation
 
    Run it under prowin from the repository root:
      prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-life.p"

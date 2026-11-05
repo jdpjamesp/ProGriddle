@@ -2,6 +2,7 @@
    wires them together.
 
    Arcade: Snake | Eat, grow and speed up, and do not bite yourself or hit the wall. | green
+   Category: Arcade
 
    Run it under prowin from the repository root:
      prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-snake.p"

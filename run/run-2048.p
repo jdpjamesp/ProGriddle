@@ -2,6 +2,7 @@
    classes and wires them together.
 
    Arcade: 2048 | Slide the tiles, join the matching pairs, and make 2048. | orange
+   Category: Puzzle
 
    Run it under prowin from the repository root:
      prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-2048.p"

@@ -196,6 +196,53 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
         END.
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID TheCategoryComesFromItsOwnLine():
+        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        WriteRunFile("run-a.p", "Arcade: Alpha | The first. | teal~nCategory: Puzzle").
+        c = NEW DirectoryGameCatalog(mFolder).
+        Assert:Equals("Alpha", c:TitleAt(1)).
+        Assert:Equals("teal", c:AccentAt(1)).
+        Assert:Equals("Puzzle", c:CategoryAt(1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheCategoryLineMayComeBeforeTheArcadeLine():
+        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        WriteRunFile("run-a.p", "Category:   Strategy  ~nArcade: Alpha | The first.").
+        c = NEW DirectoryGameCatalog(mFolder).
+        Assert:Equals("Alpha", c:TitleAt(1)).
+        Assert:Equals("The first.", c:BlurbAt(1)).
+        Assert:Equals("Strategy", c:CategoryAt(1)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID WithoutACategoryLineTheCategoryIsEmpty():
+        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        WriteRunFile("run-a.p", "Arcade: Alpha | The first.").
+        WriteRunFile("run-b.p", "No tag here.").
+        c = NEW DirectoryGameCatalog(mFolder).
+        Assert:Equals("", c:CategoryAt(1)).
+        Assert:Equals("", c:CategoryAt(2)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID EveryRealGameHasACategory():
+        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        c = NEW DirectoryGameCatalog("run").
+        DO i = 1 TO c:Count:
+            Assert:IsTrue(c:CategoryAt(i) <> "").
+        END.
+    END METHOD.
+
+    @Test (expected="ProGriddle.Core.GridException").
+    METHOD PUBLIC VOID CategoryAtAPlaceOffTheListThrows():
+        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        c = NEW DirectoryGameCatalog(mFolder).
+        c:CategoryAt(1).
+    END METHOD.
+
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID AccentAtAPlaceOffTheListThrows():
         DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.

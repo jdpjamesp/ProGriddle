@@ -2,6 +2,7 @@
    and wires them together.
 
    Arcade: Space Invaders | The 1978 classic in neon: one shot at a time, crumbling shields, a mystery saucer. | red
+   Category: Arcade
 
    Run it under prowin from the repository root:
      prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-spaceinvaders.p"

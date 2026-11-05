@@ -2,6 +2,7 @@
    classes and wires them together.
 
    Arcade: __Title__ | __Blurb__
+   Category: __Category__
 
    Run it under prowin from the repository root:
      prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-__name__.p"

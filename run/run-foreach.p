@@ -1,6 +1,7 @@
 /* FOR EACH in a window. This is the composition root: the only place that builds the concrete classes and wires them together.
 
    Arcade: FOR EACH | Dibby the database drum visits every bit of data in a dark data centre, and the phantoms visit Dibby. | orange
+   Category: Arcade
 
    Run it under prowin from the repository root:
      prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-foreach.p"

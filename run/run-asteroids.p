@@ -2,6 +2,7 @@
    and wires them together.
 
    Arcade: Asteroids | Thrust, drift and shoot the rocks into smaller rocks while saucers hunt you. | blue
+   Category: Arcade
 
    Run it under prowin from the repository root:
      prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-asteroids.p"

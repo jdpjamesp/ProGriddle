@@ -9,6 +9,10 @@
    comes from the file name (run-battleships.p is Battleships) and there is no blurb. A file that is
    not a game for the arcade says "Arcade: hidden" and is left out. The first 60 lines are read.
 
+   A second optional line puts the game in a group, which the arcade shows as a tab:
+       Category: Puzzle
+   A game with no Category line has an empty category.
+
    The games are listed by title, ignoring case. The folder is read once, when the catalog is built. */
 USING Progress.Lang.*.
 USING ProGriddle.Core.*.
@@ -23,6 +27,7 @@ CLASS ProGriddle.Engine.DirectoryGameCatalog FINAL IMPLEMENTS IGameCatalog:
         FIELD caption AS CHARACTER
         FIELD blurb   AS CHARACTER
         FIELD accent  AS CHARACTER
+        FIELD category AS CHARACTER
         FIELD runFile AS CHARACTER
         INDEX ixPos pos
         INDEX ixCaption caption.
@@ -40,7 +45,8 @@ CLASS ProGriddle.Engine.DirectoryGameCatalog FINAL IMPLEMENTS IGameCatalog:
         DEFINE VARIABLE gameTitle AS CHARACTER NO-UNDO.
         DEFINE VARIABLE gameBlurb AS CHARACTER NO-UNDO.
         DEFINE VARIABLE gameAccent AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE folder   AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE gameCategory AS CHARACTER NO-UNDO.
+        DEFINE VARIABLE folder  AS CHARACTER NO-UNDO.
         DEFINE VARIABLE n        AS INTEGER   NO-UNDO.
         IF pcFolder = ? OR pcFolder = "" THEN UNDO, THROW NEW GridException("A game catalog needs a folder").
         folder = RIGHT-TRIM(REPLACE(pcFolder, "~\", "/"), "/").
@@ -51,12 +57,13 @@ CLASS ProGriddle.Engine.DirectoryGameCatalog FINAL IMPLEMENTS IGameCatalog:
         REPEAT:
             IMPORT fileName fullPath attrs.
             IF INDEX(attrs, "F") = 0 OR NOT (fileName MATCHES "run-*.p") THEN NEXT.
-            ReadHeader(fullPath, fileName, OUTPUT gameTitle, OUTPUT gameBlurb, OUTPUT gameAccent).
+            ReadHeader(fullPath, fileName, OUTPUT gameTitle, OUTPUT gameBlurb, OUTPUT gameAccent, OUTPUT gameCategory).
             IF gameTitle = ? THEN NEXT.
             CREATE ttGame.
             ASSIGN ttGame.caption   = gameTitle
                    ttGame.blurb   = gameBlurb
                    ttGame.accent  = gameAccent
+                   ttGame.category = gameCategory
                    ttGame.runFile = folder + "/" + fileName.
         END.
         INPUT CLOSE.
@@ -84,6 +91,11 @@ CLASS ProGriddle.Engine.DirectoryGameCatalog FINAL IMPLEMENTS IGameCatalog:
         RETURN ttGame.accent.
     END METHOD.
 
+    METHOD PUBLIC CHARACTER CategoryAt(INPUT piPlace AS INTEGER):
+        Locate(piPlace).
+        RETURN ttGame.category.
+    END METHOD.
+
     METHOD PUBLIC CHARACTER ProgramAt(INPUT piPlace AS INTEGER):
         Locate(piPlace).
         RETURN ttGame.runFile.
@@ -97,25 +109,34 @@ CLASS ProGriddle.Engine.DirectoryGameCatalog FINAL IMPLEMENTS IGameCatalog:
 
     /* Reads the Arcade line of a run file. The title comes back unknown for a hidden file. */
     METHOD PRIVATE VOID ReadHeader(INPUT pcPath AS CHARACTER, INPUT pcFile AS CHARACTER,
-                                   OUTPUT pcTitle AS CHARACTER, OUTPUT pcBlurb AS CHARACTER, OUTPUT pcAccent AS CHARACTER):
+                                   OUTPUT pcTitle AS CHARACTER, OUTPUT pcBlurb AS CHARACTER, OUTPUT pcAccent AS CHARACTER, OUTPUT pcCategory AS CHARACTER):
         DEFINE VARIABLE rawLine AS CHARACTER NO-UNDO.
         DEFINE VARIABLE tagText AS CHARACTER NO-UNDO.
         DEFINE VARIABLE readCount AS INTEGER   NO-UNDO.
+        DEFINE VARIABLE seenArcade AS LOGICAL  NO-UNDO.
+        DEFINE VARIABLE seenCategory AS LOGICAL NO-UNDO.
         pcTitle = "".
         pcBlurb = "".
         pcAccent = "".
+        pcCategory = "".
         INPUT FROM VALUE(pcPath).
         REPEAT:
             IMPORT UNFORMATTED rawLine.
             readCount = readCount + 1.
             IF readCount > 60 THEN LEAVE.
             rawLine = TRIM(rawLine).
-            IF NOT rawLine BEGINS "Arcade:" THEN NEXT.
-            tagText = TRIM(SUBSTRING(rawLine, 8)).
-            pcTitle = TRIM(ENTRY(1, tagText, "|")).
-            IF NUM-ENTRIES(tagText, "|") >= 2 THEN pcBlurb = TRIM(ENTRY(2, tagText, "|")).
-            IF NUM-ENTRIES(tagText, "|") >= 3 THEN pcAccent = LC(TRIM(ENTRY(3, tagText, "|"))).
-            LEAVE.
+            IF NOT seenArcade AND rawLine BEGINS "Arcade:" THEN DO:
+                seenArcade = TRUE.
+                tagText = TRIM(SUBSTRING(rawLine, 8)).
+                pcTitle = TRIM(ENTRY(1, tagText, "|")).
+                IF NUM-ENTRIES(tagText, "|") >= 2 THEN pcBlurb = TRIM(ENTRY(2, tagText, "|")).
+                IF NUM-ENTRIES(tagText, "|") >= 3 THEN pcAccent = LC(TRIM(ENTRY(3, tagText, "|"))).
+            END.
+            ELSE IF NOT seenCategory AND rawLine BEGINS "Category:" THEN DO:
+                seenCategory = TRUE.
+                pcCategory = TRIM(SUBSTRING(rawLine, 10)).
+            END.
+            IF seenArcade AND seenCategory THEN LEAVE.
         END.
         INPUT CLOSE.
         IF pcTitle = "hidden" THEN DO:

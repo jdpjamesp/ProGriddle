@@ -2,6 +2,7 @@
    builds the concrete classes and wires them together.
 
    Arcade: Battleships | You against a computer on two boards. Place your fleet and sink theirs. | red
+   Category: Strategy
 
    Run it under prowin from the repository root:
      prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-battleships.p"

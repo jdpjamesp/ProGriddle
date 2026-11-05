@@ -22,11 +22,14 @@
     What the game is called on screen and on its Cookoff button. Defaults to the name.
 .PARAMETER Blurb
     One line about the game, shown beside its button in the Cookoff. No bar character.
+.PARAMETER Category
+    The tab the game appears under in the Cookoff, for example Puzzle, Arcade or Strategy. Defaults to Other.
 #>
 param(
     [Parameter(Mandatory = $true)][string]$Name,
     [string]$Title = '',
-    [string]$Blurb = 'A new game on the ProGriddle grid.'
+    [string]$Blurb = 'A new game on the ProGriddle grid.',
+    [string]$Category = 'Other'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -58,7 +61,7 @@ if ($clash.Count -gt 0) {
 
 foreach ($f in $files) {
     $text = Get-Content (Join-Path $root "templates/game/$($f[0])") -Raw
-    $text = $text.Replace('__Name__', $Name).Replace('__name__', $lower).Replace('__Title__', $Title).Replace('__Blurb__', $Blurb)
+    $text = $text.Replace('__Name__', $Name).Replace('__name__', $lower).Replace('__Title__', $Title).Replace('__Blurb__', $Blurb).Replace('__Category__', $Category)
     $target = Join-Path $root $f[1]
     New-Item -ItemType Directory -Force (Split-Path -Parent $target) | Out-Null
     [System.IO.File]::WriteAllText($target, $text, (New-Object System.Text.UTF8Encoding($false)))

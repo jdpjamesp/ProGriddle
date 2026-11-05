@@ -18,6 +18,10 @@ INTERFACE ProGriddle.Engine.IGameCatalog:
        always stays the same for that title. */
     METHOD PUBLIC CHARACTER AccentAt(INPUT piPlace AS INTEGER).
 
+    /* The group the game belongs to ("Puzzle", "Arcade"), which the window turns into a tab, or an empty
+       string when the game named none. */
+    METHOD PUBLIC CHARACTER CategoryAt(INPUT piPlace AS INTEGER).
+
     /* The program that starts the game, as it is passed to tools/launch.p: run/run-tetris.p. */
     METHOD PUBLIC CHARACTER ProgramAt(INPUT piPlace AS INTEGER).
 

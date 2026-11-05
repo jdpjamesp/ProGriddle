@@ -1,6 +1,7 @@
 /* Blast Buddies in a window. This is the composition root: the only place that builds the concrete classes and wires them together.
 
    Arcade: Blast Buddies | Turn based artillery on ground that blows away. Aim, charge and fire a bazooka, or play the computer. | orange
+   Category: Strategy
 
    Run it under prowin from the repository root:
      prowin.exe -T "%TEMP%\ProGriddle" -l 1024 -p tools/launch.p -param "run/run-blastbuddies.p"

@@ -2,6 +2,7 @@
    wires them together.
 
    Arcade: Tetris | Falling blocks on a timer. Seven bag pieces, ghost piece, levels and a high score list. | purple
+   Category: Puzzle
 
    Run it under prowin from the repository root:
      prowin.exe -T "%TEMP%\ProGriddle" -p tools/launch.p -param "run/run-tetris.p"
