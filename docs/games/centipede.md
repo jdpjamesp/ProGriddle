@@ -1,6 +1,6 @@
 # Centipede
 
-A fixed shooter in neon, modelled on the 1981 arcade classic: a centipede crawls down a field of mushrooms towards your shooter, and every shot that hits a segment leaves a new mushroom behind it. A flea, a spider and a scorpion make it worse. Real time on a 240 x 256 pixel canvas, played from the keyboard, with 8 bit sound. Playable now. (The look and the rules follow the arcade closely and are not yet de-branded: the name, the mushrooms and the creatures are placeholders for the game's own names.)
+A fixed shooter by moonlight: a long crawler winds down a field of obstacles towards your shooter, and every shot that hits a segment leaves a new obstacle behind it. Three pests make it worse. Real time on a 240 x 256 pixel canvas, played from the keyboard, with 8 bit sound. Playable now. The rules follow a classic arcade game closely; the look is an original one ("Moonlit Bed", designed in `docs/design/moonpatch-art.md`). The game keeps the name Centipede, and in the code and in these pages the words mushroom, segment, flea, spider and scorpion are the game's own names for what the picture shows as bulbs, beads, the Sower, the Skitterjack and the Moonsnail.
 
 ## Playing it
 
@@ -43,6 +43,27 @@ Movement and fire are held states, not key presses: the game remembers which key
 
 The status line reads `Score 1250   Hi 3400   Lives 3   Wave 2   Speed 70%`. The best score is kept.
 
+## The look
+
+The picture is "Moonlit Bed" from the designer's file `docs/design/moonpatch-art.md`: a walled vegetable patch at night, under a moon that changes as the waves go by. The code keeps its own names (the design's name for the game was Moonpatch).
+
+| In the game's code | In the picture |
+|---|---|
+| Mushroom | A **bulb**, four states from whole to nearly gone (eaten from below, the tip always left). A poisoned one is a pale lilac **blighted bulb** with dark spots |
+| Centipede, segment, head | The **Gloam**: a string of glowing **beads**, and the **Gloamhead** with Ember eyes and pincers. A segment that is diving flickers in the colours of blight and the head looks down |
+| The shooter | **The Wick**, a small brass lantern, the only gold thing on the board, with a one cell glow. Lives are small lanterns in the strip |
+| The shot | A **spark**: a white head with a gold tail, and a muzzle flash for its first two frames |
+| Flea | **The Sower**, a seed beetle falling head first (pale and flickering after the first hit) |
+| Spider | **The Skitterjack**, a red long legged hopper that crouches at the ends of its path |
+| Scorpion | **The Moonsnail**, a snail with a pale glowing shell and pale eyes (it cannot hurt the Wick) |
+| A wave | A **night** named for a phase of the moon: NEW MOON, CRESCENT, HALF MOON, GIBBOUS, FULL MOON, WANING, then round again. The moon is shown in the strip, the crawler takes one of six colour families and the bulbs another, so no night has the crawler on bulbs of its own colour |
+
+The ground is a deep blue night with a dotted rule under every row and a quieter band for the player zone. Three layers give depth without a scroll: 18 slow stars, 5 fireflies and grass at the foot of the band. The title is the name over the Gloam crossing (on a different night each crossing), a roll call of the creatures and what each is worth. A night starts with a banner (`WAVE n`, the moon and its name), a cleared wave shows `WAVE n CLEARED`, and the pause and the game over are on plates.
+
+The sprite grids and the colours are **generated**: `python tools/gen-centipede-art.py` reads the design file and writes `CentipedeTint`, `CentipedeLook`, `CentipedeSprite` and `CentipedeArt`. Change the design file and run it, never edit those four by hand. `tools/preview-centipede.p` draws a scenario (`title`, `play`, `busy`, `over`) into a BMP with no window (`_progres -b -T "%TEMP%\ProGriddle" -p tools/preview-centipede.p -param "play|file.bmp"`).
+
+Not done yet from the design: the burst where a segment or pest dies (and the light it throws on the field), the pop and the hit flash of a bulb, the glint of the mending after a death, the extra Wick flash, scan lines (a switchable setting), and `BONUS n` (the rules have no bonus). They need small readers in the game (where and when something died) and are for a later pass.
+
 ## Settings
 
 | Key | Meaning | Default |
@@ -72,8 +93,8 @@ Source: `src/ProGriddle/Games/Centipede/`. The composition root is `run/run-cent
 | `CentipedeGame` | The rules, frame by frame, in pixels. Counters that only go up, and `Frames` and `PhaseFrames` for the painter |
 | `CentipedeRules` | Every number: the board, the speeds, the points |
 | `CentipedeInput` | The held keys, the speed and best score in the settings, the sound command |
-| `CentipedePainter` | The picture. The mushrooms are baked into the background and redrawn only when `FieldVersion` changes |
-| `CentipedeLook`, `CentipedeTint` | The colours, by name |
+| `CentipedePainter` | The picture. The bulbs are baked into the background and redrawn only when `FieldVersion` or the night changes |
+| `CentipedeLook`, `CentipedeTint`, `CentipedeArt`, `CentipedeSprite` | The colours, the six families of the nights and the sprites (all four generated from the design file) |
 | `CentipedeCues`, `CentipedeCue`, `CentipedeSounds` | The sounds |
 | `CentipedeFactory`, `GamePhase` | The grid and the game, and the phases (title, playing, dying, cleared, game over) |
 
@@ -84,10 +105,10 @@ All under `tests/ProGriddle/Games/Centipede/`.
 | Test class | What it proves |
 |---|---|
 | `CentipedeGameTests` | The shooter, the shot, the segments (turning, diving, climbing, splitting), the waves, losing a shooter, the score and the three creatures, with scenes built by hand |
-| `CentipedePainterTests` | The picture by pixel: the mushrooms and their damage, the segments, the creatures, the strip and every screen |
+| `CentipedePainterTests` | The picture by pixel: the bulbs and their wear, the Gloam, the Wick and its spark, the pests, the strip, the stars and every screen |
 | `CentipedeCuesTests`, `CentipedeSoundsTests` | Each event reported once, head and body told apart, the loops, and every recipe making sound |
 | `CentipedeInputTests` | The held keys, the speed and best score, the sound command |
-| `CentipedeRulesTests`, `CentipedeLookTests`, `CentipedeFactoryTests` | The numbers, the colours and the grid |
+| `CentipedeRulesTests`, `CentipedeLookTests`, `CentipedeArtTests`, `CentipedeFactoryTests` | The numbers, the colours and the nights, the sprites and the grid |
 
 Run them with `powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-tests.ps1 -Filter "Centipede*"`.
 
