@@ -47,3 +47,8 @@ procore.*
 ProGriddle Cookoff Artwork.pdf
 
 ablunit.json
+
+# ABLUnit test runner (VS Code extension) profiler output
+prof.out
+prof_*.out
+profile.options
