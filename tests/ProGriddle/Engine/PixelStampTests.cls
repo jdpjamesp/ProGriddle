@@ -112,4 +112,31 @@ CLASS ProGriddle.Engine.PixelStampTests:
         Assert:Equals(2, thrown).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID DrawBackToPutsTheStampIntoTheBackgroundWhereItStaysAfterARestore():
+        DEFINE VARIABLE s AS PixelStamp NO-UNDO.
+        s = Stamp().
+        s:DrawBackTo(mCanvas, 4, 3).
+        Assert:Equals(100, mCanvas:ColourAt(4, 3)).
+        mCanvas:Restore().
+        Assert:Equals(10, mCanvas:ColourAt(4, 3)).
+        Assert:Equals(100, mCanvas:ColourAt(5, 3)).
+        Assert:Equals(30, mCanvas:ColourAt(5, 4)).
+        s:Dispose().
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TintToMovesTheCellsUnderTheStampTowardsAColourAndLeavesTheRest():
+        DEFINE VARIABLE s AS PixelStamp NO-UNDO.
+        s = Stamp().
+        mCanvas:FillRect(0, 0, 20, 12, 0, 0xC8C8C8).
+        s:TintTo(mCanvas, 2, 2, 0x000000, 50).
+        Assert:Equals(0x646464, mCanvas:ColourAt(2, 2)).
+        Assert:Equals(0xC8C8C8, mCanvas:ColourAt(3, 2)).
+        Assert:Equals(0x646464, mCanvas:ColourAt(4, 2)).
+        Assert:Equals(0x646464, mCanvas:ColourAt(3, 3)).
+        Assert:Equals(0xC8C8C8, mCanvas:ColourAt(10, 10)).
+        s:Dispose().
+    END METHOD.
+
 END CLASS.

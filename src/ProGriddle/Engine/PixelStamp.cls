@@ -80,4 +80,21 @@ CLASS ProGriddle.Engine.PixelStamp FINAL:
         IF Count > 0 THEN poCanvas:PutCells(mCells, Count, piX, piY).
     END METHOD.
 
+    /* Copies the stamp into the background of a canvas with its top left at piX, piY, so it stays there (a scorch on a land that
+       scrolls). Throws GridException for no canvas, a stamp that has been disposed of, or an open batch. */
+    METHOD PUBLIC VOID DrawBackTo(INPUT poCanvas AS PixelCanvas, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+        IF NOT VALID-OBJECT(poCanvas) THEN UNDO, THROW NEW GridException("There is no canvas to draw on").
+        IF Count > 0 AND GET-SIZE(mCells) = 0 THEN UNDO, THROW NEW GridException("This pixel stamp has been disposed of").
+        IF Count > 0 THEN poCanvas:PutBackCells(mCells, Count, piX, piY).
+    END METHOD.
+
+    /* Tints the cells the stamp would cover, with its top left at piX, piY, piPercent percent of the way to piColour: the shadow
+       of the picture, or a glow round it. Throws GridException for no canvas or a stamp that has been disposed of. */
+    METHOD PUBLIC VOID TintTo(INPUT poCanvas AS PixelCanvas, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piColour AS INTEGER,
+                              INPUT piPercent AS INTEGER):
+        IF NOT VALID-OBJECT(poCanvas) THEN UNDO, THROW NEW GridException("There is no canvas to draw on").
+        IF Count > 0 AND GET-SIZE(mCells) = 0 THEN UNDO, THROW NEW GridException("This pixel stamp has been disposed of").
+        IF Count > 0 THEN poCanvas:TintCells(mCells, Count, piX, piY, piColour, piPercent).
+    END METHOD.
+
 END CLASS.

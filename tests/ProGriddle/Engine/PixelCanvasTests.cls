@@ -895,4 +895,217 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
         Assert:Equals({&KIND-NONE}, mCanvas:KindAt(3, 1)).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID ScrollBackDownMovesTheBackgroundRowsDownAndLeavesTheTopOnesAlone():
+        mGrid:Store:SetCellAt(mGrid:Store:LayerIndex("back"), 0 * 12 + 3, 7).
+        mGrid:Store:SetCellAt(mGrid:Store:LayerIndex("back"), 1 * 12 + 3, 8).
+        mCanvas:ScrollBackDown(0, 10, 2).
+        mCanvas:Restore().
+        Assert:Equals(7, mCanvas:ColourAt(3, 2)).
+        Assert:Equals(8, mCanvas:ColourAt(3, 3)).
+        Assert:Equals(7, mCanvas:ColourAt(3, 0)).
+        Assert:Equals(100, mCanvas:ColourAt(3, 9)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ScrollBackDownOnlyMovesTheRowsItIsGiven():
+        mGrid:Store:SetCellAt(mGrid:Store:LayerIndex("back"), 0 * 12 + 1, 5).
+        mGrid:Store:SetCellAt(mGrid:Store:LayerIndex("back"), 3 * 12 + 1, 6).
+        mCanvas:ScrollBackDown(2, 6, 1).
+        mCanvas:Restore().
+        Assert:Equals(5, mCanvas:ColourAt(1, 0)).
+        Assert:Equals(6, mCanvas:ColourAt(1, 4)).
+        Assert:Equals(100, mCanvas:ColourAt(1, 3)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID ScrollBackDownRefusesARangeOffTheBoardAndFewerThanOneRow():
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            mCanvas:ScrollBackDown(5, 10, 1).
+            CATCH e1 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        DO ON ERROR UNDO, THROW:
+            mCanvas:ScrollBackDown(0, 5, 0).
+            CATCH e2 AS GridException:
+                thrown = thrown + 1.
+            END CATCH.
+        END.
+        Assert:Equals(2, thrown).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID PutBackRowWritesAWholeRowOfTheBackground():
+        DEFINE VARIABLE m AS MEMPTR  NO-UNDO.
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            SET-SIZE(m) = 12 * 4.
+            DO i = 0 TO 11:
+                PUT-LONG(m, i * 4 + 1) = 200 + i.
+            END.
+            mCanvas:PutBackRow(4, m).
+            mCanvas:Restore().
+            Assert:Equals(200, mCanvas:ColourAt(0, 4)).
+            Assert:Equals(211, mCanvas:ColourAt(11, 4)).
+            Assert:Equals(100, mCanvas:ColourAt(0, 5)).
+            FINALLY:
+                SET-SIZE(m) = 0.
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID PutBackRowRefusesARowOffTheBoard():
+        DEFINE VARIABLE m      AS MEMPTR  NO-UNDO.
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            SET-SIZE(m) = 12 * 4.
+            DO ON ERROR UNDO, THROW:
+                mCanvas:PutBackRow(10, m).
+                CATCH e1 AS GridException:
+                    thrown = thrown + 1.
+                END CATCH.
+            END.
+            FINALLY:
+                SET-SIZE(m) = 0.
+            END FINALLY.
+        END.
+        Assert:Equals(1, thrown).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID PutBackRowRefusesTooFewColours():
+        DEFINE VARIABLE m      AS MEMPTR  NO-UNDO.
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            SET-SIZE(m) = 8.
+            DO ON ERROR UNDO, THROW:
+                mCanvas:PutBackRow(1, m).
+                CATCH e2 AS GridException:
+                    thrown = thrown + 1.
+                END CATCH.
+            END.
+            FINALLY:
+                SET-SIZE(m) = 0.
+            END FINALLY.
+        END.
+        Assert:Equals(1, thrown).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID PutBackCellsWritesTheBackgroundAndSkipsCellsOffTheBoard():
+        DEFINE VARIABLE m AS MEMPTR NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            SET-SIZE(m) = 24.
+            PUT-LONG(m, 1) = 0.
+            PUT-LONG(m, 5) = 0.
+            PUT-LONG(m, 9) = 55.
+            PUT-LONG(m, 13) = 40.
+            PUT-LONG(m, 17) = 0.
+            PUT-LONG(m, 21) = 66.
+            mCanvas:PutBackCells(m, 2, 2, 2).
+            mCanvas:Restore().
+            Assert:Equals(55, mCanvas:ColourAt(2, 2)).
+            Assert:Equals(100, mCanvas:ColourAt(3, 2)).
+            FINALLY:
+                SET-SIZE(m) = 0.
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TintCellsMixesTheCellsShowingTowardsAColour():
+        DEFINE VARIABLE m AS MEMPTR NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            mCanvas:FillRect(0, 0, 12, 10, 0, 0xC8C8C8).
+            SET-SIZE(m) = 24.
+            PUT-LONG(m, 1) = 0.
+            PUT-LONG(m, 5) = 0.
+            PUT-LONG(m, 9) = 1.
+            PUT-LONG(m, 13) = 1.
+            PUT-LONG(m, 17) = 0.
+            PUT-LONG(m, 21) = 1.
+            mCanvas:TintCells(m, 2, 4, 4, 0x000000, 50).
+            Assert:Equals(0x646464, mCanvas:ColourAt(4, 4)).
+            Assert:Equals(0x646464, mCanvas:ColourAt(5, 4)).
+            Assert:Equals(0xC8C8C8, mCanvas:ColourAt(6, 4)).
+            mCanvas:BeginBatch().
+            mCanvas:TintCells(m, 2, 1, 1, 0x000000, 100).
+            mCanvas:EndBatch().
+            Assert:Equals(0, mCanvas:ColourAt(1, 1)).
+            FINALLY:
+                SET-SIZE(m) = 0.
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TintCellsRefusesAPercentOutsideZeroToOneHundred():
+        DEFINE VARIABLE m      AS MEMPTR  NO-UNDO.
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            SET-SIZE(m) = 12.
+            DO ON ERROR UNDO, THROW:
+                mCanvas:TintCells(m, 1, 0, 0, 0, 101).
+                CATCH e1 AS GridException:
+                    thrown = thrown + 1.
+                END CATCH.
+            END.
+            FINALLY:
+                SET-SIZE(m) = 0.
+            END FINALLY.
+        END.
+        Assert:Equals(1, thrown).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID PutBackRowsWritesAWholeBlockOfRowsOfTheBackgroundAtOnce():
+        DEFINE VARIABLE m AS MEMPTR  NO-UNDO.
+        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            SET-SIZE(m) = 12 * 4 * 3.
+            DO i = 0 TO 35:
+                PUT-LONG(m, i * 4 + 1) = 300 + i.
+            END.
+            mCanvas:PutBackRows(2, m).
+            mCanvas:Restore().
+            Assert:Equals(300, mCanvas:ColourAt(0, 2)).
+            Assert:Equals(312, mCanvas:ColourAt(0, 3)).
+            Assert:Equals(335, mCanvas:ColourAt(11, 4)).
+            Assert:Equals(100, mCanvas:ColourAt(0, 5)).
+            Assert:Equals(100, mCanvas:ColourAt(0, 1)).
+            FINALLY:
+                SET-SIZE(m) = 0.
+            END FINALLY.
+        END.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID PutBackRowsRefusesPartRowsAndRowsOffTheBoard():
+        DEFINE VARIABLE m      AS MEMPTR  NO-UNDO.
+        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        DO ON ERROR UNDO, THROW:
+            SET-SIZE(m) = 50.
+            DO ON ERROR UNDO, THROW:
+                mCanvas:PutBackRows(0, m).
+                CATCH e1 AS GridException:
+                    thrown = thrown + 1.
+                END CATCH.
+            END.
+            SET-SIZE(m) = 12 * 4 * 3.
+            DO ON ERROR UNDO, THROW:
+                mCanvas:PutBackRows(8, m).
+                CATCH e2 AS GridException:
+                    thrown = thrown + 1.
+                END CATCH.
+            END.
+            FINALLY:
+                SET-SIZE(m) = 0.
+            END FINALLY.
+        END.
+        Assert:Equals(2, thrown).
+    END METHOD.
+
 END CLASS.

@@ -522,6 +522,128 @@ CLASS ProGriddle.Engine.PixelCanvas FINAL:
         END.
     END METHOD.
 
+    /* Moves the rows of the background (the back layer) from piY down for piHeight rows by piRows rows, the way a scrolling land
+       moves down a screen. The rows that go off the bottom of the range are lost and the top piRows rows of the range are left as
+       they were: the caller writes them with PutBackRow. One block copy. What is showing is not changed (Restore does that).
+       Throws GridException while a batch is open, for a range outside the board or for piRows under 1. */
+    METHOD PUBLIC VOID ScrollBackDown(INPUT piY AS INTEGER, INPUT piHeight AS INTEGER, INPUT piRows AS INTEGER):
+        DEFINE VARIABLE bytes    AS INTEGER NO-UNDO.
+        DEFINE VARIABLE rowBytes AS INTEGER NO-UNDO.
+        DEFINE VARIABLE backBase AS INTEGER NO-UNDO.
+        DEFINE VARIABLE keep     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE tmp      AS MEMPTR  NO-UNDO.
+        {&NOT-IN-BATCH}
+        IF piY = ? OR piHeight = ? OR piRows = ? OR piRows < 1 OR piY < 0 OR piHeight < 1 OR piY + piHeight > mHeight THEN
+            UNDO, THROW NEW GridException(SUBSTITUTE("Cannot scroll rows &1 for &2 down by &3 on a board &4 high", piY, piHeight, piRows, mHeight)).
+        IF piRows >= piHeight THEN RETURN.
+        bytes = mWidth * mHeight * 4.
+        rowBytes = mWidth * 4.
+        keep = (piHeight - piRows) * rowBytes.
+        IF GET-SIZE(mWork) <> bytes * 3 THEN DO:
+            SET-SIZE(mWork) = 0.
+            SET-SIZE(mWork) = bytes * 3.
+        END.
+        backBase = (mBack - 1) * bytes + 1.
+        mStore:CopyBytesTo(mWork).
+        DO ON ERROR UNDO, THROW:
+            SET-SIZE(tmp) = keep.
+            COPY-LOB FROM mWork STARTING AT backBase + piY * rowBytes FOR keep TO tmp OVERLAY AT 1.
+            COPY-LOB FROM tmp FOR keep TO mWork OVERLAY AT backBase + (piY + piRows) * rowBytes.
+            mStore:CopyBytesFrom(mWork).
+            FINALLY:
+                SET-SIZE(tmp) = 0.
+            END FINALLY.
+        END.
+    END METHOD.
+
+    /* Writes one row of the background: pmColours holds one whole number (4 bytes) for each cell of the row, left to right. What is
+       showing is not changed (Restore does that). Throws GridException while a batch is open, for a row off the board or for too
+       few colours. */
+    METHOD PUBLIC VOID PutBackRow(INPUT piY AS INTEGER, INPUT pmColours AS MEMPTR):
+        DEFINE VARIABLE bytes AS INTEGER NO-UNDO.
+        {&NOT-IN-BATCH}
+        IF piY = ? OR piY < 0 OR piY >= mHeight THEN UNDO, THROW NEW GridException("There is no row " + STRING(piY) + " to write").
+        IF GET-SIZE(pmColours) < mWidth * 4 THEN UNDO, THROW NEW GridException(SUBSTITUTE("A row of &1 cells needs &2 bytes, not &3", mWidth, mWidth * 4, GET-SIZE(pmColours))).
+        bytes = mWidth * mHeight * 4.
+        IF GET-SIZE(mWork) <> bytes * 3 THEN DO:
+            SET-SIZE(mWork) = 0.
+            SET-SIZE(mWork) = bytes * 3.
+        END.
+        mStore:CopyBytesTo(mWork).
+        COPY-LOB FROM pmColours FOR mWidth * 4 TO mWork OVERLAY AT (mBack - 1) * bytes + piY * mWidth * 4 + 1.
+        mStore:CopyBytesFrom(mWork).
+    END METHOD.
+
+    /* Writes a block of rows of the background from piY: pmColours holds the colours of whole rows (4 bytes a cell, left to right,
+       row after row), as many rows as it holds. One block copy, for building a whole ground at once. What is showing is not changed
+       (Restore does that). Throws GridException while a batch is open, for rows off the board or a block that is not whole rows. */
+    METHOD PUBLIC VOID PutBackRows(INPUT piY AS INTEGER, INPUT pmColours AS MEMPTR):
+        DEFINE VARIABLE bytes AS INTEGER NO-UNDO.
+        DEFINE VARIABLE rows  AS INTEGER NO-UNDO.
+        {&NOT-IN-BATCH}
+        IF GET-SIZE(pmColours) < mWidth * 4 OR GET-SIZE(pmColours) MODULO (mWidth * 4) <> 0 THEN
+            UNDO, THROW NEW GridException(SUBSTITUTE("A block of rows of &1 cells needs a whole number of rows of &2 bytes, not &3 bytes", mWidth, mWidth * 4, GET-SIZE(pmColours))).
+        rows = INTEGER(GET-SIZE(pmColours) / (mWidth * 4)).
+        IF piY = ? OR piY < 0 OR piY + rows > mHeight THEN UNDO, THROW NEW GridException(SUBSTITUTE("&1 rows from &2 do not fit a board &3 high", rows, piY, mHeight)).
+        bytes = mWidth * mHeight * 4.
+        IF GET-SIZE(mWork) <> bytes * 3 THEN DO:
+            SET-SIZE(mWork) = 0.
+            SET-SIZE(mWork) = bytes * 3.
+        END.
+        mStore:CopyBytesTo(mWork).
+        COPY-LOB FROM pmColours FOR rows * mWidth * 4 TO mWork OVERLAY AT (mBack - 1) * bytes + piY * mWidth * 4 + 1.
+        mStore:CopyBytesFrom(mWork).
+    END METHOD.
+
+    /* The same as PutCells, but the colours go into the background, so they stay (and scroll with ScrollBackDown) until the
+       background is written over. What is showing is not changed (Restore does that). Throws GridException while a batch is open. */
+    METHOD PUBLIC VOID PutBackCells(INPUT pmCells AS MEMPTR, INPUT piCount AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
+        DEFINE VARIABLE i        AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x        AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y        AS INTEGER NO-UNDO.
+        {&NOT-IN-BATCH}
+        IF piCount > 0 AND GET-SIZE(pmCells) < piCount * 12 THEN
+            UNDO, THROW NEW GridException(SUBSTITUTE("&1 cells need &2 bytes, not &3", piCount, piCount * 12, GET-SIZE(pmCells))).
+        DO i = 0 TO piCount - 1:
+            x = piX + GET-LONG(pmCells, i * 12 + 1).
+            y = piY + GET-LONG(pmCells, i * 12 + 5).
+            IF x < 0 OR x >= mWidth OR y < 0 OR y >= mHeight THEN NEXT.
+            mStore:SetCellAt(mBack, y * mWidth + x, GET-LONG(pmCells, i * 12 + 9)).
+        END.
+    END METHOD.
+
+    /* Tints a list of cells, in the form PutCells reads (only their places are used): each cell showing goes piPercent percent of the
+       way to piColour, which is how a shadow or a haze is made. In a batch it goes into the batch. Cells outside the board are
+       skipped. Throws GridException for a percent outside 0 to 100. */
+    METHOD PUBLIC VOID TintCells(INPUT pmCells AS MEMPTR, INPUT piCount AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER,
+                                 INPUT piColour AS INTEGER, INPUT piPercent AS INTEGER):
+        DEFINE VARIABLE i        AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x        AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y        AS INTEGER NO-UNDO.
+        DEFINE VARIABLE idx      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE viewBase AS INTEGER NO-UNDO.
+        DEFINE VARIABLE colour   AS INTEGER NO-UNDO.
+        DEFINE VARIABLE lastIn   AS INTEGER NO-UNDO INITIAL ?.
+        DEFINE VARIABLE lastOut  AS INTEGER NO-UNDO.
+        IF piPercent = ? OR piPercent < 0 OR piPercent > 100 THEN UNDO, THROW NEW GridException("A tint is 0 to 100 percent, not " + STRING(piPercent)).
+        IF piCount > 0 AND GET-SIZE(pmCells) < piCount * 12 THEN
+            UNDO, THROW NEW GridException(SUBSTITUTE("&1 cells need &2 bytes, not &3", piCount, piCount * 12, GET-SIZE(pmCells))).
+        viewBase = (mView - 1) * mWidth * mHeight * 4 + 1.
+        DO i = 0 TO piCount - 1:
+            x = piX + GET-LONG(pmCells, i * 12 + 1).
+            y = piY + GET-LONG(pmCells, i * 12 + 5).
+            IF x < 0 OR x >= mWidth OR y < 0 OR y >= mHeight THEN NEXT.
+            idx = y * mWidth + x.
+            colour = (IF mBatch THEN GET-LONG(mWork, viewBase + idx * 4) ELSE mStore:GetCellAt(mView, idx)).
+            IF colour <> lastIn THEN DO:
+                lastIn = colour.
+                lastOut = ColourMath:Mix(colour, piColour, piPercent, 100).
+            END.
+            IF mBatch THEN PUT-LONG(mWork, viewBase + idx * 4) = lastOut.
+            ELSE mStore:SetCellAt(mView, idx, lastOut).
+        END.
+    END METHOD.
+
     /* Counts the cells of one kind on the board. */
     METHOD PUBLIC INTEGER CountKind(INPUT piKind AS INTEGER):
         RETURN mStore:CountOf(mKind, piKind).
