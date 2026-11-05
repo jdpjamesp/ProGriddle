@@ -387,6 +387,18 @@ CLASS ProGriddle.Games.Centipede.CentipedeGameTests:
     END METHOD.
 
     @Test.
+    METHOD PUBLIC VOID ASegmentThatHasTouchedPoisonSaysItIsDiving():
+        Scene().
+        KeepAlive().
+        mGame:PlaceMushroom(3, 3, 4).
+        mGame:PoisonMushroom(3, 3).
+        mGame:AddSegment(5, 3, -1, TRUE).
+        Assert:IsFalse(mGame:SegmentDiving(1)).
+        Frames(40).
+        Assert:IsTrue(mGame:SegmentDiving(1)).
+    END METHOD.
+
+    @Test.
     METHOD PUBLIC VOID AtTheBottomASegmentTurnsAndClimbsBackUp():
         Scene().
         KeepAlive().

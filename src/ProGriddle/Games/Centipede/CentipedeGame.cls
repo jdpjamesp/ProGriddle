@@ -466,6 +466,12 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
         RETURN mSegFall[piIndex + 1] > 0.
     END METHOD.
 
+    /* True when a segment is diving straight down because it touched a poisoned mushroom, so a painter can show the tell. */
+    METHOD PUBLIC LOGICAL SegmentDiving(INPUT piIndex AS INTEGER):
+        CheckSegment(piIndex).
+        RETURN mSegDive[piIndex + 1].
+    END METHOD.
+
     /* Takes every segment, and the loose heads still to come, off the field. */
     METHOD PUBLIC VOID ClearCentipede():
         mSegN = 0.
