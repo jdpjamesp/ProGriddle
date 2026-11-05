@@ -5,7 +5,7 @@
 
    Everything except the caption is drawn once into a bitmap and then copied, so a repaint costs one
    copy and one line of text. The window places its game buttons on top of this control, at the
-   places the layout below leaves free: the buttons go at 48, 372 and the board is at 590, 50. The
+   places the layout below leaves free: the buttons go at 48, 372 and the board is at 646, 90 (428 across, level with the left margin on the right, so the tab row has 590 pixels). The
    window is 650 tall and holds ten small chips, and the footer follows the bottom if it is ever taller.
    Call ReleaseResources when the window closes. */
 USING Progress.Lang.*.
@@ -222,10 +222,10 @@ CLASS ProGriddle.UI.WinForms.CookoffBackdrop INHERITS Panel:
     METHOD PRIVATE VOID DrawBoard(INPUT g AS Graphics):
         DEFINE VARIABLE rowNo   AS INTEGER NO-UNDO.
         DEFINE VARIABLE colNo   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE fx    AS INTEGER NO-UNDO INITIAL 590.
-        DEFINE VARIABLE fy    AS INTEGER NO-UNDO INITIAL 50.
-        DEFINE VARIABLE pitch AS INTEGER NO-UNDO INITIAL 33.
-        DEFINE VARIABLE padPx   AS INTEGER NO-UNDO INITIAL 22.
+        DEFINE VARIABLE fx    AS INTEGER NO-UNDO INITIAL 646.
+        DEFINE VARIABLE fy    AS INTEGER NO-UNDO INITIAL 90.
+        DEFINE VARIABLE pitch AS INTEGER NO-UNDO INITIAL 28.
+        DEFINE VARIABLE padPx   AS INTEGER NO-UNDO INITIAL 18.
         DEFINE VARIABLE kind  AS CHARACTER NO-UNDO.
         /* the frame, with a soft glow round it */
         Fill(g, 14, 255, 122, 46, fx - 8, fy - 8, pitch * 14 + padPx * 2 + 16, pitch * 14 + padPx * 2 + 16, 38).

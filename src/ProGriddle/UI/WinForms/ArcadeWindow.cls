@@ -360,7 +360,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
         mTabFont = NEW Font("Consolas", System.Convert:ToSingle(13), FontStyle:Bold, GraphicsUnit:Pixel).
         mTabFlow = NEW FlowLayoutPanel().
         mTabFlow:Location = NEW Point(46, 338).
-        mTabFlow:Size = NEW Size(510, 30).
+        mTabFlow:Size = NEW Size(590, 30).
         mTabFlow:FlowDirection = FlowDirection:LeftToRight.
         mTabFlow:WrapContents = FALSE.
         mTabFlow:BackColor = Color:Transparent.
