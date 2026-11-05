@@ -83,6 +83,19 @@ CLASS ProGriddle.Games.Rogue.Hero FINAL:
         GET.
         SET.
 
+    /* Turns left in which a potion of monster detection shows every monster on the level, a potion of magic detection every magic thing
+       on the floor, and a scroll of food detection every bit of food. */
+    DEFINE PUBLIC PROPERTY SensesMonsters AS INTEGER NO-UNDO
+        GET.
+        SET.
+
+    DEFINE PUBLIC PROPERTY SensesMagic AS INTEGER NO-UNDO
+        GET.
+        SET.
+
+    DEFINE PUBLIC PROPERTY SensesFood AS INTEGER NO-UNDO
+        GET.
+        SET.
     /* Turns left in which the hero's touch confuses the monster it hits (the scroll of monster confusion). */
     DEFINE PUBLIC PROPERTY ConfusingTouch AS LOGICAL NO-UNDO
         GET.
