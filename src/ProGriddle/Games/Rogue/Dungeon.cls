@@ -125,17 +125,29 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
         RETURN 0.
     END METHOD.
 
-    /* A floor cell inside a room, chosen at random, with no stairs on it. Throws GridException for a cell that holds no room. */
+    /* A floor cell inside a room, chosen at random, with no stairs on it (a few random tries, then the first floor cell of the room).
+       Throws GridException for a cell that holds no room. */
     METHOD PUBLIC VOID FloorCellIn(INPUT piRoom AS INTEGER, OUTPUT piX AS INTEGER, OUTPUT piY AS INTEGER):
+        DEFINE VARIABLE tries AS INTEGER NO-UNDO.
+        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
+        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
         CheckRoom(piRoom).
         IF NOT mReal[piRoom + 1] THEN UNDO, THROW NEW GridException("Cell " + STRING(piRoom) + " has no room, only a passage square").
-        REPEAT:
+        DO tries = 1 TO 20:
             piX = mLeft[piRoom + 1] + 1 + mRandom:NextInt(mRight[piRoom + 1] - mLeft[piRoom + 1] - 1).
             piY = mTop[piRoom + 1] + 1 + mRandom:NextInt(mBottom[piRoom + 1] - mTop[piRoom + 1] - 1).
-            IF mMap:TerrainAt(piX, piY) = INTEGER(Terrain:Floor) THEN LEAVE.
+            IF mMap:TerrainAt(piX, piY) = INTEGER(Terrain:Floor) THEN RETURN.
+        END.
+        DO y = mTop[piRoom + 1] + 1 TO mBottom[piRoom + 1] - 1:
+            DO x = mLeft[piRoom + 1] + 1 TO mRight[piRoom + 1] - 1:
+                IF mMap:TerrainAt(x, y) = INTEGER(Terrain:Floor) THEN DO:
+                    piX = x.
+                    piY = y.
+                    RETURN.
+                END.
+            END.
         END.
     END METHOD.
-
     /* Builds a whole level for a depth on the map: the map is emptied first. */
     METHOD PUBLIC VOID Build(INPUT piDepth AS INTEGER):
         DEFINE VARIABLE i AS INTEGER NO-UNDO.
@@ -154,24 +166,29 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
     /* ===================================== rooms ===================================== */
 
     METHOD PRIVATE VOID MakeRooms():
-        DEFINE VARIABLE gone   AS LOGICAL NO-UNDO EXTENT 9.
+        DEFINE VARIABLE gone    AS LOGICAL NO-UNDO EXTENT 9.
+        DEFINE VARIABLE order   AS INTEGER NO-UNDO EXTENT 9.
         DEFINE VARIABLE howMany AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
+        DEFINE VARIABLE c       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE j       AS INTEGER NO-UNDO.
+        DEFINE VARIABLE swap    AS INTEGER NO-UNDO.
+        DO c = 1 TO 9:
+            order[c] = c.
+        END.
+        /* up to four cells are left without a room: the first few of a shuffle of the nine */
         howMany = mRandom:NextInt(5).
-        DO WHILE n < howMany:
-            c = mRandom:NextInt(9) + 1.
-            IF NOT gone[c] THEN DO:
-                gone[c] = TRUE.
-                n = n + 1.
-            END.
+        DO c = 1 TO howMany:
+            j = c + mRandom:NextInt(9 - c + 1).
+            swap = order[c].
+            order[c] = order[j].
+            order[j] = swap.
+            gone[order[c]] = TRUE.
         END.
         DO c = 0 TO 8:
             IF gone[c + 1] THEN MakePassageSquare(c).
             ELSE MakeRoom(c).
         END.
     END METHOD.
-
     /* The left edge and width of the cell of the board: 26 columns each, and the last takes the 2 over. */
     METHOD PRIVATE INTEGER CellLeft(INPUT piCell AS INTEGER):
         RETURN (piCell MODULO 3) * 26.
@@ -388,16 +405,25 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
     METHOD PRIVATE VOID PlaceStairsAndStart():
         DEFINE VARIABLE stairsRoom AS INTEGER NO-UNDO.
         DEFINE VARIABLE startRoom  AS INTEGER NO-UNDO.
+        DEFINE VARIABLE k          AS INTEGER NO-UNDO.
+        DEFINE VARIABLE n          AS INTEGER NO-UNDO.
+        DEFINE VARIABLE i          AS INTEGER NO-UNDO.
         stairsRoom = PickRoom().
         FloorCellIn(stairsRoom, OUTPUT StairsX, OUTPUT StairsY).
         mMap:SetTerrain(StairsX, StairsY, Terrain:Stairs).
-        startRoom = PickRoom().
-        IF RealRooms > 1 THEN DO WHILE startRoom = stairsRoom:
-            startRoom = PickRoom().
+        /* the start room is one of the other rooms, if there are any */
+        startRoom = stairsRoom.
+        IF RealRooms > 1 THEN DO:
+            k = mRandom:NextInt(RealRooms - 1).
+            DO i = 0 TO 8:
+                IF mReal[i + 1] AND i <> stairsRoom THEN DO:
+                    IF n = k THEN startRoom = i.
+                    n = n + 1.
+                END.
+            END.
         END.
         FloorCellIn(startRoom, OUTPUT StartX, OUTPUT StartY).
     END METHOD.
-
     /* From 1 to 10 hidden traps on floor squares, more the deeper the level. */
     METHOD PRIVATE VOID LayTraps():
         DEFINE VARIABLE n AS INTEGER NO-UNDO.

@@ -154,12 +154,13 @@ CLASS ProGriddle.Games.Rogue.LevelMap FINAL:
         mStore:SetCell(mMon, piX, piY, piCode).
     END METHOD.
 
-    /* True for terrain that can be walked on: floor, a door, a passage and the stairs. Off the map is not. */
+    /* The numbers of the terrain that the three questions below are asked about, which the tests check against the Terrain enum. They
+       are plain numbers because these are asked tens of thousands of times a turn (every step of every search). */
+    /* Floor 1, Door 8, Passage 11, Stairs 12: true for terrain that can be walked on. Off the map is not. */
     METHOD PUBLIC LOGICAL Walkable(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        CASE TerrainAt(piX, piY):
-            WHEN INTEGER(Terrain:Floor) OR WHEN INTEGER(Terrain:Door) OR WHEN INTEGER(Terrain:Passage) OR WHEN INTEGER(Terrain:Stairs) THEN RETURN TRUE.
-            OTHERWISE RETURN FALSE.
-        END CASE.
+        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        t = TerrainAt(piX, piY).
+        RETURN t = 1 OR t = 8 OR t = 11 OR t = 12.
     END METHOD.
 
     /* True for what the eye cannot pass: everything that cannot be walked on. */
@@ -167,20 +168,17 @@ CLASS ProGriddle.Games.Rogue.LevelMap FINAL:
         RETURN NOT Walkable(piX, piY).
     END METHOD.
 
-    /* True for a door, found or not: no diagonal step goes into or out of one. */
+    /* True for a door, found or not (Door 8, SecretAcross 9, SecretDown 10): no diagonal step goes into or out of one. */
     METHOD PUBLIC LOGICAL IsDoorway(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        CASE TerrainAt(piX, piY):
-            WHEN INTEGER(Terrain:Door) OR WHEN INTEGER(Terrain:SecretAcross) OR WHEN INTEGER(Terrain:SecretDown) THEN RETURN TRUE.
-            OTHERWISE RETURN FALSE.
-        END CASE.
+        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        t = TerrainAt(piX, piY).
+        RETURN t >= 8 AND t <= 10.
     END METHOD.
 
     /* True for a secret door that has not been found. */
     METHOD PUBLIC LOGICAL IsSecret(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        CASE TerrainAt(piX, piY):
-            WHEN INTEGER(Terrain:SecretAcross) OR WHEN INTEGER(Terrain:SecretDown) THEN RETURN TRUE.
-            OTHERWISE RETURN FALSE.
-        END CASE.
+        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        t = TerrainAt(piX, piY).
+        RETURN t = 9 OR t = 10.
     END METHOD.
-
 END CLASS.

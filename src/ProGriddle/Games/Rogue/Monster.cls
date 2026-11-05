@@ -61,6 +61,11 @@ CLASS ProGriddle.Games.Rogue.Monster FINAL:
         GET.
         SET.
 
+    /* How many turns a venus flytrap has held the hero: its grip hurts a little more each turn. */
+    DEFINE PUBLIC PROPERTY Grip AS INTEGER NO-UNDO
+        GET.
+        SET.
+
     DEFINE PUBLIC PROPERTY Gold AS INTEGER NO-UNDO
         GET.
         SET.

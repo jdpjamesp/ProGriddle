@@ -70,6 +70,25 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
         GET.
         PRIVATE SET.
 
+    /* True once the hero is dead or has left the dungeon with the amulet (Won), and what killed the hero ("a bat", "starvation") or
+       "quit". */
+    DEFINE PUBLIC PROPERTY Dead AS LOGICAL NO-UNDO
+        GET.
+        SET.
+
+    DEFINE PUBLIC PROPERTY Won AS LOGICAL NO-UNDO
+        GET.
+        SET.
+
+    DEFINE PUBLIC PROPERTY Cause AS CHARACTER NO-UNDO
+        GET.
+        SET.
+
+    /* The score so far: the gold, and when the hero has won what is in the pack too. */
+    DEFINE PUBLIC PROPERTY Score AS INTEGER NO-UNDO
+        GET():
+            RETURN Hero:Gold + (IF Won THEN Pack:Worth() ELSE 0).
+        END GET.
     /* How many monsters are on the level, and how many things lie on its floor. */
     DEFINE PUBLIC PROPERTY MonsterCount AS INTEGER NO-UNDO
         GET():
@@ -109,6 +128,12 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
 
     /* A new game: a new hero with the starting kit, new names for the unknown things and the first level. */
     METHOD PUBLIC VOID Reset():
+        NewHero().
+        NewLevel(1).
+    END METHOD.
+
+    /* A new hero with the starting kit and new names for the unknown things, and nothing else changed (the level stays as it is). */
+    METHOD PUBLIC VOID NewHero():
         Hero = NEW Hero().
         Pack = NEW Pack().
         Names:Shuffle(Random).
@@ -116,10 +141,11 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
         Turns = 0.
         DeepestDepth = 0.
         mNoFood = 0.
+        Dead = FALSE.
+        Won = FALSE.
+        Cause = "".
         GiveKit().
-        NewLevel(1).
     END METHOD.
-
     /* Food, ring mail +1 worn, a mace +1,+1 wielded, a bow +1 and arrows. */
     METHOD PRIVATE VOID GiveKit():
         DEFINE VARIABLE oItem AS Item NO-UNDO.

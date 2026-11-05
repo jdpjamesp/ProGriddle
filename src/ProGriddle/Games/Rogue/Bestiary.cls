@@ -88,4 +88,19 @@ CLASS ProGriddle.Games.Rogue.Bestiary FINAL:
         RETURN OfLetter(SUBSTRING(DepthOrder(), d + 1, 1)).
     END METHOD.
 
+    /* What the monster does when it hits, as the verb of "the bat bites you". */
+    METHOD PUBLIC STATIC CHARACTER Verb(INPUT poKind AS MonsterKind):
+        RETURN ENTRY(INTEGER(poKind) + 1, "hits,bites,kicks,claws,kicks,grabs,claws,hits,touches,bites,pecks,hits,hits,touches,hits,hits,kicks,bites,bites,hits,claws,bites,hits,hits,claws,hits").
+    END METHOD.
+
+    /* The monster as a phrase for a message: "the bat", or "The bat" when plCapital. */
+    METHOD PUBLIC STATIC CHARACTER Phrase(INPUT poKind AS MonsterKind, INPUT plCapital AS LOGICAL):
+        RETURN (IF plCapital THEN "The " ELSE "the ") + NameOf(poKind).
+    END METHOD.
+
+    /* The monster with an article, as in "killed by a bat" or "an orc". */
+    METHOD PUBLIC STATIC CHARACTER WithArticle(INPUT poKind AS MonsterKind):
+        RETURN (IF INDEX("aeiou", SUBSTRING(NameOf(poKind), 1, 1)) > 0 THEN "an " ELSE "a ") + NameOf(poKind).
+    END METHOD.
+
 END CLASS.

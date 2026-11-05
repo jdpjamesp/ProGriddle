@@ -175,4 +175,16 @@ CLASS ProGriddle.Games.Rogue.ItemTablesTests:
         Assert:Equals(3, thrown).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID AMonsterHasAVerbAPhraseAndAnArticle():
+        Assert:Equals("bites", Bestiary:Verb(MonsterKind:Bat)).
+        Assert:Equals("kicks", Bestiary:Verb(MonsterKind:Emu)).
+        Assert:Equals("the bat", Bestiary:Phrase(MonsterKind:Bat, FALSE)).
+        Assert:Equals("The bat", Bestiary:Phrase(MonsterKind:Bat, TRUE)).
+        Assert:Equals("a bat", Bestiary:WithArticle(MonsterKind:Bat)).
+        Assert:Equals("an orc", Bestiary:WithArticle(MonsterKind:Orc)).
+        Assert:Equals("an ice monster", Bestiary:WithArticle(MonsterKind:IceMonster)).
+        Assert:Equals(26, NUM-ENTRIES("hits,bites,kicks,claws,kicks,grabs,claws,hits,touches,bites,pecks,hits,hits,touches,hits,hits,kicks,bites,bites,hits,claws,bites,hits,hits,claws,hits")).
+    END METHOD.
+
 END CLASS.

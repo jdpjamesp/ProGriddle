@@ -108,8 +108,10 @@ CLASS ProGriddle.Games.Rogue.Disguises FINAL:
         DEFINE VARIABLE s         AS INTEGER   NO-UNDO.
         DEFINE VARIABLE j         AS INTEGER   NO-UNDO.
         DEFINE VARIABLE again     AS LOGICAL   NO-UNDO.
+        DEFINE VARIABLE tries     AS INTEGER   NO-UNDO.
         syllables = "a,ab,ag,aks,ala,an,app,arg,arze,ash,bek,bie,bit,bjor,blu,bot,bu,byt,comp,con,cos,cre,dalf,dan,den,do,e,eep,el,eng,er,ere,erk,esh,evs,fa,fid,fri,fu,gan,gar,glen,gop,gre,ha,hyd,i,ing,ip,ish,it,ite,iv,jo,kho,kli,klis,la,lech,mar,me,mi,mic,mik,mon,mung,mur,nej,nelg,nep,ner,nes,nih,nin,o,od,ood,org,orn,ox,oxy,pay,ple,plu,po,pot,prok,re,rea,rhov,ri,ro,rog,rok,rol,sa,san,sat,sef,seh,shu,ski,sna,sne,snik,so,sol,sri,sta,sun,taf,tem,ther,ti,tox,trol,tue,turs,u,ulk,um,un,uni,ur,val,viv,vly,vom,wah,wed,werg,wex,whon,wun,xo,y,yot,yu,zant,zeb,zim,zok,zon,zum".
         REPEAT:
+            tries = tries + 1.
             heading = "".
             words = poRandom:NextInt(3) + 1.
             DO w = 1 TO words:
@@ -123,6 +125,11 @@ CLASS ProGriddle.Games.Rogue.Disguises FINAL:
                 IF mName[j] = heading THEN again = TRUE.
             END.
             IF NOT again THEN LEAVE.
+            /* a random source that keeps giving the same title is given a number to keep the titles different */
+            IF tries >= 40 THEN DO:
+                heading = heading + " " + STRING(piSlot).
+                LEAVE.
+            END.
         END.
         RETURN heading.
     END METHOD.
