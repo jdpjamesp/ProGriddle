@@ -9,7 +9,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Asteroids.RockFieldTests:
 
-    DEFINE PRIVATE VARIABLE mRocks AS RockField NO-UNDO.
+    VAR PRIVATE RockField mRocks.
 
     @Setup.
     METHOD PUBLIC VOID BuildField():
@@ -49,7 +49,7 @@ CLASS ProGriddle.Games.Asteroids.RockFieldTests:
 
     @Test.
     METHOD PUBLIC VOID AddingARockGivesItASlotAndKeepsWhatItWasTold():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         i = mRocks:Add(U(10), U(20), 100, -200, 2, 3, 5, 30, -1).
         Assert:Equals(1, mRocks:Count).
         Assert:Equals(2, mRocks:SizeAt(i)).
@@ -65,9 +65,9 @@ CLASS ProGriddle.Games.Asteroids.RockFieldTests:
 
     @Test.
     METHOD PUBLIC VOID TheFirstFreeSlotIsUsedAndARemovedRockLeavesItFree():
-        DEFINE VARIABLE a AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER a.
+        VAR INTEGER b.
+        VAR INTEGER c.
         a = mRocks:Add(0, 0, 0, 0, 1, 0, 0, 10, 1).
         b = mRocks:Add(0, 0, 0, 0, 1, 0, 0, 10, 1).
         Assert:IsTrue(a <> b).
@@ -81,9 +81,9 @@ CLASS ProGriddle.Games.Asteroids.RockFieldTests:
 
     @Test.
     METHOD PUBLIC VOID MoveAddsTheVelocityAndWrapsOverEveryEdge():
-        DEFINE VARIABLE a AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER a.
+        VAR INTEGER b.
+        VAR INTEGER c.
         a = mRocks:Add(U(10), U(10), 1000, 500, 1, 0, 0, 100, 1).
         b = mRocks:Add(U(319), U(5), U(2), 0 - U(7), 1, 0, 0, 100, 1).
         c = mRocks:Add(U(2), U(238), 0 - U(5), U(3), 1, 0, 0, 100, 1).
@@ -98,9 +98,9 @@ CLASS ProGriddle.Games.Asteroids.RockFieldTests:
 
     @Test.
     METHOD PUBLIC VOID ARockSpinsOneHeadingStepEveryPeriodFramesInItsDirection():
-        DEFINE VARIABLE a AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER a.
+        VAR INTEGER b.
+        VAR INTEGER i.
         a = mRocks:Add(0, 0, 0, 0, 1, 0, 10, 4, 1).
         b = mRocks:Add(0, 0, 0, 0, 1, 0, 0, 3, -1).
         DO i = 1 TO 3:
@@ -119,8 +119,8 @@ CLASS ProGriddle.Games.Asteroids.RockFieldTests:
 
     @Test.
     METHOD PUBLIC VOID ANewRockFlashesForSixFramesAndThenStops():
-        DEFINE VARIABLE a AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER a.
+        VAR INTEGER i.
         a = mRocks:Add(0, 0, 0, 0, 1, 0, 0, 10, 1).
         Assert:Equals(6, mRocks:Flash(a)).
         DO i = 1 TO 5:
@@ -149,8 +149,8 @@ CLASS ProGriddle.Games.Asteroids.RockFieldTests:
 
     @Test.
     METHOD PUBLIC VOID TheFieldHoldsSixtyFourRocksAndRefusesTheNext():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR INTEGER i.
+        VAR LOGICAL thrown.
         DO i = 1 TO 64:
             mRocks:Add(0, 0, 0, 0, 3, 0, 0, 10, 1).
         END.

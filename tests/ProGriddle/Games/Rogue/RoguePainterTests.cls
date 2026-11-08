@@ -9,10 +9,10 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.RoguePainterTests:
 
-    DEFINE PRIVATE VARIABLE mGame     AS RogueGame              NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScores   AS RogueScores            NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRenderer AS RogueRecordingRenderer NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPainter  AS RoguePainter           NO-UNDO.
+    VAR PRIVATE RogueGame mGame.
+    VAR PRIVATE RogueScores mScores.
+    VAR PRIVATE RogueRecordingRenderer mRenderer.
+    VAR PRIVATE RoguePainter mPainter.
 
     /* A started game swept for a lit room with floor (5, 5) to (14, 8), a door at (15, 6) and a passage beyond it, the hero at (6, 6) */
     @Setup.
@@ -46,9 +46,9 @@ CLASS ProGriddle.Games.Rogue.RoguePainterTests:
 
     /* How many pixels of a character cell (column, row of the 80 x 24 screen) have a colour. */
     METHOD PRIVATE INTEGER Lit(INPUT piCol AS INTEGER, INPUT piRow AS INTEGER, INPUT piColour AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         DO y = 0 TO 13:
             DO x = 0 TO 7:
                 IF mPainter:Canvas:ColourAt(piCol * 8 + x, piRow * 14 + y) = piColour THEN n = n + 1.
@@ -238,8 +238,8 @@ CLASS ProGriddle.Games.Rogue.RoguePainterTests:
 
     @Test.
     METHOD PUBLIC VOID AWeakHeroSeesTheirHitPointsInRed():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER i.
         mGame:World:Hero:Hp = 2.
         Draw().
         DO i = 0 TO 79:
@@ -272,7 +272,7 @@ CLASS ProGriddle.Games.Rogue.RoguePainterTests:
 
     @Test.
     METHOD PUBLIC VOID AnEmptyPackSaysSo():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 0 TO 4:
             mGame:World:Pack:Take(i, mGame:World:Pack:At(i):Count).
         END.
@@ -348,7 +348,7 @@ CLASS ProGriddle.Games.Rogue.RoguePainterTests:
 
     @Test.
     METHOD PUBLIC VOID APaintedGameThatIsNotRogueIsRefusedAndNothingIsNeededForEither():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mPainter:Render(mGame:Grid, ?).
             CATCH e1 AS GridException:

@@ -15,16 +15,16 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.2048.TilesInput FINAL IMPLEMENTS IGameInput:
 
-    DEFINE PRIVATE VARIABLE mGame     AS TilesGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS ISettings NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBest     AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNotice   AS CHARACTER NO-UNDO.
+    VAR PRIVATE TilesGame mGame.
+    VAR PRIVATE ISettings mSettings.
+    VAR PRIVATE INTEGER mBest.
+    VAR PRIVATE CHARACTER mNotice.
     /* true once the "you made 2048" notice has been given for the game being played */
-    DEFINE PRIVATE VARIABLE mToldWon  AS LOGICAL   NO-UNDO.
+    VAR PRIVATE LOGICAL mToldWon.
 
     DEFINE PUBLIC PROPERTY StatusText AS CHARACTER NO-UNDO
         GET():
-            DEFINE VARIABLE state AS CHARACTER NO-UNDO.
+            VAR CHARACTER state.
             IF mGame:IsOver THEN state = "Game over".
             ELSE IF mGame:HasWon THEN state = "You made 2048, keep going".
             ELSE state = "Playing".
@@ -79,7 +79,7 @@ CLASS ProGriddle.Games.2048.TilesInput FINAL IMPLEMENTS IGameInput:
     END CONSTRUCTOR.
 
     METHOD PUBLIC CHARACTER TakeNotice():
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        VAR CHARACTER result.
         result = mNotice.
         mNotice = "".
         RETURN result.
@@ -89,7 +89,7 @@ CLASS ProGriddle.Games.2048.TilesInput FINAL IMPLEMENTS IGameInput:
        move changes nothing or the game is over, so the window does not use them for anything
        else. */
     METHOD PUBLIC LOGICAL HandleKey(INPUT pcKey AS CHARACTER):
-        DEFINE VARIABLE direction AS CHARACTER NO-UNDO.
+        VAR CHARACTER direction.
         CASE pcKey:
             WHEN "Left"  OR WHEN "A" THEN direction = "L".
             WHEN "Right" OR WHEN "D" THEN direction = "R".

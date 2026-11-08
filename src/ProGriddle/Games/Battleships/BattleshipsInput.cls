@@ -19,13 +19,13 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Battleships.BattleshipsInput FINAL IMPLEMENTS IGameInput:
 
-    DEFINE PRIVATE VARIABLE mGame   AS BattleshipsGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mChoice AS CHARACTER       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNotice AS CHARACTER       NO-UNDO.
+    VAR PRIVATE BattleshipsGame mGame.
+    VAR PRIVATE CHARACTER mChoice.
+    VAR PRIVATE CHARACTER mNotice.
 
     DEFINE PUBLIC PROPERTY StatusText AS CHARACTER NO-UNDO
         GET():
-            DEFINE VARIABLE head AS CHARACTER NO-UNDO.
+            VAR CHARACTER head.
             head = SUBSTITUTE("&1 &2 x &3", mChoice, mGame:BoardWidth, mGame:BoardHeight).
             IF mGame:IsWon THEN RETURN SUBSTITUTE("&1   You win in &2 shots!", head, mGame:Turn).
             IF mGame:IsLost THEN RETURN SUBSTITUTE("&1   You lose: the computer sank your fleet. Shots &2", head, mGame:Turn).
@@ -100,8 +100,8 @@ CLASS ProGriddle.Games.Battleships.BattleshipsInput FINAL IMPLEMENTS IGameInput:
     /* poGame is the game to drive, in whatever size it starts. The board size shown first is the
        standard one that matches it, or Custom. */
     CONSTRUCTOR PUBLIC BattleshipsInput(INPUT poGame AS BattleshipsGame):
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE fleet AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER fleet.
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("Battleships input needs a game").
         mGame = poGame.
         DO i = 1 TO mGame:FleetCount:
@@ -112,7 +112,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsInput FINAL IMPLEMENTS IGameInput:
     END CONSTRUCTOR.
 
     METHOD PUBLIC CHARACTER TakeNotice():
-        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        VAR CHARACTER notice.
         notice = mNotice.
         mNotice = "".
         RETURN notice.
@@ -127,7 +127,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsInput FINAL IMPLEMENTS IGameInput:
     END METHOD.
 
     METHOD PUBLIC VOID Perform(INPUT pcCommand AS CHARACTER):
-        DEFINE VARIABLE marked AS INTEGER NO-UNDO.
+        VAR INTEGER marked.
         CASE pcCommand:
             WHEN "Rotate" THEN DO:
                 mGame:Rotate().

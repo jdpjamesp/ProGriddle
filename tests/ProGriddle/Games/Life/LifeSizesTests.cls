@@ -7,8 +7,8 @@ CLASS ProGriddle.Games.Life.LifeSizesTests:
 
     @Test.
     METHOD PUBLIC VOID TheOfferedSizesAreSmallestFirstAndAllWithinTheLimits():
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE previousWidth AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER previousWidth.
         DO i = 1 TO NUM-ENTRIES(LifeSizes:Names()):
             Assert:IsTrue(LifeSizes:WidthOf(ENTRY(i, LifeSizes:Names())) > previousWidth).
             previousWidth = LifeSizes:WidthOf(ENTRY(i, LifeSizes:Names())).

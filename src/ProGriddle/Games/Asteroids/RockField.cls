@@ -16,17 +16,17 @@ CLASS ProGriddle.Games.Asteroids.RockField FINAL:
     &SCOPED-DEFINE WIDTH-U 1310720
     &SCOPED-DEFINE HEIGHT-U 983040
 
-    DEFINE PRIVATE VARIABLE mSize    AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mX       AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mY       AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mVX      AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mVY      AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mVariant AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mHead    AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mPeriod  AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mSpinDir AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mSpinAcc AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mFlash   AS INTEGER NO-UNDO EXTENT {&SLOTS}.
+    VAR PRIVATE INTEGER[{&SLOTS}] mSize.
+    VAR PRIVATE INTEGER[{&SLOTS}] mX.
+    VAR PRIVATE INTEGER[{&SLOTS}] mY.
+    VAR PRIVATE INTEGER[{&SLOTS}] mVX.
+    VAR PRIVATE INTEGER[{&SLOTS}] mVY.
+    VAR PRIVATE INTEGER[{&SLOTS}] mVariant.
+    VAR PRIVATE INTEGER[{&SLOTS}] mHead.
+    VAR PRIVATE INTEGER[{&SLOTS}] mPeriod.
+    VAR PRIVATE INTEGER[{&SLOTS}] mSpinDir.
+    VAR PRIVATE INTEGER[{&SLOTS}] mSpinAcc.
+    VAR PRIVATE INTEGER[{&SLOTS}] mFlash.
 
     /* How many rocks there are. */
     DEFINE PUBLIC PROPERTY Count AS INTEGER NO-UNDO
@@ -45,7 +45,7 @@ CLASS ProGriddle.Games.Asteroids.RockField FINAL:
     METHOD PUBLIC INTEGER Add(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piVX AS INTEGER, INPUT piVY AS INTEGER,
                               INPUT piSize AS INTEGER, INPUT piVariant AS INTEGER, INPUT piHeading AS INTEGER,
                               INPUT piPeriod AS INTEGER, INPUT piSpinDir AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF piSize = ? OR piSize < 1 OR piSize > 3 THEN UNDO, THROW NEW GridException("A rock size is 1, 2 or 3, not " + STRING(piSize)).
         IF piPeriod = ? OR piPeriod < 1 THEN UNDO, THROW NEW GridException("A rock spins a step every 1 or more frames, not " + STRING(piPeriod)).
         IF piSpinDir <> 1 AND piSpinDir <> -1 THEN UNDO, THROW NEW GridException("A rock spins -1 or 1, not " + STRING(piSpinDir)).
@@ -80,7 +80,7 @@ CLASS ProGriddle.Games.Asteroids.RockField FINAL:
 
     /* Takes every rock out. */
     METHOD PUBLIC VOID Clear():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&SLOTS}:
             mSize[i] = 0.
         END.
@@ -89,8 +89,8 @@ CLASS ProGriddle.Games.Asteroids.RockField FINAL:
 
     /* One frame: every rock moves by its velocity and wraps, turns when its turn comes, and its flash runs down. */
     METHOD PUBLIC VOID Move():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE v AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER v.
         DO i = 1 TO {&SLOTS}:
             IF mSize[i] = 0 THEN NEXT.
             v = (mX[i] + mVX[i]) MODULO {&WIDTH-U}.
@@ -122,8 +122,8 @@ CLASS ProGriddle.Games.Asteroids.RockField FINAL:
 
     /* How many rocks of a size there are. */
     METHOD PUBLIC INTEGER CountOfSize(INPUT piSize AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
         DO i = 1 TO {&SLOTS}:
             IF mSize[i] = piSize THEN n = n + 1.
         END.

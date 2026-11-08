@@ -22,27 +22,27 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
     &SCOPED-DEFINE CELL 1
     &SCOPED-DEFINE CHIP 2
 
-    DEFINE PRIVATE VARIABLE mRandom AS IRandom NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWidth  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHeight AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mKind   AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mX      AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mY      AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mVX     AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mVY     AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mDrag   AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mAge    AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mLife   AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mAngle  AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mSpin   AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mHalf   AS INTEGER NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mRamp   AS Ramp    NO-UNDO EXTENT {&SLOTS}.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE INTEGER mWidth.
+    VAR PRIVATE INTEGER mHeight.
+    VAR PRIVATE INTEGER[{&SLOTS}] mKind.
+    VAR PRIVATE INTEGER[{&SLOTS}] mX.
+    VAR PRIVATE INTEGER[{&SLOTS}] mY.
+    VAR PRIVATE INTEGER[{&SLOTS}] mVX.
+    VAR PRIVATE INTEGER[{&SLOTS}] mVY.
+    VAR PRIVATE INTEGER[{&SLOTS}] mDrag.
+    VAR PRIVATE INTEGER[{&SLOTS}] mAge.
+    VAR PRIVATE INTEGER[{&SLOTS}] mLife.
+    VAR PRIVATE INTEGER[{&SLOTS}] mAngle.
+    VAR PRIVATE INTEGER[{&SLOTS}] mSpin.
+    VAR PRIVATE INTEGER[{&SLOTS}] mHalf.
+    VAR PRIVATE Ramp[{&SLOTS}] mRamp.
 
     /* How many pieces are flying. */
     DEFINE PUBLIC PROPERTY Count AS INTEGER NO-UNDO
         GET():
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
-            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            VAR INTEGER i.
+            VAR INTEGER n.
             DO i = 1 TO {&SLOTS}:
                 IF mKind[i] <> {&FREE} THEN n = n + 1.
             END.
@@ -65,7 +65,7 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
 
     /* Every piece gone. */
     METHOD PUBLIC VOID Clear():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&SLOTS}:
             mKind[i] = {&FREE}.
         END.
@@ -102,8 +102,8 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
 
     /* The colour a piece is drawn in now: its step of its ramp, from 0 at birth to the last step as its life runs out. */
     METHOD PUBLIC INTEGER ColourOf(INPUT piSlot AS INTEGER):
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE steps AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER steps.
         CheckSlot(piSlot).
         i = piSlot + 1.
         IF mKind[i] = {&FREE} THEN UNDO, THROW NEW GridException("Debris slot " + STRING(piSlot) + " is empty").
@@ -132,23 +132,23 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
        steps in the ship debris colours, with six single cells flying off at random (40 steps) and a ring of eight sparks
        leaving from three cells out (14 steps). 19 pieces. */
     METHOD PUBLIC VOID ShipBreakup(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piVX AS INTEGER, INPUT piVY AS INTEGER, INPUT piHeading AS INTEGER):
-        DEFINE VARIABLE pieces AS Outline NO-UNDO.
-        DEFINE VARIABLE l      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sn     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cs     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x1     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y1     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x2     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y2     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE mx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE my     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE away   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE speed  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE spin   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dir    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
+        VAR Outline pieces.
+        VAR INTEGER l.
+        VAR INTEGER sn.
+        VAR INTEGER cs.
+        VAR INTEGER x1.
+        VAR INTEGER y1.
+        VAR INTEGER x2.
+        VAR INTEGER y2.
+        VAR INTEGER mx.
+        VAR INTEGER my.
+        VAR INTEGER hx.
+        VAR INTEGER hy.
+        VAR INTEGER away.
+        VAR INTEGER speed.
+        VAR INTEGER spin.
+        VAR INTEGER dir.
+        VAR INTEGER k.
         pieces = AsteroidsArt:ShipPieces().
         sn = Heading:Sin(piHeading).
         cs = Heading:Cos(piHeading).
@@ -193,23 +193,23 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
        steps) and two chips of 2.4 cells (28 steps). Small: eight cells in an even ring from a random start, 0.75 of a
        cell a step, 16 to 22 steps. All in the rock debris colours. Throws GridException for any other size. */
     METHOD PUBLIC VOID RockBurst(INPUT piSize AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piHeading AS INTEGER, INPUT piVariant AS INTEGER):
-        DEFINE VARIABLE rock   AS Outline NO-UNDO.
-        DEFINE VARIABLE cells  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE chips  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE fastest AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lifeLow AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lifeSpan AS INTEGER NO-UNDO.
-        DEFINE VARIABLE chipHalf AS INTEGER NO-UNDO.
-        DEFINE VARIABLE chipLife AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dir    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE speed  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sn     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cs     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE v      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE vx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE vy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE spin   AS INTEGER NO-UNDO.
+        VAR Outline rock.
+        VAR INTEGER cells.
+        VAR INTEGER chips.
+        VAR INTEGER fastest.
+        VAR INTEGER lifeLow.
+        VAR INTEGER lifeSpan.
+        VAR INTEGER chipHalf.
+        VAR INTEGER chipLife.
+        VAR INTEGER k.
+        VAR INTEGER dir.
+        VAR INTEGER speed.
+        VAR INTEGER sn.
+        VAR INTEGER cs.
+        VAR INTEGER v.
+        VAR INTEGER vx.
+        VAR INTEGER vy.
+        VAR INTEGER spin.
         IF piSize = ? OR piSize < 1 OR piSize > 3 THEN UNDO, THROW NEW GridException("A rock size is 1, 2 or 3, not " + STRING(piSize)).
         IF piSize = 3 THEN DO:
             dir = mRandom:NextInt(8).
@@ -250,25 +250,25 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
        a little, spinning 2 to 5 degrees a step, for 60 steps, and a ring of twelve cells leaves from two cells out (0.9
        of a cell a step, 22 steps). Ember colours for the large saucer, red for the small one. 22 or 23 pieces. */
     METHOD PUBLIC VOID SaucerBurst(INPUT plLarge AS LOGICAL, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piVX AS INTEGER, INPUT piVY AS INTEGER):
-        DEFINE VARIABLE shape  AS Outline NO-UNDO.
-        DEFINE VARIABLE fade   AS Ramp    NO-UNDO.
-        DEFINE VARIABLE l      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE q      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x1     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y1     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x2     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y2     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE mx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE my     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE away   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE speed  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE spin   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dir    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
+        VAR Outline shape.
+        VAR Ramp fade.
+        VAR INTEGER l.
+        VAR INTEGER n.
+        VAR INTEGER s.
+        VAR INTEGER q.
+        VAR INTEGER x1.
+        VAR INTEGER y1.
+        VAR INTEGER x2.
+        VAR INTEGER y2.
+        VAR INTEGER mx.
+        VAR INTEGER my.
+        VAR INTEGER hx.
+        VAR INTEGER hy.
+        VAR INTEGER away.
+        VAR INTEGER speed.
+        VAR INTEGER spin.
+        VAR INTEGER dir.
+        VAR INTEGER k.
         IF plLarge = ? THEN UNDO, THROW NEW GridException("A saucer is large or small, not unknown").
         shape = AsteroidsArt:Saucer(plLarge).
         fade = (IF plLarge THEN Ramp:Ember ELSE Ramp:Red).
@@ -309,8 +309,8 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
        in the colours of a ramp. Throws GridException for no cells or a negative radius. */
     METHOD PUBLIC VOID Ring(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piCount AS INTEGER, INPUT piRadius AS INTEGER,
                             INPUT piSpeed AS INTEGER, INPUT piLife AS INTEGER, INPUT poRamp AS Ramp):
-        DEFINE VARIABLE k   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dir AS INTEGER NO-UNDO.
+        VAR INTEGER k.
+        VAR INTEGER dir.
         IF piCount = ? OR piCount < 1 THEN UNDO, THROW NEW GridException("A ring has 1 cell or more, not " + STRING(piCount)).
         IF piRadius = ? OR piRadius < 0 THEN UNDO, THROW NEW GridException("A ring has a radius of 0 or more, not " + STRING(piRadius)).
         DO k = 0 TO piCount - 1:
@@ -323,8 +323,8 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
 
     /* How many pieces use a ramp of colours: the muzzle sparks, say, or the exhaust. */
     METHOD PUBLIC INTEGER CountOf(INPUT poRamp AS Ramp):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
         IF NOT VALID-OBJECT(poRamp) THEN UNDO, THROW NEW GridException("A ramp is a Ramp entry, not unknown").
         DO i = 1 TO {&SLOTS}:
             IF mKind[i] <> {&FREE} AND mRamp[i] = poRamp THEN n = n + 1.
@@ -336,8 +336,8 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
        degrees of it (three headings, 17), at 0.9 of a cell a step for 6 steps, white and then the first two shot
        trail colours. */
     METHOD PUBLIC VOID Muzzle(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piHeading AS INTEGER):
-        DEFINE VARIABLE k   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dir AS INTEGER NO-UNDO.
+        VAR INTEGER k.
+        VAR INTEGER dir.
         DO k = 1 TO 3:
             dir = piHeading + mRandom:NextInt(7) - 3.
             AddCell(piX, piY, INTEGER(TRUNCATE(Heading:DirX(dir) * 3686 / 1024, 0)), INTEGER(TRUNCATE(Heading:DirY(dir) * 3686 / 1024, 0)),
@@ -357,7 +357,7 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
 
     /* One step: every piece moves, slows, turns and ages, and the ones whose life is over go. */
     METHOD PUBLIC VOID Step():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&SLOTS}:
             IF mKind[i] = {&FREE} THEN NEXT.
             mX[i] = Wrap(mX[i] + mVX[i], mWidth).
@@ -374,14 +374,14 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
     /* Draws every piece with DrawLine (so call it in a batch): a cell is a line of one cell, a chip a line across its
        middle. Core colour only, no glow. */
     METHOD PUBLIC VOID DrawTo(INPUT poCanvas AS PixelCanvas):
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE steps  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE colour AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ox     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h      AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER steps.
+        VAR INTEGER colour.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR INTEGER ox.
+        VAR INTEGER oy.
+        VAR INTEGER h.
         DO i = 1 TO {&SLOTS}:
             IF mKind[i] = {&FREE} THEN NEXT.
             steps = AsteroidsLook:RampSteps(mRamp[i]).
@@ -405,7 +405,7 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
     METHOD PRIVATE LOGICAL Admit(INPUT piKind AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piVX AS INTEGER, INPUT piVY AS INTEGER,
                                INPUT piDrag AS INTEGER, INPUT piLife AS INTEGER, INPUT piAngle AS INTEGER, INPUT piSpin AS INTEGER,
                                INPUT piHalf AS INTEGER, INPUT poRamp AS Ramp):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF piLife = ? OR piLife < 1 THEN UNDO, THROW NEW GridException("A piece of debris lives 1 step or more, not " + STRING(piLife)).
         IF NOT VALID-OBJECT(poRamp) THEN UNDO, THROW NEW GridException("A piece of debris needs a ramp of colours").
         DO i = 1 TO {&SLOTS}:
@@ -436,7 +436,7 @@ CLASS ProGriddle.Games.Asteroids.DebrisPool FINAL:
 
     /* A position brought back onto the screen. */
     METHOD PRIVATE INTEGER Wrap(INPUT piValue AS INTEGER, INPUT piSize AS INTEGER):
-        DEFINE VARIABLE v AS INTEGER NO-UNDO.
+        VAR INTEGER v.
         v = piValue MODULO piSize.
         IF v < 0 THEN v = v + piSize.
         RETURN v.

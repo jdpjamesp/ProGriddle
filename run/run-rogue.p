@@ -24,18 +24,18 @@ USING ProGriddle.Engine.*.
 USING ProGriddle.Games.Rogue.*.
 USING ProGriddle.UI.WinForms.*.
 
-DEFINE VARIABLE cSettingsFile AS CHARACTER        NO-UNDO INITIAL "default".
-DEFINE VARIABLE iAutoClose    AS INTEGER          NO-UNDO.
-DEFINE VARIABLE iSeed         AS INT64            NO-UNDO.
-DEFINE VARIABLE dScale        AS DECIMAL          NO-UNDO.
-DEFINE VARIABLE oSettings     AS ISettings        NO-UNDO.
-DEFINE VARIABLE oGame         AS RogueGame        NO-UNDO.
-DEFINE VARIABLE oScores       AS RogueScores      NO-UNDO.
-DEFINE VARIABLE oView         AS GridView         NO-UNDO.
-DEFINE VARIABLE oPainter      AS RoguePainter     NO-UNDO.
-DEFINE VARIABLE oClock        AS WinFormsClock    NO-UNDO.
-DEFINE VARIABLE oController   AS TurnController   NO-UNDO.
-DEFINE VARIABLE oWindow       AS GameWindow       NO-UNDO.
+VAR CHARACTER cSettingsFile = "default".
+VAR INTEGER iAutoClose.
+VAR INT64 iSeed.
+VAR DECIMAL dScale.
+VAR ISettings oSettings.
+VAR RogueGame oGame.
+VAR RogueScores oScores.
+VAR GridView oView.
+VAR RoguePainter oPainter.
+VAR WinFormsClock oClock.
+VAR TurnController oController.
+VAR GameWindow oWindow.
 
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 2 THEN cSettingsFile = ENTRY(2, SESSION:PARAMETER).
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 3 THEN iAutoClose = INTEGER(ENTRY(3, SESSION:PARAMETER)).

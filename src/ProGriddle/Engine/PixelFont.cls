@@ -33,10 +33,10 @@ CLASS ProGriddle.Engine.PixelFont FINAL:
     /* The glyph of a character as 7 rows of 5 cells, "#" for a cell, rows separated by "/". A
        character with no glyph gives the glyph of ?. */
     METHOD PUBLIC STATIC CHARACTER Glyph(INPUT pcChar AS CHARACTER):
-        DEFINE VARIABLE slot AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE bits AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE r    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        VAR INTEGER slot.
+        VAR CHARACTER bits.
+        VAR INTEGER r.
+        VAR CHARACTER result.
         IF HasGlyph(pcChar) THEN slot = INDEX({&CHARS}, CAPS(pcChar)).
         ELSE slot = INDEX({&CHARS}, "?").
         bits = SUBSTRING(GlyphTable(), (slot - 1) * 35 + 1, 35).

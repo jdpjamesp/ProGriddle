@@ -29,12 +29,12 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRack FINAL:
     &SCOPED-DEFINE LEFT-LIMIT 8
     &SCOPED-DEFINE RIGHT-LIMIT 216
 
-    DEFINE PRIVATE VARIABLE mAlive   AS LOGICAL NO-UNDO EXTENT 55.
-    DEFINE PRIVATE VARIABLE mX       AS INTEGER NO-UNDO EXTENT 55.
-    DEFINE PRIVATE VARIABLE mY       AS INTEGER NO-UNDO EXTENT 55.
+    VAR PRIVATE LOGICAL[55] mAlive.
+    VAR PRIVATE INTEGER[55] mX.
+    VAR PRIVATE INTEGER[55] mY.
     /* where in the order of moving (0 to 54, bottom row first) the next invader to move is */
-    DEFINE PRIVATE VARIABLE mCursor  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mEdgeHit AS LOGICAL NO-UNDO.
+    VAR PRIVATE INTEGER mCursor.
+    VAR PRIVATE LOGICAL mEdgeHit.
 
     /* 1 while the rack goes right, -1 while it goes left. */
     DEFINE PUBLIC PROPERTY Direction AS INTEGER NO-UNDO
@@ -138,9 +138,9 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRack FINAL:
     /* Puts all 55 invaders back, alive, with the top row of pictures at row piTopY, the rack going
        right and the next invader to move the bottom left one. */
     METHOD PUBLIC VOID Reset(INPUT piTopY AS INTEGER):
-        DEFINE VARIABLE rw  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cl  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
+        VAR INTEGER rw.
+        VAR INTEGER cl.
+        VAR INTEGER i.
         DO rw = 0 TO {&ROWS} - 1:
             DO cl = 0 TO {&COLS} - 1:
                 i = rw * {&COLS} + cl + 1.
@@ -209,9 +209,9 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRack FINAL:
        none is alive. OldX and OldY say where it was, so the game can take its picture off and put it on
        again. PassEnded says whether it was the last of the pass. */
     METHOD PUBLIC INTEGER Step():
-        DEFINE VARIABLE p     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE nextP AS INTEGER NO-UNDO.
+        VAR INTEGER p.
+        VAR INTEGER i.
+        VAR INTEGER nextP.
         PassEnded = FALSE.
         IF AliveCount = 0 THEN RETURN -1.
         p = NextAliveFrom(mCursor).
@@ -235,7 +235,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRack FINAL:
 
     /* The lowest live invader in a column (0 to 10), or -1 when the column is empty. */
     METHOD PUBLIC INTEGER LowestInColumn(INPUT piColumn AS INTEGER):
-        DEFINE VARIABLE rw AS INTEGER NO-UNDO.
+        VAR INTEGER rw.
         IF piColumn = ? OR piColumn < 0 OR piColumn >= {&COLS} THEN
             UNDO, THROW NEW GridException(SUBSTITUTE("A rack column is 0 to &1, not &2", {&COLS} - 1, piColumn)).
         DO rw = {&ROWS} - 1 TO 0 BY -1:
@@ -246,8 +246,8 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRack FINAL:
 
     /* The row just below the lowest live invader's picture, or -1 when none is alive. */
     METHOD PUBLIC INTEGER Bottom():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lowest AS INTEGER NO-UNDO INITIAL -1.
+        VAR INTEGER i.
+        VAR INTEGER lowest = -1.
         DO i = 1 TO {&COUNT}:
             IF mAlive[i] AND mY[i] + SpriteHeight() > lowest THEN lowest = mY[i] + SpriteHeight().
         END.
@@ -257,7 +257,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRack FINAL:
     /* The live invader whose picture covers a cell, or -1. A box test, which is enough to tell which
        invader a cell that is known to belong to one of them belongs to. */
     METHOD PUBLIC INTEGER At(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 0 TO {&COUNT} - 1:
             IF mAlive[i + 1] AND piX >= mX[i + 1] AND piX < mX[i + 1] + WidthOf(i)
                AND piY >= mY[i + 1] AND piY < mY[i + 1] + SpriteHeight() THEN RETURN i.
@@ -267,7 +267,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRack FINAL:
 
     /* The place in the order of moving (0 to 54) of the first live invader at or after piFrom, or -1. */
     METHOD PRIVATE INTEGER NextAliveFrom(INPUT piFrom AS INTEGER):
-        DEFINE VARIABLE p AS INTEGER NO-UNDO.
+        VAR INTEGER p.
         DO p = piFrom TO {&COUNT} - 1:
             IF mAlive[IndexOfOrder(p) + 1] THEN RETURN p.
         END.

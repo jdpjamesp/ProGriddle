@@ -14,14 +14,14 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Snake.SnakeCues FINAL IMPLEMENTS ICueSource:
 
-    DEFINE PRIVATE VARIABLE mSerial AS INTEGER NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mEaten  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mOver   AS LOGICAL NO-UNDO.
+    VAR PRIVATE INTEGER mSerial = -1.
+    VAR PRIVATE INTEGER mEaten.
+    VAR PRIVATE LOGICAL mOver.
 
     /* Throws GridException for a game that is not a SnakeGame. */
     METHOD PUBLIC CHARACTER Poll(INPUT poGame AS IGame):
-        DEFINE VARIABLE oGame AS SnakeGame NO-UNDO.
-        DEFINE VARIABLE cues  AS CHARACTER NO-UNDO.
+        VAR SnakeGame oGame.
+        VAR CHARACTER cues.
         IF NOT TYPE-OF(poGame, SnakeGame) THEN UNDO, THROW NEW GridException("The cues of Snake need a Snake game").
         oGame = CAST(poGame, SnakeGame).
         IF oGame:GameSerial <> mSerial THEN DO:

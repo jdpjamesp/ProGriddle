@@ -13,9 +13,9 @@ CLASS ProGriddle.Games.Snake.SnakeSizesTests:
 
     @Test.
     METHOD PUBLIC VOID TheOfferedSizesAreSmallestFirstAndAllWithinTheLimits():
-        DEFINE VARIABLE i             AS INTEGER NO-UNDO.
-        DEFINE VARIABLE previousCells AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cells         AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER previousCells.
+        VAR INTEGER cells.
         DO i = 1 TO NUM-ENTRIES(SnakeSizes:Names()):
             cells = SnakeSizes:WidthOf(ENTRY(i, SnakeSizes:Names())) * SnakeSizes:HeightOf(ENTRY(i, SnakeSizes:Names())).
             Assert:IsTrue(cells > previousCells).

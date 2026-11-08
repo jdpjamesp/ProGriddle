@@ -19,7 +19,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersLookTests:
 
     @Test.
     METHOD PUBLIC VOID EveryColourOfTheLookIsThereAndTheSkyGetsLighterTowardsTheHorizon():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:IsTrue(InvadersLook:Count() > 25).
         DO i = 0 TO InvadersLook:Count() - 1:
             Assert:IsTrue(InvadersLook:Colour(Palette:GetEnum(i)) >= 0 AND InvadersLook:Colour(Palette:GetEnum(i)) <= 16777215).
@@ -46,7 +46,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersLookTests:
 
     @Test.
     METHOD PUBLIC VOID ABadRowWaveOrToneOfAnInvaderIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             InvadersLook:InvaderColour(5, 1, 1).
             CATCH e1 AS GridException:
@@ -70,7 +70,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersLookTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownColourIsRefused():
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             InvadersLook:Colour(?).
             CATCH e AS GridException:

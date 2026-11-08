@@ -46,7 +46,7 @@ CLASS ProGriddle.Games.Rogue.RogueKeys FINAL:
 
     /* The token for a key, or "" when the game has nothing to do with it. plPicking is true while the game waits for a pack letter. */
     METHOD PUBLIC STATIC CHARACTER Token(INPUT pcKey AS CHARACTER, INPUT plShift AS LOGICAL, INPUT plVi AS LOGICAL, INPUT plPicking AS LOGICAL):
-        DEFINE VARIABLE dir AS CHARACTER NO-UNDO.
+        VAR CHARACTER dir.
         IF pcKey = ? OR pcKey = "" THEN RETURN "".
         /* a letter while picking an item is a pack letter */
         IF plPicking AND LENGTH(pcKey) = 1 AND ASC(pcKey) >= ASC("A") AND ASC(pcKey) <= ASC("Z") THEN RETURN (IF plShift THEN "S-" ELSE "") + LC(pcKey).

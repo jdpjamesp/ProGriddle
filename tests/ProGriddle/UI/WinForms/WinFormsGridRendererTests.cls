@@ -10,10 +10,10 @@ CLASS ProGriddle.UI.WinForms.WinFormsGridRendererTests:
 
     @Test.
     METHOD PUBLIC VOID RenderPutsTheNamedLayerIntoTheView():
-        DEFINE VARIABLE g    AS Grid NO-UNDO.
-        DEFINE VARIABLE v    AS GridView NO-UNDO.
-        DEFINE VARIABLE r    AS WinFormsGridRenderer NO-UNDO.
-        DEFINE VARIABLE game AS CountingGame NO-UNDO.
+        VAR Grid g.
+        VAR GridView v.
+        VAR WinFormsGridRenderer r.
+        VAR CountingGame game.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW ArrayStore(3, 2, "state")).
             g:Store:SetCell(1, 2, 1, 1).
@@ -35,11 +35,11 @@ CLASS ProGriddle.UI.WinForms.WinFormsGridRendererTests:
 
     @Test.
     METHOD PUBLIC VOID AControllerDrivesTheViewThroughTheRenderer():
-        DEFINE VARIABLE g     AS Grid NO-UNDO.
-        DEFINE VARIABLE v     AS GridView NO-UNDO.
-        DEFINE VARIABLE game  AS CountingGame NO-UNDO.
-        DEFINE VARIABLE ctrl  AS GameController NO-UNDO.
-        DEFINE VARIABLE clock AS FakeClock NO-UNDO.
+        VAR Grid g.
+        VAR GridView v.
+        VAR CountingGame game.
+        VAR GameController ctrl.
+        VAR FakeClock clock.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW ArrayStore(2, 2, "state")).
             game = NEW CountingGame(g, 0).
@@ -63,14 +63,13 @@ CLASS ProGriddle.UI.WinForms.WinFormsGridRendererTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ItNeedsAView():
-        DEFINE VARIABLE v AS GridView NO-UNDO.
+        VAR GridView v.
         NEW WinFormsGridRenderer(v, "state").
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ItNeedsALayerName():
-        DEFINE VARIABLE v AS GridView NO-UNDO.
-        v = NEW GridView().
+        VAR GridView v = NEW GridView().
         NEW WinFormsGridRenderer(v, "").
     END METHOD.
 

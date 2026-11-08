@@ -11,22 +11,22 @@ USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
 USING ProGriddle.Games.Xevious.*.
 
-DEFINE VARIABLE cSeed     AS CHARACTER          NO-UNDO.
-DEFINE VARIABLE cScenario AS CHARACTER          NO-UNDO.
-DEFINE VARIABLE cFile     AS CHARACTER          NO-UNDO.
-DEFINE VARIABLE oGame     AS XeviousGame        NO-UNDO.
-DEFINE VARIABLE oPainter  AS XeviousPainter     NO-UNDO.
-DEFINE VARIABLE oCanvas   AS PixelCanvas        NO-UNDO.
-DEFINE VARIABLE mBmp      AS MEMPTR             NO-UNDO.
-DEFINE VARIABLE x         AS INTEGER            NO-UNDO.
-DEFINE VARIABLE y         AS INTEGER            NO-UNDO.
-DEFINE VARIABLE c         AS INTEGER            NO-UNDO.
-DEFINE VARIABLE iPos      AS INTEGER            NO-UNDO.
-DEFINE VARIABLE iScale    AS INTEGER            NO-UNDO INITIAL 3.
-DEFINE VARIABLE iWidth    AS INTEGER            NO-UNDO.
-DEFINE VARIABLE iHeight   AS INTEGER            NO-UNDO.
-DEFINE VARIABLE i         AS INTEGER            NO-UNDO.
-DEFINE VARIABLE iStage    AS INTEGER            NO-UNDO INITIAL 3.
+VAR CHARACTER cSeed.
+VAR CHARACTER cScenario.
+VAR CHARACTER cFile.
+VAR XeviousGame oGame.
+VAR XeviousPainter oPainter.
+VAR PixelCanvas oCanvas.
+VAR MEMPTR mBmp.
+VAR INTEGER x.
+VAR INTEGER y.
+VAR INTEGER c.
+VAR INTEGER iPos.
+VAR INTEGER iScale = 3.
+VAR INTEGER iWidth.
+VAR INTEGER iHeight.
+VAR INTEGER i.
+VAR INTEGER iStage = 3.
 
 cSeed = ENTRY(1, SESSION:PARAMETER, "|").
 cScenario = ENTRY(2, SESSION:PARAMETER, "|").

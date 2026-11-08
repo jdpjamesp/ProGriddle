@@ -9,9 +9,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInputTests:
 
-    DEFINE PRIVATE VARIABLE mGame     AS SpaceInvadersGame  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS MemorySettings     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInput    AS SpaceInvadersInput NO-UNDO.
+    VAR PRIVATE SpaceInvadersGame mGame.
+    VAR PRIVATE MemorySettings mSettings.
+    VAR PRIVATE SpaceInvadersInput mInput.
 
     @Setup.
     METHOD PUBLIC VOID BuildInput():
@@ -27,7 +27,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInputTests:
     END METHOD.
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE other AS SpaceInvadersInput NO-UNDO.
+        VAR SpaceInvadersInput other.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN other = NEW SpaceInvadersInput(?, mSettings).
@@ -165,8 +165,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheStatusLineOnTheGameOverScreenAsksForSpace():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER t.
         mGame:Advance().
         mGame:FireHeld = TRUE.
         mGame:Advance().
@@ -272,7 +272,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheSpeedStaysBetweenTwentyAndOneHundredPercent():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO n = 1 TO 10:
             mInput:HandleKey("Add").
         END.
@@ -301,8 +301,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInputTests:
 
     @Test.
     METHOD PUBLIC VOID SoundIsOfferedOnlyWithAWorkingPlayerAndSwitchesItAndRemembersIt():
-        DEFINE VARIABLE oPlayer AS RecordingSoundPlayer NO-UNDO.
-        oPlayer = NEW RecordingSoundPlayer().
+        VAR RecordingSoundPlayer oPlayer = NEW RecordingSoundPlayer().
         mInput = NEW SpaceInvadersInput(mGame, mSettings, oPlayer).
         Assert:Equals("Sound:M", mInput:CommandNames).
         mInput:Perform("Sound").
@@ -320,7 +319,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheInputNeedsASoundPlayer():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW SpaceInvadersInput(mGame, mSettings, ?).
             CATCH e1 AS GridException:

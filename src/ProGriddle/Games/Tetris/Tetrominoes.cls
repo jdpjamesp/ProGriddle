@@ -31,8 +31,8 @@ CLASS ProGriddle.Games.Tetris.Tetrominoes FINAL:
     /* The shape of a piece after piTurns quarter turns clockwise (0 to 3), with its top left corner
        at (0, 0), as Shape always is. */
     METHOD PUBLIC STATIC Shape ShapeOf(INPUT piPiece AS INTEGER, INPUT piTurns AS INTEGER):
-        DEFINE VARIABLE result AS Shape   NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        VAR Shape result.
+        VAR INTEGER i.
         CheckPiece(piPiece).
         IF piTurns < 0 OR piTurns > 3 THEN UNDO, THROW NEW GridException("A piece has turns 0 to 3, not " + STRING(piTurns)).
         CASE piPiece:

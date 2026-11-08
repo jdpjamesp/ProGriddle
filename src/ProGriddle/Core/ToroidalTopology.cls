@@ -20,8 +20,8 @@ CLASS ProGriddle.Core.ToroidalTopology FINAL IMPLEMENTS ITopology:
        range with a second step: -1 on a width of 5 gives 4. */
     METHOD PUBLIC INTEGER Resolve(INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER,
                                   INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE wx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE wy AS INTEGER NO-UNDO.
+        VAR INTEGER wx.
+        VAR INTEGER wy.
         wx = ((piX MODULO piWidth) + piWidth) MODULO piWidth.
         wy = ((piY MODULO piHeight) + piHeight) MODULO piHeight.
         RETURN wy * piWidth + wx.

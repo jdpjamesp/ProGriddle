@@ -8,7 +8,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.ThrowingTests:
 
-    DEFINE PRIVATE VARIABLE mWorld AS RogueWorld NO-UNDO.
+    VAR PRIVATE RogueWorld mWorld.
 
     /* A lit room with floor (5, 5) to (14, 8), the hero at (6, 6), the starting kit: a food ration, ring mail, a mace, a bow, arrows (slot 4) */
     METHOD PRIVATE VOID Build(INPUT pcScript AS CHARACTER):
@@ -26,7 +26,7 @@ CLASS ProGriddle.Games.Rogue.ThrowingTests:
     END METHOD.
 
     METHOD PRIVATE Monster Beside(INPUT poKind AS MonsterKind, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
+        VAR Monster oMonster.
         oMonster = mWorld:AddMonster(poKind, piX, piY).
         oMonster:Hp = 30.
         oMonster:MaxHp = 30.
@@ -53,7 +53,7 @@ CLASS ProGriddle.Games.Rogue.ThrowingTests:
 
     @Test.
     METHOD PUBLIC VOID OneOfAStackIsThrown():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         Build("5").
         before = mWorld:Pack:At(4):Count.
         Throwing:Throw(mWorld, 4, 1, 0).
@@ -63,8 +63,8 @@ CLASS ProGriddle.Games.Rogue.ThrowingTests:
 
     @Test.
     METHOD PUBLIC VOID ADartThatHitsDoesItsDamageAndThenLies():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR Monster oOrc.
+        VAR INTEGER slot.
         Build("19").
         oOrc = Beside(MonsterKind:Orc, 10, 6).
         slot = mWorld:Pack:Add(Items:Make(ItemType:Weapon, INTEGER(WeaponKind:Dart))).
@@ -76,8 +76,8 @@ CLASS ProGriddle.Games.Rogue.ThrowingTests:
 
     @Test.
     METHOD PUBLIC VOID AMissFallsAtTheMonstersFeet():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR Monster oOrc.
+        VAR INTEGER slot.
         Build("0").
         oOrc = Beside(MonsterKind:Orc, 10, 6).
         slot = mWorld:Pack:Add(Items:Make(ItemType:Weapon, INTEGER(WeaponKind:Dart))).
@@ -117,8 +117,8 @@ CLASS ProGriddle.Games.Rogue.ThrowingTests:
 
     @Test.
     METHOD PUBLIC VOID AThrownWeaponThatKillsGivesTheExperience():
-        DEFINE VARIABLE oBat AS Monster NO-UNDO.
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR Monster oBat.
+        VAR INTEGER slot.
         Build("19").
         oBat = Beside(MonsterKind:Bat, 9, 6).
         oBat:Hp = 1.

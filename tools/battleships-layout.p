@@ -8,15 +8,15 @@
 USING ProGriddle.Core.*.
 USING ProGriddle.Games.Battleships.*.
 
-DEFINE VARIABLE oGame   AS BattleshipsGame    NO-UNDO.
-DEFINE VARIABLE oOpp    AS HuntTargetOpponent NO-UNDO.
-DEFINE VARIABLE cSize   AS CHARACTER          NO-UNDO INITIAL "Classic".
-DEFINE VARIABLE iRepeat AS INTEGER            NO-UNDO.
-DEFINE VARIABLE i       AS INTEGER            NO-UNDO.
-DEFINE VARIABLE x       AS INTEGER            NO-UNDO.
-DEFINE VARIABLE y       AS INTEGER            NO-UNDO.
-DEFINE VARIABLE cLine   AS CHARACTER          NO-UNDO.
-DEFINE VARIABLE iId     AS INTEGER            NO-UNDO.
+VAR BattleshipsGame oGame.
+VAR HuntTargetOpponent oOpp.
+VAR CHARACTER cSize = "Classic".
+VAR INTEGER iRepeat.
+VAR INTEGER i.
+VAR INTEGER x.
+VAR INTEGER y.
+VAR CHARACTER cLine.
+VAR INTEGER iId.
 
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 5 THEN cSize = ENTRY(5, SESSION:PARAMETER).
 iRepeat = INTEGER(ENTRY(3, SESSION:PARAMETER)).

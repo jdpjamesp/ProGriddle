@@ -10,10 +10,10 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Tetris.TetrisHighScores FINAL:
 
-    DEFINE PRIVATE VARIABLE mSettings AS ISettings NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScore    AS INTEGER   NO-UNDO EXTENT 10.
-    DEFINE PRIVATE VARIABLE mLines    AS INTEGER   NO-UNDO EXTENT 10.
-    DEFINE PRIVATE VARIABLE mCount    AS INTEGER   NO-UNDO.
+    VAR PRIVATE ISettings mSettings.
+    VAR PRIVATE INTEGER[10] mScore.
+    VAR PRIVATE INTEGER[10] mLines.
+    VAR PRIVATE INTEGER mCount.
 
     /* How many scores the list keeps. */
     METHOD PUBLIC STATIC INTEGER ListSize():
@@ -55,8 +55,8 @@ CLASS ProGriddle.Games.Tetris.TetrisHighScores FINAL:
     /* Adds a score. Returns its place, 1 for a new best, or 0 when it did not make the list: it is
        under 1, or no better than the lowest score of a full list. */
     METHOD PUBLIC INTEGER Record(INPUT piScore AS INTEGER, INPUT piLines AS INTEGER):
-        DEFINE VARIABLE place AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        VAR INTEGER place.
+        VAR INTEGER i.
         IF piScore = ? OR piScore < 1 THEN RETURN 0.
         Load().
         /* the place is after every score that is the same or better */
@@ -82,12 +82,12 @@ CLASS ProGriddle.Games.Tetris.TetrisHighScores FINAL:
     /* Reads the settings. Anything that is not a score:lines pair with a score of 1 or more is dropped
        and the rest is put in order, so a hand edited file cannot break the list. */
     METHOD PRIVATE VOID Load():
-        DEFINE VARIABLE raw   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE item  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE s     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE l     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j     AS INTEGER   NO-UNDO.
+        VAR CHARACTER raw.
+        VAR CHARACTER item.
+        VAR INTEGER s.
+        VAR INTEGER l.
+        VAR INTEGER i.
+        VAR INTEGER j.
         mCount = 0.
         raw = mSettings:GetString("tetris.scores", "").
         DO i = 1 TO NUM-ENTRIES(raw):
@@ -112,8 +112,8 @@ CLASS ProGriddle.Games.Tetris.TetrisHighScores FINAL:
     END METHOD.
 
     METHOD PRIVATE VOID Store():
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
+        VAR CHARACTER result.
+        VAR INTEGER i.
         DO i = 1 TO mCount:
             result = result + (IF i > 1 THEN "," ELSE "") + SUBSTITUTE("&1:&2", mScore[i], mLines[i]).
         END.

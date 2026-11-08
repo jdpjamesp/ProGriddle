@@ -13,8 +13,8 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test.
     METHOD PUBLIC VOID ANewGameIsNamedLifeAndStartsEmptyAtGenerationZero():
-        DEFINE VARIABLE k AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 4, 4, FALSE, LifeRules:HighLife()).
             Assert:Equals("Life", g:Name).
@@ -36,8 +36,8 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test.
     METHOD PUBLIC VOID SetAliveIsAliveAndAliveCountAgree():
-        DEFINE VARIABLE k AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 4, 4, FALSE, LifeRules:Conway()).
             g:SetAlive(1, 2, TRUE).
@@ -60,8 +60,8 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test.
     METHOD PUBLIC VOID ToggleCellFlipsOneCellEachTime():
-        DEFINE VARIABLE k AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 4, 4, FALSE, LifeRules:Conway()).
             g:ToggleCell(2, 2).
@@ -81,7 +81,7 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID SetAliveThrowsOffTheBoard():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         DO ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(1, 4, 4, FALSE, LifeRules:Conway()).
             g:SetAlive(4, 0, TRUE).
@@ -93,7 +93,7 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID IsAliveThrowsOffTheBoard():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         DO ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(2, 4, 4, FALSE, LifeRules:Conway()).
             g:IsAlive(0, -1).
@@ -105,8 +105,8 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test.
     METHOD PUBLIC VOID PlaceMakesThePatternAliveAndKeepsOtherCells():
-        DEFINE VARIABLE k AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 6, 6, FALSE, LifeRules:Conway()).
             g:SetAlive(5, 5, TRUE).
@@ -129,9 +129,9 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test.
     METHOD PUBLIC VOID PlaceThatDoesNotFitThrowsAndChangesNothing():
-        DEFINE VARIABLE k      AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE g      AS LifeGame NO-UNDO.
-        DEFINE VARIABLE caught AS LOGICAL  NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
+        VAR LOGICAL caught.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 4, 4, FALSE, LifeRules:Conway()).
             caught = FALSE.
@@ -154,8 +154,8 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test.
     METHOD PUBLIC VOID ClearBoardKillsEveryCell():
-        DEFINE VARIABLE k AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 5, 5, FALSE, LifeRules:Conway()).
             g:Place(LifePatterns:Block(), 1, 1).
@@ -174,9 +174,9 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test.
     METHOD PUBLIC VOID RandomiseWithTheSameSeedGivesTheSameBoardOnEveryEngine():
-        DEFINE VARIABLE dense  AS LifeGame NO-UNDO.
-        DEFINE VARIABLE sparse AS LifeGame NO-UNDO.
-        DEFINE VARIABLE again  AS LifeGame NO-UNDO.
+        VAR LifeGame dense.
+        VAR LifeGame sparse.
+        VAR LifeGame again.
         DO ON ERROR UNDO, THROW:
             dense = LifeTestKit:Make(1, 20, 15, FALSE, LifeRules:Conway()).
             sparse = LifeTestKit:Make(2, 20, 15, FALSE, LifeRules:Conway()).
@@ -196,8 +196,8 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test.
     METHOD PUBLIC VOID RandomiseWithDifferentSeedsGivesDifferentBoards():
-        DEFINE VARIABLE a AS LifeGame NO-UNDO.
-        DEFINE VARIABLE b AS LifeGame NO-UNDO.
+        VAR LifeGame a.
+        VAR LifeGame b.
         DO ON ERROR UNDO, THROW:
             a = LifeTestKit:Make(1, 20, 15, FALSE, LifeRules:Conway()).
             b = LifeTestKit:Make(1, 20, 15, FALSE, LifeRules:Conway()).
@@ -213,8 +213,8 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test.
     METHOD PUBLIC VOID RandomiseFollowsTheDensityAndClearsWhatWasThere():
-        DEFINE VARIABLE k AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 20, 20, FALSE, LifeRules:Conway()).
             g:Randomise(NEW SeededRandom(5), 0).
@@ -237,7 +237,7 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID RandomiseRejectsADensityAboveOne():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         DO ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(1, 4, 4, FALSE, LifeRules:Conway()).
             g:Randomise(NEW SeededRandom(1), 1.5).
@@ -249,7 +249,7 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID RandomiseRejectsANegativeDensity():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         DO ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(1, 4, 4, FALSE, LifeRules:Conway()).
             g:Randomise(NEW SeededRandom(1), -0.1).
@@ -261,8 +261,8 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID RandomiseNeedsARandomSource():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
-        DEFINE VARIABLE r AS IRandom  NO-UNDO.
+        VAR LifeGame g.
+        VAR IRandom r.
         DO ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(1, 4, 4, FALSE, LifeRules:Conway()).
             g:Randomise(r, 0.5).
@@ -276,9 +276,9 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test.
     METHOD PUBLIC VOID InitialiseReturnsToTheBoardAtTheFirstStep():
-        DEFINE VARIABLE k      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE g      AS LifeGame  NO-UNDO.
-        DEFINE VARIABLE before AS CHARACTER NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
+        VAR CHARACTER before.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 10, 10, FALSE, LifeRules:Conway()).
             g:Place(LifePatterns:Glider(), 1, 1).
@@ -308,9 +308,9 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test.
     METHOD PUBLIC VOID EditingAtGenerationZeroThenSteppingMakesTheEditTheNewStart():
-        DEFINE VARIABLE k      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE g      AS LifeGame  NO-UNDO.
-        DEFINE VARIABLE edited AS CHARACTER NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
+        VAR CHARACTER edited.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 8, 8, FALSE, LifeRules:Conway()).
             g:Place(LifePatterns:Blinker(), 1, 1).
@@ -334,8 +334,8 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test.
     METHOD PUBLIC VOID InitialiseWithNothingCapturedEmptiesTheBoard():
-        DEFINE VARIABLE k AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 5, 5, FALSE, LifeRules:Conway()).
             g:Place(LifePatterns:Block(), 1, 1).
@@ -352,9 +352,9 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test.
     METHOD PUBLIC VOID CaptureStartSavesTheBoardForInitialise():
-        DEFINE VARIABLE k      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE g      AS LifeGame  NO-UNDO.
-        DEFINE VARIABLE saved  AS CHARACTER NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
+        VAR CHARACTER saved.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 6, 6, FALSE, LifeRules:Conway()).
             g:Place(LifePatterns:Block(), 2, 2).
@@ -377,15 +377,13 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID TheGridMustHaveALayerCalledState():
-        DEFINE VARIABLE grid AS Grid NO-UNDO.
-        grid = NEW Grid(NEW ArrayStore(4, 4, "cells")).
+        VAR Grid grid = NEW Grid(NEW ArrayStore(4, 4, "cells")).
         NEW LifeGame(grid, LifeRules:Conway(), NEW DenseLifeEngine(grid, LifeRules:Conway())).
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID TheGridMustHaveExactlyOneLayer():
-        DEFINE VARIABLE grid AS Grid NO-UNDO.
-        grid = NEW Grid(NEW ArrayStore(4, 4, "state,extra")).
+        VAR Grid grid = NEW Grid(NEW ArrayStore(4, 4, "state,extra")).
         NEW DenseLifeEngine(grid, LifeRules:Conway()).
     END METHOD.
 
@@ -401,22 +399,22 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ALifeGameNeedsRules():
-        DEFINE VARIABLE grid  AS Grid NO-UNDO.
-        DEFINE VARIABLE rules AS LifeRules NO-UNDO.
+        VAR Grid grid.
+        VAR LifeRules rules.
         grid = NEW Grid(NEW ArrayStore(4, 4, "state")).
         NEW LifeGame(grid, rules, NEW DenseLifeEngine(grid, LifeRules:Conway())).
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ALifeGameNeedsAnEngine():
-        DEFINE VARIABLE engine AS ProGriddle.Games.Life.ILifeEngine NO-UNDO.
+        VAR ProGriddle.Games.Life.ILifeEngine engine.
         NEW LifeGame(NEW Grid(NEW ArrayStore(4, 4, "state")), LifeRules:Conway(), engine).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID DisposeIsSafeToCallTwice():
-        DEFINE VARIABLE k AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 4, 4, FALSE, LifeRules:Conway()).
             g:Place(LifePatterns:Block(), 1, 1).
@@ -433,7 +431,7 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheExpectedLiveShareStartsAtTenPercentAndCanBeSet():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         DO ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(1, 4, 4, FALSE, LifeRules:Conway()).
             Assert:Equals(0.1, g:ExpectedLive).
@@ -447,16 +445,16 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID AnExpectedLiveShareOverOneIsRefused():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         g = LifeTestKit:Make(1, 4, 4, FALSE, LifeRules:Conway()).
         g:ExpectedLive = 1.5.
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID ReplaceSwapsTheGridTheRulesAndTheEngineAndKeepsTheGeneration():
-        DEFINE VARIABLE g      AS LifeGame NO-UNDO.
-        DEFINE VARIABLE other  AS LifeGame NO-UNDO.
-        DEFINE VARIABLE newGrid AS Grid    NO-UNDO.
+        VAR LifeGame g.
+        VAR LifeGame other.
+        VAR Grid newGrid.
         DO ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(1, 6, 6, FALSE, LifeRules:Conway()).
             other = LifeTestKit:Make(1, 8, 5, FALSE, LifeRules:HighLife()).
@@ -476,9 +474,9 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test.
     METHOD PUBLIC VOID ReplaceWithoutKeepingTheStartGoesBackToGenerationZeroAndResetClears():
-        DEFINE VARIABLE g      AS LifeGame NO-UNDO.
-        DEFINE VARIABLE other  AS LifeGame NO-UNDO.
-        DEFINE VARIABLE newGrid AS Grid    NO-UNDO.
+        VAR LifeGame g.
+        VAR LifeGame other.
+        VAR Grid newGrid.
         DO ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(1, 6, 6, FALSE, LifeRules:Conway()).
             other = LifeTestKit:Make(1, 9, 9, FALSE, LifeRules:Conway()).
@@ -499,9 +497,9 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test.
     METHOD PUBLIC VOID ReplaceKeepingTheStartLetsResetReturnToIt():
-        DEFINE VARIABLE g      AS LifeGame NO-UNDO.
-        DEFINE VARIABLE other  AS LifeGame NO-UNDO.
-        DEFINE VARIABLE newGrid AS Grid    NO-UNDO.
+        VAR LifeGame g.
+        VAR LifeGame other.
+        VAR Grid newGrid.
         DO ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(1, 6, 6, FALSE, LifeRules:Conway()).
             other = LifeTestKit:Make(1, 6, 6, FALSE, LifeRules:Conway()).
@@ -519,8 +517,8 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ReplaceRefusesAGridWithoutTheStateLayer():
-        DEFINE VARIABLE g      AS LifeGame NO-UNDO.
-        DEFINE VARIABLE bad    AS Grid     NO-UNDO.
+        VAR LifeGame g.
+        VAR Grid bad.
         g = LifeTestKit:Make(1, 6, 6, FALSE, LifeRules:Conway()).
         bad = NEW Grid(NEW ArrayStore(6, 6, "other"), NEW BoundedTopology(), NEW MooreNeighbourhood()).
         g:Replace(bad, LifeRules:Conway(), NEW DenseLifeEngine(bad, LifeRules:Conway()), TRUE).
@@ -528,7 +526,7 @@ CLASS ProGriddle.Games.Life.LifeGameTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ReplaceRefusesMissingParts():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         g = LifeTestKit:Make(1, 6, 6, FALSE, LifeRules:Conway()).
         g:Replace(?, LifeRules:Conway(), ?, TRUE).
     END METHOD.

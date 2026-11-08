@@ -10,7 +10,7 @@ CLASS ProGriddle.Games.Xevious.XeviousFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID TheGridIs14By16WithOneGroundLayer():
-        DEFINE VARIABLE oGrid AS Grid NO-UNDO.
+        VAR Grid oGrid.
         oGrid = XeviousFactory:CreateGrid().
         Assert:Equals("ground", XeviousFactory:Layers()).
         Assert:Equals(14, oGrid:Width).
@@ -21,7 +21,7 @@ CLASS ProGriddle.Games.Xevious.XeviousFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID ANewGameShowsTheTitle():
-        DEFINE VARIABLE oGame AS XeviousGame NO-UNDO.
+        VAR XeviousGame oGame.
         oGame = XeviousFactory:Create(NEW ScriptedRandom("1")).
         Assert:Equals(STRING(XeviousPhase:Title), STRING(oGame:Phase)).
         oGame:Dispose().

@@ -17,17 +17,17 @@ CLASS ProGriddle.Games.BlastBuddies.ShotSimulator FINAL:
        ground, and gives the pixel it hit; false if it was lost in the water, off the sides or after too long in the air. */
     METHOD PUBLIC LOGICAL Fly(INPUT poTerrain AS Terrain, INPUT piX256 AS INTEGER, INPUT piY256 AS INTEGER, INPUT piVx AS INTEGER, INPUT piVy AS INTEGER,
                               INPUT piWind AS INTEGER, OUTPUT piHitX AS INTEGER, OUTPUT piHitY AS INTEGER):
-        DEFINE VARIABLE x0  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y0  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE vx  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE vy  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE px  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE age AS INTEGER NO-UNDO.
+        VAR INTEGER x0.
+        VAR INTEGER y0.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER vx.
+        VAR INTEGER vy.
+        VAR INTEGER n.
+        VAR INTEGER k.
+        VAR INTEGER px.
+        VAR INTEGER py.
+        VAR INTEGER age.
         IF NOT VALID-OBJECT(poTerrain) THEN UNDO, THROW NEW GridException("A simulated shot needs a terrain").
         Flights = Flights + 1.
         x = piX256.

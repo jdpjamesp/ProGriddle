@@ -35,7 +35,7 @@ CLASS ProGriddle.Games.Rogue.RogueKeysTests:
 
     @Test.
     METHOD PUBLIC VOID TheArrowsAndTheNumberPadWorkWithEitherSetting():
-        DEFINE VARIABLE vi AS INTEGER NO-UNDO.
+        VAR INTEGER vi.
         DO vi = 0 TO 1:
             Assert:Equals("4", RogueKeys:Token("Left", FALSE, vi = 1, FALSE)).
             Assert:Equals("6", RogueKeys:Token("Right", FALSE, vi = 1, FALSE)).

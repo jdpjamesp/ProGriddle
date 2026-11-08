@@ -13,10 +13,10 @@ CLASS ProGriddle.Games.Rogue.MessageLog FINAL:
     &SCOPED-DEFINE PER-TURN 20
 
     /* the history, newest in the highest slot used, and this turn's messages */
-    DEFINE PRIVATE VARIABLE mHistory AS CHARACTER NO-UNDO EXTENT {&KEEP}.
-    DEFINE PRIVATE VARIABLE mTurn    AS CHARACTER NO-UNDO EXTENT {&PER-TURN}.
-    DEFINE PRIVATE VARIABLE mNext    AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTurnN   AS INTEGER   NO-UNDO.
+    VAR PRIVATE CHARACTER[{&KEEP}] mHistory.
+    VAR PRIVATE CHARACTER[{&PER-TURN}] mTurn.
+    VAR PRIVATE INTEGER mNext.
+    VAR PRIVATE INTEGER mTurnN.
 
     /* How many messages the history holds (at most 100). */
     DEFINE PUBLIC PROPERTY Count AS INTEGER NO-UNDO
@@ -31,7 +31,7 @@ CLASS ProGriddle.Games.Rogue.MessageLog FINAL:
 
     /* Says a message: it joins this turn's line and the history. An empty message is ignored. */
     METHOD PUBLIC VOID Add(INPUT pcText AS CHARACTER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF pcText = ? OR pcText = "" THEN RETURN.
         mNext = mNext MODULO {&KEEP} + 1.
         mHistory[mNext] = pcText.
@@ -55,8 +55,8 @@ CLASS ProGriddle.Games.Rogue.MessageLog FINAL:
     /* This turn's messages as one line no longer than piWidth: the newest messages that fit whole, separated by two spaces. When even the
        newest does not fit it is cut. Empty when nothing has been said this turn. */
     METHOD PUBLIC CHARACTER Line(INPUT piWidth AS INTEGER):
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER result.
         IF mTurnN = 0 THEN RETURN "".
         DO i = mTurnN TO 1 BY -1:
             IF result = "" THEN result = mTurn[i].
@@ -68,7 +68,7 @@ CLASS ProGriddle.Games.Rogue.MessageLog FINAL:
 
     /* A message from the history: 0 is the newest, 1 the one before. Throws GridException for a place the history does not reach. */
     METHOD PUBLIC CHARACTER At(INPUT piBack AS INTEGER):
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         IF piBack = ? OR piBack < 0 OR piBack >= Count THEN UNDO, THROW NEW GridException("There is no message " + STRING(piBack) + " back").
         slot = (mNext - 1 - piBack) MODULO {&KEEP}.
         IF slot < 0 THEN slot = slot + {&KEEP}.
@@ -77,7 +77,7 @@ CLASS ProGriddle.Games.Rogue.MessageLog FINAL:
 
     /* Forgets everything: the history and this turn. */
     METHOD PUBLIC VOID Clear():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&KEEP}:
             mHistory[i] = "".
         END.

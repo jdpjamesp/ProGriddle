@@ -13,10 +13,10 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.RealTimeController FINAL IMPLEMENTS IGameController:
 
-    DEFINE PRIVATE VARIABLE mGame     AS IRealTimeGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRenderer AS IGridRenderer NO-UNDO.
-    DEFINE PRIVATE VARIABLE mClock    AS IClock        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDisposed AS LOGICAL       NO-UNDO.
+    VAR PRIVATE IRealTimeGame mGame.
+    VAR PRIVATE IGridRenderer mRenderer.
+    VAR PRIVATE IClock mClock.
+    VAR PRIVATE LOGICAL mDisposed.
 
     DEFINE PUBLIC PROPERTY Steppable AS LOGICAL NO-UNDO
         GET():

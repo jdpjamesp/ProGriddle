@@ -11,9 +11,9 @@ CLASS ProGriddle.Engine.ColourMath FINAL:
 
     /* A colour from six hex digits, such as FF4FA8. Throws GridException for anything else. */
     METHOD PUBLIC STATIC INTEGER FromHex(INPUT pcHex AS CHARACTER):
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE result AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER d.
+        VAR INTEGER result.
         IF pcHex = ? OR LENGTH(pcHex) <> 6 THEN UNDO, THROW NEW GridException("A colour is six hex digits, not " + STRING(pcHex)).
         DO i = 1 TO 6:
             d = INDEX("0123456789ABCDEF", CAPS(SUBSTRING(pcHex, i, 1))) - 1.

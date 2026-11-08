@@ -19,21 +19,21 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.ForEachCues FINAL IMPLEMENTS ICueSource, ILoopSource:
 
-    DEFINE PRIVATE VARIABLE mPhase    AS ForEachPhase NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLives    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mEaten    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPhantoms AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mItems    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShown    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDeaths   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScore    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSecond   AS LOGICAL NO-UNDO.
+    VAR PRIVATE ForEachPhase mPhase.
+    VAR PRIVATE INTEGER mLives.
+    VAR PRIVATE INTEGER mEaten.
+    VAR PRIVATE INTEGER mPhantoms.
+    VAR PRIVATE INTEGER mItems.
+    VAR PRIVATE INTEGER mShown.
+    VAR PRIVATE INTEGER mDeaths.
+    VAR PRIVATE INTEGER mScore.
+    VAR PRIVATE LOGICAL mSecond.
 
     /* Throws GridException for a game that is not a FOR EACH game. */
     METHOD PUBLIC CHARACTER Poll(INPUT poGame AS IGame):
-        DEFINE VARIABLE oGame AS ForEachGame NO-UNDO.
-        DEFINE VARIABLE cues  AS CHARACTER   NO-UNDO.
-        DEFINE VARIABLE eaten AS INTEGER     NO-UNDO.
+        VAR ForEachGame oGame.
+        VAR CHARACTER cues.
+        VAR INTEGER eaten.
         IF NOT TYPE-OF(poGame, ForEachGame) THEN UNDO, THROW NEW GridException("The cues of FOR EACH need a FOR EACH game").
         oGame = CAST(poGame, ForEachGame).
         /* the first look and the title screen: take the state as it is, and say nothing */
@@ -83,9 +83,9 @@ CLASS ProGriddle.Games.ForEach.ForEachCues FINAL IMPLEMENTS ICueSource, ILoopSou
     /* The loop that should be sounding in a game that is being played and is not paused: one of the alarms, the drone of rolled back
        phantoms, or the sound of one running home. */
     METHOD PUBLIC CHARACTER Loops(INPUT poGame AS IGame):
-        DEFINE VARIABLE oGame AS ForEachGame NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER     NO-UNDO.
-        DEFINE VARIABLE spare AS INTEGER     NO-UNDO.
+        VAR ForEachGame oGame.
+        VAR INTEGER i.
+        VAR INTEGER spare.
         IF NOT TYPE-OF(poGame, ForEachGame) THEN UNDO, THROW NEW GridException("The cues of FOR EACH need a FOR EACH game").
         oGame = CAST(poGame, ForEachGame).
         IF oGame:Phase <> ForEachPhase:Playing OR oGame:Paused THEN RETURN "".

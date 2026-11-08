@@ -10,9 +10,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
-    DEFINE PRIVATE VARIABLE mGame    AS TetrisGame             NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInner   AS GridRecordingRenderer  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPainter AS TetrisPainter          NO-UNDO.
+    VAR PRIVATE TetrisGame mGame.
+    VAR PRIVATE GridRecordingRenderer mInner.
+    VAR PRIVATE TetrisPainter mPainter.
 
     @Setup.
     METHOD PUBLIC VOID BuildPainter():
@@ -45,9 +45,9 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     /* How many pixels of a colour there are in a rectangle of the picture. */
     METHOD PRIVATE INTEGER CountOf(INPUT piColour AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         DO y = piY TO piY + piH - 1:
             DO x = piX TO piX + piW - 1:
                 IF mPainter:Canvas:ColourAt(x, y) = piColour THEN n = n + 1.
@@ -79,7 +79,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     @Test.
     METHOD PUBLIC VOID ThePainterNeedsAnInnerRendererAGameAndARandomSource():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW TetrisPainter(?, mGame, NEW SeededRandom(3)).
             CATCH e1 AS GridException:
@@ -103,8 +103,8 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     @Test.
     METHOD PUBLIC VOID ThePainterOnlyDrawsATetrisGame():
-        DEFINE VARIABLE other  AS AnimatedRealTimeGame NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER              NO-UNDO.
+        VAR AnimatedRealTimeGame other.
+        VAR INTEGER thrown.
         other = NEW AnimatedRealTimeGame(NEW Grid(NEW ArrayStore(3, 3, "s")), 10, 10).
         DO ON ERROR UNDO, THROW:
             mPainter:Render(other:Grid, other).
@@ -187,8 +187,8 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheFallingPieceIsDrawnWithTheBlocksOfItsPiece():
-        DEFINE VARIABLE shape AS Shape   NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        VAR Shape shape.
+        VAR INTEGER i.
         Draw().
         shape = Tetrominoes:ShapeOf(mGame:CurrentPiece, mGame:Turns).
         DO i = 1 TO shape:Size:
@@ -198,9 +198,9 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheGhostShowsWhereThePieceWouldLandInASofterOutlineAndGoesWhenSwitchedOff():
-        DEFINE VARIABLE shape AS Shape   NO-UNDO.
-        DEFINE VARIABLE gx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE gy    AS INTEGER NO-UNDO.
+        VAR Shape shape.
+        VAR INTEGER gx.
+        VAR INTEGER gy.
         shape = Tetrominoes:ShapeOf(mGame:CurrentPiece, mGame:Turns).
         gx = mGame:PieceX + shape:OffsetX(1).
         gy = mGame:GhostY() + shape:OffsetY(1).
@@ -227,10 +227,10 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     @Test.
     METHOD PUBLIC VOID APieceThatSettlesStaysAndThePiecesBeforeItStayToo():
-        DEFINE VARIABLE shape AS Shape   NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x1    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y1    AS INTEGER NO-UNDO.
+        VAR Shape shape.
+        VAR INTEGER i.
+        VAR INTEGER x1.
+        VAR INTEGER y1.
         Draw().
         shape = Tetrominoes:ShapeOf(1, 0).
         x1 = mGame:PieceX + shape:OffsetX(1).
@@ -249,7 +249,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     @Test.
     METHOD PUBLIC VOID WhenRowsAreClearedTheBlocksAboveDropAndTheRowsAreFloorAgain():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mGame:StartWith("I,I,I").
         mGame:LoadLocked("T........./IIIIIII.II").
         Draw().
@@ -298,7 +298,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheScoreIsSixDigitsPaddedWithZerosAndChangesWhenTheGameScores():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         Draw().
         before = CountOf(Colour(Tint:Text), 188, 122, 70, 14).
         mGame:HardDrop().
@@ -310,7 +310,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     /* The first cell of the piece that has just been hard dropped, as a pixel x, and the row it sits on (the floor). */
     METHOD PRIVATE INTEGER DropAnI():
-        DEFINE VARIABLE shape AS Shape NO-UNDO.
+        VAR Shape shape.
         shape = Tetrominoes:ShapeOf(1, 0).
         mGame:HardDrop().
         RETURN 16 * (mGame:LastLockX + shape:OffsetX(1)).
@@ -318,7 +318,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     @Test.
     METHOD PUBLIC VOID ASettlingPieceIsLitForFiftyMillisecondsThenOnlyItsHighlightIsWhiteThenNormal():
-        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        VAR INTEGER x0.
         Draw().
         x0 = DropAnI().
         Draw().
@@ -338,9 +338,9 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     @Test.
     METHOD PUBLIC VOID ASettlingPieceThrowsSparksThatAreGoneAfterTenFrames():
-        DEFINE VARIABLE x0     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE during AS INTEGER NO-UNDO.
-        DEFINE VARIABLE after  AS INTEGER NO-UNDO.
+        VAR INTEGER x0.
+        VAR INTEGER during.
+        VAR INTEGER after.
         Draw().
         x0 = DropAnI().
         mGame:Tick(100).
@@ -355,7 +355,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     @Test.
     METHOD PUBLIC VOID AHardDropLeavesATwoPixelTrailInTheColumnsThatFadesThroughTonesTwoThreeAndFour():
-        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        VAR INTEGER x0.
         Draw().
         x0 = DropAnI().
         Draw().
@@ -376,8 +376,8 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     @Test.
     METHOD PUBLIC VOID ASoftLandingLeavesNoTrail():
-        DEFINE VARIABLE shape AS Shape   NO-UNDO.
-        DEFINE VARIABLE x0    AS INTEGER NO-UNDO.
+        VAR Shape shape.
+        VAR INTEGER x0.
         shape = Tetrominoes:ShapeOf(1, 0).
         x0 = 16 * (mGame:PieceX + shape:OffsetX(1)).
         Draw().
@@ -386,7 +386,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     @Test.
     METHOD PUBLIC VOID AHardDropImpactIsALineAlongTheBottomEdgeThatGrowsFourPixelsEachSideAStep():
-        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        VAR INTEGER x0.
         Draw().
         x0 = DropAnI().
         Draw().
@@ -405,7 +405,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     /* A game that holds a clear for 300 ms, with one full row about to go (row 19, ten blocks once the I is dropped in). */
     METHOD PRIVATE VOID SetUpOneRow():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mGame:ClearDelayMs = 300.
         mGame:StartWith("I,I,I").
         mGame:LoadLocked("T........./IIIIIII.II").
@@ -419,7 +419,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     /* A game that holds a clear for 300 ms, with four full rows about to go. */
     METHOD PRIVATE VOID SetUpFourRows():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mGame:ClearDelayMs = 300.
         mGame:StartWith("I,I,I").
         mGame:LoadLocked("IIIIIIIII./IIIIIIIII./IIIIIIIII./IIIIIIIII.").
@@ -463,7 +463,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheWipeThrowsGoldSparksAndTheScoreGlowsGoldForFourHundredMilliseconds():
-        DEFINE VARIABLE gold1 AS INTEGER NO-UNDO.
+        VAR INTEGER gold1.
         SetUpOneRow().
         gold1 = ColourMath:FromHex(ENTRY(1, TetrisLook:Tones(9))).
         mGame:Tick(90).
@@ -481,7 +481,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     @Test.
     METHOD PUBLIC VOID AFourRowClearBeginsInGoldGoesWhiteAndShowsTheWordTetrisForHalfASecond():
-        DEFINE VARIABLE gold AS INTEGER NO-UNDO.
+        VAR INTEGER gold.
         SetUpFourRows().
         Assert:IsTrue(mGame:Clearing).
         Assert:Equals(4, mGame:LastClearCount).
@@ -510,8 +510,8 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     /* Ten single row clears, the last of which raises the level: the level up is 5 ms before the end of the clock. */
     METHOD PRIVATE VOID RaiseTheLevel():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
         mGame:StartWith("I,I,I,I,I,I,I,I,I,I,I,I").
         DO i = 1 TO 10:
             mGame:Tick(5).
@@ -565,7 +565,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainterTests:
 
     /* Drops O pieces until the stack reaches the top and the game is over. */
     METHOD PRIVATE VOID PlayToTheEnd():
-        DEFINE VARIABLE drops AS INTEGER NO-UNDO.
+        VAR INTEGER drops.
         mGame:StartWith("O,O,O,O,O,O,O,O,O,O,O,O,O,O,O,O").
         DO WHILE NOT mGame:IsOver AND drops < 20:
             mGame:HardDrop().

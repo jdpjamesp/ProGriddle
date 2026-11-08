@@ -70,7 +70,7 @@ CLASS ProGriddle.Games.BlastBuddies.Buddy FINAL:
 
     /* Takes health away, down to 0 and no lower. Returns what was really taken. */
     METHOD PUBLIC INTEGER Hurt(INPUT piAmount AS INTEGER):
-        DEFINE VARIABLE taken AS INTEGER NO-UNDO.
+        VAR INTEGER taken.
         IF piAmount < 0 THEN UNDO, THROW NEW GridException("Damage cannot be negative").
         taken = MINIMUM(piAmount, Health).
         Health = Health - taken.

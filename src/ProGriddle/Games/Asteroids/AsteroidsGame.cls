@@ -62,105 +62,105 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* the dust that drifts, and the dust that is baked into the background */
     &SCOPED-DEFINE MOVING-DUST 20
 
-    DEFINE PRIVATE VARIABLE mRandom    AS IRandom     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas    AS PixelCanvas NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPen       AS OutlinePen  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mAcc       AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFrames    AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPaused    AS LOGICAL     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTitleT    AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTrace     AS TitleTrace  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNotice    AS CHARACTER   NO-UNDO.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE PixelCanvas mCanvas.
+    VAR PRIVATE OutlinePen mPen.
+    VAR PRIVATE INTEGER mAcc.
+    VAR PRIVATE INTEGER mFrames.
+    VAR PRIVATE LOGICAL mPaused.
+    VAR PRIVATE INTEGER mTitleT.
+    VAR PRIVATE TitleTrace mTrace.
+    VAR PRIVATE CHARACTER mNotice.
     /* the vignette: 65 colours from the middle of the screen to its edge */
-    DEFINE PRIVATE VARIABLE mVignette  AS INTEGER     NO-UNDO EXTENT 65.
+    VAR PRIVATE INTEGER[65] mVignette.
     /* the ship */
-    DEFINE PRIVATE VARIABLE mSX        AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSY        AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSVX       AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSVY       AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHeading   AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTurnAcc   AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFlameT    AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mThrusting AS LOGICAL     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShipMode  AS ShipMode    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShipTimer AS INTEGER     NO-UNDO.
+    VAR PRIVATE INTEGER mSX.
+    VAR PRIVATE INTEGER mSY.
+    VAR PRIVATE INTEGER mSVX.
+    VAR PRIVATE INTEGER mSVY.
+    VAR PRIVATE INTEGER mHeading.
+    VAR PRIVATE INTEGER mTurnAcc.
+    VAR PRIVATE INTEGER mFlameT.
+    VAR PRIVATE LOGICAL mThrusting.
+    VAR PRIVATE ShipMode mShipMode.
+    VAR PRIVATE INTEGER mShipTimer.
     /* frames since the ship last appeared: it is protected and blinks while this is under 90 */
-    DEFINE PRIVATE VARIABLE mShieldT   AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFireGap   AS INTEGER     NO-UNDO.
+    VAR PRIVATE INTEGER mShieldT.
+    VAR PRIVATE INTEGER mFireGap.
     /* whether the jump through hyperspace in progress will go wrong when the ship comes back */
-    DEFINE PRIVATE VARIABLE mHyperFail AS LOGICAL     NO-UNDO.
+    VAR PRIVATE LOGICAL mHyperFail.
     /* whether the fire key was down a frame ago */
-    DEFINE PRIVATE VARIABLE mFireWas   AS LOGICAL     NO-UNDO.
+    VAR PRIVATE LOGICAL mFireWas.
     /* the shots in the air: place and velocity in units, the heading they were fired at, and the frames they have left */
-    DEFINE PRIVATE VARIABLE mShX       AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
-    DEFINE PRIVATE VARIABLE mShY       AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
-    DEFINE PRIVATE VARIABLE mShVX      AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
-    DEFINE PRIVATE VARIABLE mShVY      AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
-    DEFINE PRIVATE VARIABLE mShHead    AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
-    DEFINE PRIVATE VARIABLE mShLife    AS INTEGER     NO-UNDO EXTENT {&SHOTS}.
-    DEFINE PRIVATE VARIABLE mRocks     AS RockField   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDebris    AS DebrisPool  NO-UNDO.
+    VAR PRIVATE INTEGER[{&SHOTS}] mShX.
+    VAR PRIVATE INTEGER[{&SHOTS}] mShY.
+    VAR PRIVATE INTEGER[{&SHOTS}] mShVX.
+    VAR PRIVATE INTEGER[{&SHOTS}] mShVY.
+    VAR PRIVATE INTEGER[{&SHOTS}] mShHead.
+    VAR PRIVATE INTEGER[{&SHOTS}] mShLife.
+    VAR PRIVATE RockField mRocks.
+    VAR PRIVATE DebrisPool mDebris.
     /* the score of a saucer that was shot or rammed, rising where it was: its age in frames (0 for none), the cell it was in, its text */
-    DEFINE PRIVATE VARIABLE mPopT      AS INTEGER     NO-UNDO.
+    VAR PRIVATE INTEGER mPopT.
     /* the bars that flash where the ship crossed an edge: for each, the edge (0 left, 1 right, 2 top, 3 bottom), where along it,
        and its age in frames (0 for a free place) */
-    DEFINE PRIVATE VARIABLE mWrapSide  AS INTEGER     NO-UNDO EXTENT 8.
-    DEFINE PRIVATE VARIABLE mWrapAt    AS INTEGER     NO-UNDO EXTENT 8.
-    DEFINE PRIVATE VARIABLE mWrapAge   AS INTEGER     NO-UNDO EXTENT 8.
+    VAR PRIVATE INTEGER[8] mWrapSide.
+    VAR PRIVATE INTEGER[8] mWrapAt.
+    VAR PRIVATE INTEGER[8] mWrapAge.
     /* frames the icon of a new extra ship still flashes */
-    DEFINE PRIVATE VARIABLE mExtraT    AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPopX      AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPopY      AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPopText   AS CHARACTER   NO-UNDO.
+    VAR PRIVATE INTEGER mExtraT.
+    VAR PRIVATE INTEGER mPopX.
+    VAR PRIVATE INTEGER mPopY.
+    VAR PRIVATE CHARACTER mPopText.
     /* the pieces of text that are ready to draw, and what each is (see Stamp) */
-    DEFINE PRIVATE VARIABLE mStamp     AS TextStamp   NO-UNDO EXTENT {&STAMPS}.
-    DEFINE PRIVATE VARIABLE mStampKey  AS CHARACTER   NO-UNDO EXTENT {&STAMPS}.
-    DEFINE PRIVATE VARIABLE mStampNext AS INTEGER     NO-UNDO.
+    VAR PRIVATE TextStamp[{&STAMPS}] mStamp.
+    VAR PRIVATE CHARACTER[{&STAMPS}] mStampKey.
+    VAR PRIVATE INTEGER mStampNext.
     /* the saucer: there is at most one. Place and velocity in units, which size, how long it has been out, frames to its
        next shot and to its next change of height */
-    DEFINE PRIVATE VARIABLE mSaucOn    AS LOGICAL     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSaucLarge AS LOGICAL     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSaucX     AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSaucY     AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSaucVX    AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSaucVY    AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSaucAge   AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSaucFireT AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSaucZigT  AS INTEGER     NO-UNDO.
+    VAR PRIVATE LOGICAL mSaucOn.
+    VAR PRIVATE LOGICAL mSaucLarge.
+    VAR PRIVATE INTEGER mSaucX.
+    VAR PRIVATE INTEGER mSaucY.
+    VAR PRIVATE INTEGER mSaucVX.
+    VAR PRIVATE INTEGER mSaucVY.
+    VAR PRIVATE INTEGER mSaucAge.
+    VAR PRIVATE INTEGER mSaucFireT.
+    VAR PRIVATE INTEGER mSaucZigT.
     /* frames until the next saucer, and the one that has been planned: its size, side and height */
-    DEFINE PRIVATE VARIABLE mSaucWait  AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlanned   AS LOGICAL     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlanLarge AS LOGICAL     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlanDir   AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlanY     AS INTEGER     NO-UNDO.
+    VAR PRIVATE INTEGER mSaucWait.
+    VAR PRIVATE LOGICAL mPlanned.
+    VAR PRIVATE LOGICAL mPlanLarge.
+    VAR PRIVATE INTEGER mPlanDir.
+    VAR PRIVATE INTEGER mPlanY.
     /* the saucers' shots */
-    DEFINE PRIVATE VARIABLE mSsX       AS INTEGER     NO-UNDO EXTENT {&SAUCER-SHOTS}.
-    DEFINE PRIVATE VARIABLE mSsY       AS INTEGER     NO-UNDO EXTENT {&SAUCER-SHOTS}.
-    DEFINE PRIVATE VARIABLE mSsVX      AS INTEGER     NO-UNDO EXTENT {&SAUCER-SHOTS}.
-    DEFINE PRIVATE VARIABLE mSsVY      AS INTEGER     NO-UNDO EXTENT {&SAUCER-SHOTS}.
-    DEFINE PRIVATE VARIABLE mSsLife    AS INTEGER     NO-UNDO EXTENT {&SAUCER-SHOTS}.
-    DEFINE PRIVATE VARIABLE mShotsFired      AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSaucShotsFired  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRocksBroken     AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLastBrokenSize  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSaucersDestroyed AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSsLarge   AS LOGICAL     NO-UNDO EXTENT {&SAUCER-SHOTS}.
+    VAR PRIVATE INTEGER[{&SAUCER-SHOTS}] mSsX.
+    VAR PRIVATE INTEGER[{&SAUCER-SHOTS}] mSsY.
+    VAR PRIVATE INTEGER[{&SAUCER-SHOTS}] mSsVX.
+    VAR PRIVATE INTEGER[{&SAUCER-SHOTS}] mSsVY.
+    VAR PRIVATE INTEGER[{&SAUCER-SHOTS}] mSsLife.
+    VAR PRIVATE INTEGER mShotsFired.
+    VAR PRIVATE INTEGER mSaucShotsFired.
+    VAR PRIVATE INTEGER mRocksBroken.
+    VAR PRIVATE INTEGER mLastBrokenSize.
+    VAR PRIVATE INTEGER mSaucersDestroyed.
+    VAR PRIVATE LOGICAL[{&SAUCER-SHOTS}] mSsLarge.
     /* frames until the rocks of a new wave appear, and frames since the last rock was shot */
-    DEFINE PRIVATE VARIABLE mIntro     AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mClearT    AS INTEGER     NO-UNDO.
+    VAR PRIVATE INTEGER mIntro.
+    VAR PRIVATE INTEGER mClearT.
     /* frames since the wave began, for its banner */
-    DEFINE PRIVATE VARIABLE mWaveT     AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mOverT     AS INTEGER     NO-UNDO.
+    VAR PRIVATE INTEGER mWaveT.
+    VAR PRIVATE INTEGER mOverT.
     /* the score at which the next extra ship comes */
-    DEFINE PRIVATE VARIABLE mNextExtra AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNewHi     AS LOGICAL     NO-UNDO.
+    VAR PRIVATE INTEGER mNextExtra.
+    VAR PRIVATE LOGICAL mNewHi.
     /* frames the score still shows gold after a saucer or an extra ship */
-    DEFINE PRIVATE VARIABLE mPulseT    AS INTEGER     NO-UNDO.
+    VAR PRIVATE INTEGER mPulseT.
     /* the dust that drifts: position and velocity in units, and the colour number */
-    DEFINE PRIVATE VARIABLE mDustX     AS INTEGER     NO-UNDO EXTENT {&MOVING-DUST}.
-    DEFINE PRIVATE VARIABLE mDustY     AS INTEGER     NO-UNDO EXTENT {&MOVING-DUST}.
-    DEFINE PRIVATE VARIABLE mDustV     AS INTEGER     NO-UNDO EXTENT {&MOVING-DUST}.
-    DEFINE PRIVATE VARIABLE mDustC     AS Palette     NO-UNDO EXTENT {&MOVING-DUST}.
+    VAR PRIVATE INTEGER[{&MOVING-DUST}] mDustX.
+    VAR PRIVATE INTEGER[{&MOVING-DUST}] mDustY.
+    VAR PRIVATE INTEGER[{&MOVING-DUST}] mDustV.
+    VAR PRIVATE Palette[{&MOVING-DUST}] mDustC.
 
     /* While false, Advance makes its frame but does not draw the picture, so a test can run hundreds of frames in
        a moment and draw only the last one. True to begin with. Tick always draws. */
@@ -296,8 +296,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* How many of the ship's shots are in the air. */
     DEFINE PUBLIC PROPERTY ShotCount AS INTEGER NO-UNDO
         GET():
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
-            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            VAR INTEGER i.
+            VAR INTEGER n.
             DO i = 1 TO {&SHOTS}:
                 IF mShLife[i] > 0 THEN n = n + 1.
             END.
@@ -374,7 +374,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* The grid must be 320 x 240 on an ArrayStore with the layers view, kind and back. */
     CONSTRUCTOR PUBLIC AsteroidsGame(INPUT poGrid AS Grid, INPUT poRandom AS IRandom):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         SUPER("Asteroids", poGrid).
         IF poGrid:Width <> {&WIDTH} OR poGrid:Height <> {&HEIGHT} THEN
             UNDO, THROW NEW GridException("An Asteroids grid is " + STRING({&WIDTH}) + " x " + STRING({&HEIGHT})).
@@ -393,7 +393,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* Moves time on by piElapsedMs milliseconds and makes the frames that are due at the speed, up to 4. Returns true
        when a frame was made. Does nothing while Paused. The picture is drawn once, after the last frame. */
     METHOD PUBLIC LOGICAL Tick(INPUT piElapsedMs AS INTEGER):
-        DEFINE VARIABLE made AS INTEGER NO-UNDO.
+        VAR INTEGER made.
         IF Paused OR piElapsedMs <= 0 THEN RETURN FALSE.
         mAcc = mAcc + INTEGER(ROUND(MINIMUM(piElapsedMs, {&MOST-MS}) * 0.6 * SpeedPercent, 0)).
         DO WHILE mAcc >= 1000 AND made < {&MOST-FRAMES}:
@@ -515,8 +515,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* How many saucer shots are in the air, and where one is, in whole cells (slots 0 to 3). */
     DEFINE PUBLIC PROPERTY SaucerShotCount AS INTEGER NO-UNDO
         GET():
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
-            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            VAR INTEGER i.
+            VAR INTEGER n.
             DO i = 1 TO {&SAUCER-SHOTS}:
                 IF mSsLife[i] > 0 THEN n = n + 1.
             END.
@@ -562,14 +562,14 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* What the game has to say, once: an extra life, a new wave. */
     METHOD PUBLIC CHARACTER TakeNotice():
-        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        VAR CHARACTER notice.
         notice = mNotice.
         mNotice = "".
         RETURN notice.
     END METHOD.
 
     METHOD PUBLIC OVERRIDE VOID Dispose():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&STAMPS}:
             IF VALID-OBJECT(mStamp[i]) THEN mStamp[i]:Dispose().
         END.
@@ -693,10 +693,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* The large rocks of the wave, in places away from the ship, drifting in random directions. */
     METHOD PRIVATE VOID SpawnRocks():
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tries AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER tries.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO n = 1 TO RocksFor(Wave):
             DO tries = 1 TO 30:
                 x = mRandom:NextInt({&WIDTH-U}).
@@ -712,12 +712,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
        outline, the first heading and the spin are random. */
     METHOD PRIVATE VOID AddRock(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piVX AS INTEGER, INPUT piVY AS INTEGER,
                                 INPUT piSize AS INTEGER, INPUT piSpeed AS INTEGER):
-        DEFINE VARIABLE dir    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE speed  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lo     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hi     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE period AS INTEGER NO-UNDO.
-        DEFINE VARIABLE slot   AS INTEGER NO-UNDO.
+        VAR INTEGER dir.
+        VAR INTEGER speed.
+        VAR INTEGER lo.
+        VAR INTEGER hi.
+        VAR INTEGER period.
+        VAR INTEGER slot.
         dir = mRandom:NextInt(64).
         CASE piSize:
             WHEN 1 THEN ASSIGN lo = 1024 hi = 2253 period = 30 + mRandom:NextInt(31).
@@ -735,7 +735,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* Six slow rocks to drift behind the title: two of each size. */
     METHOD PRIVATE VOID MakeAttractRocks():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mRocks:Clear().
         DO i = 0 TO 5:
             AddRock(mRandom:NextInt({&WIDTH-U}), mRandom:NextInt({&HEIGHT-U}), 0, 0, 1 + (i MODULO 3), 205 + mRandom:NextInt(615)).
@@ -745,8 +745,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* What a shot hits: the first rock whose circle holds the head of the shot. The rock breaks in two (a large one
        into two medium, a medium into two small, a small one only bursts), and scores. */
     METHOD PRIVATE VOID HitRocksWithShots():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER r.
         DO i = 1 TO {&SHOTS}:
             IF mShLife[i] <= 0 THEN NEXT.
             DO r = 0 TO RockField:Capacity() - 1:
@@ -762,15 +762,15 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* A rock is destroyed: its points, and two smaller ones that fly apart in its place. */
     METHOD PRIVATE VOID BreakRock(INPUT piSlot AS INTEGER, INPUT plScore AS LOGICAL):
-        DEFINE VARIABLE size AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE vx   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE vy   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE push AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dir  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE px   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py   AS INTEGER NO-UNDO.
+        VAR INTEGER size.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER vx.
+        VAR INTEGER vy.
+        VAR INTEGER push.
+        VAR INTEGER dir.
+        VAR INTEGER px.
+        VAR INTEGER py.
         size = mRocks:SizeAt(piSlot).
         mRocksBroken = mRocksBroken + 1.
         mLastBrokenSize = size.
@@ -793,8 +793,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     END METHOD.
 
     METHOD PRIVATE VOID AddPiece(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piVX AS INTEGER, INPUT piVY AS INTEGER, INPUT piSize AS INTEGER):
-        DEFINE VARIABLE period AS INTEGER NO-UNDO.
-        DEFINE VARIABLE slot   AS INTEGER NO-UNDO.
+        VAR INTEGER period.
+        VAR INTEGER slot.
         period = (IF piSize = 2 THEN 15 + mRandom:NextInt(16) ELSE 6 + mRandom:NextInt(9)).
         slot = mRocks:Add(piX, piY, piVX, piVY, piSize, mRandom:NextInt(AsteroidsArt:RockVariants(piSize)), mRandom:NextInt(64), period,
                           (IF mRandom:NextInt(2) = 0 THEN -1 ELSE 1)).
@@ -802,8 +802,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* True when two places, on a screen that wraps, are within a distance of each other. All in units. */
     METHOD PRIVATE LOGICAL Near(INPUT piX1 AS INTEGER, INPUT piY1 AS INTEGER, INPUT piX2 AS INTEGER, INPUT piY2 AS INTEGER, INPUT piRadius AS INTEGER):
-        DEFINE VARIABLE dx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
         dx = ABSOLUTE(piX1 - piX2).
         IF dx > {&WIDTH-U} / 2 THEN dx = {&WIDTH-U} - dx.
         dy = ABSOLUTE(piY1 - piY2).
@@ -828,7 +828,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* Decides which saucer comes next, which side it comes from and at what height. The small one only comes once
        the score is 3000, and more and more often after that. */
     METHOD PRIVATE VOID PlanSaucer():
-        DEFINE VARIABLE small AS LOGICAL NO-UNDO.
+        VAR LOGICAL small.
         mPlanned = TRUE.
         small = Score >= 3000 AND mRandom:NextInt(100) < (IF Score >= 10000 THEN 70 ELSE 35).
         mPlanLarge = NOT small.
@@ -878,12 +878,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* A saucer shot leaves the saucer: the large saucer fires in a random direction, the small one aims at the ship, with
        an error that gets smaller as the score grows (6 headings at 3000 points, none at 30000). */
     METHOD PRIVATE VOID SaucerFire():
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE err   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE speed AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER h.
+        VAR INTEGER err.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER speed.
         DO i = 1 TO {&SAUCER-SHOTS}:
             IF mSsLife[i] > 0 THEN NEXT.
             IF mSaucLarge OR NOT ShipAlive THEN h = mRandom:NextInt(64).
@@ -911,7 +911,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     END METHOD.
 
     METHOD PRIVATE VOID MoveSaucerShots():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&SAUCER-SHOTS}:
             IF mSsLife[i] <= 0 THEN NEXT.
             mSsX[i] = WrapUnits(mSsX[i] + mSsVX[i], {&WIDTH-U}).
@@ -941,7 +941,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     END METHOD.
 
     METHOD PRIVATE VOID ClearSaucer():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mSaucOn = FALSE.
         mPlanned = FALSE.
         mSaucWait = 1200.
@@ -952,7 +952,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* A shot of the ship that reaches the saucer destroys it: 200 points for the large one, 1000 for the small. */
     METHOD PRIVATE VOID HitSaucerWithShots():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF NOT mSaucOn THEN RETURN.
         DO i = 1 TO {&SHOTS}:
             IF mShLife[i] <= 0 THEN NEXT.
@@ -979,7 +979,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* A saucer's shot that reaches the ship breaks it. */
     METHOD PRIVATE VOID HitShipWithSaucerShots():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&SAUCER-SHOTS}:
             IF mSsLife[i] <= 0 THEN NEXT.
             IF Near(mSX, mSY, mSsX[i], mSsY[i], AsteroidsArt:ShipRadius() * 16 + 6144) THEN DO:
@@ -992,7 +992,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* A saucer that flies into a rock is destroyed, and the rock breaks (but nobody scores). */
     METHOD PRIVATE VOID HitRocksWithSaucer():
-        DEFINE VARIABLE r AS INTEGER NO-UNDO.
+        VAR INTEGER r.
         IF NOT mSaucOn THEN RETURN.
         DO r = 0 TO RockField:Capacity() - 1:
             IF mRocks:SizeAt(r) = 0 THEN NEXT.
@@ -1015,7 +1015,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     END METHOD.
 
     METHOD PRIVATE VOID ClearShots():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&SHOTS}:
             mShLife[i] = 0.
         END.
@@ -1049,7 +1049,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* A shot leaves the nose along the heading, faster than the ship by half the ship's own speed, if there is a free
        slot (at most 4 are in the air). */
     METHOD PRIVATE VOID Fire():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&SHOTS}:
             IF mShLife[i] = 0 THEN DO:
                 mShX[i] = WrapUnits(mSX + INTEGER(TRUNCATE(Heading:DirX(mHeading) * {&NOSE} / 1024, 0)), {&WIDTH-U}).
@@ -1068,7 +1068,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* Every shot moves, wraps and runs down. */
     METHOD PRIVATE VOID MoveShots():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&SHOTS}:
             IF mShLife[i] <= 0 THEN NEXT.
             mShX[i] = WrapUnits(mShX[i] + mShVX[i], {&WIDTH-U}).
@@ -1079,7 +1079,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* A rock touches the ship: it breaks up. */
     METHOD PRIVATE VOID HitShipWithRocks():
-        DEFINE VARIABLE r AS INTEGER NO-UNDO.
+        VAR INTEGER r.
         DO r = 0 TO RockField:Capacity() - 1:
             IF mRocks:SizeAt(r) = 0 THEN NEXT.
             IF Near(mSX, mSY, mRocks:X(r), mRocks:Y(r), (AsteroidsArt:RockRadius(mRocks:SizeAt(r)) + AsteroidsArt:ShipRadius()) * 16) THEN DO:
@@ -1166,9 +1166,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* A new ship comes only when the middle of the screen is clear: no rock within 30 cells of the middle, counting the
        size of the rock itself. */
     METHOD PRIVATE VOID FrameWaiting():
-        DEFINE VARIABLE r     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE isClear AS LOGICAL NO-UNDO INITIAL TRUE.
-        DEFINE VARIABLE reach AS INTEGER NO-UNDO.
+        VAR INTEGER r.
+        VAR LOGICAL isClear = TRUE.
+        VAR INTEGER reach.
         mShipTimer = mShipTimer + 1.
         DO r = 0 TO RockField:Capacity() - 1:
             IF mRocks:SizeAt(r) = 0 THEN NEXT.
@@ -1180,7 +1180,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* One frame of the ship: turn, thrust, drag, the speed limit, move and wrap. */
     METHOD PRIVATE VOID MoveShip():
-        DEFINE VARIABLE speed AS DECIMAL NO-UNDO.
+        VAR DECIMAL speed.
         /* turning: 3 steps in every 4 frames */
         IF TurnDirection <> 0 THEN DO:
             mTurnAcc = mTurnAcc + 3.
@@ -1219,7 +1219,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* A position put back on the screen: 0 up to the size, whichever side it left by. */
     METHOD PRIVATE STATIC INTEGER WrapUnits(INPUT piValue AS INTEGER, INPUT piSize AS INTEGER):
-        DEFINE VARIABLE v AS INTEGER NO-UNDO.
+        VAR INTEGER v.
         v = piValue MODULO piSize.
         IF v < 0 THEN v = v + piSize.
         RETURN v.
@@ -1235,15 +1235,15 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* The vignette, a very dark blue that is a touch lighter in the middle, and 70 cells of dust, baked into the
        background layer so they cost nothing each frame. */
     METHOD PRIVATE VOID BakeBackground():
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d2    AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cells AS ICellStore NO-UNDO.
-        DEFINE VARIABLE backLayer AS INTEGER NO-UNDO.
-        DEFINE VARIABLE idx   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tries AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c     AS Palette NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR DECIMAL d2.
+        VAR INTEGER n.
+        VAR ICellStore cells.
+        VAR INTEGER backLayer.
+        VAR INTEGER idx.
+        VAR INTEGER tries.
+        VAR Palette c.
         cells = Grid:Store.
         backLayer = cells:LayerIndex("back").
         DO y = 0 TO {&HEIGHT} - 1:
@@ -1270,7 +1270,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* 20 cells of dust that drift left and a little down, in three speeds. */
     METHOD PRIVATE VOID MakeDust():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&MOVING-DUST}:
             mDustX[i] = mRandom:NextInt({&WIDTH-U}).
             mDustY[i] = mRandom:NextInt({&HEIGHT-U}).
@@ -1283,7 +1283,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     END METHOD.
 
     METHOD PRIVATE VOID MoveDust():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&MOVING-DUST}:
             mDustX[i] = WrapUnits(mDustX[i] - mDustV[i], {&WIDTH-U}).
             mDustY[i] = WrapUnits(mDustY[i] + INTEGER(TRUNCATE(mDustV[i] / 4, 0)), {&HEIGHT-U}).
@@ -1294,7 +1294,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* The whole picture: the background, the drifting dust, every line in one batch, then the cells over them. */
     METHOD PRIVATE VOID Render():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mCanvas:Restore().
         DO i = 1 TO {&MOVING-DUST}:
             mCanvas:Plot(INTEGER(TRUNCATE(mDustX[i] / {&UNIT}, 0)), INTEGER(TRUNCATE(mDustY[i] / {&UNIT}, 0)), 0, AsteroidsLook:Colour(mDustC[i])).
@@ -1330,12 +1330,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
        second, WAVE and its number appear in a shade from white to grey, and for the last third of a second both step
        down through grey to nothing. All of it sits above the middle of the screen, so the ship stays in view. */
     METHOD PRIVATE VOID DrawWaveBanner():
-        DEFINE VARIABLE half   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE colour AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE halo   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE words   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE edge   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE bx     AS INTEGER   NO-UNDO.
+        VAR INTEGER half.
+        VAR INTEGER colour.
+        VAR INTEGER halo.
+        VAR CHARACTER words.
+        VAR INTEGER edge.
+        VAR INTEGER bx.
         /* the colour of the line, and of the words once they fade: Dim, Label, Title Rule, then gone */
         IF mWaveT < 77 THEN colour = AsteroidsLook:Colour(Palette:Dim).
         ELSE IF mWaveT < 84 THEN colour = AsteroidsLook:Colour(Palette:Label).
@@ -1360,10 +1360,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* The marker for a saucer that is about to come in: a chevron of five cells, pointing inward, on the edge it will
        enter by (x = 2 on the left, 317 on the right) at the height it will fly at. */
     METHOD PRIVATE VOID DrawWarning():
-        DEFINE VARIABLE k    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE warn AS INTEGER NO-UNDO.
+        VAR INTEGER k.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER warn.
         warn = AsteroidsLook:Colour(Palette:Warning).
         y = INTEGER(TRUNCATE(mPlanY / {&UNIT}, 0)).
         DO k = 0 TO 4:
@@ -1376,7 +1376,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* The points of a saucer, 200 or 1000, in gold over the place it was, rising a cell every four frames and in the
        darker gold for the last twelve. */
     METHOD PRIVATE VOID DrawScorePopUp():
-        DEFINE VARIABLE colour AS INTEGER NO-UNDO.
+        VAR INTEGER colour.
         colour = AsteroidsLook:Colour(IF mPopT > 36 THEN Palette:GoldFade ELSE Palette:Gold).
         Stamp(mPopText, 1, colour, colour, AsteroidsLook:Colour(Palette:TextOutline)):DrawTo(mCanvas, mPopX - INTEGER(TRUNCATE(PixelFont:WidthOf(mPopText) / 2, 0)),
                                                                                               mPopY - 3 - INTEGER(TRUNCATE(mPopT / 4, 0))).
@@ -1384,11 +1384,11 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* The title screen over the attract rocks: ASTEROIDS traced stroke by stroke by a beam (see TitleTrace). */
     METHOD PRIVATE VOID DrawTitle():
-        DEFINE VARIABLE half   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE edge   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE labelCol AS INTEGER NO-UNDO.
-        DEFINE VARIABLE white  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tint   AS INTEGER NO-UNDO.
+        VAR INTEGER half.
+        VAR INTEGER edge.
+        VAR INTEGER labelCol.
+        VAR INTEGER white.
+        VAR INTEGER tint.
         IF NOT VALID-OBJECT(mTrace) THEN mTrace = NEW TitleTrace().
         mTrace:DrawTo(mCanvas, mTitleT).
         /* ticks 110 to 128: the rule under the title grows from the middle, 14 cells a tick each way, to 240 cells */
@@ -1415,7 +1415,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* The colour of a hint line that began to fade in at a tick of the title: Title Rule, then Label, then Dim, five
        ticks each. -1 before it begins. */
     METHOD PRIVATE INTEGER HintColour(INPUT piStart AS INTEGER):
-        DEFINE VARIABLE passed AS INTEGER NO-UNDO.
+        VAR INTEGER passed.
         passed = mTitleT - piStart.
         IF passed < 0 THEN RETURN -1.
         IF passed < 5 THEN RETURN AsteroidsLook:Colour(Palette:TitleRule).
@@ -1427,10 +1427,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
        gold NEW HI-SCORE that blinks (10 frames on, 10 off) when the record fell, and after 90 frames PRESS SPACE (36 on,
        24 off). The letters are stamps of growing beginnings of the words, so each is made once and then only copied. */
     METHOD PRIVATE VOID DrawGameOver():
-        DEFINE VARIABLE edge   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE white  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE labelCol AS INTEGER NO-UNDO.
-        DEFINE VARIABLE shown  AS INTEGER NO-UNDO.
+        VAR INTEGER edge.
+        VAR INTEGER white.
+        VAR INTEGER labelCol.
+        VAR INTEGER shown.
         edge = AsteroidsLook:Colour(Palette:TextOutline).
         white = AsteroidsLook:Colour(Palette:TextWhite).
         labelCol = AsteroidsLook:Colour(Palette:Label).
@@ -1447,8 +1447,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* One small ship, nine tenths of its size, for every spare ship, along the left under the score (at most six). While
        a ship is flying the one in play is not a spare. */
     METHOD PRIVATE VOID DrawLivesIcons():
-        DEFINE VARIABLE spare AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k     AS INTEGER NO-UNDO.
+        VAR INTEGER spare.
+        VAR INTEGER k.
         spare = (IF mShipMode = ShipMode:Alive OR Hyperspacing THEN Lives - 1 ELSE Lives).
         IF Phase = GamePhase:GameOver THEN spare = 0.
         spare = MINIMUM(6, MAXIMUM(0, spare)).
@@ -1463,11 +1463,11 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
        edge so that a rock drifting under a letter does not cut it. The words are stamps made once and kept (see
        Stamp), so a frame only copies them. */
     METHOD PRIVATE VOID DrawHud():
-        DEFINE VARIABLE edge   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE labelCol AS INTEGER NO-UNDO.
-        DEFINE VARIABLE white  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE dimCol AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE waveTx AS CHARACTER NO-UNDO.
+        VAR INTEGER edge.
+        VAR INTEGER labelCol.
+        VAR INTEGER white.
+        VAR INTEGER dimCol.
+        VAR CHARACTER waveTx.
         edge = AsteroidsLook:Colour(Palette:TextOutline).
         labelCol = AsteroidsLook:Colour(Palette:Label).
         white = AsteroidsLook:Colour(Palette:TextWhite).
@@ -1486,8 +1486,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* A stamp of some text, made the first time it is asked for and kept: the last 48 are remembered, and the oldest
        goes when a new one needs the room. The game frees them all in Dispose. */
     METHOD PRIVATE TextStamp Stamp(INPUT pcText AS CHARACTER, INPUT piScale AS INTEGER, INPUT piTop AS INTEGER, INPUT piBottom AS INTEGER, INPUT piEdge AS INTEGER):
-        DEFINE VARIABLE key AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i   AS INTEGER   NO-UNDO.
+        VAR CHARACTER key.
+        VAR INTEGER i.
         key = SUBSTITUTE("&1|&2|&3|&4|&5", pcText, piScale, piTop, piBottom, piEdge).
         DO i = 1 TO {&STAMPS}:
             IF mStampKey[i] = key AND VALID-OBJECT(mStamp[i]) THEN RETURN mStamp[i].
@@ -1506,9 +1506,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* The saucer's glow, four dim copies one cell to each side. */
     METHOD PRIVATE VOID DrawSaucerHalo():
-        DEFINE VARIABLE halo AS INTEGER NO-UNDO.
-        DEFINE VARIABLE px   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py   AS INTEGER NO-UNDO.
+        VAR INTEGER halo.
+        VAR INTEGER px.
+        VAR INTEGER py.
         halo = AsteroidsLook:Colour(IF mSaucLarge THEN Palette:SaucerLHalo ELSE Palette:SaucerSHalo).
         px = ToPen(mSaucX).
         py = ToPen(mSaucY).
@@ -1526,12 +1526,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* The saucers' shots: a plus and a cross of five cells that take turns every four frames, in the colour of the saucer
        that fired them and a pale middle. */
     METHOD PRIVATE VOID DrawSaucerShots():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE arm    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE plus   AS LOGICAL NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER arm.
+        VAR INTEGER d.
+        VAR LOGICAL plus.
         DO i = 1 TO {&SAUCER-SHOTS}:
             IF mSsLife[i] <= 0 THEN NEXT.
             x = INTEGER(TRUNCATE(mSsX[i] / {&UNIT}, 0)).
@@ -1556,9 +1556,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* The rocks, large ones first, one cell lines. On the title screen they are dim, and a new rock flashes white. */
     METHOD PRIVATE VOID DrawRocks():
-        DEFINE VARIABLE size   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE colour AS INTEGER NO-UNDO.
+        VAR INTEGER size.
+        VAR INTEGER r.
+        VAR INTEGER colour.
         DO size = 1 TO 3:
             DO r = 0 TO RockField:Capacity() - 1:
                 IF mRocks:SizeAt(r) <> size THEN NEXT.
@@ -1578,7 +1578,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     END METHOD.
 
     METHOD PRIVATE VOID AddWrapFlash(INPUT piSide AS INTEGER, INPUT piAt AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 8:
             IF mWrapAge[i] = 0 THEN DO:
                 mWrapSide[i] = piSide.
@@ -1591,7 +1591,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* Every bar a frame older; one is gone after twelve frames. */
     METHOD PRIVATE VOID AgeWrapFlashes():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 8:
             IF mWrapAge[i] = 0 THEN NEXT.
             mWrapAge[i] = mWrapAge[i] + 1.
@@ -1600,7 +1600,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     END METHOD.
 
     METHOD PRIVATE VOID ClearWrapFlashes():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 8:
             mWrapAge[i] = 0.
         END.
@@ -1609,8 +1609,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* The bars where the ship crossed an edge: 24 cells long and one thick on the edge, centred on the crossing, in
        the ship's glow colour for four frames and then two dimmer colours for four each. */
     METHOD PRIVATE VOID DrawWrapFlashes():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE colour AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER colour.
         DO i = 1 TO 8:
             IF mWrapAge[i] = 0 THEN NEXT.
             CASE INTEGER(TRUNCATE((mWrapAge[i] - 1) / 4, 0)):
@@ -1630,12 +1630,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* While a new ship waits for the middle of the screen to clear, a dim ring of eight dashes 14 cells out from the
        middle shows why it is not there yet. */
     METHOD PRIVATE VOID DrawRespawnRing():
-        DEFINE VARIABLE k  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y0 AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x1 AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y1 AS INTEGER NO-UNDO.
+        VAR INTEGER k.
+        VAR INTEGER h.
+        VAR INTEGER x0.
+        VAR INTEGER y0.
+        VAR INTEGER x1.
+        VAR INTEGER y1.
         DO k = 0 TO 7:
             h = k * 8 + 1.
             x0 = {&WIDTH} / 2 + INTEGER(ROUND(14 * Heading:DirX(h) / 1024, 0)).
@@ -1649,15 +1649,15 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* A dashed ring round a ship that has just come: it closes in, then breathes, and flickers when the shield is about
        to end. 16 points on a circle, and the even dashes between them. */
     METHOD PRIVATE VOID DrawShieldRing():
-        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE radius AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x0     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y0     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x1     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y1     AS INTEGER NO-UNDO.
+        VAR INTEGER k.
+        VAR INTEGER radius.
+        VAR INTEGER h.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR INTEGER x0.
+        VAR INTEGER y0.
+        VAR INTEGER x1.
+        VAR INTEGER y1.
         IF {&SHIELD-FRAMES} - mShieldT <= 30 AND INTEGER(TRUNCATE(mShieldT / 3, 0)) MODULO 2 = 1 THEN RETURN.
         /* the radius in 256ths of a cell: 14 closing to 9 over 12 frames, then 9 plus or minus 1.5 */
         IF mShieldT < 12 THEN radius = 3584 - INTEGER(TRUNCATE((3584 - 2304) * mShieldT / 12, 0)).
@@ -1677,14 +1677,14 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* The shots: a 2 by 2 head and a short trail of three cells behind it, dimming; in the last 15 frames the shot
        fades away. Cells, not lines. The trail does not paint over a rock or a ship. */
     METHOD PRIVATE VOID DrawShots():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ty     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE head   AS Palette NO-UNDO.
-        DEFINE VARIABLE trail  AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER k.
+        VAR INTEGER hx.
+        VAR INTEGER hy.
+        VAR INTEGER tx.
+        VAR INTEGER ty.
+        VAR Palette head.
+        VAR INTEGER trail.
         DO i = 1 TO {&SHOTS}:
             IF mShLife[i] <= 0 THEN NEXT.
             hx = INTEGER(TRUNCATE(mShX[i] / {&UNIT}, 0)).
@@ -1707,7 +1707,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
     /* The ship as it stretches into hyperspace or back out of it, in one of 6 steps: thinner and longer each step, white
        in the middle of the jump and fading to the colours of its wreckage at the end. No glow. */
     METHOD PRIVATE VOID DrawHyperShip(INPUT piStep AS INTEGER):
-        DEFINE VARIABLE colour AS INTEGER NO-UNDO.
+        VAR INTEGER colour.
         CASE piStep:
             WHEN 0 OR WHEN 1 THEN colour = AsteroidsLook:Colour(Palette:ShipCore).
             WHEN 2 OR WHEN 3 THEN colour = AsteroidsLook:Colour(Palette:Flash).
@@ -1719,9 +1719,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* The ship's glow: four dim copies one cell to each side. */
     METHOD PRIVATE VOID DrawShipHalo():
-        DEFINE VARIABLE px   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE halo AS INTEGER NO-UNDO.
+        VAR INTEGER px.
+        VAR INTEGER py.
+        VAR INTEGER halo.
         px = ToPen(mSX).
         py = ToPen(mSY).
         halo = AsteroidsLook:Colour(Palette:ShipHalo).
@@ -1733,9 +1733,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGame FINAL INHERITS AbstractGame IMPLE
 
     /* The ship: the body, the spine and the flame. */
     METHOD PRIVATE VOID DrawShipCore():
-        DEFINE VARIABLE px         AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py         AS INTEGER NO-UNDO.
-        DEFINE VARIABLE flameFrame AS INTEGER NO-UNDO.
+        VAR INTEGER px.
+        VAR INTEGER py.
+        VAR INTEGER flameFrame.
         px = ToPen(mSX).
         py = ToPen(mSY).
         mPen:DrawWrapped(AsteroidsArt:Ship(), px, py, mHeading, AsteroidsArt:ShipExtent(), 0, AsteroidsLook:Colour(Palette:ShipCore), 0, 0).

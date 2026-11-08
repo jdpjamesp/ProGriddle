@@ -8,8 +8,8 @@ CLASS ProGriddle.UI.WinForms.TicksTests:
 
     @Test.
     METHOD PUBLIC VOID TimeNeverGoesBackwards():
-        DEFINE VARIABLE a AS INT64 NO-UNDO.
-        DEFINE VARIABLE b AS INT64 NO-UNDO.
+        VAR INT64 a.
+        VAR INT64 b.
         a = Ticks:Now().
         b = Ticks:Now().
         Assert:IsTrue(b >= a).
@@ -17,8 +17,8 @@ CLASS ProGriddle.UI.WinForms.TicksTests:
 
     @Test.
     METHOD PUBLIC VOID TimeAdvancesAtAboutOneMillisecondAMillisecond():
-        DEFINE VARIABLE a AS INT64 NO-UNDO.
-        DEFINE VARIABLE b AS INT64 NO-UNDO.
+        VAR INT64 a.
+        VAR INT64 b.
         a = Ticks:Now().
         ETIME(TRUE).
         DO WHILE ETIME < 120:

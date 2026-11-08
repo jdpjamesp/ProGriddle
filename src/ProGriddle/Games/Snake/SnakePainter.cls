@@ -24,40 +24,40 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     &SCOPED-DEFINE DRESSES 9
     &SCOPED-DEFINE PARTS 5
 
-    DEFINE PRIVATE VARIABLE mInner     AS IGridRenderer   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRandom    AS IRandom         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGame      AS SnakeGame       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGrid      AS Grid            NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBaseGrid  AS Grid            NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas    AS PixelCanvas     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBase      AS PixelCanvas     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mText      AS TextStampCache  NO-UNDO.
+    VAR PRIVATE IGridRenderer mInner.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE SnakeGame mGame.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE Grid mBaseGrid.
+    VAR PRIVATE PixelCanvas mCanvas.
+    VAR PRIVATE PixelCanvas mBase.
+    VAR PRIVATE TextStampCache mText.
     /* the snake in each dress, part and turn, made when first needed: ((dress * 5) + part) * 4 + turn + 1 */
-    DEFINE PRIVATE VARIABLE mStamp     AS PixelStamp      NO-UNDO EXTENT 180.
-    DEFINE PRIVATE VARIABLE mFood      AS PixelStamp      NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mFloorA    AS PixelStamp      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFloorB    AS PixelStamp      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSparks    AS SparkField      NO-UNDO.
+    VAR PRIVATE PixelStamp[180] mStamp.
+    VAR PRIVATE PixelStamp[4] mFood.
+    VAR PRIVATE PixelStamp mFloorA.
+    VAR PRIVATE PixelStamp mFloorB.
+    VAR PRIVATE SparkField mSparks.
     /* the game that the sparks of the ending were made for, and the one whose faded and dimmed board is baked into the background */
-    DEFINE PRIVATE VARIABLE mSparkSerial AS INTEGER       NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mSparksMade  AS LOGICAL       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mOverSerial  AS INTEGER       NO-UNDO INITIAL -1.
+    VAR PRIVATE INTEGER mSparkSerial = -1.
+    VAR PRIVATE LOGICAL mSparksMade.
+    VAR PRIVATE INTEGER mOverSerial = -1.
     /* the board in cells, the tile in pixels, the strip above the board and the whole picture in pixels */
-    DEFINE PRIVATE VARIABLE mCols      AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRows      AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTile      AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mStrip     AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWidth     AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHeight    AS INTEGER         NO-UNDO.
+    VAR PRIVATE INTEGER mCols.
+    VAR PRIVATE INTEGER mRows.
+    VAR PRIVATE INTEGER mTile.
+    VAR PRIVATE INTEGER mStrip.
+    VAR PRIVATE INTEGER mWidth.
+    VAR PRIVATE INTEGER mHeight.
     /* what is baked into the background: the snake of which game, at which step, how long, and where its tail was */
-    DEFINE PRIVATE VARIABLE mBakedSerial AS INTEGER       NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mBakedGen    AS INTEGER       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBakedLength AS INTEGER       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBakedTailX  AS INTEGER       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBakedTailY  AS INTEGER       NO-UNDO.
+    VAR PRIVATE INTEGER mBakedSerial = -1.
+    VAR PRIVATE INTEGER mBakedGen.
+    VAR PRIVATE INTEGER mBakedLength.
+    VAR PRIVATE INTEGER mBakedTailX.
+    VAR PRIVATE INTEGER mBakedTailY.
     /* what the strip was drawn from, so it is drawn again only when a number or a blink changes */
-    DEFINE PRIVATE VARIABLE mHudKey      AS CHARACTER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDisposed    AS LOGICAL       NO-UNDO.
+    VAR PRIVATE CHARACTER mHudKey.
+    VAR PRIVATE LOGICAL mDisposed.
 
     /* The canvas the picture is drawn on, and the grid it is on (what the window's renderer is given). */
     DEFINE PUBLIC PROPERTY Canvas AS PixelCanvas NO-UNDO
@@ -141,7 +141,7 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Frees what depends on the size of the board. */
     METHOD PRIVATE VOID ReleaseSize():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO EXTENT(mStamp):
             IF VALID-OBJECT(mStamp[i]) THEN mStamp[i]:Dispose().
             mStamp[i] = ?.
@@ -166,8 +166,8 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Makes the canvases for a board of piCols x piRows cells and draws the base. */
     METHOD PRIVATE VOID BuildFor(INPUT piCols AS INTEGER, INPUT piRows AS INTEGER):
-        DEFINE VARIABLE colours AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
+        VAR INTEGER[] colours.
+        VAR INTEGER i.
         ReleaseSize().
         ASSIGN mCols = piCols
                mRows = piRows
@@ -196,10 +196,10 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The strip, the floor and the wall ring, drawn on the base canvas and kept. */
     METHOD PRIVATE VOID BuildBase():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER k.
+        VAR INTEGER t.
         mBase:BeginBatch().
         DO y = 0 TO mStrip - 1:
             mBase:DrawLine(0, y, mWidth - 1, y, 0, SnakeLook:Colour(SnakeTint:NightTop)).
@@ -239,8 +239,8 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The colour of the wall ring at a pixel of the board (0, 0 is the board's top left), or -1 where there is none. */
     METHOD PRIVATE INTEGER RingColour(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d AS INTEGER NO-UNDO.
+        VAR INTEGER t.
+        VAR INTEGER d.
         t = (IF mTile = 16 THEN 2 ELSE 1).
         IF (piX < t OR piX >= mCols * mTile - t) AND (piY < t OR piY >= mRows * mTile - t) THEN RETURN SnakeLook:Colour(SnakeTint:Lamp).
         d = MINIMUM(MINIMUM(piX, piY), MINIMUM(mCols * mTile - 1 - piX, mRows * mTile - 1 - piY)).
@@ -252,9 +252,9 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     /* Draws the wall ring again over a cell, if it is on the edge of the board: the wall is the last thing drawn, over the
        snake, so whatever has just been drawn there gives way to it. The canvas must be in a batch. */
     METHOD PRIVATE VOID RingCell(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER c.
         IF piX > 0 AND piX < mCols - 1 AND piY > 0 AND piY < mRows - 1 THEN RETURN.
         DO y = 0 TO mTile - 1:
             DO x = 0 TO mTile - 1:
@@ -268,7 +268,7 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The tones of a part of the snake in a dress, five hex colours separated by commas. */
     METHOD PRIVATE CHARACTER TonesFor(INPUT piDress AS INTEGER, INPUT piPart AS INTEGER):
-        DEFINE VARIABLE isHead AS LOGICAL NO-UNDO.
+        VAR LOGICAL isHead.
         isHead = piPart <= INTEGER(SnakePart:HeadTongue).
         IF piDress = INTEGER(SnakeDress:Normal) THEN DO:
             IF isHead THEN RETURN SnakeLook:ToneRow(SnakeLook:Colour(SnakeTint:HeadBase)).
@@ -292,7 +292,7 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The tile of a part, turned. The straight piece is the same when turned twice, so it only has two turns. */
     METHOD PRIVATE Tile PartTile(INPUT piPart AS INTEGER, INPUT piTurns AS INTEGER):
-        DEFINE VARIABLE tile0 AS Tile NO-UNDO.
+        VAR Tile tile0.
         IF piPart = INTEGER(SnakePart:Head) THEN tile0 = SnakeArt:Head(mTile).
         ELSE IF piPart = INTEGER(SnakePart:HeadTongue) THEN tile0 = SnakeArt:HeadTongue(mTile).
         ELSE IF piPart = INTEGER(SnakePart:Straight) THEN tile0 = SnakeArt:BodyStraight(mTile).
@@ -303,7 +303,7 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The stamp of a part of the snake in a dress and a turn, made the first time it is asked for. */
     METHOD PRIVATE PixelStamp Dressed(INPUT piDress AS INTEGER, INPUT piPart AS INTEGER, INPUT piTurns AS INTEGER):
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         slot = (piDress * {&PARTS} + piPart) * 4 + piTurns + 1.
         IF NOT VALID-OBJECT(mStamp[slot]) THEN mStamp[slot] = PartTile(piPart, piTurns):Colourise(TonesFor(piDress, piPart), Legend()).
         RETURN mStamp[slot].
@@ -329,8 +329,8 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     /* The quarter turns the head needs to face the way it is going: it faces away from the cell behind it, and a snake of one
        cell takes its body to be on the west, so it faces east. The tile is drawn facing east. */
     METHOD PRIVATE INTEGER HeadTurns():
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE behind AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER behind.
         n = mGame:Length.
         behind = (IF n < 2 THEN 3 ELSE SideOf(mGame:BodyX(n - 1), mGame:BodyY(n - 1), mGame:BodyX(n - 2), mGame:BodyY(n - 2))).
         RETURN ((behind + 2) MODULO 4 + 3) MODULO 4.
@@ -339,14 +339,14 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     /* Draws a cell of the body or the tail (index 0 is the tail) in a dress on the canvas, turned to join its neighbours, which
        are the cells either side of it in the snake. Not the head. */
     METHOD PRIVATE VOID DrawBodyCell(INPUT piIndex AS INTEGER, INPUT piDress AS INTEGER):
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE a    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lo   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hi   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE part AS INTEGER NO-UNDO.
-        DEFINE VARIABLE turn AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER a.
+        VAR INTEGER b.
+        VAR INTEGER lo.
+        VAR INTEGER hi.
+        VAR INTEGER part.
+        VAR INTEGER turn.
         x = mGame:BodyX(piIndex).
         y = mGame:BodyY(piIndex).
         IF piIndex = 0 THEN DO:
@@ -380,8 +380,8 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     /* Brings the snake that is baked into the picture up to date: a step changes the floor where the tail was, the old head
        (now body) and the tail, and anything else (a new game, a new board size, steps that were not seen) makes it again. */
     METHOD PRIVATE VOID SyncBody():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER i.
         n = mGame:Length.
         IF mGame:GameSerial = mBakedSerial AND mGame:Generation = mBakedGen AND n = mBakedLength THEN RETURN.
         mCanvas:Restore().
@@ -435,7 +435,7 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The head in a dress, with its tongue when it is out, turned to face the way it is going. */
     METHOD PRIVATE VOID DrawHead(INPUT piDress AS INTEGER):
-        DEFINE VARIABLE part AS INTEGER NO-UNDO.
+        VAR INTEGER part.
         part = (IF TongueOut() THEN INTEGER(SnakePart:HeadTongue) ELSE INTEGER(SnakePart:Head)).
         Dressed(piDress, part, HeadTurns()):DrawTo(mCanvas, mGame:HeadX * mTile, mStrip + mGame:HeadY * mTile).
         RingCell(mGame:HeadX, mGame:HeadY).
@@ -458,7 +458,7 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
        and the whole board dimmed once (docs/design/snake-art.md 4.3). It goes into the background, so the frames that follow do
        not repeat the work. */
     METHOD PRIVATE VOID SyncOver():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        VAR INTEGER k.
         IF NOT CrashActive() OR mOverSerial = mGame:GameSerial OR OverAge() < 900 THEN RETURN.
         mCanvas:Restore().
         mCanvas:BeginBatch().
@@ -475,11 +475,11 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     /* The sparks of an ending, made once for each game that ends: twelve flying out of the head in a crash, and in a win
        twenty four rising from random cells, one every 50 ms. They are worked out from the time, so they are made all at once. */
     METHOD PRIVATE VOID MakeSparks():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE speed  AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE cx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE gold   AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR DECIMAL speed.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR CHARACTER gold.
         IF mGame:GameSerial <> mSparkSerial THEN DO:
             mSparks:Clear().
             mSparkSerial = mGame:GameSerial.
@@ -509,12 +509,12 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     /* The crash (3.4): the whole snake flashes white three times in 360 ms, then fades out from the tail to the head, each cell going
        through five steps of 60 ms, the starts spread over 240 ms. The head is drawn here too, since it is part of the fade. */
     METHOD PRIVATE VOID DrawCrash():
-        DEFINE VARIABLE age   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE begin AS INTEGER NO-UNDO.
-        DEFINE VARIABLE step  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dress AS INTEGER NO-UNDO.
+        VAR INTEGER age.
+        VAR INTEGER n.
+        VAR INTEGER k.
+        VAR INTEGER begin.
+        VAR INTEGER step.
+        VAR INTEGER dress.
         IF NOT CrashActive() OR mOverSerial = mGame:GameSerial THEN RETURN.
         age = OverAge().
         IF age < 0 THEN RETURN.
@@ -549,12 +549,12 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     /* The win (3.5): a gold wave runs from the head to the tail twice in 1200 ms, each cell gold for 90 ms, one lap taking 600 ms
        however long the snake is. */
     METHOD PRIVATE VOID DrawWin():
-        DEFINE VARIABLE age AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lap AS INTEGER NO-UNDO.
-        DEFINE VARIABLE m   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lo  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hi  AS INTEGER NO-UNDO.
+        VAR INTEGER age.
+        VAR INTEGER n.
+        VAR INTEGER lap.
+        VAR INTEGER m.
+        VAR INTEGER lo.
+        VAR INTEGER hi.
         IF NOT mGame:HasWon THEN RETURN.
         age = OverAge().
         IF age < 0 OR age >= 1200 THEN RETURN.
@@ -573,14 +573,14 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     /* The plate of an ending (4.3 and 4.4): it opens from the middle line in four steps of 50 ms, and when it is open it shows the
        title, the score and length, NEW BEST (blinking, if the best was beaten) and PRESS R. */
     METHOD PRIVATE VOID DrawBanner():
-        DEFINE VARIABLE age    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE begin  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE steps  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE h      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE middle AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE scores AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE won    AS LOGICAL   NO-UNDO.
-        DEFINE VARIABLE titleY AS INTEGER   NO-UNDO.
+        VAR INTEGER age.
+        VAR INTEGER begin.
+        VAR INTEGER steps.
+        VAR INTEGER h.
+        VAR INTEGER middle.
+        VAR CHARACTER scores.
+        VAR LOGICAL won.
+        VAR INTEGER titleY.
         age = OverAge().
         IF age < 0 THEN RETURN.
         won = mGame:HasWon.
@@ -618,10 +618,10 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     /* The wave that runs down the body after the food is eaten (docs/design/snake-art.md 3.3): from the cell behind the head, one
        cell every 30 ms, each in the brighter body colour for 90 ms, so three are lit at once. */
     METHOD PRIVATE VOID DrawWave():
-        DEFINE VARIABLE age AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lo  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hi  AS INTEGER NO-UNDO.
+        VAR INTEGER age.
+        VAR INTEGER j.
+        VAR INTEGER lo.
+        VAR INTEGER hi.
         age = EatAge().
         IF age < 0 THEN RETURN.
         hi = INTEGER(TRUNCATE(age / 30, 0)).
@@ -635,15 +635,15 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     /* The ring of eight pixels that spreads from the cell where the food was eaten: six steps of 33 ms, the radius growing 1.2 pixels
        a step (0.6 on a small tile), white and then the five tones of the apple. */
     METHOD PRIVATE VOID DrawEatRing():
-        DEFINE VARIABLE age    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE f      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE radius AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE cx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE px     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py     AS INTEGER NO-UNDO.
+        VAR INTEGER age.
+        VAR INTEGER f.
+        VAR INTEGER k.
+        VAR INTEGER c.
+        VAR DECIMAL radius.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR INTEGER px.
+        VAR INTEGER py.
         age = EatAge().
         IF age < 0 OR age >= 198 THEN RETURN.
         f = INTEGER(TRUNCATE(age / 33, 0)).
@@ -663,8 +663,8 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     /* The food: a pulse of four frames of 120 ms (0 1 2 1) with the glint in place of the first of every fourth round, and
        for the first 150 ms after it appears a small apple that grows. */
     METHOD PRIVATE VOID DrawFood():
-        DEFINE VARIABLE fno AS INTEGER NO-UNDO.
-        DEFINE VARIABLE age   AS INTEGER NO-UNDO.
+        VAR INTEGER fno.
+        VAR INTEGER age.
         IF mGame:FoodX < 0 THEN RETURN.
         age = mGame:ElapsedMs - mGame:FoodMs.
         IF mGame:FoodMs >= 0 AND age >= 0 AND age < 150 THEN DO:
@@ -680,13 +680,13 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     /* A young apple: a disc in the apple colour with a dark edge and a light spot, of radius 2, 4 and 5.5 pixels in the three
        steps of its growth (1, 2 and 2.6 on the small tile). */
     METHOD PRIVATE VOID Grow(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piStep AS INTEGER):
-        DEFINE VARIABLE radius AS DECIMAL   NO-UNDO.
-        DEFINE VARIABLE dx     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE dy     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE d      AS DECIMAL   NO-UNDO.
-        DEFINE VARIABLE tones  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE c      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE half   AS DECIMAL   NO-UNDO.
+        VAR DECIMAL radius.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR DECIMAL d.
+        VAR CHARACTER tones.
+        VAR INTEGER c.
+        VAR DECIMAL half.
         tones = SnakeLook:ToneRow(SnakeLook:Colour(SnakeTint:Apple)).
         radius = DECIMAL(ENTRY(MINIMUM(piStep, 2) + 1, "2,4,5.5")) * mTile / 16.
         half = mTile / 2 - 0.5.
@@ -706,7 +706,7 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     /* A plate: a rectangle filled with the gap colour, with a rule of piRules rows in a colour on its top and bottom edges. The
        canvas must be in a batch. */
     METHOD PRIVATE VOID Plate(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER, INPUT poRule AS SnakeTint, INPUT piRules AS INTEGER):
-        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        VAR INTEGER j.
         DO j = 0 TO piH - 1:
             mCanvas:DrawLine(piX, piY + j, piX + piW - 1, piY + j, 0,
                              (IF j < piRules OR j >= piH - piRules THEN SnakeLook:Colour(poRule) ELSE SnakeLook:Colour(SnakeTint:Gap))).
@@ -726,12 +726,12 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     /* While the snake waits for the first key (4.2): a plate a quarter of the way down the board with PRESS AN ARROW KEY blinking
        500 ms on and 300 off, and an arrow beside the head, which blinks with it, showing the way it will go. */
     METHOD PRIVATE VOID DrawWaiting():
-        DEFINE VARIABLE words AS CHARACTER NO-UNDO INITIAL "PRESS AN ARROW KEY".
-        DEFINE VARIABLE w     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE r     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE arrow AS CHARACTER NO-UNDO.
+        VAR CHARACTER words = "PRESS AN ARROW KEY".
+        VAR INTEGER w.
+        VAR INTEGER y.
+        VAR INTEGER r.
+        VAR INTEGER x.
+        VAR CHARACTER arrow.
         IF NOT mGame:Waiting OR mGame:IsOver THEN RETURN.
         w = PixelCanvas:ScaledWidth(words, 1).
         y = mStrip + INTEGER(TRUNCATE(mRows * mTile / 4, 0)).
@@ -753,7 +753,7 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     /* The words of a pause on a plate across the middle of the board. This is not in the design, which has no pause: it is the
        plate of the other screens with the words PAUSED and P TO RESUME. */
     METHOD PRIVATE VOID DrawPaused():
-        DEFINE VARIABLE middle AS INTEGER NO-UNDO.
+        VAR INTEGER middle.
         middle = mStrip + INTEGER(TRUNCATE(mRows * mTile / 2, 0)).
         Plate(0, middle - 28, mWidth, 56, SnakeTint:Accent, 2).
         Outlined("PAUSED", 2, SnakeTint:Text, SnakeTint:Text, Centred(PixelCanvas:ScaledWidth("PAUSED", 2)), middle - 16).
@@ -782,7 +782,7 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Draws the strip into the background again when something in it has changed. */
     METHOD PRIVATE VOID SyncHud():
-        DEFINE VARIABLE hudKey AS CHARACTER NO-UNDO.
+        VAR CHARACTER hudKey.
         hudKey = SUBSTITUTE("&1|&2|&3|&4|&5|&6|&7", mGame:Score, mGame:Length, mGame:Level, mGame:BestScore, NewBest(), NewBestShown(), ScorePulse()).
         IF hudKey = mHudKey THEN RETURN.
         mHudKey = hudKey.
@@ -796,14 +796,14 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
     /* The four stats of the strip: SCORE, LENGTH, LEVEL and BEST, each a label and a value, in four equal columns. A wide board
        has the values at twice the size, a narrow one at the size of the labels. */
     METHOD PRIVATE VOID DrawHud():
-        DEFINE VARIABLE wide   AS LOGICAL   NO-UNDO.
-        DEFINE VARIABLE k      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE heading  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE shown  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE hue    AS SnakeTint NO-UNDO.
-        DEFINE VARIABLE labelHue AS SnakeTint NO-UNDO.
+        VAR LOGICAL wide.
+        VAR INTEGER k.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR CHARACTER heading.
+        VAR CHARACTER shown.
+        VAR SnakeTint hue.
+        VAR SnakeTint labelHue.
         wide = mStrip = 32.
         /* clear the strip above its rule */
         DO y = 0 TO (IF wide THEN mStrip - 3 ELSE mStrip - 2):
@@ -831,7 +831,7 @@ CLASS ProGriddle.Games.Snake.SnakePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Some text at a place, one colour, no outline. */
     METHOD PRIVATE VOID Caption(INPUT pcText AS CHARACTER, INPUT piScale AS INTEGER, INPUT poTint AS SnakeTint, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER c.
         c = SnakeLook:Colour(poTint).
         mText:Get(pcText, piScale, c, c, -1):DrawTo(mCanvas, piX, piY).
     END METHOD.

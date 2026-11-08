@@ -9,8 +9,8 @@ CLASS ProGriddle.Games.Tetris.PieceBagTests:
 
     /* Deals n pieces from a bag seeded with piSeed into the array. */
     METHOD PRIVATE VOID Deal(INPUT piSeed AS INTEGER, INPUT piCount AS INTEGER, OUTPUT piPieces AS INTEGER EXTENT):
-        DEFINE VARIABLE bag AS PieceBag NO-UNDO.
-        DEFINE VARIABLE i   AS INTEGER  NO-UNDO.
+        VAR PieceBag bag.
+        VAR INTEGER i.
         bag = NEW PieceBag(NEW SeededRandom(piSeed)).
         EXTENT(piPieces) = piCount.
         DO i = 1 TO piCount:
@@ -20,12 +20,12 @@ CLASS ProGriddle.Games.Tetris.PieceBagTests:
 
     @Test.
     METHOD PUBLIC VOID EverySevenPiecesFromTheStartAreEachPieceOnce():
-        DEFINE VARIABLE seed   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bagNo  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE seen   AS LOGICAL NO-UNDO EXTENT 7.
-        DEFINE VARIABLE pieces AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE bad    AS INTEGER NO-UNDO.
+        VAR INTEGER seed.
+        VAR INTEGER bagNo.
+        VAR INTEGER i.
+        VAR LOGICAL[7] seen.
+        VAR INTEGER[] pieces.
+        VAR INTEGER bad.
         DO seed = 1 TO 12:
             Deal(seed, 140, OUTPUT pieces).
             DO bagNo = 0 TO 19:
@@ -45,13 +45,13 @@ CLASS ProGriddle.Games.Tetris.PieceBagTests:
 
     @Test.
     METHOD PUBLIC VOID APieceNeverComesThreeTimesInARowAndNeverHasMoreThanTwelveOthersBetweenTwoOfAKind():
-        DEFINE VARIABLE seed   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE p      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pieces AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE lastSeen   AS INTEGER NO-UNDO EXTENT 7.
-        DEFINE VARIABLE runs   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE waits  AS INTEGER NO-UNDO.
+        VAR INTEGER seed.
+        VAR INTEGER i.
+        VAR INTEGER p.
+        VAR INTEGER[] pieces.
+        VAR INTEGER[7] lastSeen.
+        VAR INTEGER runs.
+        VAR INTEGER waits.
         DO seed = 1 TO 12:
             Deal(seed, 700, OUTPUT pieces).
             DO p = 1 TO 7:
@@ -69,12 +69,12 @@ CLASS ProGriddle.Games.Tetris.PieceBagTests:
 
     @Test.
     METHOD PUBLIC VOID TheSameSeedDealsTheSamePiecesAndAnotherSeedDealsDifferentOnes():
-        DEFINE VARIABLE a AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE b AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE c AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sameAB AS LOGICAL NO-UNDO INITIAL TRUE.
-        DEFINE VARIABLE sameAC AS LOGICAL NO-UNDO INITIAL TRUE.
+        VAR INTEGER[] a.
+        VAR INTEGER[] b.
+        VAR INTEGER[] c.
+        VAR INTEGER i.
+        VAR LOGICAL sameAB = TRUE.
+        VAR LOGICAL sameAC = TRUE.
         Deal(5, 70, OUTPUT a).
         Deal(5, 70, OUTPUT b).
         Deal(6, 70, OUTPUT c).
@@ -88,9 +88,9 @@ CLASS ProGriddle.Games.Tetris.PieceBagTests:
 
     @Test.
     METHOD PUBLIC VOID EveryPieceIsInTheRangeOneToSeven():
-        DEFINE VARIABLE pieces AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bad    AS INTEGER NO-UNDO.
+        VAR INTEGER[] pieces.
+        VAR INTEGER i.
+        VAR INTEGER bad.
         Deal(3, 100, OUTPUT pieces).
         DO i = 1 TO 100:
             IF pieces[i] < 1 OR pieces[i] > 7 THEN bad = bad + 1.
@@ -100,8 +100,7 @@ CLASS ProGriddle.Games.Tetris.PieceBagTests:
 
     @Test.
     METHOD PUBLIC VOID PresetPiecesComeFirstInOrderAndThenTheBagCarriesOn():
-        DEFINE VARIABLE bag AS PieceBag NO-UNDO.
-        bag = NEW PieceBag(NEW SeededRandom(1)).
+        VAR PieceBag bag = NEW PieceBag(NEW SeededRandom(1)).
         bag:Preset("L,I,T").
         Assert:Equals(7, bag:Next()).
         Assert:Equals(1, bag:Next()).
@@ -111,8 +110,7 @@ CLASS ProGriddle.Games.Tetris.PieceBagTests:
 
     @Test.
     METHOD PUBLIC VOID APresetGoesInFrontOfAnEarlierPreset():
-        DEFINE VARIABLE bag AS PieceBag NO-UNDO.
-        bag = NEW PieceBag(NEW SeededRandom(1)).
+        VAR PieceBag bag = NEW PieceBag(NEW SeededRandom(1)).
         bag:Preset("O,O").
         bag:Preset("I").
         Assert:Equals(1, bag:Next()).
@@ -122,10 +120,10 @@ CLASS ProGriddle.Games.Tetris.PieceBagTests:
 
     @Test.
     METHOD PUBLIC VOID APresetDoesNotUseUpABagThatWasAlreadyStarted():
-        DEFINE VARIABLE bag    AS PieceBag NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE seen   AS LOGICAL  NO-UNDO EXTENT 7.
-        DEFINE VARIABLE missed AS INTEGER  NO-UNDO.
+        VAR PieceBag bag.
+        VAR INTEGER i.
+        VAR LOGICAL[7] seen.
+        VAR INTEGER missed.
         bag = NEW PieceBag(NEW SeededRandom(2)).
         bag:Next().
         bag:Next().
@@ -143,15 +141,13 @@ CLASS ProGriddle.Games.Tetris.PieceBagTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID APresetWithAnUnknownPieceThrows():
-        DEFINE VARIABLE bag AS PieceBag NO-UNDO.
-        bag = NEW PieceBag(NEW SeededRandom(1)).
+        VAR PieceBag bag = NEW PieceBag(NEW SeededRandom(1)).
         bag:Preset("I,Q").
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ABagNeedsARandomSource():
-        DEFINE VARIABLE bag AS PieceBag NO-UNDO.
-        bag = NEW PieceBag(?).
+        VAR PieceBag bag = NEW PieceBag(?).
     END METHOD.
 
 END CLASS.

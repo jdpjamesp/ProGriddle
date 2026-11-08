@@ -17,26 +17,26 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Xevious.XeviousCues FINAL IMPLEMENTS ICueSource, ILoopSource:
 
-    DEFINE PRIVATE VARIABLE mPhase   AS XeviousPhase NO-UNDO.
-    DEFINE PRIVATE VARIABLE mZaps    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDrops   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBursts  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mAir     AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGround  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSols    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFlags   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mEnemy   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mClangs  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBossHit AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBossKil AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDeaths  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mExtras  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mStages  AS INTEGER NO-UNDO.
+    VAR PRIVATE XeviousPhase mPhase.
+    VAR PRIVATE INTEGER mZaps.
+    VAR PRIVATE INTEGER mDrops.
+    VAR PRIVATE INTEGER mBursts.
+    VAR PRIVATE INTEGER mAir.
+    VAR PRIVATE INTEGER mGround.
+    VAR PRIVATE INTEGER mSols.
+    VAR PRIVATE INTEGER mFlags.
+    VAR PRIVATE INTEGER mEnemy.
+    VAR PRIVATE INTEGER mClangs.
+    VAR PRIVATE INTEGER mBossHit.
+    VAR PRIVATE INTEGER mBossKil.
+    VAR PRIVATE INTEGER mDeaths.
+    VAR PRIVATE INTEGER mExtras.
+    VAR PRIVATE INTEGER mStages.
 
     /* Throws GridException for a game that is not a XeviousGame. */
     METHOD PUBLIC CHARACTER Poll(INPUT poGame AS IGame):
-        DEFINE VARIABLE oGame AS XeviousGame NO-UNDO.
-        DEFINE VARIABLE cues  AS CHARACTER   NO-UNDO.
+        VAR XeviousGame oGame.
+        VAR CHARACTER cues.
         IF NOT TYPE-OF(poGame, XeviousGame) THEN UNDO, THROW NEW GridException("The cues of Xevious need a Xevious game").
         oGame = CAST(poGame, XeviousGame).
         /* the first look and the title screen: take the state as it is, and say nothing */
@@ -64,7 +64,7 @@ CLASS ProGriddle.Games.Xevious.XeviousCues FINAL IMPLEMENTS ICueSource, ILoopSou
 
     /* The mothership hums while it is out, in a game that is being played and is not paused. */
     METHOD PUBLIC CHARACTER Loops(INPUT poGame AS IGame):
-        DEFINE VARIABLE oGame AS XeviousGame NO-UNDO.
+        VAR XeviousGame oGame.
         IF NOT TYPE-OF(poGame, XeviousGame) THEN UNDO, THROW NEW GridException("The cues of Xevious need a Xevious game").
         oGame = CAST(poGame, XeviousGame).
         IF oGame:Phase <> XeviousPhase:Playing OR oGame:Paused THEN RETURN "".

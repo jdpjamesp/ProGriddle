@@ -15,11 +15,11 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
 
-    DEFINE PRIVATE VARIABLE mGrid    AS Grid       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mMonster AS Monster    NO-UNDO EXTENT 64.
-    DEFINE PRIVATE VARIABLE mFloor   AS Item       NO-UNDO EXTENT 120.
-    DEFINE PRIVATE VARIABLE mLit     AS LOGICAL    NO-UNDO EXTENT 9.
-    DEFINE PRIVATE VARIABLE mNoFood  AS INTEGER    NO-UNDO.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE Monster[64] mMonster.
+    VAR PRIVATE Item[120] mFloor.
+    VAR PRIVATE LOGICAL[9] mLit.
+    VAR PRIVATE INTEGER mNoFood.
 
     DEFINE PUBLIC PROPERTY Cave AS LevelMap NO-UNDO
         GET.
@@ -92,8 +92,8 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
     /* How many monsters are on the level, and how many things lie on its floor. */
     DEFINE PUBLIC PROPERTY MonsterCount AS INTEGER NO-UNDO
         GET():
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
-            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            VAR INTEGER i.
+            VAR INTEGER n.
             DO i = 1 TO RogueRules:MostMonsters():
                 IF VALID-OBJECT(mMonster[i]) THEN n = n + 1.
             END.
@@ -102,8 +102,8 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
 
     DEFINE PUBLIC PROPERTY FloorItemCount AS INTEGER NO-UNDO
         GET():
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
-            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            VAR INTEGER i.
+            VAR INTEGER n.
             DO i = 1 TO RogueRules:MostFloorItems():
                 IF VALID-OBJECT(mFloor[i]) THEN n = n + 1.
             END.
@@ -148,7 +148,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
     END METHOD.
     /* Food, ring mail +1 worn, a mace +1,+1 wielded, a bow +1 and arrows. */
     METHOD PRIVATE VOID GiveKit():
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
+        VAR Item oItem.
         Pack:Add(Items:Make(ItemType:Food, INTEGER(FoodKind:Ration))).
         oItem = Items:Make(ItemType:Armour, INTEGER(ArmourKind:RingMail)).
         oItem:Bonus = 1.
@@ -172,7 +172,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
 
     /* Builds a new level for a depth, puts the hero at its start and fills it with gold, things and monsters. The old level is gone. */
     METHOD PUBLIC VOID NewLevel(INPUT piDepth AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF piDepth = ? OR piDepth < 1 OR piDepth > RogueRules:AmuletDepth() THEN
             UNDO, THROW NEW GridException("There is no level " + STRING(piDepth)).
         EmptyLists().
@@ -213,8 +213,8 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
     /* A room for a test: a floor piW across and piH down whose top left is (piX, piY), with walls round it and the whole of it as room 1,
        lit. The walls need a square of room outside the floor. */
     METHOD PUBLIC VOID CarveRoom(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         IF NOT Cave:InBounds(piX - 1, piY - 1) OR NOT Cave:InBounds(piX + piW, piY + piH) OR piW < 1 OR piH < 1 THEN
             UNDO, THROW NEW GridException("There is no room for a room of " + STRING(piW) + " x " + STRING(piH) + " at " + STRING(piX) + "," + STRING(piY)).
         DO y = piY - 1 TO piY + piH:
@@ -239,7 +239,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
     END METHOD.
 
     METHOD PRIVATE VOID EmptyLists():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO RogueRules:MostMonsters():
             mMonster[i] = ?.
         END.
@@ -251,13 +251,13 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
 
     /* Gold, things and monsters for a level just built. */
     METHOD PRIVATE VOID Populate():
-        DEFINE VARIABLE r       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE gold    AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE oItem   AS Item    NO-UNDO.
-        DEFINE VARIABLE hadFood AS LOGICAL NO-UNDO.
+        VAR INTEGER r.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR LOGICAL gold.
+        VAR Item oItem.
+        VAR LOGICAL hadFood.
         DO r = 0 TO 8:
             IF NOT Builder:IsRoom(r) THEN NEXT.
             gold = Random:NextInt(2) = 0.
@@ -287,7 +287,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
 
     /* A floor square of a room with nothing on it and nobody in it, found in a few tries: false when there is none. */
     METHOD PUBLIC LOGICAL FreeFloor(INPUT piRoom AS INTEGER, OUTPUT piX AS INTEGER, OUTPUT piY AS INTEGER):
-        DEFINE VARIABLE tries AS INTEGER NO-UNDO.
+        VAR INTEGER tries.
         DO tries = 1 TO 30:
             Builder:FloorCellIn(piRoom, OUTPUT piX, OUTPUT piY).
             IF Cave:ItemAt(piX, piY) = 0 AND Cave:MonsterAt(piX, piY) = 0 AND NOT (piX = Hero:X AND piY = Hero:Y) THEN RETURN TRUE.
@@ -300,8 +300,8 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
     /* Puts a monster of a kind in a cell, with the hit points of its level, and gives it something to carry now and then. Throws
        GridException for a cell that cannot be walked on or already has a monster in it, or when the level has no room for another. */
     METHOD PUBLIC Monster AddMonster(INPUT poKind AS MonsterKind, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE i        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
+        VAR INTEGER i.
+        VAR Monster oMonster.
         IF NOT Cave:Walkable(piX, piY) OR Cave:MonsterAt(piX, piY) > 0 THEN
             UNDO, THROW NEW GridException(SUBSTITUTE("A monster cannot be put at &1,&2", piX, piY)).
         DO i = 1 TO RogueRules:MostMonsters():
@@ -319,7 +319,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
 
     /* The monster in a cell, or unknown. */
     METHOD PUBLIC Monster MonsterAtCell(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         n = Cave:MonsterAt(piX, piY).
         RETURN (IF n > 0 THEN mMonster[n] ELSE ?).
     END METHOD.
@@ -332,7 +332,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
 
     /* Moves a monster to a cell, keeping the map in step. The cell must be walkable and empty. */
     METHOD PUBLIC VOID MoveMonster(INPUT poMonster AS Monster, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         n = Cave:MonsterAt(poMonster:X, poMonster:Y).
         IF n = 0 OR mMonster[n] <> poMonster THEN UNDO, THROW NEW GridException("That monster is not on the map where it says").
         IF NOT Cave:Walkable(piX, piY) OR Cave:MonsterAt(piX, piY) > 0 THEN
@@ -345,7 +345,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
 
     /* Takes a monster off the level. What it carries is not dropped here (see Fighting). */
     METHOD PUBLIC VOID RemoveMonster(INPUT poMonster AS Monster):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         n = Cave:MonsterAt(poMonster:X, poMonster:Y).
         IF n = 0 OR mMonster[n] <> poMonster THEN UNDO, THROW NEW GridException("That monster is not on the map where it says").
         Cave:SetMonster(poMonster:X, poMonster:Y, 0).
@@ -357,7 +357,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
 
     /* The thing lying in a cell, or unknown. */
     METHOD PUBLIC Item FloorItemAt(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         n = Cave:ItemAt(piX, piY).
         RETURN (IF n > 0 THEN mFloor[n] ELSE ?).
     END METHOD.
@@ -365,10 +365,10 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
     /* Lays a thing on the floor at a cell, or, when something is already there or the cell is not floor, at the nearest cell that is
        free (within 3 squares). Gives true when it was put down: false when there is no room (the thing is lost). */
     METHOD PUBLIC LOGICAL DropOnFloor(INPUT poItem AS Item, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE r  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
+        VAR INTEGER r.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER i.
         IF NOT VALID-OBJECT(poItem) THEN UNDO, THROW NEW GridException("There is no item to put down").
         DO r = 0 TO 3:
             DO dy = - r TO r:
@@ -391,8 +391,8 @@ CLASS ProGriddle.Games.Rogue.RogueWorld FINAL:
 
     /* Picks up the thing in a cell and gives it: unknown when there is none. */
     METHOD PUBLIC Item TakeFloorItem(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oItem AS Item    NO-UNDO.
+        VAR INTEGER n.
+        VAR Item oItem.
         n = Cave:ItemAt(piX, piY).
         IF n = 0 THEN RETURN ?.
         oItem = mFloor[n].

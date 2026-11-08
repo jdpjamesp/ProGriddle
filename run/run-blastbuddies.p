@@ -32,21 +32,21 @@ USING ProGriddle.Games.BlastBuddies.*.
 USING ProGriddle.UI.Audio.*.
 USING ProGriddle.UI.WinForms.*.
 
-DEFINE VARIABLE cSettingsFile AS CHARACTER           NO-UNDO INITIAL "default".
-DEFINE VARIABLE iAutoClose    AS INTEGER             NO-UNDO.
-DEFINE VARIABLE iSeed         AS INT64               NO-UNDO.
-DEFINE VARIABLE oSettings     AS ISettings           NO-UNDO.
-DEFINE VARIABLE oGame         AS BlastBuddiesGame    NO-UNDO.
-DEFINE VARIABLE oBrain        AS SimulatingBrain     NO-UNDO.
-DEFINE VARIABLE oView         AS GridView            NO-UNDO.
-DEFINE VARIABLE oPainter      AS BlastBuddiesPainter NO-UNDO.
-DEFINE VARIABLE dScale        AS DECIMAL             NO-UNDO.
-DEFINE VARIABLE oClock        AS WinFormsClock       NO-UNDO.
-DEFINE VARIABLE oController   AS RealTimeController  NO-UNDO.
-DEFINE VARIABLE oBank         AS SoundBank           NO-UNDO.
-DEFINE VARIABLE oPlayer       AS WaveOutPlayer       NO-UNDO.
-DEFINE VARIABLE oSound        AS SoundRenderer       NO-UNDO.
-DEFINE VARIABLE oWindow       AS GameWindow          NO-UNDO.
+VAR CHARACTER cSettingsFile = "default".
+VAR INTEGER iAutoClose.
+VAR INT64 iSeed.
+VAR ISettings oSettings.
+VAR BlastBuddiesGame oGame.
+VAR SimulatingBrain oBrain.
+VAR GridView oView.
+VAR BlastBuddiesPainter oPainter.
+VAR DECIMAL dScale.
+VAR WinFormsClock oClock.
+VAR RealTimeController oController.
+VAR SoundBank oBank.
+VAR WaveOutPlayer oPlayer.
+VAR SoundRenderer oSound.
+VAR GameWindow oWindow.
 
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 2 THEN cSettingsFile = ENTRY(2, SESSION:PARAMETER).
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 3 THEN iAutoClose = INTEGER(ENTRY(3, SESSION:PARAMETER)).

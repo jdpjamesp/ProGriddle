@@ -7,7 +7,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Asteroids.FixedRandom FINAL IMPLEMENTS IRandom:
 
-    DEFINE PRIVATE VARIABLE mValue AS INTEGER NO-UNDO.
+    VAR PRIVATE INTEGER mValue.
 
     CONSTRUCTOR PUBLIC FixedRandom(INPUT piValue AS INTEGER):
         mValue = piValue.

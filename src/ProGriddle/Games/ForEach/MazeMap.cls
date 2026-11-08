@@ -27,14 +27,14 @@ CLASS ProGriddle.Games.ForEach.MazeMap FINAL:
     &SCOPED-DEFINE TUNNEL 16
     &SCOPED-DEFINE NO-UP 32
 
-    DEFINE PRIVATE VARIABLE mTiles    AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mOriginal AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mHas      AS LOGICAL NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mStartX   AS INTEGER NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mStartY   AS INTEGER NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mHasItem  AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mItemX    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mItemY    AS INTEGER NO-UNDO.
+    VAR PRIVATE INTEGER[] mTiles.
+    VAR PRIVATE INTEGER[] mOriginal.
+    VAR PRIVATE LOGICAL[4] mHas.
+    VAR PRIVATE INTEGER[4] mStartX.
+    VAR PRIVATE INTEGER[4] mStartY.
+    VAR PRIVATE LOGICAL mHasItem.
+    VAR PRIVATE INTEGER mItemX.
+    VAR PRIVATE INTEGER mItemY.
 
     DEFINE PUBLIC PROPERTY Cols AS INTEGER NO-UNDO
         GET.
@@ -84,13 +84,13 @@ CLASS ProGriddle.Games.ForEach.MazeMap FINAL:
     /* Reads a maze. Throws GridException for no text, rows of different lengths, a symbol that is not one of the above, no start
        for Dibby, or a start written twice. */
     CONSTRUCTOR PUBLIC MazeMap(INPUT pcRows AS CHARACTER):
-        DEFINE VARIABLE cells AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE cc    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE rr    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE sym   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE v     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE who   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE gotP  AS LOGICAL   NO-UNDO.
+        VAR CHARACTER cells.
+        VAR INTEGER cc.
+        VAR INTEGER rr.
+        VAR CHARACTER sym.
+        VAR INTEGER v.
+        VAR INTEGER who.
+        VAR LOGICAL gotP.
         IF pcRows = ? OR pcRows = "" THEN UNDO, THROW NEW GridException("A maze needs some text").
         Rows = NUM-ENTRIES(pcRows, CHR(10)).
         Cols = LENGTH(RIGHT-TRIM(ENTRY(1, pcRows, CHR(10)), CHR(13))).
@@ -189,8 +189,8 @@ CLASS ProGriddle.Games.ForEach.MazeMap FINAL:
     /* Eats what is on the tile. A bit or a commit token is taken off (the tile is an empty lane from now on, and BitsLeft goes
        down) and its kind is given back. On anything else nothing happens and the kind of the tile is given back. */
     METHOD PUBLIC TileKind Take(INPUT piCol AS INTEGER, INPUT piRow AS INTEGER):
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE kind AS TileKind NO-UNDO.
+        VAR INTEGER i.
+        VAR TileKind kind.
         i = IndexOf(piCol, piRow).
         kind = TileKind:GetEnum(mTiles[i] MODULO 16).
         IF kind = TileKind:Bit OR kind = TileKind:Commit THEN DO:
@@ -202,7 +202,7 @@ CLASS ProGriddle.Games.ForEach.MazeMap FINAL:
 
     /* Puts every bit and commit token back. */
     METHOD PUBLIC VOID Refill():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO EXTENT(mTiles):
             mTiles[i] = mOriginal[i].
         END.

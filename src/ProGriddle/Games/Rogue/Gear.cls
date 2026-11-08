@@ -15,7 +15,7 @@ CLASS ProGriddle.Games.Rogue.Gear FINAL:
 
     /* An item of the pack as one line of the inventory: "b) a +1 ring mail [AC 6] (being worn)". */
     METHOD PUBLIC STATIC CHARACTER Line(INPUT poWorld AS RogueWorld, INPUT piSlot AS INTEGER):
-        DEFINE VARIABLE state AS CHARACTER NO-UNDO.
+        VAR CHARACTER state.
         IF piSlot = poWorld:Pack:WieldedSlot THEN state = " (weapon in hand)".
         ELSE IF piSlot = poWorld:Pack:WornSlot THEN state = " (being worn)".
         ELSE IF piSlot = poWorld:Pack:LeftRingSlot THEN state = " (on left hand)".
@@ -38,7 +38,7 @@ CLASS ProGriddle.Games.Rogue.Gear FINAL:
 
     /* Takes a weapon in hand. */
     METHOD PUBLIC STATIC LOGICAL Wield(INPUT poWorld AS RogueWorld, INPUT piSlot AS INTEGER):
-        DEFINE VARIABLE oOld AS Item NO-UNDO.
+        VAR Item oOld.
         IF NOT Holds(poWorld, piSlot, ItemType:Weapon, "You cannot wield that.") THEN RETURN FALSE.
         oOld = poWorld:Pack:Weapon().
         IF poWorld:Pack:WieldedSlot = piSlot THEN DO:
@@ -70,8 +70,8 @@ CLASS ProGriddle.Games.Rogue.Gear FINAL:
 
     /* Takes off the armour that is worn. */
     METHOD PUBLIC STATIC LOGICAL TakeOff(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE oWorn AS Item    NO-UNDO.
-        DEFINE VARIABLE slot  AS INTEGER NO-UNDO.
+        VAR Item oWorn.
+        VAR INTEGER slot.
         oWorn = poWorld:Pack:Worn().
         IF NOT VALID-OBJECT(oWorn) THEN DO:
             poWorld:Say("You aren't wearing any armor.").
@@ -89,7 +89,7 @@ CLASS ProGriddle.Games.Rogue.Gear FINAL:
 
     /* Puts a ring on the left hand, or the right when the left is taken. The ring tells the hero its plus when it has an obvious one. */
     METHOD PUBLIC STATIC LOGICAL PutOn(INPUT poWorld AS RogueWorld, INPUT piSlot AS INTEGER):
-        DEFINE VARIABLE oRing AS Item NO-UNDO.
+        VAR Item oRing.
         IF NOT Holds(poWorld, piSlot, ItemType:Ring, "You cannot put that on.") THEN RETURN FALSE.
         IF poWorld:Pack:LeftRingSlot >= 0 AND poWorld:Pack:RightRingSlot >= 0 THEN DO:
             poWorld:Say("You already have a ring on each hand.").
@@ -111,7 +111,7 @@ CLASS ProGriddle.Games.Rogue.Gear FINAL:
 
     /* Takes a ring off a hand. A cursed ring stays. */
     METHOD PUBLIC STATIC LOGICAL RemoveRing(INPUT poWorld AS RogueWorld, INPUT piSlot AS INTEGER):
-        DEFINE VARIABLE oRing AS Item NO-UNDO.
+        VAR Item oRing.
         IF NOT Holds(poWorld, piSlot, ItemType:Ring, "That is not a ring.") THEN RETURN FALSE.
         IF piSlot <> poWorld:Pack:LeftRingSlot AND piSlot <> poWorld:Pack:RightRingSlot THEN DO:
             poWorld:Say("You are not wearing that ring.").
@@ -135,8 +135,8 @@ CLASS ProGriddle.Games.Rogue.Gear FINAL:
 
     /* Puts one of the thing in a slot on the floor where the hero stands. */
     METHOD PUBLIC STATIC LOGICAL DropItem(INPUT poWorld AS RogueWorld, INPUT piSlot AS INTEGER):
-        DEFINE VARIABLE oItem  AS Item NO-UNDO.
-        DEFINE VARIABLE oLeave AS Item NO-UNDO.
+        VAR Item oItem.
+        VAR Item oLeave.
         IF piSlot < 0 OR piSlot >= RogueRules:PackSize() OR NOT poWorld:Pack:Holds(piSlot) THEN DO:
             poWorld:Say("You have nothing like that.").
             RETURN FALSE.
@@ -159,8 +159,8 @@ CLASS ProGriddle.Games.Rogue.Gear FINAL:
     /* Picks up what lies where the hero stands: gold goes in the purse, the rest in the pack if it will go. Gives true when something
        was picked up. A pack that is too full leaves the thing where it is and says so. */
     METHOD PUBLIC STATIC LOGICAL Pickup(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE oItem AS Item    NO-UNDO.
-        DEFINE VARIABLE slot  AS INTEGER NO-UNDO.
+        VAR Item oItem.
+        VAR INTEGER slot.
         oItem = poWorld:FloorItemAt(poWorld:Hero:X, poWorld:Hero:Y).
         IF NOT VALID-OBJECT(oItem) THEN RETURN FALSE.
         IF oItem:Category = ItemType:Gold THEN DO:

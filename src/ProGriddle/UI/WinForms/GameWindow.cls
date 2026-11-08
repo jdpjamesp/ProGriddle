@@ -56,41 +56,41 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
 
-    DEFINE PRIVATE VARIABLE mController AS IGameController NO-UNDO.
-    DEFINE PRIVATE VARIABLE mView       AS GridView       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInput      AS IGameInput     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mClock      AS IClock         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings   AS ISettings      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPrefix     AS CHARACTER      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTitle      AS CHARACTER      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mKeys       AS KeyMap         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSyncing    AS LOGICAL        NO-UNDO.
+    VAR PRIVATE IGameController mController.
+    VAR PRIVATE GridView mView.
+    VAR PRIVATE IGameInput mInput.
+    VAR PRIVATE IClock mClock.
+    VAR PRIVATE ISettings mSettings.
+    VAR PRIVATE CHARACTER mPrefix.
+    VAR PRIVATE CHARACTER mTitle.
+    VAR PRIVATE KeyMap mKeys.
+    VAR PRIVATE LOGICAL mSyncing.
     /* the game's extra drop down lists, when it implements IGameOptions, one box for each option */
-    DEFINE PRIVATE VARIABLE mOptions    AS IGameOptions   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mOptionBoxes AS ComboBox      NO-UNDO EXTENT.
+    VAR PRIVATE IGameOptions mOptions.
+    VAR PRIVATE ComboBox[] mOptionBoxes.
     /* mouse buttons held now, and every button used since the first went down */
-    DEFINE PRIVATE VARIABLE mHeld       AS LOGICAL        NO-UNDO EXTENT 3.
-    DEFINE PRIVATE VARIABLE mGesture    AS LOGICAL        NO-UNDO EXTENT 3.
-    DEFINE PRIVATE VARIABLE mDouble     AS LOGICAL        NO-UNDO.
+    VAR PRIVATE LOGICAL[3] mHeld.
+    VAR PRIVATE LOGICAL[3] mGesture.
+    VAR PRIVATE LOGICAL mDouble.
     /* a drag with the left button, for a game that wants one (IDragInput): the cell the button went down on, whether
        it was on the board, the last cell the drag reached and whether the pointer has left the first cell yet */
-    DEFINE PRIVATE VARIABLE mDrag       AS IDragInput     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPath       AS CellPath       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDownHit    AS LOGICAL        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDragging   AS LOGICAL        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLastX      AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLastY      AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInfoButton AS Button         NO-UNDO.
+    VAR PRIVATE IDragInput mDrag.
+    VAR PRIVATE CellPath mPath.
+    VAR PRIVATE LOGICAL mDownHit.
+    VAR PRIVATE LOGICAL mDragging.
+    VAR PRIVATE INTEGER mLastX.
+    VAR PRIVATE INTEGER mLastY.
+    VAR PRIVATE Button mInfoButton.
 
-    DEFINE PRIVATE VARIABLE mToolbar    AS FlowLayoutPanel NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRunButton  AS Button         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mStepButton AS Button         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mResetButton AS Button        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPicker     AS ComboBox       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSpeed      AS TrackBar       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mStatus     AS Label          NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCloseTimer AS Timer          NO-UNDO.
-    DEFINE PRIVATE VARIABLE mExtraButtons AS Button       NO-UNDO EXTENT.
+    VAR PRIVATE FlowLayoutPanel mToolbar.
+    VAR PRIVATE Button mRunButton.
+    VAR PRIVATE Button mStepButton.
+    VAR PRIVATE Button mResetButton.
+    VAR PRIVATE ComboBox mPicker.
+    VAR PRIVATE TrackBar mSpeed.
+    VAR PRIVATE Label mStatus.
+    VAR PRIVATE Timer mCloseTimer.
+    VAR PRIVATE Button[] mExtraButtons.
 
     /* Closes the window by itself after this many seconds, 0 for never. For scripted runs. */
     DEFINE PUBLIC PROPERTY AutoCloseSeconds AS INTEGER NO-UNDO
@@ -172,11 +172,11 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     END METHOD.
 
     METHOD PRIVATE VOID BuildToolbar():
-        DEFINE VARIABLE commands AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i        AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j        AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE names    AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE captioned    AS FlowLayoutPanel NO-UNDO.
+        VAR CHARACTER commands.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR CHARACTER names.
+        VAR FlowLayoutPanel captioned.
 
         mToolbar = NEW FlowLayoutPanel().
         mToolbar:Dock = DockStyle:Top.
@@ -270,8 +270,8 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
        panel, which is added to the toolbar, so when the toolbar wraps they move to the next row
        together and a caption is never left behind. */
     METHOD PRIVATE FlowLayoutPanel NewCaptioned(INPUT pcCaption AS CHARACTER):
-        DEFINE VARIABLE captioned   AS FlowLayoutPanel NO-UNDO.
-        DEFINE VARIABLE caption AS Label           NO-UNDO.
+        VAR FlowLayoutPanel captioned.
+        VAR Label caption.
         captioned = NEW FlowLayoutPanel().
         captioned:AutoSize = TRUE.
         captioned:WrapContents = FALSE.
@@ -288,8 +288,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     END METHOD.
 
     METHOD PRIVATE Button NewButton(INPUT pcText AS CHARACTER, INPUT pcTip AS CHARACTER):
-        DEFINE VARIABLE b AS Button NO-UNDO.
-        b = NEW Button().
+        VAR Button b = NEW Button().
         b:Text = pcText.
         b:AutoSize = TRUE.
         b:Height = 28.
@@ -301,14 +300,14 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     /* ---- settings ---- */
 
     METHOD PRIVATE VOID RestoreSettings():
-        DEFINE VARIABLE w   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pt  AS Point   NO-UNDO.
-        DEFINE VARIABLE wa  AS Rectangle NO-UNDO.
-        DEFINE VARIABLE sz  AS Size    NO-UNDO.
-        DEFINE VARIABLE sel AS CHARACTER NO-UNDO.
+        VAR INTEGER w.
+        VAR INTEGER h.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR Point pt.
+        VAR Rectangle wa.
+        VAR Size sz.
+        VAR CHARACTER sel.
 
         w = MAXIMUM(400, MINIMUM(4000, mSettings:GetInteger(mPrefix + ".window.width", mSettings:GetInteger("window.width", 1000)))).
         h = MAXIMUM(300, MINIMUM(3000, mSettings:GetInteger(mPrefix + ".window.height", mSettings:GetInteger("window.height", 760)))).
@@ -355,8 +354,8 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     /* Puts back each saved option that is still one of the names on offer. A value the game now
        refuses is ignored: a stale settings file must not stop the window from opening. */
     METHOD PRIVATE VOID RestoreOptions():
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE saved AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER saved.
         IF NOT VALID-OBJECT(mOptions) THEN RETURN.
         DO i = 1 TO mOptions:OptionCount:
             saved = mSettings:GetString(mPrefix + "." + mOptions:OptionKey(i), "").
@@ -375,7 +374,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     /* True while one of the game's option lists is dropped down, when it needs the arrow keys and
        the letters for itself. */
     METHOD PRIVATE LOGICAL OptionListOpen():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF EXTENT(mOptionBoxes) = ? THEN RETURN FALSE.
         DO i = 1 TO EXTENT(mOptionBoxes):
             IF mOptionBoxes[i]:DroppedDown THEN RETURN TRUE.
@@ -391,7 +390,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     END METHOD.
 
     METHOD PRIVATE VOID SaveSettings():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO ON ERROR UNDO, THROW:
             IF THIS-OBJECT:WindowState = FormWindowState:Normal THEN DO:
                 mSettings:SetInteger("window.width", THIS-OBJECT:ClientSize:Width).
@@ -421,7 +420,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     /* ---- showing the state ---- */
 
     METHOD PRIVATE VOID UpdateStatus():
-        DEFINE VARIABLE state AS CHARACTER NO-UNDO.
+        VAR CHARACTER state.
         IF mController:Steppable THEN DO:
             state = (IF mController:IsRunning THEN "Running" ELSE "Paused").
             mStatus:Text = SUBSTITUTE("&1   Speed &2   &3", mInput:StatusText, mController:SpeedLevel, state).
@@ -452,7 +451,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
 
     /* Shows what the game has to say about the last action, if anything. */
     METHOD PRIVATE VOID ShowNoticeIfAny():
-        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        VAR CHARACTER notice.
         notice = mInput:TakeNotice().
         IF notice <> "" THEN mView:ShowNotice(notice).
     END METHOD.
@@ -467,9 +466,9 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     /* ---- events ---- */
 
     METHOD PRIVATE VOID OnKeyDown(INPUT poSender AS System.Object, INPUT e AS KeyEventArgs):
-        DEFINE VARIABLE keyName AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE cmd     AS GameCommand NO-UNDO.
-        DEFINE VARIABLE extra   AS CHARACTER NO-UNDO.
+        VAR CHARACTER keyName.
+        VAR GameCommand cmd.
+        VAR CHARACTER extra.
         IF e:Control OR e:Alt THEN RETURN.
         /* an open pattern list needs its arrow keys and letters for itself */
         IF (VALID-OBJECT(mPicker) AND mPicker:DroppedDown) OR OptionListOpen() THEN RETURN.
@@ -515,7 +514,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
 
     /* 1 for the left button, 2 for the right, 3 for the middle, 0 for any other. */
     METHOD PRIVATE INTEGER ButtonNumber(INPUT poArgs AS MouseEventArgs):
-        DEFINE VARIABLE b AS CHARACTER NO-UNDO.
+        VAR CHARACTER b.
         b = STRING(poArgs:Button).
         IF b = "Left" THEN RETURN 1.
         IF b = "Right" THEN RETURN 2.
@@ -524,7 +523,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     END METHOD.
 
     METHOD PRIVATE VOID OnViewMouseDown(INPUT poSender AS System.Object, INPUT e AS MouseEventArgs):
-        DEFINE VARIABLE b AS INTEGER NO-UNDO.
+        VAR INTEGER b.
         mView:Focus().
         b = ButtonNumber(e).
         IF b = 0 THEN RETURN.
@@ -541,10 +540,10 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
        passed on, the cells it jumped over included. The cell the drag started on is passed on first, when the
        pointer first leaves it. */
     METHOD PRIVATE VOID OnViewMouseMove(INPUT poSender AS System.Object, INPUT e AS MouseEventArgs):
-        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n  AS INTEGER NO-UNDO.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR INTEGER i.
+        VAR INTEGER n.
         IF NOT VALID-OBJECT(mDrag) OR NOT mDownHit THEN RETURN.
         IF NOT mHeld[1] OR mHeld[2] OR mHeld[3] THEN RETURN.
         IF NOT mView:HitTest(e:X, e:Y, OUTPUT cx, OUTPUT cy) THEN RETURN.
@@ -565,10 +564,10 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
 
     /* Acts once the last button of the gesture is up, on the cell under the pointer. */
     METHOD PRIVATE VOID OnViewMouseUp(INPUT poSender AS System.Object, INPUT e AS MouseEventArgs):
-        DEFINE VARIABLE b    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cx   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE acted AS LOGICAL NO-UNDO.
+        VAR INTEGER b.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR LOGICAL acted.
         b = ButtonNumber(e).
         IF b = 0 THEN RETURN.
         mHeld[b] = FALSE.
@@ -597,7 +596,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     END METHOD.
 
     METHOD PRIVATE VOID ResetGesture():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 3:
             mHeld[i] = FALSE.
             mGesture[i] = FALSE.
@@ -619,7 +618,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
 
     /* Shows the game's extra text screen and gives the keyboard back to the board. */
     METHOD PRIVATE VOID ShowInfo():
-        DEFINE VARIABLE dialog AS InfoDialog NO-UNDO.
+        VAR InfoDialog dialog.
         DO ON ERROR UNDO, THROW:
             dialog = NEW InfoDialog(SUBSTITUTE("&1 - &2", mTitle, mKeys:NameOf(mInput:InfoLabel)), mInput:InfoText).
             /* ABL only allows a dialog as the target of a WAIT-FOR */
@@ -658,8 +657,8 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
     /* A choice in one of the game's option lists. The game may refuse it, in which case the notice says
        so and the list goes back to what the game has. */
     METHOD PRIVATE VOID OnOptionChanged(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
-        DEFINE VARIABLE box AS ComboBox NO-UNDO.
-        DEFINE VARIABLE i   AS INTEGER  NO-UNDO.
+        VAR ComboBox box.
+        VAR INTEGER i.
         IF mSyncing THEN RETURN.
         box = CAST(poSender, ComboBox).
         IF box:SelectedIndex < 0 THEN RETURN.
@@ -706,7 +705,7 @@ CLASS ProGriddle.UI.WinForms.GameWindow INHERITS Form:
 
     /* Stops the game, saves the settings, removes every handler and frees the board. */
     METHOD PRIVATE VOID OnFormClosed(INPUT poSender AS System.Object, INPUT e AS FormClosedEventArgs):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mController:PauseGame().
         SaveSettings().
 

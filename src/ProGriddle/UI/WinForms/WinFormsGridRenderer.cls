@@ -8,8 +8,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.UI.WinForms.WinFormsGridRenderer FINAL IMPLEMENTS IGridRenderer:
 
-    DEFINE PRIVATE VARIABLE mView  AS GridView  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLayer AS CHARACTER NO-UNDO.
+    VAR PRIVATE GridView mView.
+    VAR PRIVATE CHARACTER mLayer.
 
     CONSTRUCTOR PUBLIC WinFormsGridRenderer(INPUT poView AS GridView, INPUT pcLayer AS CHARACTER):
         IF NOT VALID-OBJECT(poView) THEN UNDO, THROW NEW GridException("A renderer needs a view").

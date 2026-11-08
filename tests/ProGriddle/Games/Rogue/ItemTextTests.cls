@@ -8,7 +8,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.ItemTextTests:
 
-    DEFINE PRIVATE VARIABLE mDisguises AS Disguises NO-UNDO.
+    VAR PRIVATE Disguises mDisguises.
 
     @Setup.
     METHOD PUBLIC VOID BuildDisguises():
@@ -21,7 +21,7 @@ CLASS ProGriddle.Games.Rogue.ItemTextTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownPotionIsCalledByItsColourAndAKnownOneByItsName():
-        DEFINE VARIABLE colour AS CHARACTER NO-UNDO.
+        VAR CHARACTER colour.
         colour = mDisguises:Appearance(ItemType:Potion, INTEGER(PotionKind:Healing)).
         Assert:Equals(ItemText:Article(colour) + " " + colour + " potion", Say(ItemType:Potion, INTEGER(PotionKind:Healing))).
         mDisguises:Learn(ItemType:Potion, INTEGER(PotionKind:Healing)).
@@ -30,8 +30,7 @@ CLASS ProGriddle.Games.Rogue.ItemTextTests:
 
     @Test.
     METHOD PUBLIC VOID AStackSaysItsCountAndPutsTheSOnTheSort():
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
-        oItem = NEW Item(ItemType:Potion, INTEGER(PotionKind:Healing)).
+        VAR Item oItem = NEW Item(ItemType:Potion, INTEGER(PotionKind:Healing)).
         oItem:Count = 3.
         mDisguises:Learn(ItemType:Potion, INTEGER(PotionKind:Healing)).
         Assert:Equals("3 potions of healing", ItemText:Describe(oItem, mDisguises)).
@@ -45,7 +44,7 @@ CLASS ProGriddle.Games.Rogue.ItemTextTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownScrollHasATitleAndAKnownOneAName():
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
+        VAR Item oItem.
         Assert:Equals("a scroll entitled '" + mDisguises:Appearance(ItemType:Scroll, 0) + "'", Say(ItemType:Scroll, 0)).
         oItem = NEW Item(ItemType:Scroll, 0).
         oItem:Count = 2.
@@ -57,8 +56,8 @@ CLASS ProGriddle.Games.Rogue.ItemTextTests:
 
     @Test.
     METHOD PUBLIC VOID WandsAndRingsShowTheirMaterialUntilKnownAndTheirPlusWhenKnown():
-        DEFINE VARIABLE oWand AS Item NO-UNDO.
-        DEFINE VARIABLE oRing AS Item NO-UNDO.
+        VAR Item oWand.
+        VAR Item oRing.
         oWand = NEW Item(ItemType:Wand, INTEGER(WandKind:Fire)).
         oWand:Charges = 4.
         Assert:Equals(mDisguises:Appearance(ItemType:Wand, INTEGER(WandKind:Fire)) + " wand", ItemText:Noun(oWand, mDisguises)).
@@ -80,8 +79,7 @@ CLASS ProGriddle.Games.Rogue.ItemTextTests:
 
     @Test.
     METHOD PUBLIC VOID AWeaponShowsItsPlusOnlyOnceItIsKnown():
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
-        oItem = NEW Item(ItemType:Weapon, INTEGER(WeaponKind:Mace)).
+        VAR Item oItem = NEW Item(ItemType:Weapon, INTEGER(WeaponKind:Mace)).
         oItem:Bonus = 1.
         oItem:DamageBonus = -1.
         Assert:Equals("a mace", ItemText:Describe(oItem, mDisguises)).
@@ -91,8 +89,7 @@ CLASS ProGriddle.Games.Rogue.ItemTextTests:
 
     @Test.
     METHOD PUBLIC VOID ArrowsAreCountedAndShurikenKeepTheirName():
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
-        oItem = NEW Item(ItemType:Weapon, INTEGER(WeaponKind:Arrow)).
+        VAR Item oItem = NEW Item(ItemType:Weapon, INTEGER(WeaponKind:Arrow)).
         oItem:Count = 12.
         Assert:Equals("12 arrows", ItemText:Describe(oItem, mDisguises)).
         oItem = NEW Item(ItemType:Weapon, INTEGER(WeaponKind:Shuriken)).
@@ -102,8 +99,7 @@ CLASS ProGriddle.Games.Rogue.ItemTextTests:
 
     @Test.
     METHOD PUBLIC VOID ArmourShowsItsClassAndItsPlusOnceKnown():
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
-        oItem = NEW Item(ItemType:Armour, INTEGER(ArmourKind:RingMail)).
+        VAR Item oItem = NEW Item(ItemType:Armour, INTEGER(ArmourKind:RingMail)).
         oItem:Bonus = 1.
         Assert:Equals("a ring mail [AC 7]", ItemText:Describe(oItem, mDisguises)).
         oItem:Known = TRUE.
@@ -112,8 +108,7 @@ CLASS ProGriddle.Games.Rogue.ItemTextTests:
 
     @Test.
     METHOD PUBLIC VOID GoldAndTheAmuletHaveTheirOwnWords():
-        DEFINE VARIABLE oGold AS Item NO-UNDO.
-        oGold = NEW Item(ItemType:Gold, 0).
+        VAR Item oGold = NEW Item(ItemType:Gold, 0).
         oGold:Count = 37.
         Assert:Equals("37 pieces of gold", ItemText:Describe(oGold, mDisguises)).
         Assert:Equals("the Amulet of Yendor", ItemText:Describe(Items:Amulet(), mDisguises)).
@@ -123,7 +118,7 @@ CLASS ProGriddle.Games.Rogue.ItemTextTests:
 
     @Test.
     METHOD PUBLIC VOID ArticlesAndSignsAndPluralsFollowTheEnglish():
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
+        VAR Item oItem.
         Assert:Equals("an", ItemText:Article("iron wand")).
         Assert:Equals("a", ItemText:Article("mace")).
         Assert:Equals("a", ItemText:Article("")).
@@ -147,7 +142,7 @@ CLASS ProGriddle.Games.Rogue.ItemTextTests:
 
     @Test.
     METHOD PUBLIC VOID NoItemOrNoDisguisesIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             ItemText:Describe(?, mDisguises).
             CATCH e1 AS GridException:

@@ -14,11 +14,11 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.SoundRenderer FINAL IMPLEMENTS IGridRenderer:
 
-    DEFINE PRIVATE VARIABLE mInner  AS IGridRenderer NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSource AS ICueSource    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlayer AS ISoundPlayer  NO-UNDO.
+    VAR PRIVATE IGridRenderer mInner.
+    VAR PRIVATE ICueSource mSource.
+    VAR PRIVATE ISoundPlayer mPlayer.
     /* the loops that were wanted at the last Render, as a comma list */
-    DEFINE PRIVATE VARIABLE mLoops  AS CHARACTER     NO-UNDO.
+    VAR PRIVATE CHARACTER mLoops.
 
     CONSTRUCTOR PUBLIC SoundRenderer(INPUT poInner AS IGridRenderer, INPUT poSource AS ICueSource, INPUT poPlayer AS ISoundPlayer):
         IF NOT VALID-OBJECT(poInner) OR NOT VALID-OBJECT(poSource) OR NOT VALID-OBJECT(poPlayer) THEN
@@ -29,11 +29,11 @@ CLASS ProGriddle.Engine.SoundRenderer FINAL IMPLEMENTS IGridRenderer:
     END CONSTRUCTOR.
 
     METHOD PUBLIC VOID Render(INPUT poGrid AS Grid, INPUT poGame AS IGame):
-        DEFINE VARIABLE cues   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE usedBy AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cue    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE grp    AS CHARACTER NO-UNDO.
+        VAR CHARACTER cues.
+        VAR CHARACTER usedBy.
+        VAR INTEGER i.
+        VAR INTEGER cue.
+        VAR CHARACTER grp.
         cues = mSource:Poll(poGame).
         IF cues <> ? AND cues <> "" THEN
             DO i = 1 TO NUM-ENTRIES(cues):
@@ -49,7 +49,7 @@ CLASS ProGriddle.Engine.SoundRenderer FINAL IMPLEMENTS IGridRenderer:
 
     /* Starts the loops that are wanted and stops the ones that were wanted at the last Render and no longer are. */
     METHOD PRIVATE VOID KeepLoops(INPUT pcWanted AS CHARACTER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF pcWanted = ? THEN pcWanted = "".
         DO i = 1 TO NUM-ENTRIES(mLoops):
             IF ENTRY(i, mLoops) <> "" AND LOOKUP(ENTRY(i, mLoops), pcWanted) = 0 THEN mPlayer:StopLoop(INTEGER(ENTRY(i, mLoops))).

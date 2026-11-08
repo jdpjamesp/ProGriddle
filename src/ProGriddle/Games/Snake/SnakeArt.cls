@@ -14,7 +14,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.Snake.SnakeArt FINAL:
 
     /* 1 to 9 at 16 pixels, 10 to 18 at 8: head, head_tongue, body_straight, body_corner, tail, food_0 to food_3 */
-    DEFINE PRIVATE STATIC VARIABLE sTiles AS Tile NO-UNDO EXTENT 18.
+    VAR PRIVATE STATIC Tile[18] sTiles.
 
     CONSTRUCTOR STATIC SnakeArt():
         sTiles[1] = NEW Tile("................/555555555555..../1111112223335.../11111222AA335.../11111222AB3445../11112222333445../11122223334445../12222233334445../22222333344445../22223333444445../22333344444445../33333444AB4445../33344444AA445.../3444444444445.../555555555555..../................").   /* head, 16 */

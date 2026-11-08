@@ -10,7 +10,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.UI.WinForms.WinFormsClockTests:
 
-    DEFINE PRIVATE VARIABLE mClock AS WinFormsClock NO-UNDO.
+    VAR PRIVATE WinFormsClock mClock.
 
     @Setup.
     METHOD PUBLIC VOID BuildClock():

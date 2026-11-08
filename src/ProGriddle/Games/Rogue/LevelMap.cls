@@ -15,16 +15,16 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.LevelMap FINAL:
 
-    DEFINE PRIVATE VARIABLE mGrid    AS Grid    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mStore   AS ICellStore NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTerrain AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRoom    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSeen    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mView    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTrap    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFound   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mItem    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mMon     AS INTEGER NO-UNDO.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE ICellStore mStore.
+    VAR PRIVATE INTEGER mTerrain.
+    VAR PRIVATE INTEGER mRoom.
+    VAR PRIVATE INTEGER mSeen.
+    VAR PRIVATE INTEGER mView.
+    VAR PRIVATE INTEGER mTrap.
+    VAR PRIVATE INTEGER mFound.
+    VAR PRIVATE INTEGER mItem.
+    VAR PRIVATE INTEGER mMon.
 
     /* The layers a Rogue grid must have, in order. */
     METHOD PUBLIC STATIC CHARACTER Layers():
@@ -69,7 +69,7 @@ CLASS ProGriddle.Games.Rogue.LevelMap FINAL:
 
     /* Empties every layer: all rock, nothing seen, nothing on it. */
     METHOD PUBLIC VOID ClearAll():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO mStore:LayerCount:
             mStore:FillLayer(i, 0).
         END.
@@ -158,7 +158,7 @@ CLASS ProGriddle.Games.Rogue.LevelMap FINAL:
        are plain numbers because these are asked tens of thousands of times a turn (every step of every search). */
     /* Floor 1, Door 8, Passage 11, Stairs 12: true for terrain that can be walked on. Off the map is not. */
     METHOD PUBLIC LOGICAL Walkable(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        VAR INTEGER t.
         t = TerrainAt(piX, piY).
         RETURN t = 1 OR t = 8 OR t = 11 OR t = 12.
     END METHOD.
@@ -170,14 +170,14 @@ CLASS ProGriddle.Games.Rogue.LevelMap FINAL:
 
     /* True for a door, found or not (Door 8, SecretAcross 9, SecretDown 10): no diagonal step goes into or out of one. */
     METHOD PUBLIC LOGICAL IsDoorway(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        VAR INTEGER t.
         t = TerrainAt(piX, piY).
         RETURN t >= 8 AND t <= 10.
     END METHOD.
 
     /* True for a secret door that has not been found. */
     METHOD PUBLIC LOGICAL IsSecret(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        VAR INTEGER t.
         t = TerrainAt(piX, piY).
         RETURN t = 9 OR t = 10.
     END METHOD.

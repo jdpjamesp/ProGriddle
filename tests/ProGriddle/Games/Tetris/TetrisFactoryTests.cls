@@ -14,7 +14,7 @@ CLASS ProGriddle.Games.Tetris.TetrisFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID CreateFieldMakesAnEmptyBoardSizedStoreWithBothLayers():
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR ICellStore s.
         DO ON ERROR UNDO, THROW:
             s = TetrisFactory:CreateField(10, 20).
             Assert:Equals(10, s:Width).
@@ -31,7 +31,7 @@ CLASS ProGriddle.Games.Tetris.TetrisFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID CreateGridIsTheBoardPlusADividerAndAPanelOfSixAndDoesNotWrap():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = TetrisFactory:CreateGrid(8, 12).
             Assert:Equals(15, g:Width).
@@ -48,7 +48,7 @@ CLASS ProGriddle.Games.Tetris.TetrisFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID CreateMakesTheUsualTenByTwentyGameReadyToPlay():
-        DEFINE VARIABLE g AS TetrisGame NO-UNDO.
+        VAR TetrisGame g.
         DO ON ERROR UNDO, THROW:
             g = TetrisFactory:Create(NEW SeededRandom(1)).
             Assert:Equals("Tetris", g:Name).
@@ -66,7 +66,7 @@ CLASS ProGriddle.Games.Tetris.TetrisFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID CreateSizedMakesABoardOfAnotherSize():
-        DEFINE VARIABLE g AS TetrisGame NO-UNDO.
+        VAR TetrisGame g.
         DO ON ERROR UNDO, THROW:
             g = TetrisFactory:CreateSized(12, 24, NEW SeededRandom(1)).
             Assert:Equals(12, g:BoardWidth).
@@ -80,7 +80,7 @@ CLASS ProGriddle.Games.Tetris.TetrisFactoryTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ABoardTooSmallIsRefused():
-        DEFINE VARIABLE g AS TetrisGame NO-UNDO.
+        VAR TetrisGame g.
         g = TetrisFactory:CreateSized(4, 20, NEW SeededRandom(1)).
     END METHOD.
 

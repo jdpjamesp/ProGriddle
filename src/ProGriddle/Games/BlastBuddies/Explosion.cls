@@ -11,9 +11,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.BlastBuddies.Explosion FINAL:
 
-    DEFINE PRIVATE VARIABLE mHits   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBuddy  AS Buddy   NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mDamage AS INTEGER NO-UNDO EXTENT 16.
+    VAR PRIVATE INTEGER mHits.
+    VAR PRIVATE Buddy[16] mBuddy.
+    VAR PRIVATE INTEGER[16] mDamage.
 
     /* How many buddies the last blast hurt. */
     METHOD PUBLIC INTEGER HitCount():
@@ -35,16 +35,16 @@ CLASS ProGriddle.Games.BlastBuddies.Explosion FINAL:
        dead, and the living are hurt. Returns how many buddies were hurt. */
     METHOD PUBLIC INTEGER Detonate(INPUT poTerrain AS Terrain, INPUT poPlan AS TurnPlan, INPUT poPhysics AS BuddyPhysics,
                                    INPUT piCx AS INTEGER, INPUT piCy AS INTEGER, INPUT piRadius AS INTEGER, INPUT piDamage AS INTEGER):
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b     AS Buddy   NO-UNDO.
-        DEFINE VARIABLE reach AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d     AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE portion AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE dmg   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE speed AS DECIMAL NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR Buddy b.
+        VAR INTEGER reach.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR DECIMAL d.
+        VAR DECIMAL portion.
+        VAR INTEGER dmg.
+        VAR DECIMAL speed.
         IF NOT VALID-OBJECT(poTerrain) OR NOT VALID-OBJECT(poPlan) OR NOT VALID-OBJECT(poPhysics) THEN
             UNDO, THROW NEW GridException("A blast needs a terrain, a plan and physics").
         mHits = 0.

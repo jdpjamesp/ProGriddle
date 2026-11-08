@@ -10,7 +10,7 @@ CLASS ProGriddle.Games.Rogue.ItemsTests:
 
     @Test.
     METHOD PUBLIC VOID APlainItemIsOneOfItsKindWithNoPlus():
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
+        VAR Item oItem.
         oItem = Items:Make(ItemType:Armour, INTEGER(ArmourKind:ChainMail)).
         Assert:Equals(ItemType:Armour, oItem:Category).
         Assert:Equals(INTEGER(ArmourKind:ChainMail), oItem:Kind).
@@ -46,9 +46,9 @@ CLASS ProGriddle.Games.Rogue.ItemsTests:
 
     @Test.
     METHOD PUBLIC VOID ManyRandomItemsAreSensible():
-        DEFINE VARIABLE oRandom AS SeededRandom NO-UNDO.
-        DEFINE VARIABLE oItem   AS Item         NO-UNDO.
-        DEFINE VARIABLE i       AS INTEGER      NO-UNDO.
+        VAR SeededRandom oRandom.
+        VAR Item oItem.
+        VAR INTEGER i.
         oRandom = NEW SeededRandom(21).
         DO i = 1 TO 600:
             oItem = Items:Roll(oRandom).
@@ -63,7 +63,7 @@ CLASS ProGriddle.Games.Rogue.ItemsTests:
 
     @Test.
     METHOD PUBLIC VOID ACursedSuitOfArmourHasAMinus():
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
+        VAR Item oItem.
         /* armour kind 0, then 5 under 20: cursed, bonus -(2 + 1) */
         oItem = Items:OfSort(ItemType:Armour, NEW ScriptedRandom("0,5,2")).
         Assert:IsTrue(oItem:Cursed).
@@ -76,7 +76,7 @@ CLASS ProGriddle.Games.Rogue.ItemsTests:
 
     @Test.
     METHOD PUBLIC VOID AStackOfArrowsHasEightToFifteen():
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
+        VAR Item oItem.
         /* kind roll 80 lands on arrows (chances 11,11,8,10,8,12,12,...), then count 3, then no curse and no plus */
         oItem = Items:OfSort(ItemType:Weapon, NEW ScriptedRandom("60,3,50,50,50")).
         Assert:Equals(INTEGER(WeaponKind:Arrow), oItem:Kind).
@@ -85,7 +85,7 @@ CLASS ProGriddle.Games.Rogue.ItemsTests:
 
     @Test.
     METHOD PUBLIC VOID ARingOfProtectionHasASizeAndMayBeCursed():
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
+        VAR Item oItem.
         /* kind 0, size 2 + 1, then 10 under 30: cursed, so -3 */
         oItem = Items:OfSort(ItemType:Ring, NEW ScriptedRandom("0,2,10")).
         Assert:Equals(INTEGER(RingKind:Protection), oItem:Kind).
@@ -98,7 +98,7 @@ CLASS ProGriddle.Games.Rogue.ItemsTests:
 
     @Test.
     METHOD PUBLIC VOID RingsOfAggravationAndTeleportationAreAlwaysCursed():
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
+        VAR Item oItem.
         /* roll 40 falls in aggravate monster (chances 9,9,5,10,10,1,10,...: 0-8, 9-17, 18-22, 23-32, 33-42, 43, 44-53) */
         oItem = Items:OfSort(ItemType:Ring, NEW ScriptedRandom("44")).
         Assert:Equals(INTEGER(RingKind:Aggravation), oItem:Kind).
@@ -108,7 +108,7 @@ CLASS ProGriddle.Games.Rogue.ItemsTests:
 
     @Test.
     METHOD PUBLIC VOID AWandGetsItsStartingCharges():
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
+        VAR Item oItem.
         oItem = Items:OfSort(ItemType:Wand, NEW ScriptedRandom("0,9")).
         Assert:Equals(INTEGER(WandKind:Light), oItem:Kind).
         Assert:Equals(19, oItem:Charges).
@@ -123,7 +123,7 @@ CLASS ProGriddle.Games.Rogue.ItemsTests:
 
     @Test.
     METHOD PUBLIC VOID GoldTheAmuletAndNoRandomSourceAreRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             Items:OfSort(ItemType:Gold, NEW ScriptedRandom("0")).
             CATCH e1 AS GridException:

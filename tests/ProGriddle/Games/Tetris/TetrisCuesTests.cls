@@ -10,8 +10,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Tetris.TetrisCuesTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS TetrisGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCues AS TetrisCues NO-UNDO.
+    VAR PRIVATE TetrisGame mGame.
+    VAR PRIVATE TetrisCues mCues.
 
     @Setup.
     METHOD PUBLIC VOID BuildCues():
@@ -35,7 +35,7 @@ CLASS ProGriddle.Games.Tetris.TetrisCuesTests:
 
     /* turns the I piece upright and drops it in the gap at the right of "IIIIIII.II", which fills the bottom row */
     METHOD PRIVATE VOID DropIntoTheGap():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mGame:RotateClockwise().
         DO i = 1 TO 3:
             mGame:MoveRight().
@@ -92,9 +92,9 @@ CLASS ProGriddle.Games.Tetris.TetrisCuesTests:
 
     @Test.
     METHOD PUBLIC VOID TheTenthLineGivesALevelUpAfterTheClearAndTheLock():
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cues   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE levels AS INTEGER   NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER cues.
+        VAR INTEGER levels.
         DO i = 1 TO 10:
             mGame:Tick(5).
             mGame:LoadLocked("IIIIIII.II").
@@ -109,11 +109,11 @@ CLASS ProGriddle.Games.Tetris.TetrisCuesTests:
 
     @Test.
     METHOD PUBLIC VOID TheStackReachingTheTopGivesOneDangerAndTheEndOneGameOverFirst():
-        DEFINE VARIABLE drops  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cues   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE dangers AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE overs  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE order  AS CHARACTER NO-UNDO.
+        VAR INTEGER drops.
+        VAR CHARACTER cues.
+        VAR INTEGER dangers.
+        VAR INTEGER overs.
+        VAR CHARACTER order.
         mGame:StartWith("O,O,O,O,O,O,O,O,O,O,O,O,O,O,O,O").
         mCues:Poll(mGame).
         DO WHILE NOT mGame:IsOver AND drops < 20:
@@ -153,9 +153,8 @@ CLASS ProGriddle.Games.Tetris.TetrisCuesTests:
 
     @Test.
     METHOD PUBLIC VOID AGameThatIsNotTetrisThrowsGridException():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oOther AS CountingGame NO-UNDO.
-        oOther = NEW CountingGame(NEW Grid(NEW ArrayStore(2, 2, "state")), 0).
+        VAR INTEGER thrown.
+        VAR CountingGame oOther = NEW CountingGame(NEW Grid(NEW ArrayStore(2, 2, "state")), 0).
         DO ON ERROR UNDO, THROW:
             mCues:Poll(oOther).
             CATCH e1 AS GridException:
@@ -168,8 +167,8 @@ CLASS ProGriddle.Games.Tetris.TetrisCuesTests:
     /* End to end: the cues of a real game, through the renderer, reach the player. */
     @Test.
     METHOD PUBLIC VOID TheSoundRendererPlaysTheCuesOfARealGame():
-        DEFINE VARIABLE oPlayer   AS RecordingSoundPlayer NO-UNDO.
-        DEFINE VARIABLE oRenderer AS SoundRenderer        NO-UNDO.
+        VAR RecordingSoundPlayer oPlayer.
+        VAR SoundRenderer oRenderer.
         oPlayer = NEW RecordingSoundPlayer().
         oRenderer = NEW SoundRenderer(NEW RecordingRenderer(), mCues, oPlayer).
         mGame:LoadLocked("IIIIIII.II").

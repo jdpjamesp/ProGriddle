@@ -14,8 +14,7 @@ CLASS ProGriddle.Engine.TileTests:
 
     @Test.
     METHOD PUBLIC VOID ATileKnowsItsSizeAndEachPixel():
-        DEFINE VARIABLE t AS Tile NO-UNDO.
-        t = NEW Tile("12./3.A").
+        VAR Tile t = NEW Tile("12./3.A").
         Assert:Equals(3, t:Width).
         Assert:Equals(2, t:Height).
         Assert:Equals("1", t:PixelAt(0, 0)).
@@ -25,7 +24,7 @@ CLASS ProGriddle.Engine.TileTests:
 
     @Test.
     METHOD PUBLIC VOID ATileRefusesNothingRaggedRowsAndOddCharacters():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW Tile("").
             CATCH e1 AS GridException:
@@ -49,8 +48,8 @@ CLASS ProGriddle.Engine.TileTests:
 
     @Test.
     METHOD PUBLIC VOID TurnedRotatesASquareTileClockwise():
-        DEFINE VARIABLE t  AS Tile NO-UNDO.
-        DEFINE VARIABLE t1 AS Tile NO-UNDO.
+        VAR Tile t.
+        VAR Tile t1.
         /* 1 at the top left, 2 at the top right, 3 at the bottom left */
         t = NEW Tile("12/3.").
         t1 = t:Turned(1).
@@ -69,7 +68,7 @@ CLASS ProGriddle.Engine.TileTests:
 
     @Test.
     METHOD PUBLIC VOID ATileThatIsNotSquareCannotBeTurned():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW Tile("123/456"):Turned(1).
             CATCH e1 AS GridException:
@@ -81,8 +80,7 @@ CLASS ProGriddle.Engine.TileTests:
 
     @Test.
     METHOD PUBLIC VOID ColouriseGivesAStampWithATonePerPixelAndNothingWhereThereIsADot():
-        DEFINE VARIABLE s AS PixelStamp NO-UNDO.
-        s = NEW Tile("15/.3"):Colourise({&TONES}, "").
+        VAR PixelStamp s = NEW Tile("15/.3"):Colourise({&TONES}, "").
         Assert:Equals(2, s:Width).
         Assert:Equals(2, s:Height).
         Assert:Equals(3, s:Count).
@@ -95,8 +93,7 @@ CLASS ProGriddle.Engine.TileTests:
 
     @Test.
     METHOD PUBLIC VOID LettersTakeTheirColoursFromTheLegend():
-        DEFINE VARIABLE s AS PixelStamp NO-UNDO.
-        s = NEW Tile("AB/3."):Colourise({&TONES}, "A=112233,B=445566").
+        VAR PixelStamp s = NEW Tile("AB/3."):Colourise({&TONES}, "A=112233,B=445566").
         Assert:Equals(ColourMath:FromHex("112233"), s:ColourAt(0, 0)).
         Assert:Equals(ColourMath:FromHex("445566"), s:ColourAt(1, 0)).
         Assert:Equals(ColourMath:FromHex("D00000"), s:ColourAt(0, 1)).
@@ -105,7 +102,7 @@ CLASS ProGriddle.Engine.TileTests:
 
     @Test.
     METHOD PUBLIC VOID ColouriseRefusesAWrongToneListAndALetterThatIsNotInTheLegend():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW Tile("1"):Colourise("F00000,E00000", "").
             CATCH e1 AS GridException:

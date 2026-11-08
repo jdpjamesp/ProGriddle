@@ -47,8 +47,8 @@ CLASS ProGriddle.Games.Xevious.XeviousSounds FINAL:
 
     /* Makes the sound of every cue into a bank, under the cue's number. */
     METHOD PUBLIC STATIC VOID Fill(INPUT poBank AS SoundBank):
-        DEFINE VARIABLE i   AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE cue AS XeviousCue NO-UNDO.
+        VAR INTEGER i.
+        VAR XeviousCue cue.
         DO i = INTEGER(XeviousCue:Zap) TO INTEGER(XeviousCue:BossLoop):
             cue = XeviousCue:GetEnum(i).
             poBank:Define(i, Recipe(cue), VolumeOf(cue)).

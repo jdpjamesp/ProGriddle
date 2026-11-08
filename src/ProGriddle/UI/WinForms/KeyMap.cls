@@ -34,8 +34,8 @@ CLASS ProGriddle.UI.WinForms.KeyMap FINAL:
     /* The name of the extra command whose key letter is pcKey, or an empty string. pcCommands
        is the text from IGameInput:CommandNames. Letters are compared ignoring case. */
     METHOD PUBLIC CHARACTER ExtraFor(INPUT pcKey AS CHARACTER, INPUT pcCommands AS CHARACTER):
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE item AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER item.
         IF pcKey = ? OR LENGTH(pcKey) <> 1 OR pcCommands = ? OR pcCommands = "" THEN RETURN "".
         DO i = 1 TO NUM-ENTRIES(pcCommands):
             item = TRIM(ENTRY(i, pcCommands)).

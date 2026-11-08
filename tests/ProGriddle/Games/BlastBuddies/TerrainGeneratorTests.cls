@@ -10,7 +10,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.BlastBuddies.TerrainGeneratorTests:
 
-    DEFINE PRIVATE VARIABLE mGen AS TerrainGenerator NO-UNDO.
+    VAR PRIVATE TerrainGenerator mGen.
 
     @Setup.
     METHOD PUBLIC VOID Setup():
@@ -18,16 +18,15 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGeneratorTests:
     END METHOD.
 
     METHOD PRIVATE Terrain Make(INPUT piSeed AS INTEGER):
-        DEFINE VARIABLE t AS Terrain NO-UNDO.
-        t = NEW Terrain(Theme:Meadow).
+        VAR Terrain t = NEW Terrain(Theme:Meadow).
         mGen:Generate(t, NEW SeededRandom(piSeed)).
         RETURN t.
     END METHOD.
 
     /* a number that changes if any column's top changes */
     METHOD PRIVATE INT64 Signature(INPUT poT AS Terrain):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS INT64   NO-UNDO.
+        VAR INTEGER x.
+        VAR INT64 s.
         DO x = 0 TO 383:
             s = (s * 31 + (IF poT:FirstGround(x) = ? THEN 0 ELSE poT:FirstGround(x)) + 1) MODULO 2147483647.
         END.
@@ -36,9 +35,9 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGeneratorTests:
 
     @Test.
     METHOD PUBLIC VOID TheSameSeedGivesTheSameLandAndADifferentSeedGivesAnother():
-        DEFINE VARIABLE a AS Terrain NO-UNDO.
-        DEFINE VARIABLE b AS Terrain NO-UNDO.
-        DEFINE VARIABLE c AS Terrain NO-UNDO.
+        VAR Terrain a.
+        VAR Terrain b.
+        VAR Terrain c.
         a = Make(7).
         b = Make(7).
         c = Make(8).
@@ -51,9 +50,9 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGeneratorTests:
 
     @Test.
     METHOD PUBLIC VOID TheLandFillsTheMapBetweenTheOpenEdgesAndDownToTheBottom():
-        DEFINE VARIABLE t AS Terrain NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR Terrain t.
+        VAR INTEGER x.
+        VAR INTEGER y.
         t = Make(3).
         DO x = 0 TO 9:
             DO y = 0 TO 239:
@@ -70,9 +69,9 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGeneratorTests:
 
     @Test.
     METHOD PUBLIC VOID TheSurfaceStaysBetweenRowsSeventyAndOneNinety():
-        DEFINE VARIABLE t   AS Terrain NO-UNDO.
-        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE topY AS INTEGER NO-UNDO.
+        VAR Terrain t.
+        VAR INTEGER x.
+        VAR INTEGER topY.
         t = Make(11).
         DO x = 10 TO 373:
             topY = t:FirstGround(x).
@@ -84,8 +83,8 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGeneratorTests:
 
     @Test.
     METHOD PUBLIC VOID NoSmallPieceIsLeftFloating():
-        DEFINE VARIABLE t AS Terrain NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR Terrain t.
+        VAR INTEGER n.
         DO n = 21 TO 30:
             t = Make(n).
             Assert:Equals(0, t:Crumble(192, 120, 200)).
@@ -95,7 +94,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGeneratorTests:
 
     @Test.
     METHOD PUBLIC VOID AGeneratorNeedsAMapAndARandomSource():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             mGen:Generate(?, NEW SeededRandom(1)).
             CATCH e AS GridException:
@@ -107,8 +106,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGeneratorTests:
 
     @Test.
     METHOD PUBLIC VOID StandableNeedsNearlyFlatGroundAirAboveAndRoomAboveTheWater():
-        DEFINE VARIABLE t AS Terrain NO-UNDO.
-        t = NEW Terrain(Theme:Meadow).
+        VAR Terrain t = NEW Terrain(Theme:Meadow).
         t:FillRect(0, 100, 383, 239, TRUE).
         Assert:IsTrue(mGen:Standable(t, 100, 100)).
         /* a step of 6 pixels under the nine is still fine (a buddy walks up steps of 3 a pixel), 7 is not */
@@ -124,8 +122,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGeneratorTests:
 
     @Test.
     METHOD PUBLIC VOID GroundNearTheWaterOrTheTopOfTheMapIsNotStandable():
-        DEFINE VARIABLE t AS Terrain NO-UNDO.
-        t = NEW Terrain(Theme:Meadow).
+        VAR Terrain t = NEW Terrain(Theme:Meadow).
         t:FillRect(0, 210, 383, 239, TRUE).
         Assert:IsFalse(mGen:Standable(t, 100, 210)).
         t:FillRect(0, 10, 383, 239, TRUE).
@@ -135,13 +132,13 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGeneratorTests:
 
     @Test.
     METHOD PUBLIC VOID FindSpotsPicksSpacedOutStandableSpotsAndIsDeterministic():
-        DEFINE VARIABLE t  AS Terrain NO-UNDO.
-        DEFINE VARIABLE xs AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE ys AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE x2 AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE y2 AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j  AS INTEGER NO-UNDO.
+        VAR Terrain t.
+        VAR INTEGER[] xs.
+        VAR INTEGER[] ys.
+        VAR INTEGER[] x2.
+        VAR INTEGER[] y2.
+        VAR INTEGER i.
+        VAR INTEGER j.
         t = Make(5).
         mGen:FindSpots(t, NEW SeededRandom(99), 12, 20, OUTPUT xs, OUTPUT ys).
         mGen:FindSpots(t, NEW SeededRandom(99), 12, 20, OUTPUT x2, OUTPUT y2).
@@ -161,10 +158,10 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGeneratorTests:
 
     @Test.
     METHOD PUBLIC VOID FindSpotsRefusesWhenThereIsNoRoom():
-        DEFINE VARIABLE t       AS Terrain NO-UNDO.
-        DEFINE VARIABLE xs      AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE ys      AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR Terrain t.
+        VAR INTEGER[] xs.
+        VAR INTEGER[] ys.
+        VAR LOGICAL lThrown.
         t = NEW Terrain(Theme:Meadow).
         DO ON ERROR UNDO, LEAVE:
             mGen:FindSpots(t, NEW SeededRandom(1), 2, 20, OUTPUT xs, OUTPUT ys).
@@ -200,11 +197,11 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGeneratorTests:
 
     @Test.
     METHOD PUBLIC VOID AHundredSeedsAllHaveRoomForSixteenBuddies():
-        DEFINE VARIABLE t  AS Terrain NO-UNDO.
-        DEFINE VARIABLE xs AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE ys AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE s  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ms AS INTEGER NO-UNDO.
+        VAR Terrain t.
+        VAR INTEGER[] xs.
+        VAR INTEGER[] ys.
+        VAR INTEGER s.
+        VAR INTEGER ms.
         ETIME(TRUE).
         DO s = 1 TO 100:
             t = Make(s).

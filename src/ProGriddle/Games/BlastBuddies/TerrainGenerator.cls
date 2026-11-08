@@ -17,9 +17,9 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGenerator FINAL:
     /* One wave of a land: a sine with a period in pixels, a phase in steps of a 64 step turn and an amplitude in pixels, got from the 64 step
        table with the steps in between worked out as a straight line. */
     METHOD PRIVATE DECIMAL Wave(INPUT piX AS INTEGER, INPUT pdPeriod AS DECIMAL, INPUT pdPhase AS DECIMAL):
-        DEFINE VARIABLE t  AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE i0 AS INTEGER NO-UNDO.
-        DEFINE VARIABLE f  AS DECIMAL NO-UNDO.
+        VAR DECIMAL t.
+        VAR INTEGER i0.
+        VAR DECIMAL f.
         t = piX * 64 / pdPeriod + pdPhase.
         t = t - 64 * TRUNCATE(t / 64, 0).
         i0 = INTEGER(TRUNCATE(t, 0)).
@@ -34,26 +34,26 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGenerator FINAL:
 
     /* Fills a map with new ground. The map should be empty. */
     METHOD PUBLIC VOID Generate(INPUT poTerrain AS Terrain, INPUT poRandom AS IRandom):
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE surf   AS INTEGER NO-UNDO EXTENT 384.
-        DEFINE VARIABLE base   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE p1     AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE p2     AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE p3     AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE a1     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE a2     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE a3     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE l1     AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE l2     AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE l3     AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE h      AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE cx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rad    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ea     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE eb     AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER k.
+        VAR INTEGER[384] surf.
+        VAR INTEGER base.
+        VAR DECIMAL p1.
+        VAR DECIMAL p2.
+        VAR DECIMAL p3.
+        VAR INTEGER a1.
+        VAR INTEGER a2.
+        VAR INTEGER a3.
+        VAR DECIMAL l1.
+        VAR DECIMAL l2.
+        VAR DECIMAL l3.
+        VAR DECIMAL h.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR INTEGER rad.
+        VAR INTEGER ea.
+        VAR INTEGER eb.
         IF NOT VALID-OBJECT(poTerrain) OR NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("A generator needs a map and a random source").
         base = RandomIn(poRandom, 115, 135).
         l1 = RandomIn(poRandom, 200, 300).
@@ -90,8 +90,8 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGenerator FINAL:
 
     /* Turns the pixels within a radius of a point to air, without any scorch. */
     METHOD PRIVATE VOID ClearDisc(INPUT poTerrain AS Terrain, INPUT piCx AS INTEGER, INPUT piCy AS INTEGER, INPUT piR AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO y = piCy - piR TO piCy + piR:
             DO x = piCx - piR TO piCx + piR:
                 IF (x - piCx) * (x - piCx) + (y - piCy) * (y - piCy) <= piR * piR AND poTerrain:InBounds(x, y) THEN poTerrain:SetSolid(x, y, FALSE).
@@ -101,8 +101,8 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGenerator FINAL:
 
     /* Turns the pixels inside an ellipse with half widths piA across and piB down to ground. */
     METHOD PRIVATE VOID FillEllipse(INPUT poTerrain AS Terrain, INPUT piCx AS INTEGER, INPUT piCy AS INTEGER, INPUT piA AS INTEGER, INPUT piB AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO y = piCy - piB TO piCy + piB:
             DO x = piCx - piA TO piCx + piA:
                 IF (x - piCx) * (x - piCx) * piB * piB + (y - piCy) * (y - piCy) * piA * piA <= piA * piA * piB * piB AND poTerrain:InBounds(x, y) THEN
@@ -117,25 +117,25 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGenerator FINAL:
        no order. Throws if the land has no room. */
     METHOD PUBLIC VOID FindSpots(INPUT poTerrain AS Terrain, INPUT poRandom AS IRandom, INPUT piCount AS INTEGER, INPUT piSpacing AS INTEGER,
                                  OUTPUT paX AS INTEGER EXTENT, OUTPUT paY AS INTEGER EXTENT):
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE nc     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE nm     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE left   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE span   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lo     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hi     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE centre AS INTEGER NO-UNDO.
-        DEFINE VARIABLE best   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bestD  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tmp    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ok     AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE tops   AS INTEGER NO-UNDO EXTENT 384.
-        DEFINE VARIABLE cand   AS INTEGER NO-UNDO EXTENT 384.
-        DEFINE VARIABLE near   AS INTEGER NO-UNDO EXTENT 384.
+        VAR INTEGER n.
+        VAR INTEGER nc.
+        VAR INTEGER nm.
+        VAR INTEGER x.
+        VAR INTEGER s.
+        VAR INTEGER j.
+        VAR INTEGER k.
+        VAR INTEGER left.
+        VAR INTEGER span.
+        VAR INTEGER lo.
+        VAR INTEGER hi.
+        VAR INTEGER centre.
+        VAR INTEGER best.
+        VAR INTEGER bestD.
+        VAR INTEGER tmp.
+        VAR LOGICAL ok.
+        VAR INTEGER[384] tops.
+        VAR INTEGER[384] cand.
+        VAR INTEGER[384] near.
         IF piCount < 1 THEN UNDO, THROW NEW GridException("A map needs at least one start spot").
         EXTENT(paX) = piCount.
         EXTENT(paY) = piCount.
@@ -190,8 +190,8 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGenerator FINAL:
        columns it covers is within 3 pixels of the others (so there is nothing above it but sky, because the first ground is the highest),
        and it is not too high up or too near the water. */
     METHOD PUBLIC LOGICAL Standable(INPUT poTerrain AS Terrain, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE tops AS INTEGER NO-UNDO EXTENT 384.
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
+        VAR INTEGER[384] tops.
+        VAR INTEGER x.
         DO x = MAXIMUM(piX - 4, 0) TO MINIMUM(piX + 4, Terrain:Width() - 1):
             tops[x + 1] = poTerrain:FirstGround(x).
         END.
@@ -200,10 +200,10 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainGenerator FINAL:
 
     /* Standable, from a list of the first ground of every column (unknown for a column with none). */
     METHOD PRIVATE LOGICAL FlatUnder(INPUT paTops AS INTEGER EXTENT, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE topY AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lo   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hi   AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER topY.
+        VAR INTEGER lo.
+        VAR INTEGER hi.
         IF piY > 205 OR piY < 20 THEN RETURN FALSE.
         IF piX < 4 OR piX > Terrain:Width() - 5 THEN RETURN FALSE.
         lo = piY.

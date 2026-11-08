@@ -20,7 +20,7 @@ CLASS ProGriddle.Engine.OutlinePen FINAL:
 
     &SCOPED-DEFINE LIFT 1024
 
-    DEFINE PRIVATE VARIABLE mCanvas AS PixelCanvas NO-UNDO.
+    VAR PRIVATE PixelCanvas mCanvas.
 
     CONSTRUCTOR PUBLIC OutlinePen(INPUT poCanvas AS PixelCanvas):
         IF NOT VALID-OBJECT(poCanvas) THEN UNDO, THROW NEW GridException("A pen needs a canvas").
@@ -49,12 +49,12 @@ CLASS ProGriddle.Engine.OutlinePen FINAL:
     METHOD PUBLIC VOID DrawWrapped(INPUT poOutline AS Outline, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piHeading AS INTEGER,
                                    INPUT piExtent AS INTEGER, INPUT piKind AS INTEGER, INPUT piColour AS INTEGER,
                                    INPUT piOffsetX AS INTEGER, INPUT piOffsetY AS INTEGER):
-        DEFINE VARIABLE w     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE shiftX AS INTEGER NO-UNDO.
-        DEFINE VARIABLE shiftY AS INTEGER NO-UNDO.
+        VAR INTEGER w.
+        VAR INTEGER h.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR INTEGER shiftX.
+        VAR INTEGER shiftY.
         w = mCanvas:Width.
         h = mCanvas:Height.
         cx = INTEGER(TRUNCATE((piX + 128 + {&LIFT} * 256) / 256, 0)) - {&LIFT}.

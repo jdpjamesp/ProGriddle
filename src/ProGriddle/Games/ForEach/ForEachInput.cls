@@ -21,11 +21,11 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.ForEachInput FINAL IMPLEMENTS IGameInput:
 
-    DEFINE PRIVATE VARIABLE mGame     AS ForEachGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS ISettings   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlayer   AS ISoundPlayer NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNotice   AS CHARACTER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSavedHi  AS INTEGER     NO-UNDO.
+    VAR PRIVATE ForEachGame mGame.
+    VAR PRIVATE ISettings mSettings.
+    VAR PRIVATE ISoundPlayer mPlayer.
+    VAR PRIVATE CHARACTER mNotice.
+    VAR PRIVATE INTEGER mSavedHi.
 
     DEFINE PUBLIC PROPERTY StatusText AS CHARACTER NO-UNDO
         GET():
@@ -91,7 +91,7 @@ CLASS ProGriddle.Games.ForEach.ForEachInput FINAL IMPLEMENTS IGameInput:
 
     /* What the last key said, once. */
     METHOD PUBLIC CHARACTER TakeNotice():
-        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        VAR CHARACTER notice.
         notice = mNotice.
         mNotice = "".
         RETURN notice.

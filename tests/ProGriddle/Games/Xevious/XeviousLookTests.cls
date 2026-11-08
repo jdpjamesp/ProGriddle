@@ -12,11 +12,11 @@ CLASS ProGriddle.Games.Xevious.XeviousLookTests:
 
     @Test.
     METHOD PUBLIC VOID EveryTintHasAColourInRangeAndThePaletteHasAtMostSixtyFourValues():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE seen AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE kinds AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER c.
+        VAR CHARACTER seen.
+        VAR INTEGER kinds.
         DO i = INTEGER(XeviousTint:Meadow) TO INTEGER(XeviousTint:Haze):
             c = XeviousLook:Colour(XeviousTint:GetEnum(i)).
             Assert:IsTrue(c >= 0 AND c <= 16777215).
@@ -56,8 +56,8 @@ CLASS ProGriddle.Games.Xevious.XeviousLookTests:
 
     @Test.
     METHOD PUBLIC VOID ACharacterThatIsNotAColourIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c      AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
+        VAR INTEGER c.
         DO ON ERROR UNDO, THROW:
             c = XeviousLook:CodeColour("~~", FALSE).
             CATCH e1 AS GridException:
@@ -69,8 +69,8 @@ CLASS ProGriddle.Games.Xevious.XeviousLookTests:
 
     @Test.
     METHOD PUBLIC VOID EverySpriteIsTheSizeTheDesignSaysAndHasItsRows():
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rows AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER rows.
         DO i = INTEGER(XeviousPicture:Lark) TO INTEGER(XeviousPicture:MiniLark):
             rows = XeviousArt:Rows(XeviousPicture:GetEnum(i)).
             Assert:Equals(XeviousArt:Height(XeviousPicture:GetEnum(i)), NUM-ENTRIES(rows, "/")).
@@ -101,8 +101,8 @@ CLASS ProGriddle.Games.Xevious.XeviousLookTests:
 
     @Test.
     METHOD PUBLIC VOID EveryTileIs16By16():
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rows AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER rows.
         DO i = INTEGER(XeviousTilePicture:Open1) TO INTEGER(XeviousTilePicture:LinesLarkSe):
             rows = XeviousTileArt:Rows(XeviousTilePicture:GetEnum(i)).
             Assert:Equals(16, NUM-ENTRIES(rows, "/")).

@@ -12,11 +12,11 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.ForEach.ForEachArtTests:
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE n       AS INTEGER        NO-UNDO.
-        DEFINE VARIABLE words    AS CHARACTER      NO-UNDO.
-        DEFINE VARIABLE picture AS ForEachPicture NO-UNDO.
-        DEFINE VARIABLE tint    AS ForEachTint    NO-UNDO.
-        DEFINE VARIABLE colourRow     AS ForEachRow     NO-UNDO.
+        VAR INTEGER n.
+        VAR CHARACTER words.
+        VAR ForEachPicture picture.
+        VAR ForEachTint tint.
+        VAR ForEachRow colourRow.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN words = ForEachArt:Rows(picture).
@@ -38,12 +38,12 @@ CLASS ProGriddle.Games.ForEach.ForEachArtTests:
 
     @Test.
     METHOD PUBLIC VOID EveryPictureIsATileThatColoursWithItsOwnLegend():
-        DEFINE VARIABLE i       AS INTEGER        NO-UNDO.
-        DEFINE VARIABLE picture AS ForEachPicture NO-UNDO.
-        DEFINE VARIABLE tile    AS Tile           NO-UNDO.
-        DEFINE VARIABLE stamp   AS PixelStamp     NO-UNDO.
-        DEFINE VARIABLE colourRow     AS ForEachRow     NO-UNDO.
-        DEFINE VARIABLE tones   AS CHARACTER      NO-UNDO.
+        VAR INTEGER i.
+        VAR ForEachPicture picture.
+        VAR Tile tile.
+        VAR PixelStamp stamp.
+        VAR ForEachRow colourRow.
+        VAR CHARACTER tones.
         DO i = INTEGER(ForEachPicture:DibbyClosed) TO INTEGER(ForEachPicture:DibbyGiant):
             picture = ForEachPicture:GetEnum(i).
             tile = NEW Tile(ForEachArt:Rows(picture)).
@@ -99,8 +99,8 @@ CLASS ProGriddle.Games.ForEach.ForEachArtTests:
 
     @Test.
     METHOD PUBLIC VOID ThereAre47WallTilesOf8By8():
-        DEFINE VARIABLE mask  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE count AS INTEGER NO-UNDO.
+        VAR INTEGER mask.
+        VAR INTEGER count.
         DO mask = 0 TO 255:
             IF ForEachArt:IsWallMask(mask) THEN DO:
                 count = count + 1.
@@ -130,7 +130,7 @@ CLASS ProGriddle.Games.ForEach.ForEachArtTests:
 
     @Test.
     METHOD PUBLIC VOID TheColoursAreTheDesignersAndEveryRowHasFiveTones():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:Equals(395022, ForEachLook:Colour(ForEachTint:Floor)).
         Assert:Equals("06070E", ForEachLook:Hex(ForEachTint:Floor)).
         Assert:Equals("FFEDC2,FFD471,FFC234,AF8628,5F4B1C", ForEachLook:Tones(ForEachRow:Dibby)).
@@ -142,7 +142,7 @@ CLASS ProGriddle.Games.ForEach.ForEachArtTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownPictureColourRowOrToneIsRefused():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 9:
             Assert:IsTrue(ThrowsGridException(i)).
         END.

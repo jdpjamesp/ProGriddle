@@ -8,7 +8,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.SightTests:
 
-    DEFINE PRIVATE VARIABLE mWorld AS RogueWorld NO-UNDO.
+    VAR PRIVATE RogueWorld mWorld.
 
     /* A room with its floor from (5, 5) to (14, 8), lit, the hero at (6, 6), and a corridor of three squares leaving by a door at (15, 7) */
     @Setup.
@@ -103,8 +103,8 @@ CLASS ProGriddle.Games.Rogue.SightTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterInSightIsSeenAndOneOutOfSightIsNot():
-        DEFINE VARIABLE oNear AS Monster NO-UNDO.
-        DEFINE VARIABLE oFar  AS Monster NO-UNDO.
+        VAR Monster oNear.
+        VAR Monster oFar.
         oNear = mWorld:AddMonster(MonsterKind:Orc, 9, 6).
         oFar = mWorld:AddMonster(MonsterKind:Orc, 17, 7).
         Sight:Look(mWorld).
@@ -116,8 +116,8 @@ CLASS ProGriddle.Games.Rogue.SightTests:
 
     @Test.
     METHOD PUBLIC VOID AnInvisibleMonsterIsNotSeenUntilTheHeroCanSeeInvisibleThings():
-        DEFINE VARIABLE oPhantom AS Monster NO-UNDO.
-        DEFINE VARIABLE oRing    AS Item    NO-UNDO.
+        VAR Monster oPhantom.
+        VAR Item oRing.
         oPhantom = mWorld:AddMonster(MonsterKind:Phantom, 9, 6).
         Sight:Look(mWorld).
         Assert:IsFalse(Sight:CanSee(mWorld, oPhantom)).
@@ -135,7 +135,7 @@ CLASS ProGriddle.Games.Rogue.SightTests:
 
     @Test.
     METHOD PUBLIC VOID ABlindHeroSeesNoMonsters():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR Monster oOrc.
         oOrc = mWorld:AddMonster(MonsterKind:Orc, 7, 6).
         mWorld:Cave:SetInView(7, 6, TRUE).
         mWorld:Hero:Blind = 3.

@@ -16,8 +16,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Core.Shape FINAL:
 
-    DEFINE PRIVATE VARIABLE mXs AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mYs AS INTEGER NO-UNDO EXTENT.
+    VAR PRIVATE INTEGER[] mXs.
+    VAR PRIVATE INTEGER[] mYs.
 
     /* Number of cells in the shape. */
     DEFINE PUBLIC PROPERTY Size AS INTEGER NO-UNDO
@@ -37,12 +37,12 @@ CLASS ProGriddle.Core.Shape FINAL:
        so later changes to them do not affect the shape. Throws GridException when
        the arrays are empty, differ in length, or name the same cell twice. */
     CONSTRUCTOR PUBLIC Shape(INPUT piXs AS INTEGER EXTENT, INPUT piYs AS INTEGER EXTENT):
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE minX AS INTEGER NO-UNDO.
-        DEFINE VARIABLE minY AS INTEGER NO-UNDO.
-        DEFINE VARIABLE maxX AS INTEGER NO-UNDO.
-        DEFINE VARIABLE maxY AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER minX.
+        VAR INTEGER minY.
+        VAR INTEGER maxX.
+        VAR INTEGER maxY.
 
         IF EXTENT(piXs) = ? OR EXTENT(piYs) = ? THEN
             UNDO, THROW NEW GridException("Shape offsets must not be empty").
@@ -84,12 +84,12 @@ CLASS ProGriddle.Core.Shape FINAL:
 
     /* Builds a shape from text such as "XX/.X". Throws GridException when there is no cell. */
     METHOD PUBLIC STATIC Shape Parse(INPUT pcRows AS CHARACTER):
-        DEFINE VARIABLE xs  AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE ys  AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE row AS CHARACTER NO-UNDO.
+        VAR INTEGER[] xs.
+        VAR INTEGER[] ys.
+        VAR INTEGER n.
+        VAR INTEGER r.
+        VAR INTEGER c.
+        VAR CHARACTER row.
 
         DO r = 1 TO NUM-ENTRIES(pcRows, "/"):
             row = ENTRY(r, pcRows, "/").
@@ -129,7 +129,7 @@ CLASS ProGriddle.Core.Shape FINAL:
 
     /* True when the shape has a cell at the given offset. */
     METHOD PUBLIC LOGICAL Contains(INPUT piDx AS INTEGER, INPUT piDy AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO Size:
             IF mXs[i] = piDx AND mYs[i] = piDy THEN RETURN TRUE.
         END.
@@ -138,9 +138,9 @@ CLASS ProGriddle.Core.Shape FINAL:
 
     /* New shape turned 90 degrees clockwise. */
     METHOD PUBLIC Shape Rotate():
-        DEFINE VARIABLE xs AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE ys AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
+        VAR INTEGER[] xs.
+        VAR INTEGER[] ys.
+        VAR INTEGER i.
         EXTENT(xs) = Size.
         EXTENT(ys) = Size.
         DO i = 1 TO Size:
@@ -152,9 +152,9 @@ CLASS ProGriddle.Core.Shape FINAL:
 
     /* New shape mirrored left to right. */
     METHOD PUBLIC Shape Flip():
-        DEFINE VARIABLE xs AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE ys AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
+        VAR INTEGER[] xs.
+        VAR INTEGER[] ys.
+        VAR INTEGER i.
         EXTENT(xs) = Size.
         EXTENT(ys) = Size.
         DO i = 1 TO Size:
@@ -166,8 +166,8 @@ CLASS ProGriddle.Core.Shape FINAL:
 
     /* Two shapes are equal when they have the same cells, whatever their order. */
     METHOD PUBLIC OVERRIDE LOGICAL Equals(INPUT poOther AS Progress.Lang.Object):
-        DEFINE VARIABLE other AS Shape   NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        VAR Shape other.
+        VAR INTEGER i.
         IF NOT VALID-OBJECT(poOther) THEN RETURN FALSE.
         IF NOT TYPE-OF(poOther, Shape) THEN RETURN FALSE.
         other = CAST(poOther, Shape).
@@ -180,9 +180,9 @@ CLASS ProGriddle.Core.Shape FINAL:
 
     /* Text form that Parse accepts, for example "XX/.X". */
     METHOD PUBLIC OVERRIDE CHARACTER ToString():
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER   NO-UNDO.
+        VAR CHARACTER result.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO y = 0 TO Height - 1:
             IF y > 0 THEN result = result + "/".
             DO x = 0 TO Width - 1:

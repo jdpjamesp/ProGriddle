@@ -12,7 +12,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Core.ArrayStore FINAL INHERITS AbstractCellStore:
 
-    DEFINE PRIVATE VARIABLE mMem AS MEMPTR NO-UNDO.
+    VAR PRIVATE MEMPTR mMem.
 
     CONSTRUCTOR PUBLIC ArrayStore(INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER, INPUT pcLayers AS CHARACTER):
         SUPER(piWidth, piHeight, pcLayers).
@@ -58,7 +58,7 @@ CLASS ProGriddle.Core.ArrayStore FINAL INHERITS AbstractCellStore:
     END METHOD.
 
     METHOD PUBLIC OVERRIDE LOGICAL IsEmpty():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 0 TO mCells * mLayerCount - 1:
             IF GET-LONG(mMem, i * 4 + 1) <> 0 THEN RETURN FALSE.
         END.
@@ -66,8 +66,8 @@ CLASS ProGriddle.Core.ArrayStore FINAL INHERITS AbstractCellStore:
     END METHOD.
 
     METHOD PUBLIC OVERRIDE VOID FillLayer(INPUT piLayer AS INTEGER, INPUT piValue AS INTEGER):
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE base AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER base.
         ValidateLayer(piLayer).
         base = (piLayer - 1) * mCells.
         DO i = 0 TO mCells - 1:
@@ -76,9 +76,9 @@ CLASS ProGriddle.Core.ArrayStore FINAL INHERITS AbstractCellStore:
     END METHOD.
 
     METHOD PUBLIC OVERRIDE INTEGER CountOf(INPUT piLayer AS INTEGER, INPUT piValue AS INTEGER):
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE base AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
+        VAR INTEGER base.
         ValidateLayer(piLayer).
         base = (piLayer - 1) * mCells.
         DO i = 0 TO mCells - 1:
@@ -88,8 +88,7 @@ CLASS ProGriddle.Core.ArrayStore FINAL INHERITS AbstractCellStore:
     END METHOD.
 
     METHOD PUBLIC OVERRIDE ICellStore Duplicate():
-        DEFINE VARIABLE copy AS ArrayStore NO-UNDO.
-        copy = NEW ArrayStore(mWidth, mHeight, LayerList()).
+        VAR ArrayStore copy = NEW ArrayStore(mWidth, mHeight, LayerList()).
         copy:CopyFrom(THIS-OBJECT).
         RETURN copy.
     END METHOD.

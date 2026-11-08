@@ -16,7 +16,7 @@ CLASS ProGriddle.Games.Tetris.TetrominoesTests:
 
     @Test.
     METHOD PUBLIC VOID APieceNameRoundTripsAndIgnoresCase():
-        DEFINE VARIABLE p AS INTEGER NO-UNDO.
+        VAR INTEGER p.
         DO p = 1 TO 7:
             Assert:Equals(p, Tetrominoes:PieceOf(Tetrominoes:NameOf(p))).
         END.
@@ -40,8 +40,8 @@ CLASS ProGriddle.Games.Tetris.TetrominoesTests:
 
     @Test.
     METHOD PUBLIC VOID EveryPieceInEveryTurnHasFourCells():
-        DEFINE VARIABLE p AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        VAR INTEGER p.
+        VAR INTEGER t.
         DO p = 1 TO 7:
             DO t = 0 TO 3:
                 Assert:Equals(4, Tetrominoes:ShapeOf(p, t):Size).
@@ -51,8 +51,8 @@ CLASS ProGriddle.Games.Tetris.TetrominoesTests:
 
     @Test.
     METHOD PUBLIC VOID TurningAPieceFourTimesGivesItBackWhatItWas():
-        DEFINE VARIABLE p AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS Shape   NO-UNDO.
+        VAR INTEGER p.
+        VAR Shape s.
         DO p = 1 TO 7:
             s = Tetrominoes:ShapeOf(p, 0):Rotate():Rotate():Rotate():Rotate().
             Assert:IsTrue(s:Equals(Tetrominoes:ShapeOf(p, 0))).
@@ -61,7 +61,7 @@ CLASS ProGriddle.Games.Tetris.TetrominoesTests:
 
     @Test.
     METHOD PUBLIC VOID ShapeOfTurnsIsTheSameAsRotatingThatManyTimes():
-        DEFINE VARIABLE p AS INTEGER NO-UNDO.
+        VAR INTEGER p.
         DO p = 1 TO 7:
             Assert:IsTrue(Tetrominoes:ShapeOf(p, 1):Equals(Tetrominoes:ShapeOf(p, 0):Rotate())).
             Assert:IsTrue(Tetrominoes:ShapeOf(p, 2):Equals(Tetrominoes:ShapeOf(p, 0):Rotate():Rotate())).
@@ -90,7 +90,7 @@ CLASS ProGriddle.Games.Tetris.TetrominoesTests:
 
     @Test.
     METHOD PUBLIC VOID TheOPieceLooksTheSameInEveryTurn():
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        VAR INTEGER t.
         DO t = 1 TO 3:
             Assert:IsTrue(Tetrominoes:ShapeOf(2, t):Equals(Tetrominoes:ShapeOf(2, 0))).
         END.
@@ -98,7 +98,7 @@ CLASS ProGriddle.Games.Tetris.TetrominoesTests:
 
     @Test.
     METHOD PUBLIC VOID TheSZAndIPiecesRepeatAfterTwoTurnsButTheTAndTheLsDoNot():
-        DEFINE VARIABLE p AS INTEGER NO-UNDO.
+        VAR INTEGER p.
         DO p = 1 TO 5:
             IF p = 3 THEN NEXT.
             Assert:IsTrue(Tetrominoes:ShapeOf(p, 2):Equals(Tetrominoes:ShapeOf(p, 0))).

@@ -11,7 +11,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.ForEachMovementTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS ForEachGame NO-UNDO.
+    VAR PRIVATE ForEachGame mGame.
 
     @TearDown.
     METHOD PUBLIC VOID ReleaseGame():
@@ -46,7 +46,7 @@ CLASS ProGriddle.Games.ForEach.ForEachMovementTests:
 
     @Test.
     METHOD PUBLIC VOID HeIsFasterOnLevelFiveThanOnLevelOne():
-        DEFINE VARIABLE slow AS INTEGER NO-UNDO.
+        VAR INTEGER slow.
         PlayOn(ForEachKit:ClosedCorridor()).
         ForEachKit:Frames(mGame, 40).
         slow = 88 - mGame:DibbyX.
@@ -67,7 +67,7 @@ CLASS ProGriddle.Games.ForEach.ForEachMovementTests:
 
     @Test.
     METHOD PUBLIC VOID TurningRoundHappensAtOnceEvenInTheMiddleOfATile():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         PlayOn(ForEachKit:ClosedCorridor()).
         ForEachKit:Frames(mGame, 10).
         mGame:Steer(MazeDir:Right).
@@ -184,7 +184,7 @@ CLASS ProGriddle.Games.ForEach.ForEachMovementTests:
 
     @Test.
     METHOD PUBLIC VOID EachBitCostsHimAFrameSoHeIsSlowerOverADataLane():
-        DEFINE VARIABLE bare AS INTEGER NO-UNDO.
+        VAR INTEGER bare.
         PlayOn(ForEachKit:ClosedCorridor()).
         ForEachKit:Frames(mGame, 60).
         bare = mGame:DibbyX.
@@ -196,8 +196,8 @@ CLASS ProGriddle.Games.ForEach.ForEachMovementTests:
 
     @Test.
     METHOD PUBLIC VOID ACommitMakesHimStandStillForThreeFramesAfterIt():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER n.
         PlayOn(ForEachKit:DataCorridor()).
         mGame:PlaceDibby(140, 12, MazeDir:Right).
         DO WHILE mGame:CommitsEatenTotal = 0 AND n < 20:
@@ -232,7 +232,7 @@ CLASS ProGriddle.Games.ForEach.ForEachMovementTests:
 
     @Test.
     METHOD PUBLIC VOID CuttingTheCornerGetsHimIntoTheNewLaneSoonerThanWaitingForTheMiddle():
-        DEFINE VARIABLE cut AS INTEGER NO-UNDO.
+        VAR INTEGER cut.
         PlayOn(ForEachKit:SideDoor()).
         mGame:PlaceDibby(48, 12, MazeDir:Left).
         mGame:Steer(MazeDir:Down).

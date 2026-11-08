@@ -18,7 +18,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Engine.TextStamp FINAL:
 
     /* three whole numbers a cell: across, down, and the colour */
-    DEFINE PRIVATE VARIABLE mCells AS MEMPTR NO-UNDO.
+    VAR PRIVATE MEMPTR mCells.
 
     /* The width and height in cells of the text itself, not counting its edge. */
     DEFINE PUBLIC PROPERTY Width AS INTEGER NO-UNDO
@@ -37,22 +37,22 @@ CLASS ProGriddle.Engine.TextStamp FINAL:
     /* Throws GridException for no text, or a scale below 1. */
     CONSTRUCTOR PUBLIC TextStamp(INPUT pcText AS CHARACTER, INPUT piScale AS INTEGER, INPUT piTop AS INTEGER, INPUT piBottom AS INTEGER,
                                  INPUT piEdge AS INTEGER):
-        DEFINE VARIABLE c       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE x       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE dx      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE dy      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE w       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE h       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE gx      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE gy      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE nBody   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE nEdge   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE o       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE glyph   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE bitRow  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE body    AS LOGICAL   NO-UNDO EXTENT.
-        DEFINE VARIABLE ring    AS LOGICAL   NO-UNDO EXTENT.
+        VAR INTEGER c.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER w.
+        VAR INTEGER h.
+        VAR INTEGER gx.
+        VAR INTEGER gy.
+        VAR INTEGER nBody.
+        VAR INTEGER nEdge.
+        VAR INTEGER o.
+        VAR CHARACTER glyph.
+        VAR CHARACTER bitRow.
+        VAR LOGICAL[] body.
+        VAR LOGICAL[] ring.
         IF pcText = ? OR LENGTH(pcText) = 0 THEN UNDO, THROW NEW GridException("A text stamp needs some text").
         IF piScale = ? OR piScale < 1 THEN UNDO, THROW NEW GridException("A text stamp scale is 1 or more, not " + STRING(piScale)).
         w = PixelFont:WidthOf(pcText) * piScale.

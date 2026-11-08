@@ -26,12 +26,12 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.RogueGame FINAL INHERITS AbstractGame IMPLEMENTS ITurnBasedGame:
 
-    DEFINE PRIVATE VARIABLE mWorld      AS RogueWorld   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTurns      AS MonsterTurns NO-UNDO.
+    VAR PRIVATE RogueWorld mWorld.
+    VAR PRIVATE MonsterTurns mTurns.
     /* a hasted hero's actions come in pairs, and the monsters move on the second of each pair */
-    DEFINE PRIVATE VARIABLE mBeat       AS LOGICAL      NO-UNDO.
+    VAR PRIVATE LOGICAL mBeat.
     /* what a command that needs an item or a direction is waiting to do, and the item chosen for it */
-    DEFINE PRIVATE VARIABLE mItemSlot   AS INTEGER      NO-UNDO.
+    VAR PRIVATE INTEGER mItemSlot.
 
     DEFINE PUBLIC PROPERTY World AS RogueWorld NO-UNDO
         GET():
@@ -127,8 +127,8 @@ CLASS ProGriddle.Games.Rogue.RogueGame FINAL INHERITS AbstractGame IMPLEMENTS IT
     END METHOD.
 
     METHOD PRIVATE VOID PlayCommand(INPUT pcToken AS CHARACTER):
-        DEFINE VARIABLE dx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
         mWorld:Messages:BeginTurn().
         IF IsDirection(pcToken) THEN DO:
             IF StepHero(StepX(pcToken), StepY(pcToken)) > 0 THEN EndAction().
@@ -216,9 +216,9 @@ CLASS ProGriddle.Games.Rogue.RogueGame FINAL INHERITS AbstractGame IMPLEMENTS IT
     END METHOD.
     /* A token while the game waits for an item. */
     METHOD PRIVATE VOID PickedItem(INPUT pcToken AS CHARACTER):
-        DEFINE VARIABLE slot  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE spent AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE pick  AS LOGICAL NO-UNDO.
+        VAR INTEGER slot.
+        VAR LOGICAL spent.
+        VAR LOGICAL pick.
         IF pcToken = "ESC" THEN DO:
             GiveUpAsking().
             RETURN.
@@ -267,9 +267,9 @@ CLASS ProGriddle.Games.Rogue.RogueGame FINAL INHERITS AbstractGame IMPLEMENTS IT
 
     /* A token while the game waits for a direction (for a throw or a zap). */
     METHOD PRIVATE VOID PickedDirection(INPUT pcToken AS CHARACTER):
-        DEFINE VARIABLE slot  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE spent AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE what  AS RogueAction NO-UNDO.
+        VAR INTEGER slot.
+        VAR LOGICAL spent.
+        VAR RogueAction what.
         IF pcToken = "ESC" THEN DO:
             GiveUpAsking().
             RETURN.
@@ -286,7 +286,7 @@ CLASS ProGriddle.Games.Rogue.RogueGame FINAL INHERITS AbstractGame IMPLEMENTS IT
 
     /* The "remove ring" command: the ring that is worn when there is one, else ask which. */
     METHOD PRIVATE VOID RemoveARing():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         n = Gear:RingsWorn(mWorld).
         IF n = 0 THEN DO:
             mWorld:Say("You have no rings on.").
@@ -304,12 +304,12 @@ CLASS ProGriddle.Games.Rogue.RogueGame FINAL INHERITS AbstractGame IMPLEMENTS IT
     /* One step of the hero in a direction. Gives 0 when no time passed (a wall in the way), 1 for a step taken and 2 for a fight, being
        held or stuck, or anything else that took the turn. */
     METHOD PRIVATE INTEGER StepHero(INPUT piDX AS INTEGER, INPUT piDY AS INTEGER):
-        DEFINE VARIABLE dx       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE trap     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER trap.
+        VAR Monster oMonster.
         dx = piDX.
         dy = piDY.
         IF mWorld:Hero:Confused > 0 AND mWorld:Random:NextInt(2) = 0 THEN DO:
@@ -346,11 +346,11 @@ CLASS ProGriddle.Games.Rogue.RogueGame FINAL INHERITS AbstractGame IMPLEMENTS IT
 
     /* Runs: steps again and again until something interesting turns up, as much as 60 steps. */
     METHOD PRIVATE VOID RunHero(INPUT piDX AS INTEGER, INPUT piDY AS INTEGER):
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hp     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE depth  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE result AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER before.
+        VAR INTEGER hp.
+        VAR INTEGER depth.
+        VAR INTEGER result.
         depth = mWorld:Depth.
         DO i = 1 TO 60:
             before = mWorld:Messages:TurnCount.
@@ -366,9 +366,9 @@ CLASS ProGriddle.Games.Rogue.RogueGame FINAL INHERITS AbstractGame IMPLEMENTS IT
 
     /* True when a runner should stop where they are: a monster in sight, a door, the stairs, or a fork in a corridor. */
     METHOD PRIVATE LOGICAL Interesting(INPUT piDX AS INTEGER, INPUT piDY AS INTEGER):
-        DEFINE VARIABLE i        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
-        DEFINE VARIABLE ways     AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR Monster oMonster.
+        VAR INTEGER ways.
         DO i = 0 TO RogueRules:MostMonsters() - 1:
             oMonster = mWorld:MonsterInSlot(i).
             IF VALID-OBJECT(oMonster) AND Sight:CanSee(mWorld, oMonster) THEN RETURN TRUE.

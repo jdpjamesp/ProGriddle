@@ -14,12 +14,12 @@ CLASS ProGriddle.Games.Rogue.Throwing FINAL:
 
     /* Throws one of the thing in a slot. Gives false (and says why) when the thing cannot be thrown: a cursed thing in use. */
     METHOD PUBLIC STATIC LOGICAL Throw(INPUT poWorld AS RogueWorld, INPUT piSlot AS INTEGER, INPUT piDX AS INTEGER, INPUT piDY AS INTEGER):
-        DEFINE VARIABLE oOne     AS Item    NO-UNDO.
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
-        DEFINE VARIABLE x        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE broke    AS LOGICAL NO-UNDO.
+        VAR Item oOne.
+        VAR Monster oMonster.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER i.
+        VAR LOGICAL broke.
         IF piSlot < 0 OR piSlot >= RogueRules:PackSize() OR NOT poWorld:Pack:Holds(piSlot) THEN DO:
             poWorld:Say("You have nothing like that.").
             RETURN FALSE.
@@ -51,7 +51,7 @@ CLASS ProGriddle.Games.Rogue.Throwing FINAL:
 
     /* The dice of a thrown thing's hit. */
     METHOD PUBLIC STATIC CHARACTER DiceOf(INPUT poWorld AS RogueWorld, INPUT poItem AS Item):
-        DEFINE VARIABLE oBow AS Item NO-UNDO.
+        VAR Item oBow.
         IF poItem:Category <> ItemType:Weapon THEN RETURN "1d2".
         IF poItem:Kind = INTEGER(WeaponKind:Arrow) THEN DO:
             oBow = poWorld:Pack:Weapon().
@@ -63,11 +63,11 @@ CLASS ProGriddle.Games.Rogue.Throwing FINAL:
 
     /* A thrown thing meets a monster: a hit or a miss. Gives true when the thing was an arrow that broke. */
     METHOD PRIVATE STATIC LOGICAL Strike(INPUT poWorld AS RogueWorld, INPUT poItem AS Item, INPUT poMonster AS Monster):
-        DEFINE VARIABLE bonus  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE damage AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE oBow   AS Item      NO-UNDO.
-        DEFINE VARIABLE noun   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE asleep AS LOGICAL   NO-UNDO.
+        VAR INTEGER bonus.
+        VAR INTEGER damage.
+        VAR Item oBow.
+        VAR CHARACTER noun.
+        VAR LOGICAL asleep.
         noun = "The " + ItemText:Noun(poItem, poWorld:Names).
         asleep = NOT poMonster:Awake.
         poMonster:Awake = TRUE.

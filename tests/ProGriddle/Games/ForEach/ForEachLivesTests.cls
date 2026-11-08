@@ -12,7 +12,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.ForEachLivesTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS ForEachGame NO-UNDO.
+    VAR PRIVATE ForEachGame mGame.
 
     @Setup.
     METHOD PUBLIC VOID BuildGame():
@@ -48,8 +48,8 @@ CLASS ProGriddle.Games.ForEach.ForEachLivesTests:
 
     @Test.
     METHOD PUBLIC VOID EverythingStandsStillWhileDibbyIsCaught():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE g AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER g.
         GetCaught().
         x = mGame:DibbyX.
         g = mGame:PhantomX(PhantomKind:Rich).
@@ -109,8 +109,8 @@ CLASS ProGriddle.Games.ForEach.ForEachLivesTests:
 
     @Test.
     METHOD PUBLIC VOID TheBitsEatenAndTheScoreAreKeptAfterADeath():
-        DEFINE VARIABLE points AS INTEGER NO-UNDO.
-        DEFINE VARIABLE remaining AS INTEGER NO-UNDO.
+        VAR INTEGER points.
+        VAR INTEGER remaining.
         mGame:EatBits(40).
         GetCaught().
         points = mGame:Score.
@@ -154,7 +154,7 @@ CLASS ProGriddle.Games.ForEach.ForEachLivesTests:
 
     @Test.
     METHOD PUBLIC VOID TheLastLifeLostEndsTheGame():
-        DEFINE VARIABLE points AS INTEGER NO-UNDO.
+        VAR INTEGER points.
         mGame:Lives = 1.
         mGame:AddScore(250).
         GetCaught().
@@ -168,7 +168,7 @@ CLASS ProGriddle.Games.ForEach.ForEachLivesTests:
 
     @Test.
     METHOD PUBLIC VOID AnEndedGameStartsAgainFromTheStart():
-        DEFINE VARIABLE points AS INTEGER NO-UNDO.
+        VAR INTEGER points.
         mGame:Lives = 1.
         mGame:AddScore(250).
         GetCaught().

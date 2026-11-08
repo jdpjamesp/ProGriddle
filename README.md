@@ -243,7 +243,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Scanner.ScannerGame INHERITS AbstractGame IMPLEMENTS ISteppableGame:
 
-    DEFINE PRIVATE VARIABLE mPosition AS INTEGER NO-UNDO.
+    VAR PRIVATE INTEGER mPosition.
 
     CONSTRUCTOR PUBLIC ScannerGame(INPUT poGrid AS Grid):
         SUPER("Scanner", poGrid).
@@ -281,7 +281,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Scanner.ScannerInput IMPLEMENTS IGameInput:
 
-    DEFINE PRIVATE VARIABLE mGame AS ScannerGame NO-UNDO.
+    VAR PRIVATE ScannerGame mGame.
 
     DEFINE PUBLIC PROPERTY StatusText AS CHARACTER NO-UNDO
         GET():
@@ -367,12 +367,12 @@ USING ProGriddle.Engine.*.
 USING ProGriddle.Games.Scanner.*.
 USING ProGriddle.UI.WinForms.*.
 
-DEFINE VARIABLE oSettings   AS ISettings      NO-UNDO.
-DEFINE VARIABLE oGame       AS ScannerGame    NO-UNDO.
-DEFINE VARIABLE oView       AS GridView       NO-UNDO.
-DEFINE VARIABLE oClock      AS WinFormsClock  NO-UNDO.
-DEFINE VARIABLE oController AS GameController NO-UNDO.
-DEFINE VARIABLE oWindow     AS GameWindow     NO-UNDO.
+VAR ISettings oSettings.
+VAR ScannerGame oGame.
+VAR GridView oView.
+VAR WinFormsClock oClock.
+VAR GameController oController.
+VAR GameWindow oWindow.
 
 Application:EnableVisualStyles().
 oSettings = NEW JsonFileSettings(JsonFileSettings:DefaultPath()).

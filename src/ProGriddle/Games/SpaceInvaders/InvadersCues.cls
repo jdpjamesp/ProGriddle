@@ -18,20 +18,20 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.SpaceInvaders.InvadersCues FINAL IMPLEMENTS ICueSource, ILoopSource:
 
-    DEFINE PRIVATE VARIABLE mPhase  AS GamePhase NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLives  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mAlive  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShots  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPasses AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScore  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSaucer AS LOGICAL   NO-UNDO.
+    VAR PRIVATE GamePhase mPhase.
+    VAR PRIVATE INTEGER mLives.
+    VAR PRIVATE INTEGER mAlive.
+    VAR PRIVATE INTEGER mShots.
+    VAR PRIVATE INTEGER mPasses.
+    VAR PRIVATE INTEGER mScore.
+    VAR PRIVATE LOGICAL mSaucer.
     /* which of the four march notes comes next, 0 to 3 */
-    DEFINE PRIVATE VARIABLE mMarch  AS INTEGER   NO-UNDO.
+    VAR PRIVATE INTEGER mMarch.
 
     /* Throws GridException for a game that is not a SpaceInvadersGame. */
     METHOD PUBLIC CHARACTER Poll(INPUT poGame AS IGame):
-        DEFINE VARIABLE oGame AS SpaceInvadersGame NO-UNDO.
-        DEFINE VARIABLE cues  AS CHARACTER         NO-UNDO.
+        VAR SpaceInvadersGame oGame.
+        VAR CHARACTER cues.
         IF NOT TYPE-OF(poGame, SpaceInvadersGame) THEN UNDO, THROW NEW GridException("The cues of Space Invaders need a Space Invaders game").
         oGame = CAST(poGame, SpaceInvadersGame).
         /* the first look, the title screen and a wave being drawn in: take the state as it is, and say nothing */
@@ -55,7 +55,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCues FINAL IMPLEMENTS ICueSource, I
 
     /* The saucer's hum sounds while the saucer is out, in a game that is being played and is not paused. */
     METHOD PUBLIC CHARACTER Loops(INPUT poGame AS IGame):
-        DEFINE VARIABLE oGame AS SpaceInvadersGame NO-UNDO.
+        VAR SpaceInvadersGame oGame.
         IF NOT TYPE-OF(poGame, SpaceInvadersGame) THEN UNDO, THROW NEW GridException("The cues of Space Invaders need a Space Invaders game").
         oGame = CAST(poGame, SpaceInvadersGame).
         IF oGame:SaucerActive AND oGame:Phase = GamePhase:Playing AND NOT oGame:Paused THEN RETURN STRING(INTEGER(InvadersCue:SaucerHum)).

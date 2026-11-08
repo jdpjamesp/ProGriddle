@@ -23,13 +23,13 @@ CLASS ProGriddle.UI.WinForms.CookoffBackdrop INHERITS Panel:
        case is ignored: . empty, a Life cell, b Life cell fading, p purple, y yellow, g green, u blue,
        k pink (Tetris blocks), # a closed Minesweeper tile, 1 and 2 its numbers, f a flag, d a shot
        that missed, s a ship, x a ship that was hit, z the Tetris ghost. */
-    DEFINE PRIVATE VARIABLE mBoard      AS CHARACTER NO-UNDO EXTENT 14.
-    DEFINE PRIVATE VARIABLE mArt        AS Bitmap    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCaption    AS CHARACTER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCaptionFont  AS Font      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCaptionBrush AS SolidBrush NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFormat     AS StringFormat NO-UNDO.
-    DEFINE PRIVATE VARIABLE mReleased   AS LOGICAL   NO-UNDO.
+    VAR PRIVATE CHARACTER[14] mBoard.
+    VAR PRIVATE Bitmap mArt.
+    VAR PRIVATE CHARACTER mCaption.
+    VAR PRIVATE Font mCaptionFont.
+    VAR PRIVATE SolidBrush mCaptionBrush.
+    VAR PRIVATE StringFormat mFormat.
+    VAR PRIVATE LOGICAL mReleased.
 
     /* The line under the badge. Setting it repaints. */
     DEFINE PUBLIC PROPERTY Caption AS CHARACTER NO-UNDO
@@ -99,14 +99,14 @@ CLASS ProGriddle.UI.WinForms.CookoffBackdrop INHERITS Panel:
     /* ---- the picture ---- */
 
     METHOD PRIVATE VOID BuildArt():
-        DEFINE VARIABLE w       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE g       AS Graphics NO-UNDO.
-        DEFINE VARIABLE bg      AS LinearGradientBrush NO-UNDO.
-        DEFINE VARIABLE gridPen AS Pen NO-UNDO.
-        DEFINE VARIABLE x       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
+        VAR INTEGER w.
+        VAR INTEGER h.
+        VAR Graphics g.
+        VAR LinearGradientBrush bg.
+        VAR Pen gridPen.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER i.
         w = THIS-OBJECT:ClientSize:Width.
         h = THIS-OBJECT:ClientSize:Height.
         IF w < 1 OR h < 1 THEN RETURN.
@@ -159,7 +159,7 @@ CLASS ProGriddle.UI.WinForms.CookoffBackdrop INHERITS Panel:
     /* A filled circle of the given radius at a centre, in a colour with an opacity. */
     METHOD PRIVATE VOID Disc(INPUT g AS Graphics, INPUT pr AS INTEGER, INPUT pg AS INTEGER, INPUT pb AS INTEGER,
                              INPUT pa AS INTEGER, INPUT cx AS INTEGER, INPUT cy AS INTEGER, INPUT rad AS INTEGER):
-        DEFINE VARIABLE brush AS SolidBrush NO-UNDO.
+        VAR SolidBrush brush.
         DO ON ERROR UNDO, THROW:
             brush = NEW SolidBrush(Color:FromArgb(pa, pr, pg, pb)).
             g:FillEllipse(brush, cx - rad, cy - rad, rad * 2, rad * 2).
@@ -171,8 +171,8 @@ CLASS ProGriddle.UI.WinForms.CookoffBackdrop INHERITS Panel:
 
     /* A rounded rectangle path. The caller disposes it. */
     METHOD PRIVATE GraphicsPath RoundPath(INPUT px AS INTEGER, INPUT py AS INTEGER, INPUT pw AS INTEGER, INPUT ph AS INTEGER, INPUT pr AS INTEGER):
-        DEFINE VARIABLE path AS GraphicsPath NO-UNDO.
-        DEFINE VARIABLE d    AS INTEGER      NO-UNDO.
+        VAR GraphicsPath path.
+        VAR INTEGER d.
         d = pr * 2.
         path = NEW GraphicsPath().
         path:AddArc(px, py, d, d, System.Convert:ToSingle(180), System.Convert:ToSingle(90)).
@@ -186,8 +186,8 @@ CLASS ProGriddle.UI.WinForms.CookoffBackdrop INHERITS Panel:
     /* Fills a rounded rectangle with a colour at an opacity. */
     METHOD PRIVATE VOID Fill(INPUT g AS Graphics, INPUT pa AS INTEGER, INPUT pr AS INTEGER, INPUT pg AS INTEGER, INPUT pb AS INTEGER,
                              INPUT px AS INTEGER, INPUT py AS INTEGER, INPUT pw AS INTEGER, INPUT ph AS INTEGER, INPUT prad AS INTEGER):
-        DEFINE VARIABLE path  AS GraphicsPath NO-UNDO.
-        DEFINE VARIABLE brush AS SolidBrush   NO-UNDO.
+        VAR GraphicsPath path.
+        VAR SolidBrush brush.
         DO ON ERROR UNDO, THROW:
             path = RoundPath(px, py, pw, ph, prad).
             brush = NEW SolidBrush(Color:FromArgb(pa, pr, pg, pb)).
@@ -203,8 +203,8 @@ CLASS ProGriddle.UI.WinForms.CookoffBackdrop INHERITS Panel:
     METHOD PRIVATE VOID Outline(INPUT g AS Graphics, INPUT pr AS INTEGER, INPUT pg AS INTEGER, INPUT pb AS INTEGER, INPUT pa AS INTEGER,
                                 INPUT pwidth AS INTEGER, INPUT pdashed AS LOGICAL,
                                 INPUT px AS INTEGER, INPUT py AS INTEGER, INPUT pw AS INTEGER, INPUT ph AS INTEGER, INPUT prad AS INTEGER):
-        DEFINE VARIABLE path AS GraphicsPath NO-UNDO.
-        DEFINE VARIABLE pen  AS Pen          NO-UNDO.
+        VAR GraphicsPath path.
+        VAR Pen pen.
         DO ON ERROR UNDO, THROW:
             path = RoundPath(px, py, pw, ph, prad).
             pen = NEW Pen(Color:FromArgb(pa, pr, pg, pb), System.Convert:ToSingle(pwidth)).
@@ -220,13 +220,13 @@ CLASS ProGriddle.UI.WinForms.CookoffBackdrop INHERITS Panel:
     /* ---- the board ---- */
 
     METHOD PRIVATE VOID DrawBoard(INPUT g AS Graphics):
-        DEFINE VARIABLE rowNo   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE colNo   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE fx    AS INTEGER NO-UNDO INITIAL 646.
-        DEFINE VARIABLE fy    AS INTEGER NO-UNDO INITIAL 90.
-        DEFINE VARIABLE pitch AS INTEGER NO-UNDO INITIAL 28.
-        DEFINE VARIABLE padPx   AS INTEGER NO-UNDO INITIAL 18.
-        DEFINE VARIABLE kind  AS CHARACTER NO-UNDO.
+        VAR INTEGER rowNo.
+        VAR INTEGER colNo.
+        VAR INTEGER fx = 646.
+        VAR INTEGER fy = 90.
+        VAR INTEGER pitch = 28.
+        VAR INTEGER padPx = 18.
+        VAR CHARACTER kind.
         /* the frame, with a soft glow round it */
         Fill(g, 14, 255, 122, 46, fx - 8, fy - 8, pitch * 14 + padPx * 2 + 16, pitch * 14 + padPx * 2 + 16, 38).
         Fill(g, 255, 11, 15, 23, fx, fy, pitch * 14 + padPx * 2, pitch * 14 + padPx * 2, 30).
@@ -241,7 +241,7 @@ CLASS ProGriddle.UI.WinForms.CookoffBackdrop INHERITS Panel:
 
     /* One cell of the board, s pixels square, with its top left corner at x, y. */
     METHOD PRIVATE VOID DrawCell(INPUT g AS Graphics, INPUT pcKind AS CHARACTER, INPUT x AS INTEGER, INPUT y AS INTEGER, INPUT s AS INTEGER):
-        DEFINE VARIABLE half AS INTEGER NO-UNDO.
+        VAR INTEGER half.
         half = INTEGER(TRUNCATE(s / 2, 0)).
         CASE pcKind:
             WHEN "." THEN DO:
@@ -308,8 +308,8 @@ CLASS ProGriddle.UI.WinForms.CookoffBackdrop INHERITS Panel:
     END METHOD.
 
     METHOD PRIVATE VOID Digit(INPUT g AS Graphics, INPUT pcDigit AS CHARACTER, INPUT x AS INTEGER, INPUT y AS INTEGER, INPUT s AS INTEGER):
-        DEFINE VARIABLE faceFont  AS Font       NO-UNDO.
-        DEFINE VARIABLE brush AS SolidBrush NO-UNDO.
+        VAR Font faceFont.
+        VAR SolidBrush brush.
         DO ON ERROR UNDO, THROW:
             faceFont = NEW Font("Consolas", System.Convert:ToSingle(17), FontStyle:Bold, GraphicsUnit:Pixel).
             IF pcDigit = "1" THEN brush = NEW SolidBrush(Color:FromArgb(255, 74, 157, 255)).
@@ -324,8 +324,8 @@ CLASS ProGriddle.UI.WinForms.CookoffBackdrop INHERITS Panel:
 
     /* A red flag on a pole, drawn from rectangles. */
     METHOD PRIVATE VOID Flag(INPUT g AS Graphics, INPUT x AS INTEGER, INPUT y AS INTEGER):
-        DEFINE VARIABLE pole  AS SolidBrush NO-UNDO.
-        DEFINE VARIABLE cloth AS SolidBrush NO-UNDO.
+        VAR SolidBrush pole.
+        VAR SolidBrush cloth.
         DO ON ERROR UNDO, THROW:
             pole = NEW SolidBrush(Color:FromArgb(255, 226, 232, 242)).
             cloth = NEW SolidBrush(Color:FromArgb(255, 240, 69, 58)).
@@ -343,13 +343,13 @@ CLASS ProGriddle.UI.WinForms.CookoffBackdrop INHERITS Panel:
     /* ---- the words ---- */
 
     METHOD PRIVATE VOID DrawWords(INPUT g AS Graphics, INPUT piHeight AS INTEGER):
-        DEFINE VARIABLE mono    AS Font       NO-UNDO.
-        DEFINE VARIABLE monoSm  AS Font       NO-UNDO.
-        DEFINE VARIABLE word    AS Font       NO-UNDO.
-        DEFINE VARIABLE orange  AS SolidBrush NO-UNDO.
-        DEFINE VARIABLE cream   AS SolidBrush NO-UNDO.
-        DEFINE VARIABLE muted   AS SolidBrush NO-UNDO.
-        DEFINE VARIABLE plain   AS StringFormat NO-UNDO.
+        VAR Font mono.
+        VAR Font monoSm.
+        VAR Font word.
+        VAR SolidBrush orange.
+        VAR SolidBrush cream.
+        VAR SolidBrush muted.
+        VAR StringFormat plain.
         DO ON ERROR UNDO, THROW:
             mono = NEW Font("Consolas", System.Convert:ToSingle(14), FontStyle:Bold, GraphicsUnit:Pixel).
             monoSm = NEW Font("Consolas", System.Convert:ToSingle(12), FontStyle:Regular, GraphicsUnit:Pixel).
@@ -390,9 +390,9 @@ CLASS ProGriddle.UI.WinForms.CookoffBackdrop INHERITS Panel:
     /* Draws text one character at a time with extra space between, as the artwork's small caps do. */
     METHOD PRIVATE VOID Spaced(INPUT g AS Graphics, INPUT pcText AS CHARACTER, INPUT pFont AS Font, INPUT pBrush AS SolidBrush,
                                INPUT px AS INTEGER, INPUT py AS INTEGER, INPUT pSpacing AS INTEGER):
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE advance AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE plain   AS StringFormat NO-UNDO.
+        VAR INTEGER i.
+        VAR DECIMAL advance.
+        VAR StringFormat plain.
         plain = StringFormat:GenericTypographic.
         /* the faceFont is monospaced, so every character is as wide as the letter M */
         advance = g:MeasureString("MMMMMMMMMM", pFont, 1000, plain):Width / 10.

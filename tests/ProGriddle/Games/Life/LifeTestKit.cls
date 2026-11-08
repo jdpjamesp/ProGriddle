@@ -21,10 +21,10 @@ CLASS ProGriddle.Games.Life.LifeTestKit FINAL:
     /* A game on an empty board of the given size, with the engine of the given kind. */
     METHOD PUBLIC STATIC LifeGame Make(INPUT piKind AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER,
                                        INPUT plWrap AS LOGICAL, INPUT poRules AS LifeRules):
-        DEFINE VARIABLE store  AS ICellStore  NO-UNDO.
-        DEFINE VARIABLE topo   AS ITopology   NO-UNDO.
-        DEFINE VARIABLE grid   AS Grid        NO-UNDO.
-        DEFINE VARIABLE engine AS ILifeEngine NO-UNDO.
+        VAR ICellStore store.
+        VAR ITopology topo.
+        VAR Grid grid.
+        VAR ILifeEngine engine.
         IF piKind = 1 THEN store = NEW ArrayStore(piW, piH, "state").
         ELSE store = NEW SparseStore(piW, piH, "state").
         IF plWrap THEN topo = NEW ToroidalTopology().
@@ -44,15 +44,15 @@ CLASS ProGriddle.Games.Life.LifeTestKit FINAL:
        using either engine: resolve each offset through the topology, drop missing cells, the
        cell itself and repeats, count the live ones and apply the rules. */
     METHOD PUBLIC STATIC CHARACTER Reference(INPUT poGame AS LifeGame):
-        DEFINE VARIABLE g      AS Grid      NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE k      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE r      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE idx    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE seen   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE cnt    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        VAR Grid g.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER k.
+        VAR INTEGER r.
+        VAR INTEGER idx.
+        VAR CHARACTER seen.
+        VAR INTEGER cnt.
+        VAR CHARACTER result.
         g = poGame:Grid.
         DO y = 0 TO g:Height - 1:
             IF y > 0 THEN result = result + CHR(10).

@@ -9,8 +9,8 @@ CLASS ProGriddle.UI.Text.TextGridRendererTests:
 
     @Test.
     METHOD PUBLIC VOID DrawsEachCellAsOneSymbolWithRowsOnSeparateLines():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
-        DEFINE VARIABLE r AS TextGridRenderer NO-UNDO.
+        VAR Grid g.
+        VAR TextGridRenderer r.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW ArrayStore(4, 3, "state")).
             g:Store:SetCell(1, 0, 0, 1).
@@ -26,8 +26,8 @@ CLASS ProGriddle.UI.Text.TextGridRendererTests:
 
     @Test.
     METHOD PUBLIC VOID ValuesWithoutASymbolDrawAsAQuestionMark():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
-        DEFINE VARIABLE r AS TextGridRenderer NO-UNDO.
+        VAR Grid g.
+        VAR TextGridRenderer r.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW ArrayStore(3, 1, "state")).
             g:Store:SetCell(1, 0, 0, 2).
@@ -42,7 +42,7 @@ CLASS ProGriddle.UI.Text.TextGridRendererTests:
 
     @Test.
     METHOD PUBLIC VOID DrawsTheNamedLayerOnly():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW ArrayStore(2, 1, "mine,flag")).
             g:Store:SetCell(1, 0, 0, 1).
@@ -57,7 +57,7 @@ CLASS ProGriddle.UI.Text.TextGridRendererTests:
 
     @Test.
     METHOD PUBLIC VOID WorksWithAnyStoreKind():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW SparseStore(3, 2, "state")).
             g:Store:SetCell(1, 2, 1, 1).
@@ -70,9 +70,9 @@ CLASS ProGriddle.UI.Text.TextGridRendererTests:
 
     @Test.
     METHOD PUBLIC VOID RenderRecordsTheOutputAndCountsTheCalls():
-        DEFINE VARIABLE g    AS Grid NO-UNDO.
-        DEFINE VARIABLE game AS CountingGame NO-UNDO.
-        DEFINE VARIABLE r    AS TextGridRenderer NO-UNDO.
+        VAR Grid g.
+        VAR CountingGame game.
+        VAR TextGridRenderer r.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW ArrayStore(2, 2, "state")).
             game = NEW CountingGame(g, 0).
@@ -93,7 +93,7 @@ CLASS ProGriddle.UI.Text.TextGridRendererTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ToTextThrowsForAnUnknownLayer():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW ArrayStore(2, 2, "state")).
             NEW TextGridRenderer("nope", ".#"):ToText(g).

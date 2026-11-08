@@ -8,8 +8,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Core.ScriptedRandom IMPLEMENTS IRandom:
 
-    DEFINE PRIVATE VARIABLE mValues AS CHARACTER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNext   AS INTEGER   NO-UNDO.
+    VAR PRIVATE CHARACTER mValues.
+    VAR PRIVATE INTEGER mNext.
 
     /* How many numbers have been asked for. */
     DEFINE PUBLIC PROPERTY Calls AS INTEGER NO-UNDO
@@ -27,7 +27,7 @@ CLASS ProGriddle.Core.ScriptedRandom IMPLEMENTS IRandom:
     END METHOD.
 
     METHOD PUBLIC INTEGER NextInt(INPUT piBelow AS INTEGER):
-        DEFINE VARIABLE v AS INTEGER NO-UNDO.
+        VAR INTEGER v.
         IF piBelow < 1 THEN UNDO, THROW NEW GridException("NextInt needs a limit of at least 1").
         v = INTEGER(ENTRY(mNext, mValues)).
         mNext = (IF mNext >= NUM-ENTRIES(mValues) THEN 1 ELSE mNext + 1).

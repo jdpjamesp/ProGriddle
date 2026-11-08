@@ -8,8 +8,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.ChaseTests:
 
-    DEFINE PRIVATE VARIABLE mWorld AS RogueWorld NO-UNDO.
-    DEFINE PRIVATE VARIABLE mChase AS Chase      NO-UNDO.
+    VAR PRIVATE RogueWorld mWorld.
+    VAR PRIVATE Chase mChase.
 
     /* a room with floor (5, 5) to (14, 8), a door at (15, 7) and a corridor east of it, the hero at (6, 6) */
     @Setup.
@@ -73,9 +73,9 @@ CLASS ProGriddle.Games.Rogue.ChaseTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterStepsToTheNearestSquareToTheHero():
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
-        DEFINE VARIABLE dx       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy       AS INTEGER NO-UNDO.
+        VAR Monster oMonster.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
         oMonster = mWorld:AddMonster(MonsterKind:Orc, 12, 6).
         Assert:IsTrue(mChase:BestStep(mWorld, oMonster, OUTPUT dx, OUTPUT dy)).
         Assert:Equals(-1, dx).
@@ -85,9 +85,9 @@ CLASS ProGriddle.Games.Rogue.ChaseTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterNextToTheHeroHasNoStepToTake():
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
-        DEFINE VARIABLE dx       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy       AS INTEGER NO-UNDO.
+        VAR Monster oMonster.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
         oMonster = mWorld:AddMonster(MonsterKind:Orc, 7, 6).
         Assert:IsFalse(mChase:BestStep(mWorld, oMonster, OUTPUT dx, OUTPUT dy)).
         Assert:Equals(0, dx).
@@ -96,9 +96,9 @@ CLASS ProGriddle.Games.Rogue.ChaseTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterDoesNotStepOntoAnotherMonster():
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
-        DEFINE VARIABLE dx       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy       AS INTEGER NO-UNDO.
+        VAR Monster oMonster.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
         /* a monster in a corridor of one square width with another in front of it: no step */
         mWorld:Cave:SetTerrain(20, 7, Terrain:Passage).
         mWorld:Cave:SetTerrain(19, 7, Terrain:Passage).
@@ -112,9 +112,9 @@ CLASS ProGriddle.Games.Rogue.ChaseTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterThatCannotReachTheHeroHasNoStep():
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
-        DEFINE VARIABLE dx       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy       AS INTEGER NO-UNDO.
+        VAR Monster oMonster.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
         mWorld:Cave:SetTerrain(30, 15, Terrain:Floor).
         oMonster = mWorld:AddMonster(MonsterKind:Orc, 30, 15).
         Assert:IsFalse(mChase:BestStep(mWorld, oMonster, OUTPUT dx, OUTPUT dy)).

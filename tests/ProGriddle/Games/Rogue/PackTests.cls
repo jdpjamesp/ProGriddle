@@ -8,7 +8,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.PackTests:
 
-    DEFINE PRIVATE VARIABLE mPack AS Pack NO-UNDO.
+    VAR PRIVATE Pack mPack.
 
     @Setup.
     METHOD PUBLIC VOID BuildPack():
@@ -71,7 +71,7 @@ CLASS ProGriddle.Games.Rogue.PackTests:
 
     @Test.
     METHOD PUBLIC VOID AFullPackTakesNothingNewButStillTakesAStackedPotion():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 0 TO 22:
             mPack:Add(NEW Item(ItemType:Armour, 0)).
         END.
@@ -88,7 +88,7 @@ CLASS ProGriddle.Games.Rogue.PackTests:
 
     @Test.
     METHOD PUBLIC VOID TakingPartOfAStackLeavesTheRest():
-        DEFINE VARIABLE oTaken AS Item NO-UNDO.
+        VAR Item oTaken.
         mPack:Add(Potion(PotionKind:Healing)).
         mPack:Add(Potion(PotionKind:Healing)).
         mPack:Add(Potion(PotionKind:Healing)).
@@ -115,7 +115,7 @@ CLASS ProGriddle.Games.Rogue.PackTests:
 
     @Test.
     METHOD PUBLIC VOID WhatIsWornIsFoundBySlotAndForgottenWhenItLeavesThePack():
-        DEFINE VARIABLE oRing AS Item NO-UNDO.
+        VAR Item oRing.
         mPack:Add(NEW Item(ItemType:Weapon, INTEGER(WeaponKind:Mace))).
         mPack:Add(Armour(ArmourKind:RingMail)).
         mPack:Add(NEW Item(ItemType:Ring, INTEGER(RingKind:Protection))).
@@ -144,8 +144,8 @@ CLASS ProGriddle.Games.Rogue.PackTests:
 
     @Test.
     METHOD PUBLIC VOID WornRingsAddUpTheirBonusesByKind():
-        DEFINE VARIABLE oA AS Item NO-UNDO.
-        DEFINE VARIABLE oB AS Item NO-UNDO.
+        VAR Item oA.
+        VAR Item oB.
         oA = NEW Item(ItemType:Ring, INTEGER(RingKind:Protection)).
         oA:Bonus = 2.
         oB = NEW Item(ItemType:Ring, INTEGER(RingKind:Protection)).
@@ -175,7 +175,7 @@ CLASS ProGriddle.Games.Rogue.PackTests:
 
     @Test.
     METHOD PUBLIC VOID GoldATakeOfTheWrongSizeAndABadSlotAreRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         mPack:Add(Potion(PotionKind:Healing)).
         DO ON ERROR UNDO, THROW:
             mPack:Add(Items:Gold(1, NEW ScriptedRandom("1"))).

@@ -11,11 +11,11 @@ CLASS ProGriddle.Games.Centipede.CentipedeSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID EveryCueHasARecipeThatMakesSoundNotSilence():
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE oSynth AS ToneSynth NO-UNDO.
-        DEFINE VARIABLE mData  AS MEMPTR    NO-UNDO.
-        DEFINE VARIABLE loud   AS INTEGER   NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR ToneSynth oSynth.
+        VAR MEMPTR mData.
+        VAR INTEGER loud.
         oSynth = NEW ToneSynth().
         DO i = INTEGER(CentipedeCue:Fire) TO INTEGER(CentipedeCue:ScorpionLoop):
             oSynth:Make(CentipedeSounds:Recipe(CentipedeCue:GetEnum(i)), 100, OUTPUT mData).
@@ -40,7 +40,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID EveryCueHasAVolumeFromOneToOneHundredAndTheLoopsAreQuiet():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = INTEGER(CentipedeCue:Fire) TO INTEGER(CentipedeCue:ScorpionLoop):
             Assert:IsTrue(CentipedeSounds:VolumeOf(CentipedeCue:GetEnum(i)) >= 1).
             Assert:IsTrue(CentipedeSounds:VolumeOf(CentipedeCue:GetEnum(i)) <= 100).
@@ -50,8 +50,8 @@ CLASS ProGriddle.Games.Centipede.CentipedeSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownCueIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c      AS CentipedeCue NO-UNDO.
+        VAR INTEGER thrown.
+        VAR CentipedeCue c.
         DO ON ERROR UNDO, THROW:
             CentipedeSounds:Recipe(c).
             CATCH e1 AS GridException:
@@ -63,10 +63,10 @@ CLASS ProGriddle.Games.Centipede.CentipedeSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID FillMakesEveryCueInABankInUnderASecond():
-        DEFINE VARIABLE oBank AS SoundBank NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE start AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE took  AS INTEGER   NO-UNDO.
+        VAR SoundBank oBank.
+        VAR INTEGER i.
+        VAR INTEGER start.
+        VAR INTEGER took.
         oBank = NEW SoundBank().
         start = ETIME.
         CentipedeSounds:Fill(oBank).

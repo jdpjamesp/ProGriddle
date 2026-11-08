@@ -10,9 +10,9 @@ CLASS ProGriddle.Games.Rogue.WeightedPick FINAL:
 
     /* The total of a list of chances. Throws GridException for a list that is empty or holds anything but whole numbers of 0 or more. */
     METHOD PUBLIC STATIC INTEGER Total(INPUT pcChances AS CHARACTER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
+        VAR INTEGER t.
         IF pcChances = ? OR pcChances = "" THEN UNDO, THROW NEW GridException("A list of chances cannot be empty").
         DO i = 1 TO NUM-ENTRIES(pcChances):
             n = INTEGER(ENTRY(i, pcChances)) NO-ERROR.
@@ -25,9 +25,9 @@ CLASS ProGriddle.Games.Rogue.WeightedPick FINAL:
     /* The position of the pick, from 0: the thing at position 0 for a roll in the first chances and so on. Throws GridException for a
        total of 0 or no random source. */
     METHOD PUBLIC STATIC INTEGER Choose(INPUT pcChances AS CHARACTER, INPUT poRandom AS IRandom):
-        DEFINE VARIABLE total AS INTEGER NO-UNDO.
-        DEFINE VARIABLE roll  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        VAR INTEGER total.
+        VAR INTEGER roll.
+        VAR INTEGER i.
         total = Total(pcChances).
         IF total = 0 THEN UNDO, THROW NEW GridException("A list of chances needs a total above 0").
         IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("A pick needs a random source").

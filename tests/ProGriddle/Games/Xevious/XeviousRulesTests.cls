@@ -75,7 +75,7 @@ CLASS ProGriddle.Games.Xevious.XeviousRulesTests:
 
     @Test.
     METHOD PUBLIC VOID EveryAirEnemyHasPointsAndAFirstStage():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = INTEGER(XeviousAir:Toroid) TO INTEGER(XeviousAir:Bacura):
             Assert:IsTrue(XeviousRules:AirPoints(XeviousAir:GetEnum(i)) > 0).
             Assert:IsTrue(XeviousRules:AirFirstStage(XeviousAir:GetEnum(i)) >= 1).
@@ -89,7 +89,7 @@ CLASS ProGriddle.Games.Xevious.XeviousRulesTests:
 
     @Test.
     METHOD PUBLIC VOID EveryGroundTargetHasPointsHitPointsAndAFirstStage():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = INTEGER(XeviousGround:Barra) TO INTEGER(XeviousGround:Flag):
             Assert:IsTrue(XeviousRules:GroundHp(XeviousGround:GetEnum(i)) >= 1).
             Assert:IsTrue(XeviousRules:GroundFirstStage(XeviousGround:GetEnum(i)) >= 1).
@@ -123,8 +123,8 @@ CLASS ProGriddle.Games.Xevious.XeviousRulesTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownEnemyHasNoPoints():
-        DEFINE VARIABLE oKind   AS XeviousAir NO-UNDO.
-        DEFINE VARIABLE thrown  AS INTEGER    NO-UNDO.
+        VAR XeviousAir oKind.
+        VAR INTEGER thrown.
         oKind = ?.
         DO ON ERROR UNDO, THROW:
             XeviousRules:AirPoints(oKind).

@@ -9,8 +9,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Core.CustomNeighbourhood IMPLEMENTS INeighbourhood:
 
-    DEFINE PRIVATE VARIABLE mXs AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mYs AS INTEGER NO-UNDO EXTENT.
+    VAR PRIVATE INTEGER[] mXs.
+    VAR PRIVATE INTEGER[] mYs.
 
     DEFINE PUBLIC PROPERTY OffsetCount AS INTEGER NO-UNDO
         GET.
@@ -21,8 +21,8 @@ CLASS ProGriddle.Core.CustomNeighbourhood IMPLEMENTS INeighbourhood:
         PRIVATE SET.
 
     CONSTRUCTOR PUBLIC CustomNeighbourhood(INPUT piXs AS INTEGER EXTENT, INPUT piYs AS INTEGER EXTENT):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
 
         IF EXTENT(piXs) = ? OR EXTENT(piYs) = ? THEN
             UNDO, THROW NEW GridException("A neighbourhood needs at least one offset").

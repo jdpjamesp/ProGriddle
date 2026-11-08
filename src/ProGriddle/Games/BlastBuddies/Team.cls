@@ -9,9 +9,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.BlastBuddies.Team FINAL:
 
-    DEFINE PRIVATE VARIABLE mBuddies AS Buddy   NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mCount   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLast    AS INTEGER NO-UNDO.
+    VAR PRIVATE Buddy[4] mBuddies.
+    VAR PRIVATE INTEGER mCount.
+    VAR PRIVATE INTEGER mLast.
 
     /* 1 to 4. */
     DEFINE PUBLIC PROPERTY Number AS INTEGER NO-UNDO GET. PRIVATE SET.
@@ -47,8 +47,8 @@ CLASS ProGriddle.Games.BlastBuddies.Team FINAL:
 
     /* How many of its buddies are still alive. */
     METHOD PUBLIC INTEGER AliveCount():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
         DO i = 1 TO mCount:
             IF NOT mBuddies[i]:IsDead() THEN n = n + 1.
         END.
@@ -57,8 +57,8 @@ CLASS ProGriddle.Games.BlastBuddies.Team FINAL:
 
     /* The sum of the health of the living buddies, which the team bars show. */
     METHOD PUBLIC INTEGER TotalHealth():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
         DO i = 1 TO mCount:
             IF NOT mBuddies[i]:IsDead() THEN n = n + mBuddies[i]:Health.
         END.
@@ -67,8 +67,8 @@ CLASS ProGriddle.Games.BlastBuddies.Team FINAL:
 
     /* The next living buddy in the rota, after the one that played last. Unknown when the whole team is dead. */
     METHOD PUBLIC Buddy NextBuddy():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER k.
         DO i = 1 TO mCount:
             k = ((mLast + i - 1) MODULO mCount) + 1.
             IF NOT mBuddies[k]:IsDead() THEN DO:

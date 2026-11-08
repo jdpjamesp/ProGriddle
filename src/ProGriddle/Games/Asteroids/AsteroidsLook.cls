@@ -13,11 +13,11 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsLook FINAL:
 
     &SCOPED-DEFINE COLOURS 72
 
-    DEFINE PRIVATE STATIC VARIABLE sColours AS INTEGER NO-UNDO EXTENT 72.
+    VAR PRIVATE STATIC INTEGER[72] sColours.
 
     CONSTRUCTOR STATIC AsteroidsLook():
-        DEFINE VARIABLE sHex AS CHARACTER NO-UNDO EXTENT 72.
-        DEFINE VARIABLE i    AS INTEGER   NO-UNDO.
+        VAR CHARACTER[72] sHex.
+        VAR INTEGER i.
         sHex[1] = "030508".  /* the vignette at the screen edge */
         sHex[2] = "0B1119".  /* the vignette at the middle */
         sHex[3] = "141B27".  /* far dust */
@@ -104,8 +104,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsLook FINAL:
     /* The colour of one step of a ramp that fades, counting from 0: the exhaust has 4 steps, the others 6. Throws
        GridException for a step the ramp does not have. */
     METHOD PUBLIC STATIC INTEGER RampColour(INPUT poRamp AS Ramp, INPUT piStep AS INTEGER):
-        DEFINE VARIABLE firstStep AS Palette NO-UNDO.
-        DEFINE VARIABLE steps AS INTEGER NO-UNDO.
+        VAR Palette firstStep.
+        VAR INTEGER steps.
         steps = RampSteps(poRamp).
         IF piStep = ? OR piStep < 0 OR piStep >= steps THEN
             UNDO, THROW NEW GridException(SUBSTITUTE("The &1 ramp has steps 0 to &2, not &3", STRING(poRamp), steps - 1, piStep)).

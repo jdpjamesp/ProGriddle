@@ -12,17 +12,17 @@ CLASS ProGriddle.Games.Rogue.Sight FINAL:
 
     /* Works out what is in sight now, marks it, and marks the monsters in it as seen. Call it after the hero or the level changes. */
     METHOD PUBLIC STATIC VOID Look(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE hx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE room   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x0     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x1     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y0     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y1     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
+        VAR INTEGER hx.
+        VAR INTEGER hy.
+        VAR INTEGER room.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER i.
+        VAR INTEGER x0.
+        VAR INTEGER x1.
+        VAR INTEGER y0.
+        VAR INTEGER y1.
+        VAR Monster oMonster.
         hx = poWorld:Hero:X.
         hy = poWorld:Hero:Y.
         poWorld:Cave:ClearView().
@@ -83,14 +83,14 @@ CLASS ProGriddle.Games.Rogue.Sight FINAL:
     /* True when nothing stops the eye on the straight line from one square to another (the ends themselves do not count). The line is a
        Bresenham line, the same from both ends. */
     METHOD PUBLIC STATIC LOGICAL LineClear(INPUT poWorld AS RogueWorld, INPUT piX0 AS INTEGER, INPUT piY0 AS INTEGER, INPUT piX1 AS INTEGER, INPUT piY1 AS INTEGER):
-        DEFINE VARIABLE dx  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sx  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sy  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE err AS INTEGER NO-UNDO.
-        DEFINE VARIABLE e2  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER sx.
+        VAR INTEGER sy.
+        VAR INTEGER err.
+        VAR INTEGER e2.
+        VAR INTEGER x.
+        VAR INTEGER y.
         /* the line is walked from the end with the lower position, so both ends give the same line */
         IF piY1 < piY0 OR (piY1 = piY0 AND piX1 < piX0) THEN RETURN LineClear(poWorld, piX1, piY1, piX0, piY0).
         dx = ABSOLUTE(piX1 - piX0).

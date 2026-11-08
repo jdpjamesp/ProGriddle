@@ -19,7 +19,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyPhysics FINAL:
 
     /* Whether the 11 rows above a feet row, in a column, are all air, so a buddy fits there. */
     METHOD PRIVATE LOGICAL BodyClear(INPUT poTerrain AS Terrain, INPUT piX AS INTEGER, INPUT piFeetY AS INTEGER):
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER y.
         DO y = piFeetY - BuddyRules:BuddyHeight() TO piFeetY - 1:
             IF poTerrain:IsSolid(piX, y) THEN RETURN FALSE.
         END.
@@ -56,9 +56,9 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyPhysics FINAL:
        step up 4 pixels or more, or into a gap too low for its body. Where the ground falls away by more than 3 pixels it walks off and
        is then in the air; a walk past the side of the map or into the water drowns it. Only a buddy standing on the ground can walk. */
     METHOD PUBLIC LOGICAL Walk(INPUT poBuddy AS Buddy, INPUT poTerrain AS Terrain, INPUT piDirection AS INTEGER):
-        DEFINE VARIABLE nx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r  AS INTEGER NO-UNDO.
+        VAR INTEGER nx.
+        VAR INTEGER y.
+        VAR INTEGER r.
         IF piDirection <> -1 AND piDirection <> 1 THEN UNDO, THROW NEW GridException("A direction is -1 or 1, not " + STRING(piDirection)).
         poBuddy:Facing = piDirection.
         IF poBuddy:State <> BuddyState:Standing THEN RETURN FALSE.
@@ -113,12 +113,12 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyPhysics FINAL:
     /* One frame. A buddy standing on nothing starts to fall; a buddy in the air moves, one pixel at a time so nothing is skipped over, and
        lands, bumps its head, hits a wall or drowns. Landed is true afterwards if it came down in this frame. */
     METHOD PUBLIC VOID Step(INPUT poBuddy AS Buddy, INPUT poTerrain AS Terrain):
-        DEFINE VARIABLE px  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dir AS INTEGER NO-UNDO.
-        DEFINE VARIABLE fall AS INTEGER NO-UNDO.
-        DEFINE VARIABLE moves AS INTEGER NO-UNDO.
+        VAR INTEGER px.
+        VAR INTEGER py.
+        VAR INTEGER n.
+        VAR INTEGER dir.
+        VAR INTEGER fall.
+        VAR INTEGER moves.
         poBuddy:Landed = FALSE.
         poBuddy:LastFallDamage = 0.
         CASE poBuddy:State:

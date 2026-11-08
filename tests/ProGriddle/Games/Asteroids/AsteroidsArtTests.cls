@@ -12,11 +12,11 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsArtTests:
     /* The nearest and the furthest a point of the first line is from the middle, in 64ths of a cell, as a
        comma list. */
     METHOD PRIVATE CHARACTER Reach(INPUT poOutline AS Outline):
-        DEFINE VARIABLE l   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE p   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lo  AS INTEGER NO-UNDO INITIAL 999999.
-        DEFINE VARIABLE hi  AS INTEGER NO-UNDO.
+        VAR INTEGER l.
+        VAR INTEGER p.
+        VAR INTEGER d.
+        VAR INTEGER lo = 999999.
+        VAR INTEGER hi.
         DO l = 1 TO poOutline:LineCount:
             DO p = 1 TO poOutline:PointCount(l):
                 d = INTEGER(ROUND(SQRT(DECIMAL(poOutline:PointX(l, p)) * poOutline:PointX(l, p) + DECIMAL(poOutline:PointY(l, p)) * poOutline:PointY(l, p)), 0)).
@@ -28,9 +28,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsArtTests:
     END METHOD.
 
     METHOD PRIVATE VOID CheckRocks(INPUT piSize AS INTEGER, INPUT piPoints AS INTEGER):
-        DEFINE VARIABLE v     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE reach AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE r     AS INTEGER NO-UNDO.
+        VAR INTEGER v.
+        VAR CHARACTER reach.
+        VAR INTEGER r.
         r = AsteroidsArt:RockRadius(piSize) / 4.
         DO v = 0 TO AsteroidsArt:RockVariants(piSize) - 1:
             Assert:Equals(piPoints, AsteroidsArt:Rock(piSize, v):PointCount(1)).
@@ -79,7 +79,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsArtTests:
 
     @Test.
     METHOD PUBLIC VOID TheShipIsANotchedArrowheadNineCellsTallWithItsSpine():
-        DEFINE VARIABLE ship AS Outline NO-UNDO.
+        VAR Outline ship.
         ship = AsteroidsArt:Ship().
         Assert:Equals(5, ship:SegmentCount).
         Assert:Equals(1, AsteroidsArt:ShipSpine():SegmentCount).
@@ -100,7 +100,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsArtTests:
 
     @Test.
     METHOD PUBLIC VOID TheFlameHasThreeFramesBehindTheShip():
-        DEFINE VARIABLE f AS INTEGER NO-UNDO.
+        VAR INTEGER f.
         DO f = 0 TO 2:
             Assert:IsTrue(AsteroidsArt:FlameOuter(f):PointY(1, 2) > 3 * 64).
             Assert:IsTrue(AsteroidsArt:FlameCore(f):PointY(1, 2) > 3 * 64).
@@ -125,9 +125,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsArtTests:
 
     @Test.
     METHOD PUBLIC VOID TheTitleLettersAre28CellsTallAndTheirTotalIs41Segments():
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE total AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE c     AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER total.
+        VAR CHARACTER c.
         DO i = 1 TO 9:
             c = SUBSTRING("ASTEROIDS", i, 1).
             total = total + AsteroidsArt:Glyph(c):SegmentCount.
@@ -141,7 +141,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsArtTests:
 
     @Test.
     METHOD PUBLIC VOID BadArgumentsAreRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             AsteroidsArt:Rock(4, 0).
             CATCH e1 AS GridException:

@@ -10,7 +10,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.ForEachPlayTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS ForEachGame NO-UNDO.
+    VAR PRIVATE ForEachGame mGame.
 
     @Setup.
     METHOD PUBLIC VOID BuildGame():
@@ -25,7 +25,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPlayTests:
 
     /* The tile a phantom is on is one it may be on for what it is doing. Returns the name of the problem, or "" for none. */
     METHOD PRIVATE CHARACTER Problem(INPUT poKind AS PhantomKind):
-        DEFINE VARIABLE kind AS TileKind NO-UNDO.
+        VAR TileKind kind.
         IF NOT mGame:PhantomPresent(poKind) THEN RETURN "".
         kind = mGame:Maze:KindAt(mGame:PhantomCol(poKind), mGame:PhantomRow(poKind)).
         IF kind = TileKind:Wall THEN RETURN STRING(poKind) + " in a wall at " + STRING(mGame:PhantomX(poKind)) + "," + STRING(mGame:PhantomY(poKind)) + " " + STRING(mGame:ModeOf(poKind)).
@@ -39,12 +39,12 @@ CLASS ProGriddle.Games.ForEach.ForEachPlayTests:
 
     @Test.
     METHOD PUBLIC VOID DibbyAndThePhantomsStayOnTheirLanesThroughAHundredThousandFramesOfRandomPlay():
-        DEFINE VARIABLE n        AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE i        AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE random   AS SeededRandom NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER i.
+        VAR SeededRandom random.
 
-        DEFINE VARIABLE issue    AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE bad      AS CHARACTER NO-UNDO.
+        VAR CHARACTER issue.
+        VAR CHARACTER bad.
         random = NEW SeededRandom(21).
         mGame:StartGame().
         DO n = 1 TO 100000:
@@ -66,13 +66,13 @@ CLASS ProGriddle.Games.ForEach.ForEachPlayTests:
 
     @Test.
     METHOD PUBLIC VOID TheChaserKeepsMovingAndGoesAllOverTheMaze():
-        DEFINE VARIABLE n        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lastX    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lastY    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE still    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE worst    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cols     AS INTEGER NO-UNDO EXTENT 28.
-        DEFINE VARIABLE visited  AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER lastX.
+        VAR INTEGER lastY.
+        VAR INTEGER still.
+        VAR INTEGER worst.
+        VAR INTEGER[28] cols.
+        VAR INTEGER visited.
         mGame:StartGame().
         ForEachKit:RunUntil(mGame, ForEachPhase:Playing, 900).
         /* Dibby stands still in his corner, so the chaser has the maze to itself to wander in, and is not stopped by catching him */

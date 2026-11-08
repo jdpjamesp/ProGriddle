@@ -15,20 +15,20 @@ CLASS ProGriddle.UI.WinForms.BuddiesWindowChainTests:
 
     @Test.
     METHOD PUBLIC VOID TheViewHoldsThePictureAndALongGameGoesOnWithoutAnError():
-        DEFINE VARIABLE bank    AS SoundBank           NO-UNDO.
-        DEFINE VARIABLE player  AS WaveOutPlayer       NO-UNDO.
-        DEFINE VARIABLE sound   AS SoundRenderer       NO-UNDO.
-        DEFINE VARIABLE inp     AS BlastBuddiesInput   NO-UNDO.
-        DEFINE VARIABLE rnd     AS SeededRandom        NO-UNDO.
-        DEFINE VARIABLE keyList AS CHARACTER           NO-UNDO INITIAL "Left,Right,Up,Down,Return,Space".
-        DEFINE VARIABLE k       AS CHARACTER           NO-UNDO.
-        DEFINE VARIABLE g       AS BlastBuddiesGame    NO-UNDO.
-        DEFINE VARIABLE p       AS BlastBuddiesPainter NO-UNDO.
-        DEFINE VARIABLE v       AS GridView            NO-UNDO.
-        DEFINE VARIABLE i       AS INTEGER             NO-UNDO.
-        DEFINE VARIABLE bad     AS INTEGER             NO-UNDO.
-        DEFINE VARIABLE x       AS INTEGER             NO-UNDO.
-        DEFINE VARIABLE y       AS INTEGER             NO-UNDO.
+        VAR SoundBank bank.
+        VAR WaveOutPlayer player.
+        VAR SoundRenderer sound.
+        VAR BlastBuddiesInput inp.
+        VAR SeededRandom rnd.
+        VAR CHARACTER keyList = "Left,Right,Up,Down,Return,Space".
+        VAR CHARACTER k.
+        VAR BlastBuddiesGame g.
+        VAR BlastBuddiesPainter p.
+        VAR GridView v.
+        VAR INTEGER i.
+        VAR INTEGER bad.
+        VAR INTEGER x.
+        VAR INTEGER y.
         g = BlastBuddiesFactory:CreateWithTitle(NEW SeededRandom(3), NEW BuddySetup(2, 3, 1, Theme:Meadow, BuddySkill:Hard)).
         g:Brain = NEW SimulatingBrain(NEW SeededRandom(4), BuddySkill:Hard).
         v = NEW GridView().

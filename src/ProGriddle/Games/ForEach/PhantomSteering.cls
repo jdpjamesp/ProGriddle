@@ -22,7 +22,7 @@ CLASS ProGriddle.Games.ForEach.PhantomSteering FINAL:
        from a tile that forbids it when the rule is on. */
     METHOD PRIVATE STATIC LOGICAL MayGo(INPUT poMaze AS MazeMap, INPUT piCol AS INTEGER, INPUT piRow AS INTEGER, INPUT poHeading AS MazeDir,
                                         INPUT poDir AS MazeDir, INPUT plNoUp AS LOGICAL, INPUT plDoor AS LOGICAL):
-        DEFINE VARIABLE nr AS INTEGER NO-UNDO.
+        VAR INTEGER nr.
         IF poDir = MazeDirs:Opposite(poHeading) THEN RETURN FALSE.
         IF poDir = MazeDir:Up AND plNoUp AND poMaze:NoUpAt(piCol, piRow) THEN RETURN FALSE.
         nr = piRow + MazeDirs:Dy(poDir).
@@ -35,11 +35,11 @@ CLASS ProGriddle.Games.ForEach.PhantomSteering FINAL:
     METHOD PUBLIC STATIC MazeDir Choose(INPUT poMaze AS MazeMap, INPUT piCol AS INTEGER, INPUT piRow AS INTEGER, INPUT poHeading AS MazeDir,
                                         INPUT piTargetCol AS INTEGER, INPUT piTargetRow AS INTEGER,
                                         INPUT plNoUp AS LOGICAL, INPUT plDoor AS LOGICAL):
-        DEFINE VARIABLE d    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dir  AS MazeDir NO-UNDO.
-        DEFINE VARIABLE best AS MazeDir NO-UNDO.
-        DEFINE VARIABLE gap  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE near AS INTEGER NO-UNDO INITIAL ?.
+        VAR INTEGER d.
+        VAR MazeDir dir.
+        VAR MazeDir best.
+        VAR INTEGER gap.
+        VAR INTEGER near = ?.
         Verify(poMaze, piCol, piRow, poHeading).
         DO d = 1 TO 4:
             dir = MazeDir:GetEnum(d).
@@ -57,10 +57,10 @@ CLASS ProGriddle.Games.ForEach.PhantomSteering FINAL:
        apply, and the door is shut. */
     METHOD PUBLIC STATIC MazeDir ChooseAtRandom(INPUT poMaze AS MazeMap, INPUT piCol AS INTEGER, INPUT piRow AS INTEGER,
                                                 INPUT poHeading AS MazeDir, INPUT poRandom AS IRandom):
-        DEFINE VARIABLE d     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pick  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ways  AS INTEGER NO-UNDO EXTENT 4.
+        VAR INTEGER d.
+        VAR INTEGER n.
+        VAR INTEGER pick.
+        VAR INTEGER[4] ways.
         Verify(poMaze, piCol, piRow, poHeading).
         IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("Steering at random needs a random source").
         DO d = 1 TO 4:

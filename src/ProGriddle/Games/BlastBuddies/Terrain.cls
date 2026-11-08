@@ -15,39 +15,39 @@ CLASS ProGriddle.Games.BlastBuddies.Terrain FINAL:
     &SCOPED-DEFINE MAP-WIDTH 384
     &SCOPED-DEFINE MAP-HEIGHT 240
 
-    DEFINE PRIVATE VARIABLE mMap     AS MEMPTR    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRockY   AS INTEGER   NO-UNDO EXTENT {&MAP-WIDTH}.
-    DEFINE PRIVATE VARIABLE mSpeckle AS CHARACTER NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mTop1    AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTop2    AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTop3    AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSoil    AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSoilSp  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDeep    AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDeepSp  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRock    AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRockSp  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mEdge    AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScorch1 AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScorch2 AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScorch3 AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBlast3  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBlast4  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBlast5  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCrumbs  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCrumbX  AS INTEGER   NO-UNDO EXTENT 1000.
-    DEFINE PRIVATE VARIABLE mCrumbY  AS INTEGER   NO-UNDO EXTENT 1000.
-    DEFINE PRIVATE VARIABLE mCrumbC  AS INTEGER   NO-UNDO EXTENT 1000.
-    DEFINE PRIVATE VARIABLE mDirtyL  AS INTEGER   NO-UNDO INITIAL ?.
-    DEFINE PRIVATE VARIABLE mDirtyT  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDirtyR  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDirtyB  AS INTEGER   NO-UNDO.
+    VAR PRIVATE MEMPTR mMap.
+    VAR PRIVATE INTEGER[{&MAP-WIDTH}] mRockY.
+    VAR PRIVATE CHARACTER[16] mSpeckle.
+    VAR PRIVATE INTEGER mTop1.
+    VAR PRIVATE INTEGER mTop2.
+    VAR PRIVATE INTEGER mTop3.
+    VAR PRIVATE INTEGER mSoil.
+    VAR PRIVATE INTEGER mSoilSp.
+    VAR PRIVATE INTEGER mDeep.
+    VAR PRIVATE INTEGER mDeepSp.
+    VAR PRIVATE INTEGER mRock.
+    VAR PRIVATE INTEGER mRockSp.
+    VAR PRIVATE INTEGER mEdge.
+    VAR PRIVATE INTEGER mScorch1.
+    VAR PRIVATE INTEGER mScorch2.
+    VAR PRIVATE INTEGER mScorch3.
+    VAR PRIVATE INTEGER mBlast3.
+    VAR PRIVATE INTEGER mBlast4.
+    VAR PRIVATE INTEGER mBlast5.
+    VAR PRIVATE INTEGER mCrumbs.
+    VAR PRIVATE INTEGER[1000] mCrumbX.
+    VAR PRIVATE INTEGER[1000] mCrumbY.
+    VAR PRIVATE INTEGER[1000] mCrumbC.
+    VAR PRIVATE INTEGER mDirtyL = ?.
+    VAR PRIVATE INTEGER mDirtyT.
+    VAR PRIVATE INTEGER mDirtyR.
+    VAR PRIVATE INTEGER mDirtyB.
 
     /* The theme the map was made in. */
     DEFINE PUBLIC PROPERTY MapTheme AS Theme NO-UNDO GET. PRIVATE SET.
 
     CONSTRUCTOR PUBLIC Terrain(INPUT poTheme AS Theme):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         IF NOT VALID-OBJECT(poTheme) THEN UNDO, THROW NEW GridException("A map needs a theme").
         MapTheme = poTheme.
         SET-SIZE(mMap) = {&MAP-WIDTH} * {&MAP-HEIGHT}.
@@ -121,7 +121,7 @@ CLASS ProGriddle.Games.BlastBuddies.Terrain FINAL:
 
     /* Makes a pixel ground or air. Making it air also takes its scorch away, and making ground of a pixel that is ground already changes nothing. */
     METHOD PUBLIC VOID SetSolid(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT plSolid AS LOGICAL):
-        DEFINE VARIABLE p AS INTEGER NO-UNDO.
+        VAR INTEGER p.
         IF NOT InBounds(piX, piY) THEN UNDO, THROW NEW GridException("The pixel " + STRING(piX) + "," + STRING(piY) + " is outside the map").
         p = piY * {&MAP-WIDTH} + piX + 1.
         IF NOT plSolid THEN PUT-BYTE(mMap, p) = 0.
@@ -130,8 +130,8 @@ CLASS ProGriddle.Games.BlastBuddies.Terrain FINAL:
 
     /* Makes the rectangle from (piX1, piY1) to (piX2, piY2), both included, ground or air. The part outside the map is skipped. */
     METHOD PUBLIC VOID FillRect(INPUT piX1 AS INTEGER, INPUT piY1 AS INTEGER, INPUT piX2 AS INTEGER, INPUT piY2 AS INTEGER, INPUT plSolid AS LOGICAL):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO y = MAXIMUM(piY1, 0) TO MINIMUM(piY2, {&MAP-HEIGHT} - 1):
             DO x = MAXIMUM(piX1, 0) TO MINIMUM(piX2, {&MAP-WIDTH} - 1):
                 SetSolid(x, y, plSolid).
@@ -141,8 +141,8 @@ CLASS ProGriddle.Games.BlastBuddies.Terrain FINAL:
 
     /* How many pixels are ground. */
     METHOD PUBLIC INTEGER SolidCount():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
         DO i = 1 TO {&MAP-WIDTH} * {&MAP-HEIGHT}:
             IF GET-BYTE(mMap, i) > 0 THEN n = n + 1.
         END.
@@ -157,7 +157,7 @@ CLASS ProGriddle.Games.BlastBuddies.Terrain FINAL:
 
     /* Puts a pixel of ground in a scorch ring step (0 to 3, 0 taking the scorch away). Air cannot be scorched. */
     METHOD PUBLIC VOID SetScorch(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piStep AS INTEGER):
-        DEFINE VARIABLE p AS INTEGER NO-UNDO.
+        VAR INTEGER p.
         IF piStep < 0 OR piStep > 3 THEN UNDO, THROW NEW GridException("A scorch step is 0 to 3, not " + STRING(piStep)).
         IF NOT InBounds(piX, piY) THEN UNDO, THROW NEW GridException("The pixel " + STRING(piX) + "," + STRING(piY) + " is outside the map").
         p = piY * {&MAP-WIDTH} + piX + 1.
@@ -169,18 +169,18 @@ CLASS ProGriddle.Games.BlastBuddies.Terrain FINAL:
        squares, so there is no square root. The box that has to be coloured again (the design's re-shade box) is added to the dirty box.
        Returns how many pixels of ground were removed. */
     METHOD PUBLIC INTEGER Carve(INPUT piCx AS INTEGER, INPUT piCy AS INTEGER, INPUT piRadius AS INTEGER):
-        DEFINE VARIABLE x       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy2     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d2      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE p       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE stp     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r2      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r2a     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r2b     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r2c     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE removed AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER dy2.
+        VAR INTEGER d2.
+        VAR INTEGER p.
+        VAR INTEGER b.
+        VAR INTEGER stp.
+        VAR INTEGER r2.
+        VAR INTEGER r2a.
+        VAR INTEGER r2b.
+        VAR INTEGER r2c.
+        VAR INTEGER removed.
         IF piRadius < 1 THEN UNDO, THROW NEW GridException("A blast has a radius of at least 1").
         r2 = piRadius * piRadius.
         r2a = (piRadius + 1) * (piRadius + 1).
@@ -212,33 +212,33 @@ CLASS ProGriddle.Games.BlastBuddies.Terrain FINAL:
        a floating island is part of the fun. The pixels that were removed can be read with CrumbX, CrumbY and CrumbColour (the colour the
        pixel had) until the next call, so the painter can throw them out as debris. Returns how many were removed. */
     METHOD PUBLIC INTEGER Crumble(INPUT piCx AS INTEGER, INPUT piCy AS INTEGER, INPUT piRadius AS INTEGER):
-        DEFINE VARIABLE bl   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bt   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE br   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bb   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bw   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE q    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE nq   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE qx   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE qy   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE nx   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ny   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE head AS INTEGER NO-UNDO.
-        DEFINE VARIABLE vi   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE v    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE big  AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE dup  AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE minX AS INTEGER NO-UNDO.
-        DEFINE VARIABLE maxX AS INTEGER NO-UNDO.
-        DEFINE VARIABLE maxY AS INTEGER NO-UNDO.
-        DEFINE VARIABLE minY AS INTEGER NO-UNDO.
-        DEFINE VARIABLE comp AS INTEGER NO-UNDO EXTENT 24.
-        DEFINE VARIABLE mark AS MEMPTR  NO-UNDO.
+        VAR INTEGER bl.
+        VAR INTEGER bt.
+        VAR INTEGER br.
+        VAR INTEGER bb.
+        VAR INTEGER bw.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER q.
+        VAR INTEGER nq.
+        VAR INTEGER qx.
+        VAR INTEGER qy.
+        VAR INTEGER nx.
+        VAR INTEGER ny.
+        VAR INTEGER k.
+        VAR INTEGER j.
+        VAR INTEGER n.
+        VAR INTEGER head.
+        VAR INTEGER vi.
+        VAR INTEGER v.
+        VAR LOGICAL big.
+        VAR LOGICAL dup.
+        VAR INTEGER minX.
+        VAR INTEGER maxX.
+        VAR INTEGER maxY.
+        VAR INTEGER minY.
+        VAR INTEGER[24] comp.
+        VAR MEMPTR mark.
         IF piRadius < 1 THEN UNDO, THROW NEW GridException("A blast has a radius of at least 1").
         mCrumbs = 0.
         bl = MAXIMUM(piCx - piRadius - 8, 0).
@@ -416,7 +416,7 @@ CLASS ProGriddle.Games.BlastBuddies.Terrain FINAL:
     /* The colour of a scorch ring pixel piAgeMs after the blast: it glows in the Blast ramp for 200 ms (step 1 tone 3, step 2 tone 4, step 3
        tone 5), then each step moves one colour cooler every 200 ms until at 600 ms it has its own scorch colour. */
     METHOD PUBLIC INTEGER ScorchColour(INPUT piStep AS INTEGER, INPUT piAgeMs AS INTEGER):
-        DEFINE VARIABLE stage AS INTEGER NO-UNDO.
+        VAR INTEGER stage.
         IF piStep < 1 OR piStep > 3 THEN UNDO, THROW NEW GridException("A scorch step is 1 to 3, not " + STRING(piStep)).
         stage = MINIMUM(MAXIMUM(INTEGER(TRUNCATE(piAgeMs / 200, 0)), 0), 3).
         CASE piStep:
@@ -443,7 +443,7 @@ CLASS ProGriddle.Games.BlastBuddies.Terrain FINAL:
 
     /* The number of ground pixels directly above a pixel before the first air (the top of a column is 0), or unknown for a pixel that is air. */
     METHOD PUBLIC INTEGER Depth(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE d AS INTEGER NO-UNDO.
+        VAR INTEGER d.
         IF NOT IsSolid(piX, piY) OR NOT InBounds(piX, piY) THEN RETURN ?.
         DO WHILE piY - d - 1 >= 0 AND GET-BYTE(mMap, (piY - d - 1) * {&MAP-WIDTH} + piX + 1) > 0:
             d = d + 1.
@@ -453,8 +453,8 @@ CLASS ProGriddle.Games.BlastBuddies.Terrain FINAL:
 
     /* The row of the first ground going down a column from the sky, or unknown if the column has none (or is outside the map). */
     METHOD PUBLIC INTEGER FirstGround(INPUT piX AS INTEGER):
-        DEFINE VARIABLE p AS INTEGER NO-UNDO.
-        DEFINE VARIABLE e AS INTEGER NO-UNDO.
+        VAR INTEGER p.
+        VAR INTEGER e.
         IF piX < 0 OR piX >= {&MAP-WIDTH} THEN RETURN ?.
         e = {&MAP-WIDTH} * {&MAP-HEIGHT}.
         DO p = piX + 1 TO e BY {&MAP-WIDTH}:
@@ -477,10 +477,10 @@ CLASS ProGriddle.Games.BlastBuddies.Terrain FINAL:
     /* The colour (0xRRGGBB) of the ground at a pixel by the rule of the design, or unknown for air. This is the busiest method of the
        painter after a blast, so it reads the map directly instead of calling IsSolid and Depth. */
     METHOD PUBLIC INTEGER ShadeAt(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE p  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sp AS LOGICAL NO-UNDO.
+        VAR INTEGER p.
+        VAR INTEGER b.
+        VAR INTEGER d.
+        VAR LOGICAL sp.
         IF piX < 0 OR piX >= {&MAP-WIDTH} OR piY < 0 OR piY >= {&MAP-HEIGHT} THEN RETURN ?.
         p = piY * {&MAP-WIDTH} + piX + 1.
         b = GET-BYTE(mMap, p).

@@ -11,7 +11,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeArtTests:
 
     @Test.
     METHOD PUBLIC VOID ThereAreFiftyTwoSpritesAndEachHasTheCellsItsSizeSays():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:Equals(52, CentipedeArt:Count()).
         DO i = 0 TO CentipedeArt:Count() - 1:
             Assert:Equals(CentipedeArt:Width(CentipedeSprite:GetEnum(i)) * CentipedeArt:Height(CentipedeSprite:GetEnum(i)),
@@ -21,13 +21,13 @@ CLASS ProGriddle.Games.Centipede.CentipedeArtTests:
 
     @Test.
     METHOD PUBLIC VOID EveryCellIsEmptyOrAColourOfTheLook():
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE k     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cells AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE known AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE ch    AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE found AS LOGICAL   NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER k.
+        VAR CHARACTER cells.
+        VAR CHARACTER known.
+        VAR CHARACTER ch.
+        VAR LOGICAL found.
         DO i = 0 TO CentipedeArt:Count() - 1:
             cells = CentipedeArt:Cells(CentipedeSprite:GetEnum(i)).
             DO j = 1 TO LENGTH(cells):
@@ -71,8 +71,8 @@ CLASS ProGriddle.Games.Centipede.CentipedeArtTests:
 
     @Test.
     METHOD PUBLIC VOID ASpriteThatIsNotThereIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER        NO-UNDO.
-        DEFINE VARIABLE none   AS CentipedeSprite NO-UNDO.
+        VAR INTEGER thrown.
+        VAR CentipedeSprite none.
         DO ON ERROR UNDO, THROW:
             CentipedeArt:Cells(none).
             CATCH e1 AS GridException:

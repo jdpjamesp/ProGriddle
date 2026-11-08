@@ -13,13 +13,13 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
    player's fleet on the right. */
 CLASS ProGriddle.Games.Battleships.BattleshipsGameTests:
 
-    DEFINE PRIVATE VARIABLE mGame     AS BattleshipsGame  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mOpponent AS ScriptedOpponent NO-UNDO.
-    DEFINE PRIVATE VARIABLE mText     AS TextGridRenderer NO-UNDO.
+    VAR PRIVATE BattleshipsGame mGame.
+    VAR PRIVATE ScriptedOpponent mOpponent.
+    VAR PRIVATE TextGridRenderer mText.
 
     @Test.
     METHOD PUBLIC VOID TheFixturesAreValid():
-        DEFINE VARIABLE g AS BattleshipsGame NO-UNDO.
+        VAR BattleshipsGame g.
         DO ON ERROR UNDO, THROW:
             g = BattleshipsFactory:Create(5, 5, "3,2,2", NEW SeededRandom(1), NEW ScriptedOpponent("")).
             g:LoadBoards(Own(), Enemy()).
@@ -44,9 +44,9 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGameTests:
     /* Every water cell of the player's board in reading order as "x,y;x,y;...", so a computer that
        fires them in order never hits anything. */
     METHOD PRIVATE CHARACTER WaterShots():
-        DEFINE VARIABLE x      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR CHARACTER result.
         DO y = 0 TO 4:
             DO x = 0 TO 4:
                 IF SUBSTRING(ENTRY(y + 1, Own(), "/"), x + 1, 1) <> "X" THEN result = result + (IF result = "" THEN "" ELSE ";") + SUBSTITUTE("&1,&2", x, y).
@@ -76,9 +76,9 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGameTests:
 
     /* Number of ship cells on one board. */
     METHOD PRIVATE INTEGER CountShips(INPUT poGame AS BattleshipsGame, INPUT plOwn AS LOGICAL):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         DO y = 0 TO poGame:BoardHeight - 1:
             DO x = 0 TO poGame:BoardWidth - 1:
                 IF (IF plOwn THEN poGame:OwnShipAt(x, y) ELSE poGame:EnemyShipAt(x, y)) <> 0 THEN n = n + 1.
@@ -90,18 +90,18 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGameTests:
     /* How many rules a board breaks: a ship that is not a straight line of the right length, a
        cell next to a different ship, a ship of one cell. Zero means it is a legal fleet. */
     METHOD PRIVATE INTEGER Violations(INPUT poGame AS BattleshipsGame, INPUT plOwn AS LOGICAL):
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE id     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE other  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bad    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cells  AS INTEGER NO-UNDO EXTENT 100.
-        DEFINE VARIABLE minX   AS INTEGER NO-UNDO EXTENT 100.
-        DEFINE VARIABLE maxX   AS INTEGER NO-UNDO EXTENT 100.
-        DEFINE VARIABLE minY   AS INTEGER NO-UNDO EXTENT 100.
-        DEFINE VARIABLE maxY   AS INTEGER NO-UNDO EXTENT 100.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER id.
+        VAR INTEGER other.
+        VAR INTEGER bad.
+        VAR INTEGER[100] cells.
+        VAR INTEGER[100] minX.
+        VAR INTEGER[100] maxX.
+        VAR INTEGER[100] minY.
+        VAR INTEGER[100] maxY.
         DO id = 1 TO poGame:FleetCount:
             minX[id] = 999.
             minY[id] = 999.
@@ -173,12 +173,12 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGameTests:
 
     @Test.
     METHOD PUBLIC VOID EveryStandardSizeGetsLegalFleetsOnBothSides():
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE seed  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE sizeName AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE g     AS BattleshipsGame NO-UNDO.
-        DEFINE VARIABLE bad   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE wrong AS INTEGER   NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER seed.
+        VAR CHARACTER sizeName.
+        VAR BattleshipsGame g.
+        VAR INTEGER bad.
+        VAR INTEGER wrong.
         DO i = 1 TO NUM-ENTRIES(BattleshipsFleets:Names()):
             sizeName = ENTRY(i, BattleshipsFleets:Names()).
             DO seed = 1 TO 12 ON ERROR UNDO, THROW:
@@ -198,11 +198,11 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheSameSeedPlacesTheSameFleet():
-        DEFINE VARIABLE a AS BattleshipsGame NO-UNDO.
-        DEFINE VARIABLE b AS BattleshipsGame NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE differ AS INTEGER NO-UNDO.
+        VAR BattleshipsGame a.
+        VAR BattleshipsGame b.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER differ.
         DO ON ERROR UNDO, THROW:
             a = BattleshipsFactory:Create(10, 10, "5,4,3,3,2", NEW SeededRandom(5), NEW ScriptedOpponent("")).
             b = BattleshipsFactory:Create(10, 10, "5,4,3,3,2", NEW SeededRandom(5), NEW ScriptedOpponent("")).
@@ -469,7 +469,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ARefusedLoadChangesNothing():
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         StartGame("").
         DO ON ERROR UNDO, THROW:
             mGame:LoadBoards("XX./.../..X", "XX./.../.XX").
@@ -787,7 +787,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ConfigureWithTheSameSizeKeepsTheGrid():
-        DEFINE VARIABLE before AS Grid NO-UNDO.
+        VAR Grid before.
         mOpponent = NEW ScriptedOpponent("").
         mGame = BattleshipsFactory:Create(5, 5, "3,2,2", NEW SeededRandom(1), mOpponent).
         before = mGame:Grid.
@@ -798,7 +798,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ABadConfigureThrowsAndLeavesTheGameAsItWas():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         mOpponent = NEW ScriptedOpponent("").
         mGame = BattleshipsFactory:Create(5, 5, "3,2,2", NEW SeededRandom(1), mOpponent).
         DO ON ERROR UNDO, THROW:
@@ -850,8 +850,8 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheConstructorRefusesAnythingThatIsNotABattleshipsGrid():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE g      AS BattleshipsGame NO-UNDO.
+        VAR INTEGER thrown.
+        VAR BattleshipsGame g.
         DO ON ERROR UNDO, THROW:
             g = NEW BattleshipsGame(NEW Grid(NEW TableStore(11, 5, "ship,shot,mark")), "3,2", NEW SeededRandom(1), NEW ScriptedOpponent("")).
             CATCH e1 AS GridException:
@@ -909,13 +909,13 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGameTests:
 
     @Test.
     METHOD PUBLIC VOID WholeGamesAgainstTheRealOpponentAlwaysEndWithOneWinner():
-        DEFINE VARIABLE seed   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE g      AS BattleshipsGame NO-UNDO.
-        DEFINE VARIABLE o      AS HuntTargetOpponent NO-UNDO.
-        DEFINE VARIABLE bad    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE stuck  AS INTEGER NO-UNDO.
+        VAR INTEGER seed.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR BattleshipsGame g.
+        VAR HuntTargetOpponent o.
+        VAR INTEGER bad.
+        VAR INTEGER stuck.
         DO seed = 1 TO 8 ON ERROR UNDO, THROW:
             o = NEW HuntTargetOpponent(NEW SeededRandom(seed + 100)).
             g = BattleshipsFactory:Create(10, 10, "5,4,3,3,2", NEW SeededRandom(seed), o).
@@ -944,14 +944,14 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGameTests:
     METHOD PUBLIC VOID TheRealOpponentFindsAWholeFleetInAboutFortyFiveShots():
         /* the player only ever fires at water, so only the computer can end the game: it must sink
            every ship, with no shot repeated, and do it in a sensible number of shots */
-        DEFINE VARIABLE seed   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE g      AS BattleshipsGame NO-UNDO.
-        DEFINE VARIABLE o      AS HuntTargetOpponent NO-UNDO.
-        DEFINE VARIABLE total  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE worst  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE notLost AS INTEGER NO-UNDO.
+        VAR INTEGER seed.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR BattleshipsGame g.
+        VAR HuntTargetOpponent o.
+        VAR INTEGER total.
+        VAR INTEGER worst.
+        VAR INTEGER notLost.
         DO seed = 1 TO 20 ON ERROR UNDO, THROW:
             o = NEW HuntTargetOpponent(NEW SeededRandom(seed + 500)).
             g = BattleshipsFactory:Create(10, 10, "5,4,3,3,2", NEW SeededRandom(seed), o).

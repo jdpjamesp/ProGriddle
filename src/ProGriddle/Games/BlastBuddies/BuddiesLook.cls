@@ -9,7 +9,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.BlastBuddies.BuddiesLook FINAL:
 
-    DEFINE PRIVATE STATIC VARIABLE sColour AS INTEGER NO-UNDO EXTENT 46.
+    VAR PRIVATE STATIC INTEGER[46] sColour.
 
     CONSTRUCTOR STATIC BuddiesLook():
         sColour[1] = ColourMath:FromHex("1C1426").

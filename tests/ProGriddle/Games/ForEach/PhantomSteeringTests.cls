@@ -12,9 +12,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.PhantomSteeringTests:
 
-    DEFINE PRIVATE VARIABLE mCross   AS MazeMap NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNoUp    AS MazeMap NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDoorway AS MazeMap NO-UNDO.
+    VAR PRIVATE MazeMap mCross.
+    VAR PRIVATE MazeMap mNoUp.
+    VAR PRIVATE MazeMap mDoorway.
 
     @Setup.
     METHOD PUBLIC VOID BuildMazes():
@@ -27,8 +27,8 @@ CLASS ProGriddle.Games.ForEach.PhantomSteeringTests:
     END METHOD.
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE dir   AS MazeDir NO-UNDO.
-        DEFINE VARIABLE other AS MazeDir NO-UNDO.
+        VAR MazeDir dir.
+        VAR MazeDir other.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN other = PhantomSteering:Choose(?, 3, 3, MazeDir:Right, 0, 0, FALSE, FALSE).

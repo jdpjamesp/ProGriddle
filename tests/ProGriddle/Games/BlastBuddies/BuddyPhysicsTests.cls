@@ -9,9 +9,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.BlastBuddies.BuddyPhysicsTests:
 
-    DEFINE PRIVATE VARIABLE mT AS Terrain      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mP AS BuddyPhysics NO-UNDO.
-    DEFINE PRIVATE VARIABLE mB AS Buddy        NO-UNDO.
+    VAR PRIVATE Terrain mT.
+    VAR PRIVATE BuddyPhysics mP.
+    VAR PRIVATE Buddy mB.
 
     /* flat ground with the top at row 150, and a buddy standing on it in column 100 */
     @Setup.
@@ -30,7 +30,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyPhysicsTests:
 
     /* steps until the buddy stands or drowns, up to a number of frames; returns how many it took */
     METHOD PRIVATE INTEGER Settle(INPUT piMax AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO WHILE n < piMax:
             n = n + 1.
             mP:Step(mB, mT).
@@ -63,7 +63,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyPhysicsTests:
 
     @Test.
     METHOD PUBLIC VOID ADirectionIsMinusOneOrOne():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             mP:Walk(mB, mT, 0).
             CATCH e AS GridException:
@@ -151,8 +151,8 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyPhysicsTests:
 
     @Test.
     METHOD PUBLIC VOID AHopIsSixPixelsHighAndComesDownForwardWithoutHarm():
-        DEFINE VARIABLE minY AS INTEGER NO-UNDO INITIAL 1000.
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
+        VAR INTEGER minY = 1000.
+        VAR INTEGER n.
         Assert:IsTrue(mP:Hop(mB)).
         Assert:IsTrue(mB:State = BuddyState:Airborne).
         DO WHILE n < 100:
@@ -179,8 +179,8 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyPhysicsTests:
 
     @Test.
     METHOD PUBLIC VOID ABackflipIsElevenPixelsHighAndNineBack():
-        DEFINE VARIABLE minY AS INTEGER NO-UNDO INITIAL 1000.
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
+        VAR INTEGER minY = 1000.
+        VAR INTEGER n.
         Assert:IsTrue(mP:Backflip(mB)).
         DO WHILE n < 100:
             n = n + 1.
@@ -203,8 +203,8 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyPhysicsTests:
 
     @Test.
     METHOD PUBLIC VOID AHopUnderALowCeilingBumpsTheHeadAndComesBackDown():
-        DEFINE VARIABLE minY AS INTEGER NO-UNDO INITIAL 1000.
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
+        VAR INTEGER minY = 1000.
+        VAR INTEGER n.
         /* rock 14 pixels over the feet: a body of 11 has 2 pixels to rise */
         mT:FillRect(90, 130, 110, 136, TRUE).
         mP:Hop(mB).

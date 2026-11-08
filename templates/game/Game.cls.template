@@ -17,7 +17,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.__Name__.__Name__Game INHERITS AbstractGame IMPLEMENTS ISteppableGame:
 
-    DEFINE PRIVATE VARIABLE mPosition AS INTEGER NO-UNDO.
+    VAR PRIVATE INTEGER mPosition.
 
     /* The cell index the lit cell is on, 0 for the top left. */
     DEFINE PUBLIC PROPERTY Position AS INTEGER NO-UNDO

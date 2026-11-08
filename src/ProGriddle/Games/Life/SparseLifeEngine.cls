@@ -24,14 +24,14 @@ CLASS ProGriddle.Games.Life.SparseLifeEngine FINAL IMPLEMENTS ILifeEngine:
         FIELD live    AS INTEGER
         INDEX ixCount IS PRIMARY UNIQUE cellIdx.
 
-    DEFINE PRIVATE VARIABLE mGrid    AS Grid         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mStore   AS SparseStore  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTable   AS INTEGER      NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mNbr     AS INTEGER      NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mOffsets AS INTEGER      NO-UNDO.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE SparseStore mStore.
+    VAR PRIVATE INTEGER[] mTable.
+    VAR PRIVATE INTEGER[] mNbr.
+    VAR PRIVATE INTEGER mOffsets.
 
     CONSTRUCTOR PUBLIC SparseLifeEngine(INPUT poGrid AS Grid, INPUT poRules AS LifeRules):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
 
         IF NOT VALID-OBJECT(poGrid) THEN UNDO, THROW NEW GridException("The engine needs a grid").
         IF NOT VALID-OBJECT(poRules) THEN UNDO, THROW NEW GridException("The engine needs rules").
@@ -54,9 +54,9 @@ CLASS ProGriddle.Games.Life.SparseLifeEngine FINAL IMPLEMENTS ILifeEngine:
     END CONSTRUCTOR.
 
     METHOD PUBLIC VOID Step():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE m AS INTEGER NO-UNDO.
-        DEFINE VARIABLE w AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER m.
+        VAR INTEGER w.
 
         w = mGrid:Width.
         mStore:ExportCells(OUTPUT TABLE ttLive).

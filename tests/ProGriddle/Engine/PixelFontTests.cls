@@ -15,10 +15,10 @@ CLASS ProGriddle.Engine.PixelFontTests:
 
     @Test.
     METHOD PUBLIC VOID EveryGlyphIsSevenRowsOfFiveCells():
-        DEFINE VARIABLE chars AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE r     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE glyph AS CHARACTER NO-UNDO.
+        VAR CHARACTER chars.
+        VAR INTEGER i.
+        VAR INTEGER r.
+        VAR CHARACTER glyph.
         chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-<>=?.:!+ ".
         DO i = 1 TO LENGTH(chars):
             Assert:IsTrue(PixelFont:HasGlyph(SUBSTRING(chars, i, 1)), SUBSTRING(chars, i, 1)).
@@ -59,9 +59,9 @@ CLASS ProGriddle.Engine.PixelFontTests:
 
     @Test.
     METHOD PUBLIC VOID NoTwoLettersOrDigitsLookTheSame():
-        DEFINE VARIABLE chars AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j     AS INTEGER   NO-UNDO.
+        VAR CHARACTER chars.
+        VAR INTEGER i.
+        VAR INTEGER j.
         chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".
         DO i = 1 TO LENGTH(chars):
             DO j = i + 1 TO LENGTH(chars):

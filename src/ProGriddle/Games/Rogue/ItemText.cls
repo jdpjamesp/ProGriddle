@@ -17,7 +17,7 @@ CLASS ProGriddle.Games.Rogue.ItemText FINAL:
 
     /* The item in words, with its count or an article in front, and nothing about whether it is worn or wielded (the pack list adds that). */
     METHOD PUBLIC STATIC CHARACTER Describe(INPUT poItem AS Item, INPUT poDisguises AS Disguises):
-        DEFINE VARIABLE noun AS CHARACTER NO-UNDO.
+        VAR CHARACTER noun.
         IF NOT VALID-OBJECT(poItem) THEN UNDO, THROW NEW GridException("There is no item to describe").
         IF NOT VALID-OBJECT(poDisguises) THEN UNDO, THROW NEW GridException("Describing an item needs the disguises of the game").
         CASE poItem:Category:
@@ -33,7 +33,7 @@ CLASS ProGriddle.Games.Rogue.ItemText FINAL:
 
     /* The item without a count or an article: "potion of healing", "red potion", "+1,+1 mace", "iron wand [3 charges]". */
     METHOD PUBLIC STATIC CHARACTER Noun(INPUT poItem AS Item, INPUT poDisguises AS Disguises):
-        DEFINE VARIABLE known AS LOGICAL NO-UNDO.
+        VAR LOGICAL known.
         IF NOT VALID-OBJECT(poItem) THEN UNDO, THROW NEW GridException("There is no item to describe").
         IF NOT VALID-OBJECT(poDisguises) THEN UNDO, THROW NEW GridException("Describing an item needs the disguises of the game").
         CASE poItem:Category:
@@ -68,7 +68,7 @@ CLASS ProGriddle.Games.Rogue.ItemText FINAL:
 
     /* The noun of a stack in the plural: "potions of healing", "red potions", "mangoes", "arrows", "shuriken". */
     METHOD PUBLIC STATIC CHARACTER Plural(INPUT pcNoun AS CHARACTER, INPUT poItem AS Item):
-        DEFINE VARIABLE p AS INTEGER NO-UNDO.
+        VAR INTEGER p.
         IF poItem:Category = ItemType:Weapon AND poItem:Kind = INTEGER(WeaponKind:Shuriken) THEN RETURN pcNoun.
         /* the noun of a potion or a scroll has more words after the sort ("potion of healing"): the s goes on the sort */
         p = INDEX(pcNoun, " of ").

@@ -9,10 +9,10 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Minesweeper.MinesweeperInputTests:
 
-    DEFINE PRIVATE VARIABLE mGame     AS MinesweeperGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mClock    AS FakeClock       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS MemorySettings  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInput    AS MinesweeperInput NO-UNDO.
+    VAR PRIVATE MinesweeperGame mGame.
+    VAR PRIVATE FakeClock mClock.
+    VAR PRIVATE MemorySettings mSettings.
+    VAR PRIVATE MinesweeperInput mInput.
 
     @Setup.
     METHOD PUBLIC VOID BuildInput():
@@ -39,7 +39,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheStartingLevelIsTheOneThatMatchesTheGame():
-        DEFINE VARIABLE g AS MinesweeperGame NO-UNDO.
+        VAR MinesweeperGame g.
         DO ON ERROR UNDO, THROW:
             g = MinesweeperFactory:Create(16, 16, 40, NEW SeededRandom(1), NEW FakeClock()).
             Assert:Equals("Intermediate", NEW MinesweeperInput(g, mSettings):Choice).
@@ -285,7 +285,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInputTests:
 
     @Test.
     METHOD PUBLIC VOID TenTimesFillTheListAndTheScreenShowsAllTen():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mSettings:SetString("minesweeper.scores.beginner", "1,2,3,4,5,6,7,8,9,10").
         Assert:IsTrue(INDEX(mInput:InfoText, "  10.   10 s") > 0).
     END METHOD.
@@ -333,8 +333,8 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheInputNeedsAGameAndSettings():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i      AS MinesweeperInput NO-UNDO.
+        VAR INTEGER thrown.
+        VAR MinesweeperInput i.
         DO ON ERROR UNDO, THROW:
             i = NEW MinesweeperInput(?, mSettings).
             CATCH e1 AS GridException:

@@ -18,7 +18,7 @@ CLASS ProGriddle.Engine.SettingsContractTests:
     END METHOD.
 
     METHOD PRIVATE ISettings Make(INPUT piKind AS INTEGER):
-        DEFINE VARIABLE path AS CHARACTER NO-UNDO.
+        VAR CHARACTER path.
         IF piKind = 1 THEN RETURN NEW MemorySettings().
         OS-CREATE-DIR VALUE("build/test-settings").
         path = "build/test-settings/contract.json".
@@ -43,8 +43,8 @@ CLASS ProGriddle.Engine.SettingsContractTests:
 
     @Test.
     METHOD PUBLIC VOID AMissingKeyGivesTheDefaultOfEachType():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ISettings NO-UNDO.
+        VAR INTEGER k.
+        VAR ISettings s.
         DO k = 1 TO KindCount() ON ERROR UNDO, THROW:
             s = Make(k).
             Assert:Equals("fallback", s:GetString("life.pattern", "fallback")).
@@ -61,8 +61,8 @@ CLASS ProGriddle.Engine.SettingsContractTests:
 
     @Test.
     METHOD PUBLIC VOID ASetValueIsReadBackOfEachType():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ISettings NO-UNDO.
+        VAR INTEGER k.
+        VAR ISettings s.
         DO k = 1 TO KindCount() ON ERROR UNDO, THROW:
             s = Make(k).
             s:SetString("life.pattern", "Glider").
@@ -82,8 +82,8 @@ CLASS ProGriddle.Engine.SettingsContractTests:
 
     @Test.
     METHOD PUBLIC VOID NegativeZeroAndFalseValuesAreRealValuesNotMissing():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ISettings NO-UNDO.
+        VAR INTEGER k.
+        VAR ISettings s.
         DO k = 1 TO KindCount() ON ERROR UNDO, THROW:
             s = Make(k).
             s:SetInteger("window.x", -12).
@@ -103,8 +103,8 @@ CLASS ProGriddle.Engine.SettingsContractTests:
 
     @Test.
     METHOD PUBLIC VOID SettingAgainReplacesTheValueEvenWithAnotherType():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ISettings NO-UNDO.
+        VAR INTEGER k.
+        VAR ISettings s.
         DO k = 1 TO KindCount() ON ERROR UNDO, THROW:
             s = Make(k).
             s:SetInteger("life.speed", 4).
@@ -121,8 +121,8 @@ CLASS ProGriddle.Engine.SettingsContractTests:
 
     @Test.
     METHOD PUBLIC VOID AValueOfAnotherTypeGivesTheDefaultInsteadOfFailing():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ISettings NO-UNDO.
+        VAR INTEGER k.
+        VAR ISettings s.
         DO k = 1 TO KindCount() ON ERROR UNDO, THROW:
             s = Make(k).
             s:SetString("life.speed", "fast").
@@ -140,8 +140,8 @@ CLASS ProGriddle.Engine.SettingsContractTests:
 
     @Test.
     METHOD PUBLIC VOID AFractionalNumberIsNotAnInteger():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ISettings NO-UNDO.
+        VAR INTEGER k.
+        VAR ISettings s.
         DO k = 1 TO KindCount() ON ERROR UNDO, THROW:
             s = Make(k).
             s:SetDecimal("life.density", 2.5).
@@ -157,8 +157,8 @@ CLASS ProGriddle.Engine.SettingsContractTests:
 
     @Test.
     METHOD PUBLIC VOID KeysAreIndependentOfEachOther():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ISettings NO-UNDO.
+        VAR INTEGER k.
+        VAR ISettings s.
         DO k = 1 TO KindCount() ON ERROR UNDO, THROW:
             s = Make(k).
             s:SetInteger("life.speed", 2).
@@ -174,9 +174,9 @@ CLASS ProGriddle.Engine.SettingsContractTests:
 
     @Test.
     METHOD PUBLIC VOID TheStringsKeepQuotesBackslashesAndAccents():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ISettings NO-UNDO.
-        DEFINE VARIABLE v AS CHARACTER NO-UNDO.
+        VAR INTEGER k.
+        VAR ISettings s.
+        VAR CHARACTER v.
         DO k = 1 TO KindCount() ON ERROR UNDO, THROW:
             s = Make(k).
             v = 'say "hi" c:~\temp~\file é'.
@@ -190,8 +190,8 @@ CLASS ProGriddle.Engine.SettingsContractTests:
 
     @Test.
     METHOD PUBLIC VOID BadKeysAreRejected():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ISettings NO-UNDO.
+        VAR INTEGER k.
+        VAR ISettings s.
         DO k = 1 TO KindCount() ON ERROR UNDO, THROW:
             s = Make(k).
             Assert:IsTrue(KeyIsRejected(s, "")).
@@ -208,9 +208,9 @@ CLASS ProGriddle.Engine.SettingsContractTests:
 
     @Test.
     METHOD PUBLIC VOID ReadingWithABadKeyThrowsToo():
-        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s      AS ISettings NO-UNDO.
-        DEFINE VARIABLE caught AS LOGICAL NO-UNDO.
+        VAR INTEGER k.
+        VAR ISettings s.
+        VAR LOGICAL caught.
         DO k = 1 TO KindCount() ON ERROR UNDO, THROW:
             s = Make(k).
             caught = FALSE.
@@ -237,13 +237,13 @@ CLASS ProGriddle.Engine.SettingsContractTests:
 
     @Test.
     METHOD PUBLIC VOID UnknownValuesAreRejected():
-        DEFINE VARIABLE k      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE s      AS ISettings NO-UNDO.
-        DEFINE VARIABLE c      AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE d      AS DECIMAL   NO-UNDO.
-        DEFINE VARIABLE l      AS LOGICAL   NO-UNDO.
-        DEFINE VARIABLE caught AS INTEGER   NO-UNDO.
+        VAR INTEGER k.
+        VAR ISettings s.
+        VAR CHARACTER c.
+        VAR INTEGER i.
+        VAR DECIMAL d.
+        VAR LOGICAL l.
+        VAR INTEGER caught.
         /* variables start as empty or zero, not unknown, so set them unknown on purpose */
         ASSIGN c = ? i = ? d = ? l = ?.
         DO k = 1 TO KindCount() ON ERROR UNDO, THROW:
@@ -283,8 +283,8 @@ CLASS ProGriddle.Engine.SettingsContractTests:
 
     @Test.
     METHOD PUBLIC VOID SaveIsSafeToCallAnyTime():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ISettings NO-UNDO.
+        VAR INTEGER k.
+        VAR ISettings s.
         DO k = 1 TO KindCount() ON ERROR UNDO, THROW:
             s = Make(k).
             s:Save().

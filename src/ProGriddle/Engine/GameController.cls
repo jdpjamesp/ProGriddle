@@ -13,11 +13,11 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.GameController FINAL IMPLEMENTS IGameController:
 
-    DEFINE PRIVATE VARIABLE mGame      AS ISteppableGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRenderer  AS IGridRenderer  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mClock     AS IClock         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mIntervals AS INTEGER        NO-UNDO EXTENT 6 INITIAL [1000, 500, 250, 125, 60, 30].
-    DEFINE PRIVATE VARIABLE mDisposed  AS LOGICAL        NO-UNDO.
+    VAR PRIVATE ISteppableGame mGame.
+    VAR PRIVATE IGridRenderer mRenderer.
+    VAR PRIVATE IClock mClock.
+    VAR PRIVATE INTEGER[6] mIntervals = [1000, 500, 250, 125, 60, 30].
+    VAR PRIVATE LOGICAL mDisposed.
 
     /* 1 (slowest) to 6 (fastest). Starts at 3, one step every 250 ms. */
     DEFINE PUBLIC PROPERTY SpeedLevel AS INTEGER NO-UNDO

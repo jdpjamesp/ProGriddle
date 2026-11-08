@@ -7,9 +7,9 @@ CLASS ProGriddle.Core.SeededRandomTests:
 
     @Test.
     METHOD PUBLIC VOID TheSameSeedGivesTheSameSequence():
-        DEFINE VARIABLE a AS IRandom NO-UNDO.
-        DEFINE VARIABLE b AS IRandom NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR IRandom a.
+        VAR IRandom b.
+        VAR INTEGER i.
         a = NEW SeededRandom(42).
         b = NEW SeededRandom(42).
         DO i = 1 TO 20:
@@ -19,8 +19,8 @@ CLASS ProGriddle.Core.SeededRandomTests:
 
     @Test.
     METHOD PUBLIC VOID DifferentSeedsGiveDifferentSequences():
-        DEFINE VARIABLE a AS IRandom NO-UNDO.
-        DEFINE VARIABLE b AS IRandom NO-UNDO.
+        VAR IRandom a.
+        VAR IRandom b.
         a = NEW SeededRandom(1).
         b = NEW SeededRandom(2).
         Assert:IsTrue(a:NextDecimal() <> b:NextDecimal()).
@@ -29,16 +29,15 @@ CLASS ProGriddle.Core.SeededRandomTests:
     @Test.
     METHOD PUBLIC VOID ItFollowsTheDocumentedGenerator():
         /* (1 * 1103515245 + 12345) mod 2^31 = 1103527590, and 1103527590 / 2^31 is about 0.51387 */
-        DEFINE VARIABLE r AS IRandom NO-UNDO.
-        r = NEW SeededRandom(1).
+        VAR IRandom r = NEW SeededRandom(1).
         Assert:IsTrue(ABSOLUTE(r:NextDecimal() - 0.5138700782) < 0.000001).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID ANegativeSeedMatchesItsAbsoluteValueAndZeroWorks():
-        DEFINE VARIABLE a AS IRandom NO-UNDO.
-        DEFINE VARIABLE b AS IRandom NO-UNDO.
-        DEFINE VARIABLE z AS IRandom NO-UNDO.
+        VAR IRandom a.
+        VAR IRandom b.
+        VAR IRandom z.
         a = NEW SeededRandom(-77).
         b = NEW SeededRandom(77).
         Assert:Equals(a:NextDecimal(), b:NextDecimal()).
@@ -48,10 +47,10 @@ CLASS ProGriddle.Core.SeededRandomTests:
 
     @Test.
     METHOD PUBLIC VOID DecimalsStayInZeroToOneAndAverageNearAHalf():
-        DEFINE VARIABLE r     AS IRandom NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d     AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE total AS DECIMAL NO-UNDO.
+        VAR IRandom r.
+        VAR INTEGER i.
+        VAR DECIMAL d.
+        VAR DECIMAL total.
         r = NEW SeededRandom(2024).
         DO i = 1 TO 2000:
             d = r:NextDecimal().
@@ -63,10 +62,10 @@ CLASS ProGriddle.Core.SeededRandomTests:
 
     @Test.
     METHOD PUBLIC VOID NextIntStaysBelowTheLimitAndReachesEveryValue():
-        DEFINE VARIABLE r    AS IRandom NO-UNDO.
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE seen AS INTEGER NO-UNDO EXTENT 6.
+        VAR IRandom r.
+        VAR INTEGER i.
+        VAR INTEGER n.
+        VAR INTEGER[6] seen.
         r = NEW SeededRandom(7).
         DO i = 1 TO 600:
             n = r:NextInt(6).
@@ -80,8 +79,8 @@ CLASS ProGriddle.Core.SeededRandomTests:
 
     @Test.
     METHOD PUBLIC VOID NextIntOfOneIsAlwaysZero():
-        DEFINE VARIABLE r AS IRandom NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR IRandom r.
+        VAR INTEGER i.
         r = NEW SeededRandom(3).
         DO i = 1 TO 20:
             Assert:Equals(0, r:NextInt(1)).
@@ -100,9 +99,9 @@ CLASS ProGriddle.Core.SeededRandomTests:
 
     @Test.
     METHOD PUBLIC VOID TheMostNegativeSeedWorksAndIsTheSameAsSeedZero():
-        DEFINE VARIABLE lowest AS INT64 NO-UNDO.
-        DEFINE VARIABLE a      AS SeededRandom NO-UNDO.
-        DEFINE VARIABLE b      AS SeededRandom NO-UNDO.
+        VAR INT64 lowest.
+        VAR SeededRandom a.
+        VAR SeededRandom b.
         lowest = - 9223372036854775807 - 1.
         a = NEW SeededRandom(lowest).
         b = NEW SeededRandom(0).

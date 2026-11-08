@@ -9,11 +9,11 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.BlastBuddies.ExplosionTests:
 
-    DEFINE PRIVATE VARIABLE mT    AS Terrain       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlan AS TurnPlan      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mP    AS BuddyPhysics  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mX    AS Explosion     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTeam AS Team          NO-UNDO.
+    VAR PRIVATE Terrain mT.
+    VAR PRIVATE TurnPlan mPlan.
+    VAR PRIVATE BuddyPhysics mP.
+    VAR PRIVATE Explosion mX.
+    VAR PRIVATE Team mTeam.
 
     /* flat ground at row 150 and a team of four buddies at columns 100, 114, 128 and 300 */
     @Setup.
@@ -38,7 +38,7 @@ CLASS ProGriddle.Games.BlastBuddies.ExplosionTests:
 
     @Test.
     METHOD PUBLIC VOID ABlastAtTheMiddleOfABuddyDoesFullDamageAndThrowsItStraightUp():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         n = mX:Detonate(mT, mPlan, mP, 100, 145, 20, 50).
         Assert:Equals(2, n).
         Assert:Equals(50, mTeam:BuddyAt(1):Health).
@@ -66,7 +66,7 @@ CLASS ProGriddle.Games.BlastBuddies.ExplosionTests:
 
     @Test.
     METHOD PUBLIC VOID TheBlastCarvesTheGroundAndCrumblesWhatItLeaves():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         before = mT:SolidCount().
         mX:Detonate(mT, mPlan, mP, 200, 150, 20, 50).
         Assert:IsFalse(mT:IsSolid(200, 160)).
@@ -89,7 +89,7 @@ CLASS ProGriddle.Games.BlastBuddies.ExplosionTests:
 
     @Test.
     METHOD PUBLIC VOID AskingForAHitThatIsNotThereIsRefused():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         mX:Detonate(mT, mPlan, mP, 10, 145, 20, 50).
         DO ON ERROR UNDO, LEAVE:
             mX:HitBuddy(1).
@@ -138,7 +138,7 @@ CLASS ProGriddle.Games.BlastBuddies.ExplosionTests:
 
     @Test.
     METHOD PUBLIC VOID ABlastNeedsATerrainAPlanAndPhysics():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             mX:Detonate(?, mPlan, mP, 1, 1, 20, 50).
             CATCH e AS GridException:
@@ -150,8 +150,8 @@ CLASS ProGriddle.Games.BlastBuddies.ExplosionTests:
 
     @Test.
     METHOD PUBLIC VOID TheShellPoolHoldsEightShellsInSlotsAndKeepsTheirNumbers():
-        DEFINE VARIABLE pool AS ShellPool NO-UNDO.
-        DEFINE VARIABLE s    AS INTEGER   NO-UNDO.
+        VAR ShellPool pool.
+        VAR INTEGER s.
         pool = NEW ShellPool().
         Assert:Equals(8, ShellPool:Capacity()).
         Assert:Equals(0, pool:Count()).
@@ -179,9 +179,9 @@ CLASS ProGriddle.Games.BlastBuddies.ExplosionTests:
 
     @Test.
     METHOD PUBLIC VOID AReleasedSlotIsReusedAndAFullPoolRefusesAnotherShell():
-        DEFINE VARIABLE pool    AS ShellPool NO-UNDO.
-        DEFINE VARIABLE i       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL   NO-UNDO.
+        VAR ShellPool pool.
+        VAR INTEGER i.
+        VAR LOGICAL lThrown.
         pool = NEW ShellPool().
         DO i = 1 TO 8:
             pool:Launch(WeaponKind:Bazooka, 1, i, i, 0, 0).
@@ -203,8 +203,8 @@ CLASS ProGriddle.Games.BlastBuddies.ExplosionTests:
 
     @Test.
     METHOD PUBLIC VOID ASlotOutsideOneToEightAndAShellWithoutAKindAreRefused():
-        DEFINE VARIABLE pool    AS ShellPool NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL   NO-UNDO.
+        VAR ShellPool pool.
+        VAR LOGICAL lThrown.
         pool = NEW ShellPool().
         DO ON ERROR UNDO, LEAVE:
             pool:X(9).

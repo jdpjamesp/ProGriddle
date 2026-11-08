@@ -10,8 +10,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.ForEachHaloTests:
 
-    DEFINE PRIVATE VARIABLE mGrid   AS Grid        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas AS PixelCanvas NO-UNDO.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE PixelCanvas mCanvas.
 
     @Setup.
     METHOD PUBLIC VOID BuildCanvas():
@@ -30,7 +30,7 @@ CLASS ProGriddle.Games.ForEach.ForEachHaloTests:
     END METHOD.
 
     METHOD PRIVATE LOGICAL ThrowsGridException():
-        DEFINE VARIABLE halo AS ForEachHalo NO-UNDO.
+        VAR ForEachHalo halo.
         DO ON ERROR UNDO, THROW:
             halo = NEW ForEachHalo(?).
             RETURN FALSE.
@@ -59,8 +59,7 @@ CLASS ProGriddle.Games.ForEach.ForEachHaloTests:
 
     @Test.
     METHOD PUBLIC VOID TheGlowIsDrawnOnTheFloorColoursOnlyAndNeverOnAnythingElse():
-        DEFINE VARIABLE halo AS ForEachHalo NO-UNDO.
-        halo = NEW ForEachHalo(NEW Tile("1")).
+        VAR ForEachHalo halo = NEW ForEachHalo(NEW Tile("1")).
         halo:DrawTo(mCanvas, 5, 5, 77, 1000, 1001, 1002).
         Assert:Equals(77, mCanvas:ColourAt(5, 4)).
         Assert:Equals(77, mCanvas:ColourAt(4, 5)).

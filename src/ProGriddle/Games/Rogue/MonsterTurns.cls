@@ -16,8 +16,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.MonsterTurns FINAL:
 
-    DEFINE PRIVATE VARIABLE mChase AS Chase NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFresh AS LOGICAL NO-UNDO.
+    VAR PRIVATE Chase mChase.
+    VAR PRIVATE LOGICAL mFresh.
 
     CONSTRUCTOR PUBLIC MonsterTurns():
         mChase = NEW Chase().
@@ -37,8 +37,8 @@ CLASS ProGriddle.Games.Rogue.MonsterTurns FINAL:
 
     /* Every monster on the level takes its turn. */
     METHOD PUBLIC VOID Take(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE i        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
+        VAR INTEGER i.
+        VAR Monster oMonster.
         mFresh = FALSE.
         DO i = 0 TO RogueRules:MostMonsters() - 1:
             IF poWorld:Dead THEN LEAVE.
@@ -68,9 +68,9 @@ CLASS ProGriddle.Games.Rogue.MonsterTurns FINAL:
 
     /* One go of a monster: heal, wake, fly about, breathe, hit or hunt. */
     METHOD PRIVATE VOID Move(INPUT poWorld AS RogueWorld, INPUT poMonster AS Monster):
-        DEFINE VARIABLE dx   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dist AS INTEGER NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER dist.
         IF Bestiary:Has(poMonster:Kind, "R") AND poMonster:Hp < poMonster:MaxHp AND poWorld:Turns MODULO 4 = 0 THEN poMonster:Hp = poMonster:Hp + 1.
         IF NOT poMonster:Awake THEN DO:
             TryToWake(poWorld, poMonster).
@@ -102,7 +102,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurns FINAL:
 
     /* A sleeping monster wakes now and then when the hero is in its room or within three squares. A ring of aggravation wakes them all. */
     METHOD PRIVATE VOID TryToWake(INPUT poWorld AS RogueWorld, INPUT poMonster AS Monster):
-        DEFINE VARIABLE room AS INTEGER NO-UNDO.
+        VAR INTEGER room.
         IF poWorld:Pack:WearingRing(RingKind:Aggravation) THEN DO:
             poMonster:Awake = TRUE.
             RETURN.
@@ -115,9 +115,9 @@ CLASS ProGriddle.Games.Rogue.MonsterTurns FINAL:
 
     /* Steps in a random direction if there is a free square that way (a few tries). */
     METHOD PRIVATE VOID Wander(INPUT poWorld AS RogueWorld, INPUT poMonster AS Monster):
-        DEFINE VARIABLE tries AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy    AS INTEGER NO-UNDO.
+        VAR INTEGER tries.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
         DO tries = 1 TO 6:
             dx = poWorld:Random:NextInt(3) - 1.
             dy = poWorld:Random:NextInt(3) - 1.
@@ -133,7 +133,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurns FINAL:
 
     /* True when a scroll of scare monster lies on the square. */
     METHOD PUBLIC STATIC LOGICAL Scared(INPUT poWorld AS RogueWorld, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
+        VAR Item oItem.
         oItem = poWorld:FloorItemAt(piX, piY).
         RETURN VALID-OBJECT(oItem) AND oItem:Category = ItemType:Scroll AND oItem:Kind = INTEGER(ScrollKind:ScareMonster).
     END METHOD.
@@ -141,9 +141,9 @@ CLASS ProGriddle.Games.Rogue.MonsterTurns FINAL:
     /* A dragon in a straight clear line from the hero (along a row, a column or a diagonal) from 2 to 7 squares away breathes fire now and
        then. Gives true when it did. */
     METHOD PRIVATE LOGICAL Breathes(INPUT poWorld AS RogueWorld, INPUT poMonster AS Monster):
-        DEFINE VARIABLE dx   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dist AS INTEGER NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER dist.
         IF poMonster:Cancelled THEN RETURN FALSE.
         dx = poWorld:Hero:X - poMonster:X.
         dy = poWorld:Hero:Y - poMonster:Y.

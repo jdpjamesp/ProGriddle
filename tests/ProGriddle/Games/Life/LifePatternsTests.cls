@@ -43,8 +43,8 @@ CLASS ProGriddle.Games.Life.LifePatternsTests:
 
     @Test.
     METHOD PUBLIC VOID ByNameFindsEveryListedPattern():
-        DEFINE VARIABLE names AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
+        VAR CHARACTER names.
+        VAR INTEGER i.
         names = LifePatterns:Names().
         Assert:Equals(11, NUM-ENTRIES(names)).
         DO i = 1 TO NUM-ENTRIES(names):
@@ -65,20 +65,20 @@ CLASS ProGriddle.Games.Life.LifePatternsTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ByNameThrowsForAnUnknownName():
-        DEFINE VARIABLE s AS CHARACTER NO-UNDO.
+        VAR CHARACTER s.
         LifePatterns:ByName(s).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID PlainTextSkipsCommentsAndReadsLiveAndDeadCells():
-        DEFINE VARIABLE t AS CHARACTER NO-UNDO.
+        VAR CHARACTER t.
         t = "!Name: Glider" + CHR(10) + "!A comment" + CHR(10) + ".O." + CHR(10) + "..O" + CHR(10) + "OOO".
         Assert:IsTrue(LifePatterns:FromPlainText(t):Equals(LifePatterns:Glider())).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID PlainTextHandlesWindowsLineEndingsAndOtherLiveMarks():
-        DEFINE VARIABLE t AS CHARACTER NO-UNDO.
+        VAR CHARACTER t.
         t = ".X." + CHR(13) + CHR(10) + "..#" + CHR(13) + CHR(10) + "***".
         Assert:IsTrue(LifePatterns:FromPlainText(t):Equals(LifePatterns:Glider())).
     END METHOD.
@@ -90,7 +90,7 @@ CLASS ProGriddle.Games.Life.LifePatternsTests:
 
     @Test.
     METHOD PUBLIC VOID PlainTextIsNormalisedToItsBoundingBox():
-        DEFINE VARIABLE t AS CHARACTER NO-UNDO.
+        VAR CHARACTER t.
         t = "...." + CHR(10) + "..O." + CHR(10) + "..O.".
         Assert:Equals("X/X", LifePatterns:FromPlainText(t):ToString()).
     END METHOD.

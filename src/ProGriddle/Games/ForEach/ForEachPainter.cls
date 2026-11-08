@@ -27,49 +27,49 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
     /* how a stamp is looked up: ((picture - 1) * 9 + colourRow) + 1, with 0 for the picture's own row */
     &SCOPED-DEFINE ROWS 9
 
-    DEFINE PRIVATE VARIABLE mInner      AS IGridRenderer  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGame       AS ForEachGame    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mMaze       AS MazeMap        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGrid       AS Grid           NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBaseGrid   AS Grid           NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFlashGrid  AS Grid           NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBlankGrid  AS Grid           NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas     AS PixelCanvas    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBase       AS PixelCanvas    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFlash      AS PixelCanvas    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBlank      AS PixelCanvas    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mText       AS TextStampCache NO-UNDO.
+    VAR PRIVATE IGridRenderer mInner.
+    VAR PRIVATE ForEachGame mGame.
+    VAR PRIVATE MazeMap mMaze.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE Grid mBaseGrid.
+    VAR PRIVATE Grid mFlashGrid.
+    VAR PRIVATE Grid mBlankGrid.
+    VAR PRIVATE PixelCanvas mCanvas.
+    VAR PRIVATE PixelCanvas mBase.
+    VAR PRIVATE PixelCanvas mFlash.
+    VAR PRIVATE PixelCanvas mBlank.
+    VAR PRIVATE TextStampCache mText.
     /* the pictures, made when first needed */
-    DEFINE PRIVATE VARIABLE mStamp      AS PixelStamp     NO-UNDO EXTENT 600.
-    DEFINE PRIVATE VARIABLE mHalo       AS ForEachHalo    NO-UNDO EXTENT 600.
-    DEFINE PRIVATE VARIABLE mDibby      AS PixelStamp     NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mDibbyHalo  AS ForEachHalo    NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mWall       AS PixelStamp     NO-UNDO EXTENT 256.
-    DEFINE PRIVATE VARIABLE mWallFlash  AS PixelStamp     NO-UNDO EXTENT 256.
-    DEFINE PRIVATE VARIABLE mGiant      AS PixelStamp     NO-UNDO EXTENT 2.
-    DEFINE PRIVATE VARIABLE mAngryEyes  AS PixelStamp     NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mFloorTile  AS PixelStamp     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTunnelTile AS PixelStamp     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDoorTile   AS PixelStamp     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDoorSwap   AS PixelStamp     NO-UNDO.
+    VAR PRIVATE PixelStamp[600] mStamp.
+    VAR PRIVATE ForEachHalo[600] mHalo.
+    VAR PRIVATE PixelStamp[16] mDibby.
+    VAR PRIVATE ForEachHalo[16] mDibbyHalo.
+    VAR PRIVATE PixelStamp[256] mWall.
+    VAR PRIVATE PixelStamp[256] mWallFlash.
+    VAR PRIVATE PixelStamp[2] mGiant.
+    VAR PRIVATE PixelStamp[4] mAngryEyes.
+    VAR PRIVATE PixelStamp mFloorTile.
+    VAR PRIVATE PixelStamp mTunnelTile.
+    VAR PRIVATE PixelStamp mDoorTile.
+    VAR PRIVATE PixelStamp mDoorSwap.
     /* the commit tokens' tiles, found when the maze is baked */
-    DEFINE PRIVATE VARIABLE mTokenCol   AS INTEGER        NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mTokenRow   AS INTEGER        NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mTokens     AS INTEGER        NO-UNDO.
+    VAR PRIVATE INTEGER[16] mTokenCol.
+    VAR PRIVATE INTEGER[16] mTokenRow.
+    VAR PRIVATE INTEGER mTokens.
     /* what is showing in the background, and what it was made from */
-    DEFINE PRIVATE VARIABLE mShowing    AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSerial     AS INTEGER        NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mEatenSeen  AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBitsDirty  AS LOGICAL        NO-UNDO.
+    VAR PRIVATE INTEGER mShowing.
+    VAR PRIVATE INTEGER mSerial = -1.
+    VAR PRIVATE INTEGER mEatenSeen.
+    VAR PRIVATE LOGICAL mBitsDirty.
     /* how far Dibby has walked, for his mouth, and where he was last */
-    DEFINE PRIVATE VARIABLE mTravel     AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLastX      AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLastY      AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWidth      AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHeight     AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDisposed   AS LOGICAL        NO-UNDO.
+    VAR PRIVATE INTEGER mTravel.
+    VAR PRIVATE INTEGER mLastX.
+    VAR PRIVATE INTEGER mLastY.
+    VAR PRIVATE INTEGER mWidth.
+    VAR PRIVATE INTEGER mHeight.
+    VAR PRIVATE LOGICAL mDisposed.
     /* true while the maze is showing, where a character going off one edge comes in at the other (the tunnel); the title and the cartoons do not wrap */
-    DEFINE PRIVATE VARIABLE mWrap       AS LOGICAL        NO-UNDO.
+    VAR PRIVATE LOGICAL mWrap.
 
     /* The canvas the picture is drawn on, and the grid it is on (what the window's renderer is given). */
     DEFINE PUBLIC PROPERTY Canvas AS PixelCanvas NO-UNDO
@@ -120,7 +120,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Frees the canvases and the stamps. Safe to call more than once. */
     METHOD PUBLIC VOID Dispose():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF mDisposed THEN RETURN.
         mDisposed = TRUE.
         DO i = 1 TO EXTENT(mStamp):
@@ -172,7 +172,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* A picture in its colours as a stamp, made once. poRow is the colour row to take the tones from, or unknown for the picture's own. */
     METHOD PRIVATE PixelStamp StampOf(INPUT poPicture AS ForEachPicture, INPUT poRow AS ForEachRow):
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         slot = (INTEGER(poPicture) - 1) * {&ROWS} + (IF poRow = ? THEN 0 ELSE INTEGER(poRow)) + 1.
         IF NOT VALID-OBJECT(mStamp[slot]) THEN mStamp[slot] = TileOf(poPicture):Colourise(TonesFor(poPicture, poRow), ForEachArt:Legend(poPicture)).
         RETURN mStamp[slot].
@@ -180,7 +180,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The glow of a picture, made once, in the colour of its row. */
     METHOD PRIVATE ForEachHalo HaloOf(INPUT poPicture AS ForEachPicture, INPUT poRow AS ForEachRow):
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         slot = (INTEGER(poPicture) - 1) * {&ROWS} + (IF poRow = ? THEN 0 ELSE INTEGER(poRow)) + 1.
         IF NOT VALID-OBJECT(mHalo[slot]) THEN mHalo[slot] = NEW ForEachHalo(TileOf(poPicture)).
         RETURN mHalo[slot].
@@ -192,7 +192,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The five tones for a picture: those of the row given, else those of its own row, else five floor colours (it has none). */
     METHOD PRIVATE CHARACTER TonesFor(INPUT poPicture AS ForEachPicture, INPUT poRow AS ForEachRow):
-        DEFINE VARIABLE colourRow AS ForEachRow NO-UNDO.
+        VAR ForEachRow colourRow.
         colourRow = (IF poRow <> ? THEN poRow ELSE ForEachArt:ToneRow(poPicture)).
         IF colourRow <> ? THEN RETURN ForEachLook:Tones(colourRow).
         RETURN SUBSTITUTE("&1,&1,&1,&1,&1", ForEachLook:Hex(ForEachTint:Floor)).
@@ -213,9 +213,9 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
     END METHOD.
 
     METHOD PRIVATE VOID BlitHalo(INPUT poHalo AS ForEachHalo, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piColour AS INTEGER):
-        DEFINE VARIABLE a AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER a.
+        VAR INTEGER b.
+        VAR INTEGER c.
         ASSIGN a = Tint(ForEachTint:Floor)
                b = Tint(ForEachTint:FloorStud)
                c = Tint(ForEachTint:Tunnel).
@@ -243,8 +243,8 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Builds the three backgrounds: the maze with its bits left to draw, the same with the lines white, and the plain floor. */
     METHOD PRIVATE VOID BuildBases():
-        DEFINE VARIABLE cc AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rr AS INTEGER NO-UNDO.
+        VAR INTEGER cc.
+        VAR INTEGER rr.
         mBaseGrid = NEW Grid(NEW ArrayStore(mWidth, mHeight, "view,kind,back")).
         mBlankGrid = NEW Grid(NEW ArrayStore(mWidth, mHeight, "view,kind,back")).
         mBase = NEW PixelCanvas(mBaseGrid).
@@ -275,18 +275,18 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* True when a tile counts as wall for the wall rule: a wall or the door. A tile off the maze is taken as the nearest tile on it. */
     METHOD PRIVATE LOGICAL IsWallAt(INPUT piCol AS INTEGER, INPUT piRow AS INTEGER):
-        DEFINE VARIABLE kind AS TileKind NO-UNDO.
+        VAR TileKind kind.
         kind = mMaze:KindAt(MAXIMUM(0, MINIMUM(mMaze:Cols - 1, piCol)), MAXIMUM(0, MINIMUM(mMaze:Rows - 1, piRow))).
         RETURN kind = TileKind:Wall OR kind = TileKind:Door.
     END METHOD.
 
     /* The mask of the eight neighbours of a wall tile (see ForEachArt:WallRows): a corner counts only when both its sides are walls. */
     METHOD PRIVATE INTEGER MaskAt(INPUT piCol AS INTEGER, INPUT piRow AS INTEGER):
-        DEFINE VARIABLE n AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE e AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE s AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE w AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE m AS INTEGER NO-UNDO.
+        VAR LOGICAL n.
+        VAR LOGICAL e.
+        VAR LOGICAL s.
+        VAR LOGICAL w.
+        VAR INTEGER m.
         ASSIGN n = IsWallAt(piCol, piRow - 1)
                e = IsWallAt(piCol + 1, piRow)
                s = IsWallAt(piCol, piRow + 1)
@@ -304,7 +304,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The picture of a wall tile for a mask, made once: lines on a transparent floor, in the normal colours or with the white of the flash. */
     METHOD PRIVATE PixelStamp WallStamp(INPUT piMask AS INTEGER, INPUT plFlash AS LOGICAL):
-        DEFINE VARIABLE legend AS CHARACTER NO-UNDO.
+        VAR CHARACTER legend.
         IF plFlash THEN DO:
             IF VALID-OBJECT(mWallFlash[piMask + 1]) THEN RETURN mWallFlash[piMask + 1].
             legend = SUBSTITUTE("G=&1,L=&2,A=&3,I=&2,F=&4", ForEachLook:Hex(ForEachTint:FlashGlow), ForEachLook:Hex(ForEachTint:FlashLine),
@@ -321,9 +321,9 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Draws the floor, the walls and the door of the maze on a canvas and keeps them as its background. */
     METHOD PRIVATE VOID BuildMazeBase(INPUT poCanvas AS PixelCanvas, INPUT plFlash AS LOGICAL):
-        DEFINE VARIABLE cc   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rr   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE kind AS TileKind NO-UNDO.
+        VAR INTEGER cc.
+        VAR INTEGER rr.
+        VAR TileKind kind.
         poCanvas:BeginBatch().
         poCanvas:FillRect(0, 0, mWidth, mHeight, 0, Tint(ForEachTint:Floor)).
         DO rr = 0 TO mMaze:Rows - 1:
@@ -344,7 +344,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The door: two rows of hazard stripes, gold and black. */
     METHOD PRIVATE VOID DrawDoor(INPUT poCanvas AS PixelCanvas, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 0 TO 7:
             poCanvas:Plot(piX + i, piY + 3, 0, (IF (i MODULO 4) < 2 THEN Tint(ForEachTint:Door) ELSE Tint(ForEachTint:DoorShade))).
             poCanvas:Plot(piX + i, piY + 4, 0, (IF (i MODULO 4) < 2 THEN Tint(ForEachTint:DoorShade) ELSE Tint(ForEachTint:Door))).
@@ -353,10 +353,10 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Chooses what the background should be for the phase and switches to it, and keeps the bits drawn in it up to date. */
     METHOD PRIVATE VOID SyncBackground():
-        DEFINE VARIABLE want AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cc   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rr   AS INTEGER NO-UNDO.
+        VAR INTEGER want.
+        VAR INTEGER s.
+        VAR INTEGER cc.
+        VAR INTEGER rr.
         want = {&BACK-MAZE}.
         CASE mGame:Phase:
             WHEN ForEachPhase:Title OR WHEN ForEachPhase:Intermission THEN want = {&BACK-BLANK}.
@@ -405,8 +405,8 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The 2 x 2 pixels of the bit on a tile, painted into the background in a colour. */
     METHOD PRIVATE VOID PaintBit(INPUT piCol AS INTEGER, INPUT piRow AS INTEGER, INPUT piColour AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO y = 3 TO 4:
             DO x = 3 TO 4:
                 mCanvas:SetBack(piCol * 8 + x, {&STRIP} + piRow * 8 + y, piColour).
@@ -418,7 +418,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* True when the lines are white at this moment of the end of a level: a second of stillness, then eight swaps 12 frames apart. */
     METHOD PRIVATE LOGICAL FlashOn():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         IF mGame:PhaseAge < 60 THEN RETURN FALSE.
         n = INTEGER(TRUNCATE((mGame:PhaseAge - 60) / 12, 0)).
         RETURN n < 8 AND n MODULO 2 = 0.
@@ -428,9 +428,9 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Dibby's picture for a mouth (0 closed, 1 half, 2 wide, 3 happy) facing a way: the right-facing picture, mirrored for left and turned for up and down. */
     METHOD PRIVATE PixelStamp DibbyStamp(INPUT piMouth AS INTEGER, INPUT poDir AS MazeDir):
-        DEFINE VARIABLE slot     AS INTEGER        NO-UNDO.
-        DEFINE VARIABLE picture AS ForEachPicture NO-UNDO.
-        DEFINE VARIABLE tile    AS Tile           NO-UNDO.
+        VAR INTEGER slot.
+        VAR ForEachPicture picture.
+        VAR Tile tile.
         slot = piMouth * 4 + (IF poDir = MazeDir:Left THEN 1 ELSE IF poDir = MazeDir:Down THEN 2 ELSE IF poDir = MazeDir:Up THEN 3 ELSE 0) + 1.
         IF VALID-OBJECT(mDibby[slot]) THEN RETURN mDibby[slot].
         picture = (IF piMouth = 0 THEN ForEachPicture:DibbyClosed ELSE IF piMouth = 1 THEN ForEachPicture:DibbyHalf
@@ -448,10 +448,10 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* A picture the other way round. */
     METHOD PRIVATE Tile Mirrored(INPUT poTile AS Tile):
-        DEFINE VARIABLE x    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE rows AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE cells AS CHARACTER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR CHARACTER rows.
+        VAR CHARACTER cells.
         DO y = 0 TO poTile:Height - 1:
             cells = "".
             DO x = poTile:Width - 1 TO 0 BY -1:
@@ -464,8 +464,8 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Draws Dibby at a place in the maze (pixels) with his glow. The mouth is 0 closed, 1 half, 2 wide, 3 happy. */
     METHOD PRIVATE VOID DrawDibbyAt(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piMouth AS INTEGER, INPUT poDir AS MazeDir):
-        DEFINE VARIABLE stamp AS PixelStamp NO-UNDO.
-        DEFINE VARIABLE slot   AS INTEGER    NO-UNDO.
+        VAR PixelStamp stamp.
+        VAR INTEGER slot.
         stamp = DibbyStamp(piMouth, poDir).
         slot = piMouth * 4 + (IF poDir = MazeDir:Left THEN 1 ELSE IF poDir = MazeDir:Down THEN 2 ELSE IF poDir = MazeDir:Up THEN 3 ELSE 0) + 1.
         BlitHalo(mDibbyHalo[slot], piX - 8, {&STRIP} + piY - 8, GlowOf(ForEachRow:Dibby)).
@@ -474,7 +474,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Which mouth Dibby has: closed at the start of a level, half when he cannot go on, otherwise one frame for every 2 pixels walked. */
     METHOD PRIVATE INTEGER MouthOf():
-        DEFINE VARIABLE moved AS INTEGER NO-UNDO.
+        VAR INTEGER moved.
         IF mGame:Phase = ForEachPhase:Ready THEN RETURN 0.
         moved = ABSOLUTE(mGame:DibbyX - mLastX) + ABSOLUTE(mGame:DibbyY - mLastY).
         IF moved < 16 THEN mTravel = mTravel + moved.
@@ -491,12 +491,12 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
     /* A phantom: its glow, its body (the tail swishing), its eyes looking the way it goes, its mark and, for Mary, her anger. Rolled back it is a
        puddle, flashing near the end, and returning it is only a pair of eyes. */
     METHOD PRIVATE VOID DrawPhantom(INPUT poKind AS PhantomKind):
-        DEFINE VARIABLE x      AS INTEGER        NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER        NO-UNDO.
-        DEFINE VARIABLE wobble AS INTEGER        NO-UNDO.
-        DEFINE VARIABLE body   AS ForEachPicture NO-UNDO.
-        DEFINE VARIABLE colourRow    AS ForEachRow     NO-UNDO.
-        DEFINE VARIABLE dir    AS MazeDir        NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER wobble.
+        VAR ForEachPicture body.
+        VAR ForEachRow colourRow.
+        VAR MazeDir dir.
         IF NOT mGame:PhantomPresent(poKind) THEN RETURN.
         ASSIGN x = mGame:PhantomX(poKind) - 8
                y = {&STRIP} + mGame:PhantomY(poKind) - 8
@@ -560,8 +560,8 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Mary's eyes in her second stage of anger: the pupils are red. */
     METHOD PRIVATE PixelStamp AngryEyes(INPUT poDir AS MazeDir):
-        DEFINE VARIABLE i       AS INTEGER        NO-UNDO.
-        DEFINE VARIABLE picture AS ForEachPicture NO-UNDO.
+        VAR INTEGER i.
+        VAR ForEachPicture picture.
         i = INTEGER(poDir).
         IF VALID-OBJECT(mAngryEyes[i]) THEN RETURN mAngryEyes[i].
         picture = EyesPicture(poDir).
@@ -574,8 +574,8 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Everything over the maze while the maze is showing. */
     METHOD PRIVATE VOID DrawPlay():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE showUp AS LOGICAL NO-UNDO.
+        VAR INTEGER i.
+        VAR LOGICAL showUp.
         DrawCommits().
         showUp = TRUE.
         CASE mGame:Phase:
@@ -611,7 +611,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The commit tokens, which flashing: lit for 10 frames and dim for 10. */
     METHOD PRIVATE VOID DrawCommits():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO mTokens:
             IF mMaze:KindAt(mTokenCol[i], mTokenRow[i]) = TileKind:Commit THEN
                 StampOf((IF INTEGER(TRUNCATE(mGame:FrameCount / 10, 0)) MODULO 2 = 0 THEN ForEachPicture:CommitOn ELSE ForEachPicture:CommitDim), ?):DrawTo(
@@ -639,7 +639,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The crash: a second standing still, then eleven frames of 8 game frames, then two of the pop. */
     METHOD PRIVATE VOID DrawCrash():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         n = mGame:PhaseAge.
         IF n < 88 THEN
             Blit(StampOf(CrashPicture(INTEGER(TRUNCATE(n / 8, 0)) + 1), ?), mGame:DibbyX - 8, {&STRIP} + mGame:DibbyY - 8).
@@ -653,10 +653,10 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The points just earned, in 3 x 5 digits, where the phantom or the item was, and a pixel higher for the first 6 frames. */
     METHOD PRIVATE VOID DrawPopup():
-        DEFINE VARIABLE picture AS ForEachPicture NO-UNDO.
-        DEFINE VARIABLE stamp   AS PixelStamp     NO-UNDO.
-        DEFINE VARIABLE x       AS INTEGER        NO-UNDO.
-        DEFINE VARIABLE age     AS INTEGER        NO-UNDO.
+        VAR ForEachPicture picture.
+        VAR PixelStamp stamp.
+        VAR INTEGER x.
+        VAR INTEGER age.
         picture = PopupPicture(mGame:PopupPoints, mGame:PopupIsItem).
         stamp = StampOf(picture, ?).
         age = (IF mGame:PopupIsItem THEN 120 ELSE 60) - mGame:PopupFramesLeft.
@@ -683,8 +683,8 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The debug overlay: a cross at the tile each phantom is heading for, in its colour. */
     METHOD PRIVATE VOID DrawTarget(INPUT poKind AS PhantomKind):
-        DEFINE VARIABLE tc AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rw  AS INTEGER NO-UNDO.
+        VAR INTEGER tc.
+        VAR INTEGER rw.
         IF NOT mGame:PhantomPresent(poKind) THEN RETURN.
         tc = mGame:PhantomTargetCol(poKind).
         rw = mGame:PhantomTargetRow(poKind).
@@ -694,7 +694,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* READY!, PLAYER ONE, GAME OVER and PAUSED, in the lane under the lobby. */
     METHOD PRIVATE VOID DrawBanner():
-        DEFINE VARIABLE flashing AS LOGICAL NO-UNDO.
+        VAR LOGICAL flashing.
         flashing = INTEGER(TRUNCATE(mGame:FrameCount / 32, 0)) MODULO 2 = 0.
         IF mGame:Paused AND mGame:Phase <> ForEachPhase:GameOver AND mGame:Phase <> ForEachPhase:Title THEN DO:
             IF flashing THEN SayCentred("PAUSED", {&STRIP} + 136, ForEachTint:Player).
@@ -717,9 +717,9 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The score above the maze and the lives and items below it. */
     METHOD PRIVATE VOID DrawStrips():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE spare  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lit    AS LOGICAL NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER spare.
+        VAR LOGICAL lit.
         /* 1UP blinks while a game is on and stays lit when it is over */
         lit = mGame:Phase = ForEachPhase:GameOver OR INTEGER(TRUNCATE(mGame:FrameCount / 16, 0)) MODULO 2 = 0.
         IF mGame:Phase <> ForEachPhase:Title AND lit THEN Say("1UP", 24, 1, ForEachTint:Player).
@@ -742,7 +742,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The title screen: the name, the giant Dibby, the roll call of the phantoms one by one, the points, and the chase. It plays round every 20 seconds. */
     METHOD PRIVATE VOID DrawTitle():
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        VAR INTEGER t.
         t = mGame:PhaseAge MODULO 1200.
         DrawLogo().
         DrawGiant(t).
@@ -755,7 +755,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* FOR and EACH in big letters, shaded from yellow to orange with a black edge. */
     METHOD PRIVATE VOID DrawLogo():
-        DEFINE VARIABLE stamp AS TextStamp NO-UNDO.
+        VAR TextStamp stamp.
         stamp = mText:Get("FOR", 3, Tint(ForEachTint:TitleTop), Tint(ForEachTint:TitleBottom), Tint(ForEachTint:Outline)).
         stamp:DrawTo(mCanvas, INTEGER(TRUNCATE((mWidth - PixelCanvas:ScaledWidth("FOR", 3)) / 2, 0)), 30).
         stamp = mText:Get("EACH", 3, Tint(ForEachTint:TitleTop), Tint(ForEachTint:TitleBottom), Tint(ForEachTint:Outline)).
@@ -764,7 +764,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The giant Dibby beside the name: the half frame and the closed frame at twice the size, every 16 frames. */
     METHOD PRIVATE VOID DrawGiant(INPUT piAge AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         i = INTEGER(TRUNCATE(piAge / 16, 0)) MODULO 2.
         IF NOT VALID-OBJECT(mGiant[i + 1]) THEN
             mGiant[i + 1] = (IF i = 0 THEN TileOf(ForEachPicture:DibbyGiant):Colourise(ForEachLook:Tones(ForEachRow:Dibby), ForEachArt:Legend(ForEachPicture:DibbyGiant))
@@ -774,12 +774,12 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* A picture at twice the size. */
     METHOD PRIVATE Tile Doubled(INPUT poPicture AS ForEachPicture):
-        DEFINE VARIABLE tile AS Tile      NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE rows AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE cells AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE ch   AS CHARACTER NO-UNDO.
+        VAR Tile tile.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR CHARACTER rows.
+        VAR CHARACTER cells.
+        VAR CHARACTER ch.
         tile = TileOf(poPicture).
         DO y = 0 TO tile:Height - 1:
             cells = "".
@@ -794,9 +794,9 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The roll call: PHANTOM, NAME and STYLE, then each phantom in turn, its picture, 30 frames later its name and 30 later its style. */
     METHOD PRIVATE VOID DrawRollCall(INPUT piAge AS INTEGER):
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE start AS INTEGER NO-UNDO.
-        DEFINE VARIABLE kind  AS PhantomKind NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER start.
+        VAR PhantomKind kind.
         IF piAge >= 60 THEN DO:
             Say("PHANTOM", 34, 92, ForEachTint:LabelText).
             Say("NAME", 98, 92, ForEachTint:LabelText).
@@ -814,7 +814,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* A phantom of the roll call: its body, eyes looking right, and its mark. */
     METHOD PRIVATE VOID DrawRollPhantom(INPUT poKind AS PhantomKind, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE colourRow AS ForEachRow NO-UNDO.
+        VAR ForEachRow colourRow.
         colourRow = RowOf(poKind).
         Blit(StampOf(ForEachPicture:PhantomBody1, colourRow), piX - 8, piY - 8).
         Blit(StampOf(ForEachPicture:PhantomEyesRight, ?), piX - 8, piY - 8).
@@ -823,7 +823,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Words in the second tone of a phantom's colour row. */
     METHOD PRIVATE VOID SayRow(INPUT pcText AS CHARACTER, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT poKind AS PhantomKind):
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER c.
         c = ForEachLook:Tone(RowOf(poKind), 2).
         mText:Get(pcText, 1, c, c, -1):DrawTo(mCanvas, piX, piY).
     END METHOD.
@@ -857,13 +857,13 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
     /* The chase on the lane at the bottom: Dibby runs in, eats a commit token, and the four phantoms, which came the other way, are rolled back
        and run; he eats them one by one, for 200, 400, 800 and 1600. piAge counts from the start of the chase. */
     METHOD PRIVATE VOID DrawChase(INPUT piAge AS INTEGER):
-        DEFINE VARIABLE dibbyX AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE eatAt  AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE px     AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE x0     AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE caught AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE kind   AS PhantomKind NO-UNDO.
+        VAR DECIMAL dibbyX.
+        VAR DECIMAL eatAt.
+        VAR INTEGER i.
+        VAR DECIMAL px.
+        VAR DECIMAL x0.
+        VAR DECIMAL caught.
+        VAR PhantomKind kind.
         dibbyX = -16 + 1.4 * piAge.
         eatAt = (60 + 16) / 1.4.
         IF dibbyX < 60 THEN StampOf(ForEachPicture:CommitOn, ?):DrawTo(mCanvas, 60 - 3, 248 - 3).
@@ -888,7 +888,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
     END METHOD.
 
     METHOD PRIVATE VOID DrawChasePhantom(INPUT poKind AS PhantomKind, INPUT piX AS INTEGER, INPUT poDir AS MazeDir, INPUT plRolledBack AS LOGICAL):
-        DEFINE VARIABLE wobble AS INTEGER NO-UNDO.
+        VAR INTEGER wobble.
         wobble = INTEGER(TRUNCATE(mGame:FrameCount / 8, 0)) MODULO 2.
         IF plRolledBack THEN
             Blit(StampOf((IF wobble = 0 THEN ForEachPicture:Rolledback1 ELSE ForEachPicture:Rolledback2), ?), piX - 8, 248 - 8).
@@ -900,7 +900,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
     END METHOD.
 
     METHOD PRIVATE VOID DrawChasePop(INPUT piX AS INTEGER, INPUT piNth AS INTEGER):
-        DEFINE VARIABLE picture AS ForEachPicture NO-UNDO.
+        VAR ForEachPicture picture.
         picture = PopupPicture(ForEachRules:PhantomPoints(piNth + 1), FALSE).
         StampOf(picture, ?):DrawTo(mCanvas, MAXIMUM(0, MINIMUM(mWidth - 17, piX - ForEachArt:OriginX(picture))), 248 - ForEachArt:OriginY(picture)).
     END METHOD.
@@ -909,7 +909,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The cartoon between levels, on the plain floor along the lane at y 160, about five seconds. Three small stories (see section 5.3 of the design). */
     METHOD PRIVATE VOID DrawCartoon():
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        VAR INTEGER t.
         t = mGame:PhaseAge.
         CASE mGame:IntermissionAct:
             WHEN 1 THEN DrawDeadlock(t).
@@ -920,7 +920,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* A phantom on the cartoon lane, rolled back or in its colours, facing a way. */
     METHOD PRIVATE VOID CartoonPhantom(INPUT poKind AS PhantomKind, INPUT piX AS INTEGER, INPUT poDir AS MazeDir, INPUT plRolledBack AS LOGICAL):
-        DEFINE VARIABLE wobble AS INTEGER NO-UNDO.
+        VAR INTEGER wobble.
         wobble = INTEGER(TRUNCATE(mGame:FrameCount / 8, 0)) MODULO 2.
         IF plRolledBack THEN
             Blit(StampOf((IF wobble = 0 THEN ForEachPicture:Rolledback1 ELSE ForEachPicture:Rolledback2), ?), piX - 8, 160 - 8).
@@ -939,7 +939,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
     /* DEADLOCK: Mary chases Dibby in from the left, Rich comes the other way, Dibby is squashed between them and they bonk heads, a lock appears
        over them and they are stuck. Dibby trots off. */
     METHOD PRIVATE VOID DrawDeadlock(INPUT piAge AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         IF piAge < 90 THEN DO:
             x = INTEGER(-10 + 1.3 * piAge).
             CartoonPhantom(PhantomKind:Mary, x - 28, MazeDir:Right, FALSE).
@@ -964,7 +964,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* ROLLBACK: Brian chases Dibby, who turns and says UNDO, and Brian is played backwards, twice, with rewind marks behind him. */
     METHOD PRIVATE VOID DrawRollbackStory(INPUT piAge AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         IF piAge < 100 THEN DO:
             x = INTEGER(-10 + 1.3 * piAge).
             CartoonPhantom(PhantomKind:Brian, x - 28, MazeDir:Right, FALSE).
@@ -988,7 +988,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* NIGHT BATCH: Chip drifts in asleep, the others race in after Dibby and pile into him, and when they get up they are rolled back and Chip is still asleep. */
     METHOD PRIVATE VOID DrawNightBatch(INPUT piAge AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         IF piAge < 80 THEN DO:
             CartoonPhantom(PhantomKind:Chip, INTEGER(-10 + 3 * piAge) - 60, MazeDir:Right, FALSE).
             Blit(StampOf(ForEachPicture:Zz, ?), INTEGER(-10 + 3 * piAge) - 60, 160 - 24).

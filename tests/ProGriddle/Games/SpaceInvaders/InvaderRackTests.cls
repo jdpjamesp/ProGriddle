@@ -9,7 +9,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.SpaceInvaders.InvaderRackTests:
 
-    DEFINE PRIVATE VARIABLE mRack AS InvaderRack NO-UNDO.
+    VAR PRIVATE InvaderRack mRack.
 
     @Setup.
     METHOD PUBLIC VOID BuildRack():
@@ -19,8 +19,8 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRackTests:
 
     /* Makes n steps and returns the number of the last invader that moved. */
     METHOD PRIVATE INTEGER Steps(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE latest AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER latest.
         DO i = 1 TO piCount:
             latest = mRack:Step().
         END.
@@ -28,7 +28,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRackTests:
     END METHOD.
 
     METHOD PRIVATE LOGICAL Refused(INPUT piIndex AS INTEGER):
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             mRack:X(piIndex).
             CATCH e AS GridException:
@@ -42,7 +42,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRackTests:
 
     @Test.
     METHOD PUBLIC VOID AFreshRackHasFiftyFiveLiveInvadersGoingRight():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:Equals(55, mRack:AliveCount).
         DO i = 0 TO 54:
             Assert:IsTrue(mRack:Alive(i)).
@@ -108,7 +108,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRackTests:
 
     @Test.
     METHOD PUBLIC VOID ABadIndexOrKindIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         Assert:IsTrue(Refused(-1)).
         Assert:IsTrue(Refused(55)).
         Assert:IsTrue(Refused(?)).
@@ -158,7 +158,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRackTests:
 
     @Test.
     METHOD PUBLIC VOID APassIsEndedByTheLastInvaderAndTheTopRightOneIsLast():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 54:
             mRack:Step().
             Assert:IsFalse(mRack:PassEnded).
@@ -170,7 +170,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRackTests:
 
     @Test.
     METHOD PUBLIC VOID WhenAPassEndsTheWalkingPoseChangesAndEveryoneHasMovedTwoCells():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Steps(55).
         Assert:Equals(1, mRack:Pose).
         DO i = 0 TO 54:
@@ -195,7 +195,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRackTests:
 
     @Test.
     METHOD PUBLIC VOID TheLastInvaderMovesEveryStepAndEveryStepIsAPass():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 0 TO 53:
             mRack:Kill(i).
         END.
@@ -210,7 +210,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRackTests:
 
     @Test.
     METHOD PUBLIC VOID StepGivesMinusOneWhenNoInvaderIsAlive():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 0 TO 54:
             mRack:Kill(i).
         END.
@@ -245,7 +245,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRackTests:
 
     @Test.
     METHOD PUBLIC VOID TheDropPassMovesEveryoneEightCellsDownAndNotSideways():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Steps(55 * 9).
         Assert:IsTrue(mRack:Dropping).
         Assert:Equals(44, mRack:Step()).
@@ -281,7 +281,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRackTests:
 
     @Test.
     METHOD PUBLIC VOID WhenTheOutsideColumnsAreGoneTheRackTravelsFurther():
-        DEFINE VARIABLE r AS INTEGER NO-UNDO.
+        VAR INTEGER r.
         /* with the last column shot away the rightmost octopus is in column 9, at x 170 and 12 wide, which
            touches the edge after 17 steps of 2 cells instead of 9 */
         DO r = 0 TO 4:
@@ -298,7 +298,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRackTests:
 
     @Test.
     METHOD PUBLIC VOID KillingCountsDownAndAKilledInvaderCannotBeKilledAgain():
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         mRack:Kill(7).
         Assert:Equals(54, mRack:AliveCount).
         Assert:IsFalse(mRack:Alive(7)).
@@ -334,7 +334,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRackTests:
 
     @Test.
     METHOD PUBLIC VOID ABadColumnIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mRack:LowestInColumn(11).
             CATCH e1 AS GridException:
@@ -352,7 +352,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRackTests:
 
     @Test.
     METHOD PUBLIC VOID TheBottomIsTheRowJustBelowTheLowestLivePicture():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:Equals(112, mRack:Bottom()).
         DO i = 44 TO 54:
             mRack:Kill(i).
@@ -362,7 +362,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvaderRackTests:
 
     @Test.
     METHOD PUBLIC VOID TheBottomIsMinusOneWhenNoneIsAlive():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 0 TO 54:
             mRack:Kill(i).
         END.

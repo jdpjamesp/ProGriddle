@@ -6,8 +6,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Tetris.TetrisHighScoresTests:
 
-    DEFINE PRIVATE VARIABLE mSettings AS MemorySettings    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScores   AS TetrisHighScores  NO-UNDO.
+    VAR PRIVATE MemorySettings mSettings.
+    VAR PRIVATE TetrisHighScores mScores.
 
     @Setup.
     METHOD PUBLIC VOID BuildScores():
@@ -51,7 +51,7 @@ CLASS ProGriddle.Games.Tetris.TetrisHighScoresTests:
 
     @Test.
     METHOD PUBLIC VOID TheListKeepsTheTenBestAndDropsTheRest():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 10:
             mScores:Record(i * 100, i).
         END.
@@ -76,7 +76,7 @@ CLASS ProGriddle.Games.Tetris.TetrisHighScoresTests:
 
     @Test.
     METHOD PUBLIC VOID ANewObjectOnTheSameSettingsSeesTheSameList():
-        DEFINE VARIABLE other AS TetrisHighScores NO-UNDO.
+        VAR TetrisHighScores other.
         mScores:Record(800, 6).
         other = NEW TetrisHighScores(mSettings).
         Assert:Equals(800, other:Best()).
@@ -99,8 +99,7 @@ CLASS ProGriddle.Games.Tetris.TetrisHighScoresTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID TheConstructorNeedsSettings():
-        DEFINE VARIABLE s AS TetrisHighScores NO-UNDO.
-        s = NEW TetrisHighScores(?).
+        VAR TetrisHighScores s = NEW TetrisHighScores(?).
     END METHOD.
 
 END CLASS.

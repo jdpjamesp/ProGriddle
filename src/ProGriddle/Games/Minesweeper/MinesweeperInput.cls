@@ -20,19 +20,19 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Minesweeper.MinesweeperInput FINAL IMPLEMENTS IGameInput:
 
-    DEFINE PRIVATE VARIABLE mGame     AS MinesweeperGame      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS ISettings            NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBest     AS MinesweeperBestTimes NO-UNDO.
-    DEFINE PRIVATE VARIABLE mChoice   AS CHARACTER            NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCustomW  AS INTEGER              NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCustomH  AS INTEGER              NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCustomM  AS INTEGER              NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNotice   AS CHARACTER            NO-UNDO.
+    VAR PRIVATE MinesweeperGame mGame.
+    VAR PRIVATE ISettings mSettings.
+    VAR PRIVATE MinesweeperBestTimes mBest.
+    VAR PRIVATE CHARACTER mChoice.
+    VAR PRIVATE INTEGER mCustomW.
+    VAR PRIVATE INTEGER mCustomH.
+    VAR PRIVATE INTEGER mCustomM.
+    VAR PRIVATE CHARACTER mNotice.
 
     DEFINE PUBLIC PROPERTY StatusText AS CHARACTER NO-UNDO
         GET():
-            DEFINE VARIABLE state AS CHARACTER NO-UNDO.
-            DEFINE VARIABLE best  AS INTEGER   NO-UNDO.
+            VAR CHARACTER state.
+            VAR INTEGER best.
             IF mGame:IsWon THEN state = "You win!".
             ELSE IF mGame:IsLost THEN state = "Game over".
             ELSE IF mGame:Started THEN state = "Playing".
@@ -79,11 +79,11 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInput FINAL IMPLEMENTS IGameInput:
     /* The high scores of the three standard levels, each a ranked list of winning times. */
     DEFINE PUBLIC PROPERTY InfoText AS CHARACTER NO-UNDO
         GET():
-            DEFINE VARIABLE level  AS INTEGER   NO-UNDO.
-            DEFINE VARIABLE rank   AS INTEGER   NO-UNDO.
-            DEFINE VARIABLE name   AS CHARACTER NO-UNDO.
-            DEFINE VARIABLE scores AS CHARACTER NO-UNDO.
-            DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+            VAR INTEGER level.
+            VAR INTEGER rank.
+            VAR CHARACTER name.
+            VAR CHARACTER scores.
+            VAR CHARACTER result.
             DO level = 1 TO 3:
                 name = ENTRY(level, MinesweeperLevels:Names()).
                 scores = mBest:Scores(name).
@@ -106,8 +106,8 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInput FINAL IMPLEMENTS IGameInput:
     /* poGame is the game to drive, in whatever size it starts. The level shown first is the
        standard one that matches its size, or Custom. */
     CONSTRUCTOR PUBLIC MinesweeperInput(INPUT poGame AS MinesweeperGame, INPUT poSettings AS ISettings):
-        DEFINE VARIABLE level     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE levelName AS CHARACTER NO-UNDO.
+        VAR INTEGER level.
+        VAR CHARACTER levelName.
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("Minesweeper input needs a game").
         IF NOT VALID-OBJECT(poSettings) THEN UNDO, THROW NEW GridException("Minesweeper input needs settings").
         mGame = poGame.
@@ -127,7 +127,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInput FINAL IMPLEMENTS IGameInput:
 
     /* What the Marks command just did, "Question marks on" or "Question marks off". */
     METHOD PUBLIC CHARACTER TakeNotice():
-        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        VAR CHARACTER notice.
         notice = mNotice.
         mNotice = "".
         RETURN notice.
@@ -153,7 +153,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInput FINAL IMPLEMENTS IGameInput:
     END METHOD.
 
     METHOD PUBLIC VOID PrimaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE wasWon AS LOGICAL NO-UNDO.
+        VAR LOGICAL wasWon.
         IF NOT mGame:Grid:InBounds(piX, piY) THEN RETURN.
         wasWon = mGame:IsWon.
         mGame:Reveal(piX, piY).
@@ -166,7 +166,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperInput FINAL IMPLEMENTS IGameInput:
     END METHOD.
 
     METHOD PUBLIC VOID TertiaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE wasWon AS LOGICAL NO-UNDO.
+        VAR LOGICAL wasWon.
         IF NOT mGame:Grid:InBounds(piX, piY) THEN RETURN.
         wasWon = mGame:IsWon.
         mGame:Chord(piX, piY).

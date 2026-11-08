@@ -43,7 +43,7 @@ CLASS ProGriddle.Engine.AsciiFont FINAL:
 
     /* True when the pixel (piX, piY) of the glyph is on. Throws GridException for a pixel outside the glyph. */
     METHOD PUBLIC STATIC LOGICAL PixelOn(INPUT piCode AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE bits AS INTEGER NO-UNDO.
+        VAR INTEGER bits.
         IF piX = ? OR piX < 0 OR piX >= GlyphWidth() OR piY = ? OR piY < 0 OR piY >= GlyphHeight() THEN
             UNDO, THROW NEW GridException(SUBSTITUTE("Pixel (&1,&2) is outside a glyph of &3 x &4", piX, piY, GlyphWidth(), GlyphHeight())).
         bits = HexByte(SUBSTRING(Rows(piCode), piY * 2 + 1, 2)).

@@ -11,8 +11,8 @@ CLASS ProGriddle.Games.Xevious.XeviousMapTests:
 
     @Test.
     METHOD PUBLIC VOID TheHashIsTheSameForTheSameNumbersAndStaysInRange():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER h.
         Assert:Equals(XeviousMap:Hash(3, 40, 1), XeviousMap:Hash(3, 40, 1)).
         DO i = 0 TO 200:
             h = XeviousMap:Hash(i, i * 7, i * 13).
@@ -23,7 +23,7 @@ CLASS ProGriddle.Games.Xevious.XeviousMapTests:
 
     @Test.
     METHOD PUBLIC VOID TheSameRowOfTheSameStageAlwaysHoldsTheSameTarget():
-        DEFINE VARIABLE row AS INTEGER NO-UNDO.
+        VAR INTEGER row.
         DO row = 0 TO 119:
             Assert:Equals(STRING(XeviousMap:KindAt(5, row)), STRING(XeviousMap:KindAt(5, row))).
             Assert:Equals(XeviousMap:ColAt(5, row), XeviousMap:ColAt(5, row)).
@@ -32,7 +32,7 @@ CLASS ProGriddle.Games.Xevious.XeviousMapTests:
 
     @Test.
     METHOD PUBLIC VOID TheFirstFourRowsAndTheLastTwelveAreEmpty():
-        DEFINE VARIABLE row AS INTEGER NO-UNDO.
+        VAR INTEGER row.
         DO row = 0 TO 3:
             Assert:IsFalse(VALID-OBJECT(XeviousMap:KindAt(1, row))).
         END.
@@ -43,8 +43,8 @@ CLASS ProGriddle.Games.Xevious.XeviousMapTests:
 
     @Test.
     METHOD PUBLIC VOID EveryStageHasThreeHiddenTowersWhereTheMapSays():
-        DEFINE VARIABLE stage AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        VAR INTEGER stage.
+        VAR INTEGER i.
         DO stage = 1 TO 16:
             DO i = 0 TO 2:
                 Assert:Equals(STRING(XeviousGround:Sol), STRING(XeviousMap:KindAt(stage, XeviousMap:SolRow(stage, i)))).
@@ -64,8 +64,8 @@ CLASS ProGriddle.Games.Xevious.XeviousMapTests:
 
     @Test.
     METHOD PUBLIC VOID TheFlagIsOnTheMapOfAnOddStageExactlyOnce():
-        DEFINE VARIABLE row   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE flags AS INTEGER NO-UNDO.
+        VAR INTEGER row.
+        VAR INTEGER flags.
         DO row = 0 TO 119:
             IF VALID-OBJECT(XeviousMap:KindAt(3, row)) AND XeviousMap:KindAt(3, row) = XeviousGround:Flag THEN flags = flags + 1.
         END.
@@ -74,9 +74,9 @@ CLASS ProGriddle.Games.Xevious.XeviousMapTests:
 
     @Test.
     METHOD PUBLIC VOID TheFirstStageHasNoTurretsAndTheLaterOnesDo():
-        DEFINE VARIABLE row     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE turrets AS INTEGER NO-UNDO.
-        DEFINE VARIABLE later   AS INTEGER NO-UNDO.
+        VAR INTEGER row.
+        VAR INTEGER turrets.
+        VAR INTEGER later.
         DO row = 0 TO 119:
             IF VALID-OBJECT(XeviousMap:KindAt(1, row)) AND XeviousMap:KindAt(1, row) = XeviousGround:Logram THEN turrets = turrets + 1.
             IF VALID-OBJECT(XeviousMap:KindAt(12, row)) AND XeviousMap:KindAt(12, row) = XeviousGround:Logram THEN later = later + 1.
@@ -94,9 +94,9 @@ CLASS ProGriddle.Games.Xevious.XeviousMapTests:
 
     @Test.
     METHOD PUBLIC VOID ATargetNeverStandsOnARiverOrARoadOrBesideOne():
-        DEFINE VARIABLE stage AS INTEGER NO-UNDO.
-        DEFINE VARIABLE row   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c     AS INTEGER NO-UNDO.
+        VAR INTEGER stage.
+        VAR INTEGER row.
+        VAR INTEGER c.
         DO stage = 1 TO 16:
             DO row = 4 TO 107:
                 IF VALID-OBJECT(XeviousMap:KindAt(stage, row)) THEN DO:
@@ -110,8 +110,8 @@ CLASS ProGriddle.Games.Xevious.XeviousMapTests:
 
     @Test.
     METHOD PUBLIC VOID TheRiverAndTheRoadKeepToTheirColumnsAndMoveOneColumnAtATime():
-        DEFINE VARIABLE stage AS INTEGER NO-UNDO.
-        DEFINE VARIABLE row   AS INTEGER NO-UNDO.
+        VAR INTEGER stage.
+        VAR INTEGER row.
         DO stage = 1 TO 16:
             DO row = 0 TO 118:
                 Assert:IsTrue(XeviousMap:RiverCol(stage, row) >= 2 AND XeviousMap:RiverCol(stage, row) <= 6).
@@ -133,10 +133,10 @@ CLASS ProGriddle.Games.Xevious.XeviousMapTests:
 
     @Test.
     METHOD PUBLIC VOID AStraightRiverIsANorthSouthTileAndAShiftIsTwoBends():
-        DEFINE VARIABLE row   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE a     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE shift AS INTEGER NO-UNDO.
+        VAR INTEGER row.
+        VAR INTEGER a.
+        VAR INTEGER b.
+        VAR INTEGER shift.
         DO row = 0 TO 100:
             a = XeviousMap:RiverCol(2, row).
             b = XeviousMap:RiverCol(2, row + 1).
@@ -165,10 +165,10 @@ CLASS ProGriddle.Games.Xevious.XeviousMapTests:
 
     @Test.
     METHOD PUBLIC VOID EveryTileOfEveryStageIsAPictureAndForestEdgesMeetTheirNeighbours():
-        DEFINE VARIABLE stage AS INTEGER NO-UNDO.
-        DEFINE VARIABLE row   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE forest AS INTEGER NO-UNDO.
+        VAR INTEGER stage.
+        VAR INTEGER row.
+        VAR INTEGER c.
+        VAR INTEGER forest.
         DO stage = 1 TO 16:
             DO row = 0 TO 119:
                 DO c = 0 TO 13:
@@ -182,9 +182,9 @@ CLASS ProGriddle.Games.Xevious.XeviousMapTests:
 
     @Test.
     METHOD PUBLIC VOID ForestIsNeverNextToAPathOrAPad():
-        DEFINE VARIABLE stage AS INTEGER NO-UNDO.
-        DEFINE VARIABLE row   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c     AS INTEGER NO-UNDO.
+        VAR INTEGER stage.
+        VAR INTEGER row.
+        VAR INTEGER c.
         DO stage = 1 TO 16:
             DO row = 1 TO 110:
                 DO c = 1 TO 13:
@@ -202,8 +202,8 @@ CLASS ProGriddle.Games.Xevious.XeviousMapTests:
 
     @Test.
     METHOD PUBLIC VOID AGroundTargetStandsOnAPadAndAHiddenOneDoesNot():
-        DEFINE VARIABLE row   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE found AS INTEGER NO-UNDO.
+        VAR INTEGER row.
+        VAR INTEGER found.
         DO row = 4 TO 107:
             IF VALID-OBJECT(XeviousMap:KindAt(3, row)) AND NOT XeviousRules:IsHidden(XeviousMap:KindAt(3, row)) THEN DO:
                 Assert:IsTrue(XeviousMap:IsPad(3, XeviousMap:ColAt(3, row), row)).
@@ -217,11 +217,11 @@ CLASS ProGriddle.Games.Xevious.XeviousMapTests:
 
     @Test.
     METHOD PUBLIC VOID LandLinesAreCutIntoFourTilesAndOnlyOnOpenGround():
-        DEFINE VARIABLE stage AS INTEGER NO-UNDO.
-        DEFINE VARIABLE band  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c0    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r0    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lines AS INTEGER NO-UNDO.
+        VAR INTEGER stage.
+        VAR INTEGER band.
+        VAR INTEGER c0.
+        VAR INTEGER r0.
+        VAR INTEGER lines.
         DO band = 1 TO 8:
             r0 = XeviousMap:LineRow(10, band).
             c0 = XeviousMap:LineCol(10, band).
@@ -240,8 +240,8 @@ CLASS ProGriddle.Games.Xevious.XeviousMapTests:
 
     @Test.
     METHOD PUBLIC VOID ATileOffTheFieldIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pic    AS XeviousTilePicture NO-UNDO.
+        VAR INTEGER thrown.
+        VAR XeviousTilePicture pic.
         DO ON ERROR UNDO, THROW:
             pic = XeviousMap:PictureAt(1, 14, 3).
             CATCH e1 AS GridException:

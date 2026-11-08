@@ -33,51 +33,51 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS IRealTimeGame, IAnimated:
 
 
-    DEFINE PRIVATE VARIABLE mBag        AS PieceBag NO-UNDO.
+    VAR PRIVATE PieceBag mBag.
     /* the playfield: settled blocks and the falling piece, the size of the board */
-    DEFINE PRIVATE VARIABLE mField      AS ICellStore NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBW         AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBH         AS INTEGER  NO-UNDO.
+    VAR PRIVATE ICellStore mField.
+    VAR PRIVATE INTEGER mBW.
+    VAR PRIVATE INTEGER mBH.
     /* the 28 shapes: mShapes[(piece - 1) * 4 + turn + 1] */
-    DEFINE PRIVATE VARIABLE mShapes     AS Shape    NO-UNDO EXTENT 28.
-    DEFINE PRIVATE VARIABLE mPiece      AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTurn       AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mX          AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mY          AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNext       AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScore      AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLines      AS INTEGER  NO-UNDO.
+    VAR PRIVATE Shape[28] mShapes.
+    VAR PRIVATE INTEGER mPiece.
+    VAR PRIVATE INTEGER mTurn.
+    VAR PRIVATE INTEGER mX.
+    VAR PRIVATE INTEGER mY.
+    VAR PRIVATE INTEGER mNext.
+    VAR PRIVATE INTEGER mScore.
+    VAR PRIVATE INTEGER mLines.
     /* the level of the game being played, and the level the next new game will start at */
-    DEFINE PRIVATE VARIABLE mStartLevel AS INTEGER  NO-UNDO INITIAL 1.
-    DEFINE PRIVATE VARIABLE mNextStart  AS INTEGER  NO-UNDO INITIAL 1.
-    DEFINE PRIVATE VARIABLE mAcc        AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlaced     AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLLocked    AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLActive    AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLView      AS INTEGER  NO-UNDO.
+    VAR PRIVATE INTEGER mStartLevel = 1.
+    VAR PRIVATE INTEGER mNextStart = 1.
+    VAR PRIVATE INTEGER mAcc.
+    VAR PRIVATE INTEGER mPlaced.
+    VAR PRIVATE INTEGER mLLocked.
+    VAR PRIVATE INTEGER mLActive.
+    VAR PRIVATE INTEGER mLView.
     /* what a painter that draws effects is told: the time, the last lock and clear, the level up, the end of the game */
-    DEFINE PRIVATE VARIABLE mElapsed      AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mAnimUntil    AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSerial       AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBest         AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mClearDelay   AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mClearing     AS LOGICAL   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mClearRows    AS CHARACTER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mClearStart   AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mClearLength  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLastClearMs  AS INTEGER   NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mLastClearCount AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLevelUpMs    AS INTEGER   NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mOverMs       AS INTEGER   NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mDropFrom     AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHard         AS LOGICAL   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLockPiece    AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLockTurn     AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLockX        AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLockY        AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLockFromY    AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLockHard     AS LOGICAL   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLockMs       AS INTEGER   NO-UNDO INITIAL -1.
+    VAR PRIVATE INTEGER mElapsed.
+    VAR PRIVATE INTEGER mAnimUntil.
+    VAR PRIVATE INTEGER mSerial.
+    VAR PRIVATE INTEGER mBest.
+    VAR PRIVATE INTEGER mClearDelay.
+    VAR PRIVATE LOGICAL mClearing.
+    VAR PRIVATE CHARACTER mClearRows.
+    VAR PRIVATE INTEGER mClearStart.
+    VAR PRIVATE INTEGER mClearLength.
+    VAR PRIVATE INTEGER mLastClearMs = -1.
+    VAR PRIVATE INTEGER mLastClearCount.
+    VAR PRIVATE INTEGER mLevelUpMs = -1.
+    VAR PRIVATE INTEGER mOverMs = -1.
+    VAR PRIVATE INTEGER mDropFrom.
+    VAR PRIVATE LOGICAL mHard.
+    VAR PRIVATE INTEGER mLockPiece.
+    VAR PRIVATE INTEGER mLockTurn.
+    VAR PRIVATE INTEGER mLockX.
+    VAR PRIVATE INTEGER mLockY.
+    VAR PRIVATE INTEGER mLockFromY.
+    VAR PRIVATE LOGICAL mLockHard.
+    VAR PRIVATE INTEGER mLockMs = -1.
 
     DEFINE PUBLIC PROPERTY Paused AS LOGICAL NO-UNDO
         GET.
@@ -208,8 +208,8 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
     /* True while a settled block is in the top four rows of the board, and the game is going: the stack is dangerously high. */
     DEFINE PUBLIC PROPERTY Danger AS LOGICAL NO-UNDO
         GET():
-            DEFINE VARIABLE x AS INTEGER NO-UNDO.
-            DEFINE VARIABLE y AS INTEGER NO-UNDO.
+            VAR INTEGER x.
+            VAR INTEGER y.
             IF IsOver THEN RETURN FALSE.
             DO y = 0 TO 3:
                 DO x = 0 TO mBW - 1:
@@ -307,8 +307,8 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
     /* The grid must have the one layer "view", be bounded, and be the board's width plus 7 columns
        wide (a divider and a panel of 6), with a board from 6 to 30 wide and 8 to 40 high. */
     CONSTRUCTOR PUBLIC TetrisGame(INPUT poGrid AS Grid, INPUT poRandom AS IRandom):
-        DEFINE VARIABLE p AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        VAR INTEGER p.
+        VAR INTEGER t.
         SUPER("Tetris", poGrid).
         IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("A Tetris game needs a random source").
         CheckGrid(poGrid).
@@ -347,7 +347,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
 
     /* Drops the piece as far as it goes, settles it and brings the next, for 2 points a row. */
     METHOD PUBLIC LOGICAL HardDrop():
-        DEFINE VARIABLE landing AS INTEGER NO-UNDO.
+        VAR INTEGER landing.
         IF NOT Active() THEN RETURN FALSE.
         landing = GhostY().
         mScore = mScore + 2 * (landing - mY).
@@ -371,7 +371,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
     /* Adds up the time and lets gravity step as many times as it is due. A line clear that is being held (ClearDelayMs) ends
        when its time is up. Returns true when anything changed, or when an animated game has an animation going. */
     METHOD PUBLIC LOGICAL Tick(INPUT piElapsedMs AS INTEGER):
-        DEFINE VARIABLE changed AS LOGICAL NO-UNDO.
+        VAR LOGICAL changed.
         IF Paused OR piElapsedMs = ? OR piElapsedMs <= 0 THEN RETURN FALSE.
         mElapsed = mElapsed + piElapsedMs.
         IF mClearing THEN DO:
@@ -391,7 +391,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
 
     /* The row the piece would land on if dropped straight down now. */
     METHOD PUBLIC INTEGER GhostY():
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER y.
         IF mPiece = 0 THEN RETURN 0.
         y = mY.
         DO WHILE NOT Collides(mTurn, mX, y + 1):
@@ -414,12 +414,12 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
        missing at the top are empty. Throws GridException for rows wider than the board or too many rows.
        The falling piece is put back at the top and, if the blocks leave it no room, the game is over. */
     METHOD PUBLIC VOID LoadLocked(INPUT pcRows AS CHARACTER):
-        DEFINE VARIABLE rowCount AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE r        AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE c        AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE rowText  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE cell     AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE topRow    AS INTEGER   NO-UNDO.
+        VAR INTEGER rowCount.
+        VAR INTEGER r.
+        VAR INTEGER c.
+        VAR CHARACTER rowText.
+        VAR CHARACTER cell.
+        VAR INTEGER topRow.
         IF pcRows = ? THEN UNDO, THROW NEW GridException("Rows cannot be the unknown value").
         rowCount = NUM-ENTRIES(pcRows, "/").
         IF rowCount > mBH THEN UNDO, THROW NEW GridException("Too many rows for a board " + STRING(mBH) + " high").
@@ -510,10 +510,10 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
     /* True when the shape of the current piece in the given turn, with its corner at (piX, piY), would
        be out of the board or on a settled block. */
     METHOD PRIVATE LOGICAL Collides(INPUT piTurn AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE shape AS Shape   NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE gx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE gy    AS INTEGER NO-UNDO.
+        VAR Shape shape.
+        VAR INTEGER i.
+        VAR INTEGER gx.
+        VAR INTEGER gy.
         shape = mShapes[(mPiece - 1) * 4 + piTurn + 1].
         DO i = 1 TO shape:Size:
             gx = piX + shape:OffsetX(i).
@@ -556,14 +556,14 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
        nine spots in turn: where it is, then one and two cells left and right, then one up, up and
        aside, and one down. */
     METHOD PRIVATE LOGICAL Rotate(INPUT piDirection AS INTEGER):
-        DEFINE VARIABLE newTurn AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oldShape AS Shape  NO-UNDO.
-        DEFINE VARIABLE newShape AS Shape  NO-UNDO.
-        DEFINE VARIABLE baseX   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE baseY   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy      AS INTEGER NO-UNDO.
+        VAR INTEGER newTurn.
+        VAR Shape oldShape.
+        VAR Shape newShape.
+        VAR INTEGER baseX.
+        VAR INTEGER baseY.
+        VAR INTEGER k.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
         IF NOT Active() THEN RETURN FALSE.
         newTurn = (mTurn + piDirection + 4) MODULO 4.
         oldShape = mShapes[(mPiece - 1) * 4 + mTurn + 1].
@@ -604,12 +604,12 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
     /* The falling piece settles where it is: its cells join the settled blocks, full rows are found, scored and, after the
        clear delay if there is one, cleared, and the next piece appears. */
     METHOD PRIVATE VOID LockPiece():
-        DEFINE VARIABLE shape    AS Shape     NO-UNDO.
-        DEFINE VARIABLE i        AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y        AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cleared  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE rowList  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE oldLevel AS INTEGER   NO-UNDO.
+        VAR Shape shape.
+        VAR INTEGER i.
+        VAR INTEGER y.
+        VAR INTEGER cleared.
+        VAR CHARACTER rowList.
+        VAR INTEGER oldLevel.
         shape = mShapes[(mPiece - 1) * 4 + mTurn + 1].
         mPlaced = mPlaced + 1.
         mLockPiece = mPiece.
@@ -657,7 +657,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
 
     /* The full rows go and the rows above drop, and the next piece appears. */
     METHOD PRIVATE VOID FinishClear():
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER y.
         y = mBH - 1.
         DO WHILE y >= 0:
             IF mField:IsRowFull(mLLocked, y) THEN mField:ShiftRowsDown(mLLocked, y).
@@ -676,13 +676,13 @@ CLASS ProGriddle.Games.Tetris.TetrisGame FINAL INHERITS AbstractGame IMPLEMENTS 
     /* Brings the view layer up to date: settled blocks, then the ghost, then the falling piece, and
        the next piece in the panel. */
     METHOD PRIVATE VOID RefreshView():
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ghost AS INTEGER NO-UNDO.
-        DEFINE VARIABLE shape AS Shape   NO-UNDO.
-        DEFINE VARIABLE px    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py    AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER i.
+        VAR INTEGER ghost.
+        VAR Shape shape.
+        VAR INTEGER px.
+        VAR INTEGER py.
         DO y = 0 TO mBH - 1:
             DO x = 0 TO mBW - 1:
                 Grid:Store:SetCell(mLView, x, y, mField:GetCell(mLLocked, x, y)).

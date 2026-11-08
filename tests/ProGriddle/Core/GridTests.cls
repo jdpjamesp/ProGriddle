@@ -7,7 +7,7 @@ CLASS ProGriddle.Core.GridTests:
 
     @Test.
     METHOD PUBLIC VOID TakesItsSizeFromTheStore():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW ArrayStore(3, 5, "state")).
             Assert:Equals(3, g:Width).
@@ -22,7 +22,7 @@ CLASS ProGriddle.Core.GridTests:
     @Test.
     METHOD PUBLIC VOID IndexMathsIsRowMajorOnANonSquareGrid():
         /* 3 wide, 5 high: corners, edges and the middle */
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW ArrayStore(3, 5, "state")).
             Assert:Equals(0, g:IndexOf(0, 0)).
@@ -49,9 +49,9 @@ CLASS ProGriddle.Core.GridTests:
 
     @Test.
     METHOD PUBLIC VOID XOfAndYOfInvertIndexOfForEveryCell():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR Grid g.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW ArrayStore(7, 4, "state")).
             DO y = 0 TO 3:
@@ -68,7 +68,7 @@ CLASS ProGriddle.Core.GridTests:
 
     @Test.
     METHOD PUBLIC VOID InBoundsCoversEveryEdge():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW ArrayStore(3, 5, "state")).
             Assert:IsTrue(g:InBounds(0, 0)).
@@ -85,7 +85,7 @@ CLASS ProGriddle.Core.GridTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID IndexOfThrowsForAColumnOffTheGrid():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW ArrayStore(3, 5, "state")).
             g:IndexOf(3, 0).
@@ -97,7 +97,7 @@ CLASS ProGriddle.Core.GridTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID IndexOfThrowsForARowOffTheGrid():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW ArrayStore(3, 5, "state")).
             g:IndexOf(0, -1).
@@ -109,7 +109,7 @@ CLASS ProGriddle.Core.GridTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID XOfThrowsForAnIndexBelowZero():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW ArrayStore(3, 5, "state")).
             g:XOf(-1).
@@ -121,7 +121,7 @@ CLASS ProGriddle.Core.GridTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID YOfThrowsForAnIndexPastTheEnd():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW ArrayStore(3, 5, "state")).
             g:YOf(15).
@@ -133,14 +133,14 @@ CLASS ProGriddle.Core.GridTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ConstructorThrowsWithoutAStore():
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR ICellStore s.
         NEW Grid(s).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID TheGridExposesItsStore():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR Grid g.
+        VAR ICellStore s.
         DO ON ERROR UNDO, THROW:
             s = NEW SparseStore(4, 4, "state").
             g = NEW Grid(s).
@@ -155,8 +155,8 @@ CLASS ProGriddle.Core.GridTests:
 
     @Test.
     METHOD PUBLIC VOID DuplicateIsAnIndependentGridWithTheSameContents():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
-        DEFINE VARIABLE d AS Grid NO-UNDO.
+        VAR Grid g.
+        VAR Grid d.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW ArrayStore(3, 3, "state")).
             g:Store:SetCell(1, 1, 1, 5).
@@ -175,8 +175,8 @@ CLASS ProGriddle.Core.GridTests:
 
     @Test.
     METHOD PUBLIC VOID DisposeDisposesTheStore():
-        DEFINE VARIABLE s AS SparseStore NO-UNDO.
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR SparseStore s.
+        VAR Grid g.
         s = NEW SparseStore(3, 3, "state").
         g = NEW Grid(s).
         s:SetCell(1, 0, 0, 1).

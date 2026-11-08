@@ -13,8 +13,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.ForEach.PhantomTargetingTests:
 
     METHOD PRIVATE LOGICAL ThrowsGridException():
-        DEFINE VARIABLE target AS Coord    NO-UNDO.
-        DEFINE VARIABLE kind   AS PhantomKind NO-UNDO.
+        VAR Coord target.
+        VAR PhantomKind kind.
         DO ON ERROR UNDO, THROW:
             target = PhantomTargeting:ScatterTarget(kind).
             RETURN FALSE.

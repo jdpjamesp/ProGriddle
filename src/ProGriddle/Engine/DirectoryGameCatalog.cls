@@ -39,15 +39,15 @@ CLASS ProGriddle.Engine.DirectoryGameCatalog FINAL IMPLEMENTS IGameCatalog:
     /* The folder is given as it is passed to tools/launch.p, normally "run", relative to where the
        program runs from. A folder that does not exist is an empty catalog. */
     CONSTRUCTOR PUBLIC DirectoryGameCatalog(INPUT pcFolder AS CHARACTER):
-        DEFINE VARIABLE fileName AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE fullPath AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE attrs    AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE gameTitle AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE gameBlurb AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE gameAccent AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE gameCategory AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE folder  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE n        AS INTEGER   NO-UNDO.
+        VAR CHARACTER fileName.
+        VAR CHARACTER fullPath.
+        VAR CHARACTER attrs.
+        VAR CHARACTER gameTitle.
+        VAR CHARACTER gameBlurb.
+        VAR CHARACTER gameAccent.
+        VAR CHARACTER gameCategory.
+        VAR CHARACTER folder.
+        VAR INTEGER n.
         IF pcFolder = ? OR pcFolder = "" THEN UNDO, THROW NEW GridException("A game catalog needs a folder").
         folder = RIGHT-TRIM(REPLACE(pcFolder, "~\", "/"), "/").
         FILE-INFORMATION:FILE-NAME = folder.
@@ -110,11 +110,11 @@ CLASS ProGriddle.Engine.DirectoryGameCatalog FINAL IMPLEMENTS IGameCatalog:
     /* Reads the Arcade line of a run file. The title comes back unknown for a hidden file. */
     METHOD PRIVATE VOID ReadHeader(INPUT pcPath AS CHARACTER, INPUT pcFile AS CHARACTER,
                                    OUTPUT pcTitle AS CHARACTER, OUTPUT pcBlurb AS CHARACTER, OUTPUT pcAccent AS CHARACTER, OUTPUT pcCategory AS CHARACTER):
-        DEFINE VARIABLE rawLine AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE tagText AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE readCount AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE seenArcade AS LOGICAL  NO-UNDO.
-        DEFINE VARIABLE seenCategory AS LOGICAL NO-UNDO.
+        VAR CHARACTER rawLine.
+        VAR CHARACTER tagText.
+        VAR INTEGER readCount.
+        VAR LOGICAL seenArcade.
+        VAR LOGICAL seenCategory.
         pcTitle = "".
         pcBlurb = "".
         pcAccent = "".
@@ -148,7 +148,7 @@ CLASS ProGriddle.Engine.DirectoryGameCatalog FINAL IMPLEMENTS IGameCatalog:
 
     /* run-battleships.p is Battleships. */
     METHOD PRIVATE CHARACTER TitleFromFile(INPUT pcFile AS CHARACTER):
-        DEFINE VARIABLE baseName AS CHARACTER NO-UNDO.
+        VAR CHARACTER baseName.
         baseName = SUBSTRING(pcFile, 5, LENGTH(pcFile) - 6).
         RETURN CAPS(SUBSTRING(baseName, 1, 1)) + SUBSTRING(baseName, 2).
     END METHOD.

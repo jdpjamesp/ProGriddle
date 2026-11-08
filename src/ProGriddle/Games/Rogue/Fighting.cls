@@ -23,8 +23,8 @@ CLASS ProGriddle.Games.Rogue.Fighting FINAL:
     /* The hero's armour class: 10 for a hero in nothing, less the class of the armour worn (less its enchantment) and less a ring of
        protection. Lower is better, and it can go below 0. */
     METHOD PUBLIC STATIC INTEGER ArmourClass(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE oWorn AS Item    NO-UNDO.
-        DEFINE VARIABLE ac    AS INTEGER NO-UNDO.
+        VAR Item oWorn.
+        VAR INTEGER ac.
         ac = 10.
         oWorn = poWorld:Pack:Worn().
         IF VALID-OBJECT(oWorn) THEN ac = Armours:ArmourClass(ArmourKind:GetEnum(oWorn:Kind)) - oWorn:Bonus.
@@ -44,21 +44,21 @@ CLASS ProGriddle.Games.Rogue.Fighting FINAL:
 
     /* The damage the hero's hand does: the dice of the wielded weapon, or 1d4 with bare hands. */
     METHOD PUBLIC STATIC CHARACTER HandDice(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE oWeapon AS Item NO-UNDO.
+        VAR Item oWeapon.
         oWeapon = poWorld:Pack:Weapon().
         RETURN (IF VALID-OBJECT(oWeapon) THEN Weapons:Swing(WeaponKind:GetEnum(oWeapon:Kind)) ELSE "1d4").
     END METHOD.
 
     /* The bonus to hit of the hero's hand: the weapon's plus, strength and a ring of dexterity. */
     METHOD PUBLIC STATIC INTEGER HitBonus(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE oWeapon AS Item NO-UNDO.
+        VAR Item oWeapon.
         oWeapon = poWorld:Pack:Weapon().
         RETURN (IF VALID-OBJECT(oWeapon) THEN oWeapon:Bonus ELSE 0) + RogueRules:StrengthHit(EffectiveStrength(poWorld)) + poWorld:Pack:RingBonus(RingKind:Dexterity).
     END METHOD.
 
     /* The bonus to damage of the hero's hand: the weapon's plus, strength and a ring of increase damage. */
     METHOD PUBLIC STATIC INTEGER DamageBonus(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE oWeapon AS Item NO-UNDO.
+        VAR Item oWeapon.
         oWeapon = poWorld:Pack:Weapon().
         RETURN (IF VALID-OBJECT(oWeapon) THEN oWeapon:DamageBonus ELSE 0) + RogueRules:StrengthDamage(EffectiveStrength(poWorld)) + poWorld:Pack:RingBonus(RingKind:IncreaseDamage).
     END METHOD.
@@ -67,8 +67,8 @@ CLASS ProGriddle.Games.Rogue.Fighting FINAL:
 
     /* The hero swings at a monster. It wakes, whether it was hit or not. */
     METHOD PUBLIC STATIC VOID HeroAttack(INPUT poWorld AS RogueWorld, INPUT poMonster AS Monster):
-        DEFINE VARIABLE bonus  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE damage AS INTEGER NO-UNDO.
+        VAR INTEGER bonus.
+        VAR INTEGER damage.
         bonus = HitBonus(poWorld) + (IF NOT poMonster:Awake OR poMonster:Held > 0 THEN 4 ELSE 0).
         poMonster:Awake = TRUE.
         IF Swing(poWorld, poWorld:Hero:Rank, Bestiary:ArmourClass(poMonster:Kind), bonus) THEN DO:
@@ -98,7 +98,7 @@ CLASS ProGriddle.Games.Rogue.Fighting FINAL:
 
     /* A monster dies: the hero is told, gets the experience and the monster drops what it carried and the gold it took. */
     METHOD PUBLIC STATIC VOID Kill(INPUT poWorld AS RogueWorld, INPUT poMonster AS Monster):
-        DEFINE VARIABLE oGold AS Item NO-UNDO.
+        VAR Item oGold.
         poWorld:Say("You killed " + Name(poWorld, poMonster, FALSE) + ".").
         IF VALID-OBJECT(poMonster:Carried) THEN poWorld:DropOnFloor(poMonster:Carried, poMonster:X, poMonster:Y).
         IF poMonster:Gold > 0 THEN DO:
@@ -112,7 +112,7 @@ CLASS ProGriddle.Games.Rogue.Fighting FINAL:
 
     /* Adds experience points, and moves the hero up a level (more hit points, a welcome) for each level they now reach. */
     METHOD PUBLIC STATIC VOID GainExperience(INPUT poWorld AS RogueWorld, INPUT piPoints AS INTEGER):
-        DEFINE VARIABLE more AS INTEGER NO-UNDO.
+        VAR INTEGER more.
         poWorld:Hero:Experience = poWorld:Hero:Experience + piPoints.
         DO WHILE poWorld:Hero:Rank < RogueRules:HighestRank() AND poWorld:Hero:Experience >= RogueRules:ExperienceToPass(poWorld:Hero:Rank):
             poWorld:Hero:Rank = poWorld:Hero:Rank + 1.
@@ -125,7 +125,7 @@ CLASS ProGriddle.Games.Rogue.Fighting FINAL:
 
     /* The hero loses a level (a wraith's touch): fewer hit points and the experience of the level below. A hero of the first level dies. */
     METHOD PUBLIC STATIC VOID LoseLevel(INPUT poWorld AS RogueWorld, INPUT pcCause AS CHARACTER):
-        DEFINE VARIABLE less AS INTEGER NO-UNDO.
+        VAR INTEGER less.
         IF poWorld:Hero:Rank <= 1 THEN DO:
             Die(poWorld, pcCause).
             RETURN.
@@ -142,10 +142,10 @@ CLASS ProGriddle.Games.Rogue.Fighting FINAL:
 
     /* A monster attacks the hero: one blow for each set of dice in its damage list, stopping when the hero is dead. */
     METHOD PUBLIC STATIC VOID MonsterAttack(INPUT poWorld AS RogueWorld, INPUT poMonster AS Monster):
-        DEFINE VARIABLE list   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE damage AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE bonus  AS INTEGER   NO-UNDO.
+        VAR CHARACTER list.
+        VAR INTEGER i.
+        VAR INTEGER damage.
+        VAR INTEGER bonus.
         list = Bestiary:Damage(poMonster:Kind).
         bonus = (IF poWorld:Hero:Asleep > 0 OR poWorld:Hero:Stuck > 0 THEN 4 ELSE 0).
         DO i = 1 TO Dice:Attacks(list):
@@ -179,13 +179,13 @@ CLASS ProGriddle.Games.Rogue.Fighting FINAL:
 
     /* What a hit of a special monster does besides its damage. */
     METHOD PRIVATE STATIC VOID Special(INPUT poWorld AS RogueWorld, INPUT poMonster AS Monster):
-        DEFINE VARIABLE oWorn  AS Item    NO-UNDO.
-        DEFINE VARIABLE oStolen AS Item   NO-UNDO.
-        DEFINE VARIABLE slot   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pick   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE took   AS INTEGER NO-UNDO.
+        VAR Item oWorn.
+        VAR Item oStolen.
+        VAR INTEGER slot.
+        VAR INTEGER n.
+        VAR INTEGER i.
+        VAR INTEGER pick.
+        VAR INTEGER took.
         CASE poMonster:Kind:
             WHEN MonsterKind:Aquator THEN DO:
                 oWorn = poWorld:Pack:Worn().

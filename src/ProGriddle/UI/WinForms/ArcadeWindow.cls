@@ -27,26 +27,26 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
 
-    DEFINE PRIVATE VARIABLE mCatalog   AS IGameCatalog   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLauncher  AS IGameLauncher  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mButtons   AS Button         NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mTitles    AS CHARACTER      NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mBlurbs    AS CHARACTER      NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mCategoryOf AS CHARACTER     NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mTabs      AS Button         NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mTabList   AS CHARACTER      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShown     AS CHARACTER      NO-UNDO INITIAL "All".
-    DEFINE PRIVATE VARIABLE mFlow      AS FlowLayoutPanel NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTabFlow   AS FlowLayoutPanel NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTabFont   AS Font           NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBackdrop  AS CookoffBackdrop NO-UNDO.
-    DEFINE PRIVATE VARIABLE mStatus    AS Label          NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWatcher   AS Timer          NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCloser    AS Timer          NO-UNDO.
-    DEFINE PRIVATE VARIABLE mChipFont  AS Font           NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTagFont   AS Font           NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDefaultCaption AS CHARACTER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mReleased  AS LOGICAL        NO-UNDO.
+    VAR PRIVATE IGameCatalog mCatalog.
+    VAR PRIVATE IGameLauncher mLauncher.
+    VAR PRIVATE Button[] mButtons.
+    VAR PRIVATE CHARACTER[] mTitles.
+    VAR PRIVATE CHARACTER[] mBlurbs.
+    VAR PRIVATE CHARACTER[] mCategoryOf.
+    VAR PRIVATE Button[] mTabs.
+    VAR PRIVATE CHARACTER mTabList.
+    VAR PRIVATE CHARACTER mShown = "All".
+    VAR PRIVATE FlowLayoutPanel mFlow.
+    VAR PRIVATE FlowLayoutPanel mTabFlow.
+    VAR PRIVATE Font mTabFont.
+    VAR PRIVATE CookoffBackdrop mBackdrop.
+    VAR PRIVATE Label mStatus.
+    VAR PRIVATE Timer mWatcher.
+    VAR PRIVATE Timer mCloser.
+    VAR PRIVATE Font mChipFont.
+    VAR PRIVATE Font mTagFont.
+    VAR PRIVATE CHARACTER mDefaultCaption.
+    VAR PRIVATE LOGICAL mReleased.
 
     /* How many game chips the window has. */
     DEFINE PUBLIC PROPERTY GameCount AS INTEGER NO-UNDO
@@ -69,8 +69,8 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
     /* How many game chips are showing under the tab that is selected. */
     DEFINE PUBLIC PROPERTY ShownCount AS INTEGER NO-UNDO
         GET():
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
-            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            VAR INTEGER i.
+            VAR INTEGER n.
             DO i = 1 TO mCatalog:Count:
                 IF InShownTab(i) THEN n = n + 1.
             END.
@@ -107,8 +107,8 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
         END SET.
 
     CONSTRUCTOR PUBLIC ArcadeWindow(INPUT pcTitle AS CHARACTER, INPUT poCatalog AS IGameCatalog, INPUT poLauncher AS IGameLauncher):
-        DEFINE VARIABLE i    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE rowsShown AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER rowsShown.
         SUPER().
         IF pcTitle = ? OR pcTitle = "" THEN UNDO, THROW NEW GridException("An arcade needs a title").
         IF NOT VALID-OBJECT(poCatalog) THEN UNDO, THROW NEW GridException("An arcade needs a game catalog").
@@ -189,7 +189,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
 
     /* The chip of the game that is started by this program, for tests and scripts. */
     METHOD PUBLIC Button ButtonFor(INPUT pcProgram AS CHARACTER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO mCatalog:Count:
             IF mCatalog:ProgramAt(i) = pcProgram THEN RETURN mButtons[i].
         END.
@@ -199,7 +199,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
     /* The colour name (red, orange, blue, purple, green, yellow or teal) of the chip of the game started
        by this program, for tests and scripts. */
     METHOD PUBLIC CHARACTER AccentNameFor(INPUT pcProgram AS CHARACTER):
-        DEFINE VARIABLE place AS INTEGER NO-UNDO.
+        VAR INTEGER place.
         place = PlaceOf(pcProgram).
         IF place = 0 THEN UNDO, THROW NEW GridException("The arcade has no game " + STRING(pcProgram)).
         RETURN ENTRY(AccentNumber(place) + 1, "red,orange,blue,purple,green,yellow,teal").
@@ -207,7 +207,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
 
     /* The tab button with this name (All, a category, or Other), for tests and scripts. */
     METHOD PUBLIC Button TabFor(INPUT pcName AS CHARACTER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         n = LOOKUP(pcName, mTabList).
         IF n = 0 THEN UNDO, THROW NEW GridException("The arcade has no tab " + STRING(pcName)).
         RETURN mTabs[n].
@@ -216,7 +216,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
     /* True when the chip of the game started by this program is showing under the tab that is selected.
        (A control reports itself hidden until its window is shown, so this answers from the tab.) */
     METHOD PUBLIC LOGICAL IsShown(INPUT pcProgram AS CHARACTER):
-        DEFINE VARIABLE place AS INTEGER NO-UNDO.
+        VAR INTEGER place.
         place = PlaceOf(pcProgram).
         IF place = 0 THEN UNDO, THROW NEW GridException("The arcade has no game " + STRING(pcProgram)).
         RETURN InShownTab(place).
@@ -225,7 +225,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
     /* Shows only the games of one category, as a click on its tab does: All, or a name in TabNames. The
        list goes back to the top. */
     METHOD PUBLIC VOID ShowTab(INPUT pcName AS CHARACTER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         n = LOOKUP(pcName, mTabList).
         IF n = 0 THEN UNDO, THROW NEW GridException("The arcade has no tab " + STRING(pcName)).
         mShown = ENTRY(n, mTabList).
@@ -256,7 +256,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
 
     /* Stops the timers, lets go of the chips' events and frees the drawing. Safe to call more than once. */
     METHOD PUBLIC VOID ReleaseResources():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF mReleased THEN RETURN.
         mReleased = TRUE.
         IF EXTENT(mTabs) <> ? THEN
@@ -287,8 +287,8 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
        running is not started again, and one that cannot be started is reported on the status line,
        not thrown. */
     METHOD PUBLIC VOID Play(INPUT pcProgram AS CHARACTER):
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE wasOn  AS LOGICAL   NO-UNDO.
+        VAR INTEGER i.
+        VAR LOGICAL wasOn.
         DO ON ERROR UNDO, THROW:
             wasOn = mLauncher:IsRunning(pcProgram).
             mLauncher:Launch(pcProgram).
@@ -305,8 +305,8 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
 
     /* "Life, Minesweeper and Tetris, all cooking on the same grid." made from the games it has. */
     METHOD PRIVATE CHARACTER NamesLine():
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE names AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER names.
         IF mCatalog:Count = 0 THEN RETURN "No games found in the run folder yet. Add a run-<game>.p and it will show up here.".
         DO i = 1 TO mCatalog:Count:
             names = names + (IF i = 1 THEN "" ELSE IF i = mCatalog:Count THEN " and " ELSE ", ") + mTitles[i].
@@ -328,13 +328,13 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
     /* The tab names: the categories in alphabetical order, then Other, then All last. Empty when no game named a
        category, because then there is nothing to choose between. */
     METHOD PRIVATE CHARACTER TabsFor():
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE n      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE named  AS LOGICAL   NO-UNDO.
-        DEFINE VARIABLE other  AS LOGICAL   NO-UNDO.
-        DEFINE VARIABLE cats   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE swap   AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER n.
+        VAR LOGICAL named.
+        VAR LOGICAL other.
+        VAR CHARACTER cats.
+        VAR CHARACTER swap.
         DO i = 1 TO mCatalog:Count:
             IF TRIM(mCatalog:CategoryAt(i)) <> "" THEN named = TRUE.
             IF mCategoryOf[i] = "Other" THEN other = TRUE.
@@ -356,7 +356,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
 
     /* The row of tab buttons in the gap between the caption and the chips. */
     METHOD PRIVATE VOID BuildTabs():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mTabFont = NEW Font("Consolas", System.Convert:ToSingle(13), FontStyle:Bold, GraphicsUnit:Pixel).
         mTabFlow = NEW FlowLayoutPanel().
         mTabFlow:Location = NEW Point(46, 338).
@@ -386,7 +386,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
 
     /* The tab that is showing is outlined and lettered in the Cookoff orange, the others are quiet. */
     METHOD PRIVATE VOID StyleTabs():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF EXTENT(mTabs) = ? THEN RETURN.
         DO i = 1 TO EXTENT(mTabs):
             IF mTabs[i]:Name = mShown THEN DO:
@@ -409,10 +409,10 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
        yellow and teal. It is the colour the game asked for in its run file, and when it asked for none,
        one worked out from its title, so a game keeps its colour whatever else is added to the list. */
     METHOD PRIVATE INTEGER AccentNumber(INPUT piPlace AS INTEGER):
-        DEFINE VARIABLE named AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE gameName AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE sum   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
+        VAR INTEGER named.
+        VAR CHARACTER gameName.
+        VAR INTEGER sum.
+        VAR INTEGER i.
         named = LOOKUP(mCatalog:AccentAt(piPlace), "red,orange,blue,purple,green,yellow,teal").
         IF named > 0 THEN RETURN named - 1.
         gameName = LC(mTitles[piPlace]).
@@ -438,7 +438,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
 
     /* The place of the game that is started by this program, or 0. */
     METHOD PRIVATE INTEGER PlaceOf(INPUT pcProgram AS CHARACTER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO mCatalog:Count:
             IF mCatalog:ProgramAt(i) = pcProgram THEN RETURN i.
         END.
@@ -448,8 +448,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
     /* One chip: a dark flat button with the game's title, and a coloured mark and the PLAYING tag
        painted over it (OnPaintChip). */
     METHOD PRIVATE Button NewChip(INPUT piPlace AS INTEGER):
-        DEFINE VARIABLE btn AS Button NO-UNDO.
-        btn = NEW Button().
+        VAR Button btn = NEW Button().
         btn:Size = NEW Size(232, 40).
         btn:Margin = NEW Padding(0, 0, 10, 6).
         btn:Name = mCatalog:ProgramAt(piPlace).
@@ -475,8 +474,8 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
 
     /* A game that is running shows PLAYING, with its chip outlined in its colour. */
     METHOD PRIVATE VOID UpdateButtons():
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE playing AS LOGICAL NO-UNDO.
+        VAR INTEGER i.
+        VAR LOGICAL playing.
         DO i = 1 TO mCatalog:Count:
             playing = mLauncher:IsRunning(mCatalog:ProgramAt(i)).
             mButtons[i]:AccessibleName = (IF playing THEN mTitles[i] + " (playing)" ELSE mTitles[i]).
@@ -494,7 +493,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
     END METHOD.
 
     METHOD PRIVATE VOID OnPoint(INPUT poSender AS System.Object, INPUT e AS System.EventArgs):
-        DEFINE VARIABLE place AS INTEGER NO-UNDO.
+        VAR INTEGER place.
         place = PlaceOf(CAST(poSender, Button):Name).
         IF place > 0 AND mBlurbs[place] <> "" THEN mBackdrop:Caption = mBlurbs[place].
     END METHOD.
@@ -505,12 +504,12 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindow INHERITS Form:
 
     /* Draws the game's coloured mark at the left of its chip, and PLAYING at the right while it runs. */
     METHOD PRIVATE VOID OnPaintChip(INPUT poSender AS System.Object, INPUT e AS PaintEventArgs):
-        DEFINE VARIABLE btn     AS Button     NO-UNDO.
-        DEFINE VARIABLE place   AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE cy      AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE mark    AS SolidBrush NO-UNDO.
-        DEFINE VARIABLE glow    AS SolidBrush NO-UNDO.
-        DEFINE VARIABLE live    AS SolidBrush NO-UNDO.
+        VAR Button btn.
+        VAR INTEGER place.
+        VAR INTEGER cy.
+        VAR SolidBrush mark.
+        VAR SolidBrush glow.
+        VAR SolidBrush live.
         DO ON ERROR UNDO, THROW:
             btn = CAST(poSender, Button).
             place = PlaceOf(btn:Name).

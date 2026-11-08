@@ -2,11 +2,11 @@
    and writes the problems to build/compile-errors.txt, one line per message. Run it through
    tools/compile.ps1, which builds the list and sets PROPATH via tools/launch.p. Compiled
    r-code goes to build/rcode so nothing is left beside the source. */
-DEFINE VARIABLE cFile  AS CHARACTER NO-UNDO.
-DEFINE VARIABLE cLine  AS CHARACTER NO-UNDO.
-DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-DEFINE VARIABLE nBad   AS INTEGER   NO-UNDO.
-DEFINE VARIABLE nTotal AS INTEGER   NO-UNDO.
+VAR CHARACTER cFile.
+VAR CHARACTER cLine.
+VAR INTEGER i.
+VAR INTEGER nBad.
+VAR INTEGER nTotal.
 
 OS-CREATE-DIR VALUE("build/rcode").
 OS-CREATE-DIR VALUE("build/rcode/run").

@@ -10,9 +10,9 @@ CLASS ProGriddle.Games.Rogue.RogueLookAndHelpTests:
 
     @Test.
     METHOD PUBLIC VOID EveryTintHasAColourAndTheyAreNotAllTheSame():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
-        DEFINE VARIABLE unlike AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER c.
+        VAR INTEGER unlike.
         DO i = 0 TO 31:
             c = RogueLook:Colour(RogueTint:GetEnum(i)).
             Assert:IsTrue(c >= 0 AND c <= 16777215).
@@ -63,8 +63,8 @@ CLASS ProGriddle.Games.Rogue.RogueLookAndHelpTests:
 
     @Test.
     METHOD PUBLIC VOID TheHelpMentionsTheKeysAndFitsTheScreen():
-        DEFINE VARIABLE lines AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
+        VAR CHARACTER lines.
+        VAR INTEGER i.
         lines = RogueHelp:Text().
         Assert:IsTrue(INDEX(lines, "quaff") > 0).
         Assert:IsTrue(INDEX(lines, "Amulet of Yendor") > 0).
@@ -76,8 +76,7 @@ CLASS ProGriddle.Games.Rogue.RogueLookAndHelpTests:
 
     @Test.
     METHOD PUBLIC VOID TheDiscoveriesListWhatTheHeroHasLearnt():
-        DEFINE VARIABLE oWorld AS RogueWorld NO-UNDO.
-        oWorld = NEW RogueWorld(LevelMap:CreateGrid(), NEW SeededRandom(4)).
+        VAR RogueWorld oWorld = NEW RogueWorld(LevelMap:CreateGrid(), NEW SeededRandom(4)).
         Assert:Equals("", RogueHelp:Discoveries(oWorld)).
         oWorld:Names:Learn(ItemType:Potion, INTEGER(PotionKind:Healing)).
         oWorld:Names:Learn(ItemType:Scroll, INTEGER(ScrollKind:Identify)).

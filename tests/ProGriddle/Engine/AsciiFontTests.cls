@@ -9,9 +9,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Engine.AsciiFontTests:
 
     METHOD PRIVATE INTEGER OnPixels(INPUT piCode AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         DO y = 0 TO AsciiFont:GlyphHeight() - 1:
             DO x = 0 TO AsciiFont:GlyphWidth() - 1:
                 IF AsciiFont:PixelOn(piCode, x, y) THEN n = n + 1.
@@ -28,7 +28,7 @@ CLASS ProGriddle.Engine.AsciiFontTests:
 
     @Test.
     METHOD PUBLIC VOID EveryPrintableAsciiCharacterAndEveryExtraHasAGlyph():
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER c.
         Assert:Equals(32, AsciiFont:FirstCode()).
         Assert:IsTrue(AsciiFont:LastCode() >= INTEGER(AsciiExtra:Shade)).
         DO c = 32 TO 126:
@@ -69,8 +69,8 @@ CLASS ProGriddle.Engine.AsciiFontTests:
 
     @Test.
     METHOD PUBLIC VOID TheWallAcrossRunsEdgeToEdgeAndTheWallDownTopToBottom():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO x = 0 TO 7:
             Assert:IsTrue(AsciiFont:PixelOn(INTEGER(AsciiExtra:WallAcross), x, 6)).
         END.
@@ -111,7 +111,7 @@ CLASS ProGriddle.Engine.AsciiFontTests:
 
     @Test.
     METHOD PUBLIC VOID APixelOutsideTheGlyphIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             AsciiFont:PixelOn(65, 8, 0).
             CATCH e1 AS GridException:

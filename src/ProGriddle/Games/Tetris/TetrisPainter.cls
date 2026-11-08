@@ -21,47 +21,47 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
     &SCOPED-DEFINE TILE 16
     &SCOPED-DEFINE NO-TONES "000000,000000,000000,000000,000000"
 
-    DEFINE PRIVATE VARIABLE mInner     AS IGridRenderer   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRandom    AS IRandom         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGame      AS TetrisGame      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGrid      AS Grid            NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBaseGrid  AS Grid            NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas    AS PixelCanvas     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBase      AS PixelCanvas     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mText      AS TextStampCache  NO-UNDO.
+    VAR PRIVATE IGridRenderer mInner.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE TetrisGame mGame.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE Grid mBaseGrid.
+    VAR PRIVATE PixelCanvas mCanvas.
+    VAR PRIVATE PixelCanvas mBase.
+    VAR PRIVATE TextStampCache mText.
     /* the blocks of the seven pieces, the ghost, and the empty cell of each row */
-    DEFINE PRIVATE VARIABLE mBlock     AS PixelStamp      NO-UNDO EXTENT 7.
-    DEFINE PRIVATE VARIABLE mGhost     AS PixelStamp      NO-UNDO.
+    VAR PRIVATE PixelStamp[7] mBlock.
+    VAR PRIVATE PixelStamp mGhost.
     /* the blocks as they flash when they settle: lit all over, then only the highlight white */
-    DEFINE PRIVATE VARIABLE mLit       AS PixelStamp      NO-UNDO EXTENT 7.
-    DEFINE PRIVATE VARIABLE mWhiteTop  AS PixelStamp      NO-UNDO EXTENT 7.
+    VAR PRIVATE PixelStamp[7] mLit.
+    VAR PRIVATE PixelStamp[7] mWhiteTop.
     /* the same blocks in the gold row, for the first frame of a Tetris */
-    DEFINE PRIVATE VARIABLE mGold      AS PixelStamp      NO-UNDO EXTENT 7.
+    VAR PRIVATE PixelStamp[7] mGold.
     /* the dead blocks of a game over, with the marks of the seven pieces and without */
-    DEFINE PRIVATE VARIABLE mDead      AS PixelStamp      NO-UNDO EXTENT 7.
-    DEFINE PRIVATE VARIABLE mDeadBlank AS PixelStamp      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSparks    AS SparkField      NO-UNDO.
+    VAR PRIVATE PixelStamp[7] mDead.
+    VAR PRIVATE PixelStamp mDeadBlank.
+    VAR PRIVATE SparkField mSparks.
     /* when the score passed the best of before, for the flash of the card */
-    DEFINE PRIVATE VARIABLE mNewBestMs     AS INTEGER     NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mBestSerial    AS INTEGER     NO-UNDO INITIAL -1.
+    VAR PRIVATE INTEGER mNewBestMs = -1.
+    VAR PRIVATE INTEGER mBestSerial = -1.
     /* the clear that the sparks were made for */
-    DEFINE PRIVATE VARIABLE mSparkClearMs AS INTEGER      NO-UNDO INITIAL -1.
+    VAR PRIVATE INTEGER mSparkClearMs = -1.
     /* the lock that the sparks were made for */
-    DEFINE PRIVATE VARIABLE mSparkSerial AS INTEGER       NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mSparkPlaced AS INTEGER       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFloor     AS PixelStamp      NO-UNDO EXTENT.
+    VAR PRIVATE INTEGER mSparkSerial = -1.
+    VAR PRIVATE INTEGER mSparkPlaced.
+    VAR PRIVATE PixelStamp[] mFloor.
     /* the size of the well in cells and of the picture in pixels, and where the panel begins */
-    DEFINE PRIVATE VARIABLE mBW        AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBH        AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWidth     AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHeight    AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPanelX    AS INTEGER         NO-UNDO.
+    VAR PRIVATE INTEGER mBW.
+    VAR PRIVATE INTEGER mBH.
+    VAR PRIVATE INTEGER mWidth.
+    VAR PRIVATE INTEGER mHeight.
+    VAR PRIVATE INTEGER mPanelX.
     /* what the stack that is baked into the picture was made from */
-    DEFINE PRIVATE VARIABLE mBakedSerial   AS INTEGER     NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mBakedPlaced   AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBakedLines    AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBakedClearing AS LOGICAL     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDisposed      AS LOGICAL     NO-UNDO.
+    VAR PRIVATE INTEGER mBakedSerial = -1.
+    VAR PRIVATE INTEGER mBakedPlaced.
+    VAR PRIVATE INTEGER mBakedLines.
+    VAR PRIVATE LOGICAL mBakedClearing.
+    VAR PRIVATE LOGICAL mDisposed.
 
     /* The canvas the picture is drawn on, and the grid it is on (what the window's renderer is given). */
     DEFINE PUBLIC PROPERTY Canvas AS PixelCanvas NO-UNDO
@@ -76,8 +76,8 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* poRandom is for the effects (the speeds of sparks). Throws GridException for no renderer, no game or no random source. */
     CONSTRUCTOR PUBLIC TetrisPainter(INPUT poInner AS IGridRenderer, INPUT poGame AS TetrisGame, INPUT poRandom AS IRandom):
-        DEFINE VARIABLE p AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r AS INTEGER NO-UNDO.
+        VAR INTEGER p.
+        VAR INTEGER r.
         IF NOT VALID-OBJECT(poInner) THEN UNDO, THROW NEW GridException("A Tetris painter needs a renderer to hand the picture to").
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("A Tetris painter needs a game").
         IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("A Tetris painter needs a random source").
@@ -151,7 +151,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Frees the canvases and the stamps. Safe to call more than once. */
     METHOD PUBLIC VOID Dispose():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF mDisposed THEN RETURN.
         mDisposed = TRUE.
         DO i = 1 TO 7:
@@ -182,11 +182,11 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The background, the floor, the walls, the divider and the frames of the cards, drawn on the base canvas and kept. */
     METHOD PRIVATE VOID BuildBase():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE m AS INTEGER NO-UNDO.
-        DEFINE VARIABLE wellW AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER k.
+        VAR INTEGER m.
+        VAR INTEGER wellW.
         wellW = mBW * {&TILE}.
         mBase:BeginBatch().
         /* the night, darker at the top */
@@ -236,8 +236,8 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* A frame on the base canvas, in a batch: the outer line, the inner line and the fill, with the four corner pixels cut. */
     METHOD PRIVATE VOID Card(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER):
-        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cut AS INTEGER NO-UNDO.
+        VAR INTEGER y.
+        VAR INTEGER cut.
         cut = TetrisLook:Colour(Tint:NightTop).
         DO y = piY TO piY + piH - 1:
             mBase:DrawLine(piX, y, piX + piW - 1, y, 0, TetrisLook:Colour(Tint:FrameOuter)).
@@ -259,8 +259,8 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
     /* Brings the stack that is baked into the picture up to date: a piece that has just settled is added (four tiles), and
        anything else that changed under the blocks (a new game, a line clear that has begun or ended) makes the stack again. */
     METHOD PRIVATE VOID SyncStack():
-        DEFINE VARIABLE shape AS Shape   NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        VAR Shape shape.
+        VAR INTEGER i.
         IF mGame:GameSerial = mBakedSerial AND mGame:LinesCleared = mBakedLines AND mGame:Clearing = mBakedClearing AND mGame:PiecesPlaced = mBakedPlaced THEN RETURN.
         IF mGame:GameSerial = mBakedSerial AND mGame:LinesCleared = mBakedLines AND mGame:Clearing = mBakedClearing AND mGame:PiecesPlaced = mBakedPlaced + 1
            AND mGame:LastLockPiece > 0 THEN DO:
@@ -282,9 +282,9 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The picture's background is the base and every settled block. */
     METHOD PRIVATE VOID RebuildStack():
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE piece AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER piece.
         mCanvas:LoadBack(mBase).
         mCanvas:Restore().
         mCanvas:BeginBatch().
@@ -302,11 +302,11 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The ghost: where the piece would land, on the empty cells only (a block of the stack is never covered). */
     METHOD PRIVATE VOID DrawGhost():
-        DEFINE VARIABLE shape AS Shape   NO-UNDO.
-        DEFINE VARIABLE gy    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy    AS INTEGER NO-UNDO.
+        VAR Shape shape.
+        VAR INTEGER gy.
+        VAR INTEGER i.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
         IF NOT mGame:ShowGhost OR mGame:CurrentPiece = 0 THEN RETURN.
         shape = Tetrominoes:ShapeOf(mGame:CurrentPiece, mGame:Turns).
         gy = mGame:GhostY().
@@ -319,8 +319,8 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The falling piece. */
     METHOD PRIVATE VOID DrawPiece():
-        DEFINE VARIABLE shape AS Shape   NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        VAR Shape shape.
+        VAR INTEGER i.
         IF mGame:CurrentPiece = 0 THEN RETURN.
         shape = Tetrominoes:ShapeOf(mGame:CurrentPiece, mGame:Turns).
         DO i = 1 TO shape:Size:
@@ -342,9 +342,9 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
     /* A plate across the well, filled with the gap colour and ruled in the accent colour on its top two rows and bottom two
        rows, piHeight high and centred on the row piCentre. */
     METHOD PRIVATE VOID Plate(INPUT piCentre AS INTEGER, INPUT piHeight AS INTEGER):
-        DEFINE VARIABLE j   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE top AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c   AS INTEGER NO-UNDO.
+        VAR INTEGER j.
+        VAR INTEGER top.
+        VAR INTEGER c.
         top = piCentre - INTEGER(TRUNCATE(piHeight / 2, 0)).
         DO j = 0 TO piHeight - 1:
             c = IF j < 2 OR j >= piHeight - 2 THEN TetrisLook:Colour(Tint:Accent) ELSE TetrisLook:Colour(Tint:Gap).
@@ -367,10 +367,10 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
     /* The dead fill of a game over: from the bottom row up, one row every 40 ms, every cell a dead block with the mark of the
        block that was there. */
     METHOD PRIVATE VOID DrawDead():
-        DEFINE VARIABLE rows  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE piece AS INTEGER NO-UNDO.
+        VAR INTEGER rows.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER piece.
         IF NOT mGame:IsOver OR mGame:OverMs < 0 THEN RETURN.
         rows = MINIMUM(mBH, INTEGER(TRUNCATE((mGame:ElapsedMs - mGame:OverMs) / 40, 0)) + 1).
         DO y = mBH - rows TO mBH - 1:
@@ -385,9 +385,9 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
     /* The banner of a game over (4.3): after the fill and a short hold the plate opens from the middle line, the letters of
        GAME OVER come one every 33 ms, then the score, NEW BEST if it beat the best, and PRESS R. */
     METHOD PRIVATE VOID DrawGameOver():
-        DEFINE VARIABLE age   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE shown AS CHARACTER NO-UNDO.
+        VAR INTEGER age.
+        VAR INTEGER n.
+        VAR CHARACTER shown.
         IF NOT mGame:IsOver OR mGame:OverMs < 0 THEN RETURN.
         age = mGame:ElapsedMs - mGame:OverMs.
         IF age < 1000 THEN RETURN.
@@ -407,10 +407,10 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
        bottom pulse red, 250 ms on and 250 ms off. Only the wall pixels that are showing are changed, so a block at the edge
        keeps covering the wall. */
     METHOD PRIVATE VOID DrawDanger():
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE high AS INTEGER NO-UNDO.
-        DEFINE VARIABLE low  AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER high.
+        VAR INTEGER low.
         IF NOT mGame:Danger OR INTEGER(TRUNCATE(mGame:ElapsedMs / 250, 0)) MODULO 2 = 1 THEN RETURN.
         high = TetrisLook:Colour(Tint:WallHigh).
         low = TetrisLook:Colour(Tint:WallLow).
@@ -427,7 +427,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* One pixel of the wall in its danger colour, if the wall is what the background shows there. */
     METHOD PRIVATE VOID WallPixel(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piHigh AS INTEGER, INPUT piLow AS INTEGER):
-        DEFINE VARIABLE shown AS INTEGER NO-UNDO.
+        VAR INTEGER shown.
         shown = mCanvas:BackAt(piX, piY).
         IF shown = piHigh THEN mCanvas:DrawLine(piX, piY, piX, piY, 0, TetrisLook:Colour(Tint:DangerHigh)).
         ELSE IF shown = piLow THEN mCanvas:DrawLine(piX, piY, piX, piY, 0, TetrisLook:Colour(Tint:DangerLow)).
@@ -437,12 +437,12 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
        then a darker gold from the ninth frame. It is drawn under the blocks and only where the background is the plain floor,
        so it shows in the empty cells and never on a block, a grid line or a wall. */
     METHOD PRIVATE VOID DrawSweep():
-        DEFINE VARIABLE age AS INTEGER NO-UNDO.
-        DEFINE VARIABLE f   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c   AS INTEGER NO-UNDO.
+        VAR INTEGER age.
+        VAR INTEGER f.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER k.
+        VAR INTEGER c.
         IF mGame:LevelUpMs < 0 THEN RETURN.
         age = mGame:ElapsedMs - mGame:LevelUpMs.
         IF age < 0 THEN RETURN.
@@ -460,7 +460,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The level number blinks for the first half second after a level up: gold 80 ms, accent 80 ms, three times. */
     METHOD PRIVATE Tint LevelTint():
-        DEFINE VARIABLE age AS INTEGER NO-UNDO.
+        VAR INTEGER age.
         IF mGame:LevelUpMs < 0 THEN RETURN Tint:Accent.
         age = mGame:ElapsedMs - mGame:LevelUpMs.
         IF age >= 0 AND age < 480 AND INTEGER(TRUNCATE(age / 80, 0)) MODULO 2 = 0 THEN RETURN Tint:Gold.
@@ -469,7 +469,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The outer line of a card turns to a colour for a moment: the LEVEL card for 480 ms after a level up. */
     METHOD PRIVATE VOID DrawCardFlashes():
-        DEFINE VARIABLE age AS INTEGER NO-UNDO.
+        VAR INTEGER age.
         IF mGame:LevelUpMs >= 0 THEN DO:
             age = mGame:ElapsedMs - mGame:LevelUpMs.
             IF age >= 0 AND age < 480 THEN CardOutline(mPanelX + 4, 196, 88, 40, TetrisLook:Colour(Tint:Accent)).
@@ -489,14 +489,14 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
        down to where it landed, two pixels wide, in tone 2, then 3, then 4 of the piece, 50 ms each. It is drawn under the ghost
        and the pieces and only on cells that are empty, so the stack is never covered. */
     METHOD PRIVATE VOID DrawTrail():
-        DEFINE VARIABLE shape AS Shape   NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE age   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cc   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE top   AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE c     AS INTEGER NO-UNDO.
+        VAR Shape shape.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER r.
+        VAR INTEGER age.
+        VAR INTEGER cc.
+        VAR LOGICAL top.
+        VAR INTEGER c.
         IF NOT mGame:LastLockHard OR mGame:LastLockMs < 0 OR mGame:LastLockPiece = 0 THEN RETURN.
         age = mGame:ElapsedMs - mGame:LastLockMs.
         IF age < 0 OR age >= 150 THEN RETURN.
@@ -520,13 +520,13 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
     /* The impact of a hard drop: a line along the bottom edge of the landed piece that grows 4 pixels each side every 50 ms for
        three steps, in the flash colour, tone 1 and tone 3 of the piece. */
     METHOD PRIVATE VOID DrawImpact():
-        DEFINE VARIABLE shape AS Shape   NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE step  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x1    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x2    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c     AS INTEGER NO-UNDO.
+        VAR Shape shape.
+        VAR INTEGER i.
+        VAR INTEGER step.
+        VAR INTEGER x1.
+        VAR INTEGER x2.
+        VAR INTEGER y.
+        VAR INTEGER c.
         IF NOT mGame:LastLockHard OR mGame:LastLockMs < 0 OR mGame:LastLockPiece = 0 THEN RETURN.
         step = INTEGER(TRUNCATE((mGame:ElapsedMs - mGame:LastLockMs) / 50, 0)).
         IF mGame:ElapsedMs < mGame:LastLockMs OR step > 2 THEN RETURN.
@@ -555,13 +555,13 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
        the row turns to floor from the middle out. A Tetris takes 60 ms a frame, begins in gold and has one more frame. The
        sparks of the wipe are made once, for all the frames, with their birth times in the future. */
     METHOD PRIVATE VOID DrawClear():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE piece  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE fno  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE fms AS INTEGER NO-UNDO.
-        DEFINE VARIABLE four   AS LOGICAL NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER c.
+        VAR INTEGER r.
+        VAR INTEGER piece.
+        VAR INTEGER fno.
+        VAR INTEGER fms.
+        VAR LOGICAL four.
         IF NOT mGame:Clearing OR mGame:LastClearMs < 0 THEN RETURN.
         four = mGame:LastClearCount = 4.
         fms = IF four THEN 60 ELSE 50.
@@ -593,14 +593,14 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
     /* The sparks of the wipe: for each cleared row and each of frames 2 to 5, a spark each side (two each side for a Tetris) at
        the centres of the outermost columns that turn to floor in that frame, in the gold ramp. */
     METHOD PRIVATE VOID ClearSparks(INPUT piLength AS INTEGER, INPUT plFour AS LOGICAL):
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE f      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE k      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE r      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE c      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE side   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE gold   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE half   AS INTEGER   NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER f.
+        VAR INTEGER k.
+        VAR INTEGER r.
+        VAR INTEGER c.
+        VAR INTEGER side.
+        VAR CHARACTER gold.
+        VAR INTEGER half.
         gold = TetrisLook:Tones(9).
         half = INTEGER(TRUNCATE(mBW / 2, 0)) - 1.
         DO i = 1 TO NUM-ENTRIES(mGame:ClearRows):
@@ -622,9 +622,9 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The word TETRIS over the well for half a second after four rows are cleared, centred on the band that went. */
     METHOD PRIVATE VOID DrawTetrisWord():
-        DEFINE VARIABLE age  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE word AS TextStamp NO-UNDO.
+        VAR INTEGER age.
+        VAR INTEGER y.
+        VAR TextStamp word.
         IF mGame:LastClearCount <> 4 OR mGame:LastClearMs < 0 THEN RETURN.
         age = mGame:ElapsedMs - mGame:LastClearMs.
         IF age < 120 OR age >= 720 THEN RETURN.
@@ -638,11 +638,11 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
        highlight is white, and sparks fly from the blocks that sit on something. The sparks are made once for each lock. Nothing
        is drawn while rows are held for a clear, because the piece may be in them. */
     METHOD PRIVATE VOID DrawLock():
-        DEFINE VARIABLE shape AS Shape   NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE age   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy    AS INTEGER NO-UNDO.
+        VAR Shape shape.
+        VAR INTEGER i.
+        VAR INTEGER age.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
         IF mGame:GameSerial <> mSparkSerial THEN DO:
             mSparks:Clear().
             ASSIGN mSparkSerial = mGame:GameSerial
@@ -668,13 +668,13 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
     /* Two sparks, left and right, from the bottom of every block of the piece that has the floor or a block under it. The speed
        varies a little with the random source. */
     METHOD PRIVATE VOID LockSparks(INPUT poShape AS Shape):
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE by2    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE own    AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE t      AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE speed  AS DECIMAL NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER bx.
+        VAR INTEGER by2.
+        VAR LOGICAL own.
+        VAR CHARACTER t.
+        VAR DECIMAL speed.
         t = TetrisLook:Tones(mGame:LastLockPiece).
         DO i = 1 TO poShape:Size:
             bx = mGame:LastLockX + poShape:OffsetX(i).
@@ -696,11 +696,11 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
     /* The next piece, in the middle of the box on the area 64 pixels square that starts 16 in from the box's corner, and the
        word NEXT above it. */
     METHOD PRIVATE VOID DrawNext():
-        DEFINE VARIABLE shape AS Shape   NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x0    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y0    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lit   AS LOGICAL NO-UNDO.
+        VAR Shape shape.
+        VAR INTEGER i.
+        VAR INTEGER x0.
+        VAR INTEGER y0.
+        VAR LOGICAL lit.
         Caption("NEXT", 1, Tint:Accent, mPanelX + 36, 8).
         shape = Tetrominoes:ShapeOf(mGame:NextPiece, 0).
         x0 = mPanelX + 16 + INTEGER(TRUNCATE((64 - {&TILE} * shape:Width) / 2, 0)).
@@ -741,7 +741,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Some text at a place, one colour, no outline. */
     METHOD PRIVATE VOID Caption(INPUT pcText AS CHARACTER, INPUT piScale AS INTEGER, INPUT poTint AS Tint, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER c.
         c = TetrisLook:Colour(poTint).
         mText:Get(pcText, piScale, c, c, -1):DrawTo(mCanvas, piX, piY).
     END METHOD.
@@ -749,7 +749,7 @@ CLASS ProGriddle.Games.Tetris.TetrisPainter FINAL IMPLEMENTS IGridRenderer:
     /* A number of piDigits digits padded with zeros at twice the size in a card, or, when it needs more digits than that, at the
        normal size without padding and with its right end at the right of the card. */
     METHOD PRIVATE VOID Number(INPUT piValue AS INTEGER, INPUT piDigits AS INTEGER, INPUT poTint AS Tint, INPUT piY AS INTEGER):
-        DEFINE VARIABLE shown AS CHARACTER NO-UNDO.
+        VAR CHARACTER shown.
         shown = STRING(piValue).
         IF LENGTH(shown) <= piDigits THEN Caption(FILL("0", piDigits - LENGTH(shown)) + shown, 2, poTint, mPanelX + 12, piY).
         ELSE Caption(shown, 1, poTint, mPanelX + 88 - (LENGTH(shown) * 6 - 1), piY + 4).

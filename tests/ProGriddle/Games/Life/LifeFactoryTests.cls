@@ -27,8 +27,8 @@ CLASS ProGriddle.Games.Life.LifeFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID ASparseChoiceBuildsASparseStoreAndADenseChoiceAnArrayStore():
-        DEFINE VARIABLE a AS LifeGame NO-UNDO.
-        DEFINE VARIABLE b AS LifeGame NO-UNDO.
+        VAR LifeGame a.
+        VAR LifeGame b.
         DO ON ERROR UNDO, THROW:
             a = LifeFactory:Create(20, 10, FALSE, LifeRules:Conway(), 0.01).
             b = LifeFactory:Create(20, 10, FALSE, LifeRules:Conway(), 0.4).
@@ -43,8 +43,8 @@ CLASS ProGriddle.Games.Life.LifeFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID TheGameItBuildsRunsLife():
-        DEFINE VARIABLE a AS LifeGame NO-UNDO.
-        DEFINE VARIABLE b AS LifeGame NO-UNDO.
+        VAR LifeGame a.
+        VAR LifeGame b.
         DO ON ERROR UNDO, THROW:
             a = LifeFactory:Create(10, 10, FALSE, LifeRules:Conway(), 0.01).
             b = LifeFactory:Create(10, 10, TRUE, LifeRules:HighLife(), 0.5).
@@ -68,7 +68,7 @@ CLASS ProGriddle.Games.Life.LifeFactoryTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID RejectsMissingRules():
-        DEFINE VARIABLE r AS LifeRules NO-UNDO.
+        VAR LifeRules r.
         LifeFactory:UsesSparse(0.1, r).
     END METHOD.
 
@@ -76,7 +76,7 @@ CLASS ProGriddle.Games.Life.LifeFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID TheGameRemembersTheExpectedLiveShareItWasBuiltWith():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         DO ON ERROR UNDO, THROW:
             g = LifeFactory:Create(10, 10, FALSE, LifeRules:Conway(), 0.3).
             Assert:Equals(0.3, g:ExpectedLive).
@@ -88,7 +88,7 @@ CLASS ProGriddle.Games.Life.LifeFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID ChangingTheRulesKeepsTheBoardAndTheGenerationAndPlaysByTheNewRules():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         DO ON ERROR UNDO, THROW:
             g = LifeFactory:Create(12, 8, FALSE, LifeRules:Conway(), 0.5).
             g:Place(LifePatterns:Blinker(), 3, 3).
@@ -109,7 +109,7 @@ CLASS ProGriddle.Games.Life.LifeFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID ChangingTheSizeKeepsTheCellsThatFitAndStartsAgainAtGenerationZero():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         DO ON ERROR UNDO, THROW:
             g = LifeFactory:Create(12, 8, FALSE, LifeRules:Conway(), 0.5).
             g:SetAlive(1, 1, TRUE).
@@ -129,7 +129,7 @@ CLASS ProGriddle.Games.Life.LifeFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID ASmallerBoardLosesTheCellsOutsideIt():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         DO ON ERROR UNDO, THROW:
             g = LifeFactory:Create(20, 20, FALSE, LifeRules:Conway(), 0.5).
             g:SetAlive(2, 2, TRUE).
@@ -145,7 +145,7 @@ CLASS ProGriddle.Games.Life.LifeFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID ABiggerBoardKeepsEveryCellInTheSamePlace():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         DO ON ERROR UNDO, THROW:
             g = LifeFactory:Create(10, 10, FALSE, LifeRules:Conway(), 0.5).
             g:SetAlive(9, 9, TRUE).
@@ -162,7 +162,7 @@ CLASS ProGriddle.Games.Life.LifeFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID RebuildKeepsTheWrappingAndTheExpectedLiveShare():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         DO ON ERROR UNDO, THROW:
             g = LifeFactory:Create(10, 10, TRUE, LifeRules:Conway(), 0.3).
             LifeFactory:Rebuild(g, 12, 12, LifeRules:HighLife()).
@@ -176,7 +176,7 @@ CLASS ProGriddle.Games.Life.LifeFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID RebuildChoosesTheEngineAgainForTheNewRules():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         DO ON ERROR UNDO, THROW:
             g = LifeFactory:Create(10, 10, FALSE, LifeRules:Conway(), 0.01).
             Assert:IsTrue(TYPE-OF(g:Grid:Store, SparseStore)).
@@ -193,8 +193,8 @@ CLASS ProGriddle.Games.Life.LifeFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID ARebuiltGameStillStepsOnBothEngines():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
-        DEFINE VARIABLE k AS INTEGER  NO-UNDO.
+        VAR LifeGame g.
+        VAR INTEGER k.
         DO k = 1 TO 2 ON ERROR UNDO, THROW:
             g = LifeFactory:Create(10, 10, FALSE, LifeRules:Conway(), (IF k = 1 THEN 0.01 ELSE 0.4)).
             g:Place(LifePatterns:Blinker(), 3, 4).
@@ -210,7 +210,7 @@ CLASS ProGriddle.Games.Life.LifeFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID ResetAfterRulesChangeGoesBackToTheStartOfTheSameSizedBoard():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         DO ON ERROR UNDO, THROW:
             g = LifeFactory:Create(12, 8, FALSE, LifeRules:Conway(), 0.5).
             g:Place(LifePatterns:Blinker(), 3, 3).
@@ -228,21 +228,21 @@ CLASS ProGriddle.Games.Life.LifeFactoryTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID RebuildRefusesASideThatIsTooSmall():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         g = LifeFactory:Create(10, 10, FALSE, LifeRules:Conway(), 0.5).
         LifeFactory:Rebuild(g, 4, 10, LifeRules:Conway()).
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID RebuildRefusesASideThatIsTooBig():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         g = LifeFactory:Create(10, 10, FALSE, LifeRules:Conway(), 0.5).
         LifeFactory:Rebuild(g, 10, 401, LifeRules:Conway()).
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID RebuildRefusesMissingRules():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         g = LifeFactory:Create(10, 10, FALSE, LifeRules:Conway(), 0.5).
         LifeFactory:Rebuild(g, 10, 10, ?).
     END METHOD.

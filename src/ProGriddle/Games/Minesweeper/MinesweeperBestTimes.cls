@@ -12,7 +12,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Minesweeper.MinesweeperBestTimes FINAL:
 
-    DEFINE PRIVATE VARIABLE mSettings AS ISettings NO-UNDO.
+    VAR PRIVATE ISettings mSettings.
 
     /* How many sorted a level keeps. */
     METHOD PUBLIC STATIC INTEGER ListSize():
@@ -27,7 +27,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperBestTimes FINAL:
     /* The fastest time for a level, or 0 when there is none yet or the level is Custom. Throws
        GridException for a level that does not exist. */
     METHOD PUBLIC INTEGER Best(INPUT pcLevel AS CHARACTER):
-        DEFINE VARIABLE entries AS CHARACTER NO-UNDO.
+        VAR CHARACTER entries.
         entries = Scores(pcLevel).
         IF entries = "" THEN RETURN 0.
         RETURN INTEGER(ENTRY(1, entries)).
@@ -38,13 +38,13 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperBestTimes FINAL:
        time from 1 to 999 is dropped and the rest is put in order. Throws GridException for a
        level that does not exist. */
     METHOD PUBLIC CHARACTER Scores(INPUT pcLevel AS CHARACTER):
-        DEFINE VARIABLE raw    AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE sorted AS INTEGER   NO-UNDO EXTENT 10.
-        DEFINE VARIABLE n      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE t  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        VAR CHARACTER raw.
+        VAR INTEGER[10] sorted.
+        VAR INTEGER n.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER t.
+        VAR CHARACTER result.
         CheckLevel(pcLevel).
         IF NOT MinesweeperLevels:IsStandard(pcLevel) THEN RETURN "".
         raw = mSettings:GetString(KeyOf(pcLevel), "").
@@ -68,7 +68,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperBestTimes FINAL:
 
     /* How many sorted are on a level's scores. */
     METHOD PUBLIC INTEGER Count(INPUT pcLevel AS CHARACTER):
-        DEFINE VARIABLE entries AS CHARACTER NO-UNDO.
+        VAR CHARACTER entries.
         entries = Scores(pcLevel).
         IF entries = "" THEN RETURN 0.
         RETURN NUM-ENTRIES(entries).
@@ -78,10 +78,10 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperBestTimes FINAL:
        not make the list: a Custom game, a time outside 1 to 999 seconds, or one that is no
        faster than the slowest of a full scores. Throws GridException for an unknown level. */
     METHOD PUBLIC INTEGER Record(INPUT pcLevel AS CHARACTER, INPUT piSeconds AS INTEGER):
-        DEFINE VARIABLE entries  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE place AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE merged  AS CHARACTER NO-UNDO.
+        VAR CHARACTER entries.
+        VAR INTEGER i.
+        VAR INTEGER place.
+        VAR CHARACTER merged.
         CheckLevel(pcLevel).
         IF NOT MinesweeperLevels:IsStandard(pcLevel) THEN RETURN 0.
         IF piSeconds = ? OR piSeconds < 1 OR piSeconds > 999 THEN RETURN 0.

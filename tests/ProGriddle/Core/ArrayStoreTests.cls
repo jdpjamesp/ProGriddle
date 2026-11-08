@@ -8,7 +8,7 @@ CLASS ProGriddle.Core.ArrayStoreTests:
 
     @Test.
     METHOD PUBLIC VOID HoldsABoardFarLargerThanTheExtentLimit():
-        DEFINE VARIABLE s AS ArrayStore NO-UNDO.
+        VAR ArrayStore s.
         DO ON ERROR UNDO, THROW:
             s = NEW ArrayStore(1000, 1000, "state").
             s:SetCell(1, 999, 999, 42).
@@ -24,9 +24,9 @@ CLASS ProGriddle.Core.ArrayStoreTests:
 
     @Test.
     METHOD PUBLIC VOID DuplicateCopiesEveryCellOfEveryLayerOfALargeStore():
-        DEFINE VARIABLE s AS ArrayStore NO-UNDO.
-        DEFINE VARIABLE d AS ICellStore NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR ArrayStore s.
+        VAR ICellStore d.
+        VAR INTEGER i.
         DO ON ERROR UNDO, THROW:
             s = NEW ArrayStore(200, 200, "a,b").
             DO i = 0 TO 39999:
@@ -60,8 +60,8 @@ CLASS ProGriddle.Core.ArrayStoreTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID CopyBytesToRejectsATargetOfTheWrongSize():
-        DEFINE VARIABLE s AS ArrayStore NO-UNDO.
-        DEFINE VARIABLE m AS MEMPTR     NO-UNDO.
+        VAR ArrayStore s.
+        VAR MEMPTR m.
         DO ON ERROR UNDO, THROW:
             s = NEW ArrayStore(2, 2, "a").
             SET-SIZE(m) = 10.
@@ -75,8 +75,8 @@ CLASS ProGriddle.Core.ArrayStoreTests:
 
     @Test.
     METHOD PUBLIC VOID CopyBytesToFillsTheTargetMemory():
-        DEFINE VARIABLE s AS ArrayStore NO-UNDO.
-        DEFINE VARIABLE m AS MEMPTR     NO-UNDO.
+        VAR ArrayStore s.
+        VAR MEMPTR m.
         DO ON ERROR UNDO, THROW:
             s = NEW ArrayStore(2, 2, "a").
             s:SetCell(1, 1, 1, 123).
@@ -93,8 +93,8 @@ CLASS ProGriddle.Core.ArrayStoreTests:
 
     @Test.
     METHOD PUBLIC VOID CopyBytesFromReplacesTheStoreContents():
-        DEFINE VARIABLE s AS ArrayStore NO-UNDO.
-        DEFINE VARIABLE m AS MEMPTR     NO-UNDO.
+        VAR ArrayStore s.
+        VAR MEMPTR m.
         DO ON ERROR UNDO, THROW:
             s = NEW ArrayStore(2, 2, "a").
             s:SetCell(1, 0, 0, 5).
@@ -114,8 +114,8 @@ CLASS ProGriddle.Core.ArrayStoreTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID CopyBytesFromRejectsASourceOfTheWrongSize():
-        DEFINE VARIABLE s AS ArrayStore NO-UNDO.
-        DEFINE VARIABLE m AS MEMPTR     NO-UNDO.
+        VAR ArrayStore s.
+        VAR MEMPTR m.
         DO ON ERROR UNDO, THROW:
             s = NEW ArrayStore(2, 2, "a").
             SET-SIZE(m) = 8.
@@ -129,7 +129,7 @@ CLASS ProGriddle.Core.ArrayStoreTests:
 
     @Test.
     METHOD PUBLIC VOID CopyingAStoreOntoItselfChangesNothing():
-        DEFINE VARIABLE s AS ArrayStore NO-UNDO.
+        VAR ArrayStore s.
         DO ON ERROR UNDO, THROW:
             s = NEW ArrayStore(3, 3, "a").
             s:SetCell(1, 2, 2, 9).

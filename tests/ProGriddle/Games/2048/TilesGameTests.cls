@@ -12,7 +12,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.2048.TilesGameTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS TilesGame NO-UNDO.
+    VAR PRIVATE TilesGame mGame.
 
     @Setup.
     METHOD PUBLIC VOID BuildGame():
@@ -38,8 +38,8 @@ CLASS ProGriddle.Games.2048.TilesGameTests:
     END METHOD.
 
     METHOD PRIVATE INTEGER TileCount():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
         DO i = 0 TO mGame:Grid:CellCount - 1:
             IF mGame:Grid:Store:GetCellAt(1, i) > 0 THEN n = n + 1.
         END.
@@ -84,7 +84,7 @@ CLASS ProGriddle.Games.2048.TilesGameTests:
 
     @Test.
     METHOD PUBLIC VOID ASeededRandomSourceGivesTheSameGameEveryTime():
-        DEFINE VARIABLE other AS TilesGame NO-UNDO.
+        VAR TilesGame other.
         mGame:Dispose().
         mGame = TilesFactory:Create(4, 4, NEW SeededRandom(7)).
         other = TilesFactory:Create(4, 4, NEW SeededRandom(7)).
@@ -302,7 +302,7 @@ CLASS ProGriddle.Games.2048.TilesGameTests:
     END METHOD.
 
     METHOD PRIVATE VOID AssertThrows(INPUT pcMove AS CHARACTER):
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             CASE pcMove:
                 WHEN "MoveLeft"  THEN mGame:MoveLeft().
@@ -331,7 +331,7 @@ CLASS ProGriddle.Games.2048.TilesGameTests:
 
     @Test.
     METHOD PUBLIC VOID StartWithTheWrongNumberOfTilesThrows():
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             mGame:StartWith("1,2,3").
             CATCH e AS GridException:
@@ -343,7 +343,7 @@ CLASS ProGriddle.Games.2048.TilesGameTests:
 
     @Test.
     METHOD PUBLIC VOID StartWithAPowerOutOfRangeThrows():
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             mGame:StartWith("21,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0").
             CATCH e AS GridException:
@@ -357,7 +357,7 @@ CLASS ProGriddle.Games.2048.TilesGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheGameNeedsAGridWithTheOneViewLayer():
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             NEW TilesGame(NEW Grid(NEW ArrayStore(4, 4, "state")), NEW ScriptedRandom("5,0")).
             CATCH e AS GridException:
@@ -369,7 +369,7 @@ CLASS ProGriddle.Games.2048.TilesGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheGameNeedsARandomSource():
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             NEW TilesGame(TilesFactory:CreateGrid(4, 4), ?).
             CATCH e AS GridException:

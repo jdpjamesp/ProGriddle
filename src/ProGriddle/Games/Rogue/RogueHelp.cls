@@ -31,8 +31,8 @@ CLASS ProGriddle.Games.Rogue.RogueHelp FINAL:
     END METHOD.
     /* What the hero knows: the potions, scrolls, wands and rings that have been learnt, by real name, one line each. */
     METHOD PUBLIC STATIC CHARACTER Discoveries(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
+        VAR CHARACTER result.
+        VAR INTEGER i.
         DO i = 0 TO 13:
             IF poWorld:Names:IsKnown(ItemType:Potion, i) THEN result = result + "potion of " + Potions:NameOf(PotionKind:GetEnum(i)) + CHR(10).
         END.

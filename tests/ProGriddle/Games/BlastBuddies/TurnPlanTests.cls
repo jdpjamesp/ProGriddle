@@ -10,8 +10,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.BlastBuddies.TurnPlanTests:
 
     METHOD PRIVATE Team MakeTeam(INPUT piNumber AS INTEGER, INPUT piBuddies AS INTEGER):
-        DEFINE VARIABLE t AS Team NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR Team t.
+        VAR INTEGER i.
         t = NEW Team(piNumber, FALSE).
         DO i = 1 TO piBuddies:
             t:Add(NEW Buddy("B" + STRING(piNumber) + STRING(i), piNumber, i * 10, 100)).
@@ -21,7 +21,7 @@ CLASS ProGriddle.Games.BlastBuddies.TurnPlanTests:
 
     @Test.
     METHOD PUBLIC VOID ATeamHoldsItsBuddiesAndCountsTheLivingAndTheirHealth():
-        DEFINE VARIABLE t AS Team NO-UNDO.
+        VAR Team t.
         t = MakeTeam(2, 3).
         Assert:Equals(2, t:Number).
         Assert:IsFalse(t:IsComputer).
@@ -37,8 +37,8 @@ CLASS ProGriddle.Games.BlastBuddies.TurnPlanTests:
 
     @Test.
     METHOD PUBLIC VOID ATeamRefusesAWrongBuddyAFifthBuddyAndABadNumber():
-        DEFINE VARIABLE t       AS Team    NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR Team t.
+        VAR LOGICAL lThrown.
         t = MakeTeam(1, 4).
         DO ON ERROR UNDO, LEAVE:
             t:Add(NEW Buddy("FIVE", 1, 1, 1)).
@@ -77,7 +77,7 @@ CLASS ProGriddle.Games.BlastBuddies.TurnPlanTests:
 
     @Test.
     METHOD PUBLIC VOID ATeamPlaysItsBuddiesInRotaAndSkipsTheDead():
-        DEFINE VARIABLE t AS Team NO-UNDO.
+        VAR Team t.
         t = MakeTeam(1, 3).
         Assert:Equals("B11", t:NextBuddy():BuddyName).
         Assert:Equals("B12", t:NextBuddy():BuddyName).
@@ -92,8 +92,7 @@ CLASS ProGriddle.Games.BlastBuddies.TurnPlanTests:
 
     @Test.
     METHOD PUBLIC VOID TheTeamsTakeTurnsInOrderAndEachRotatesItsOwnBuddies():
-        DEFINE VARIABLE p AS TurnPlan NO-UNDO.
-        p = NEW TurnPlan().
+        VAR TurnPlan p = NEW TurnPlan().
         p:Add(MakeTeam(1, 3)).
         p:Add(MakeTeam(2, 3)).
         Assert:Equals(2, p:TeamCount()).
@@ -107,8 +106,8 @@ CLASS ProGriddle.Games.BlastBuddies.TurnPlanTests:
 
     @Test.
     METHOD PUBLIC VOID ADeadTeamIsSkippedAndTeamsAliveCountsTheRest():
-        DEFINE VARIABLE p AS TurnPlan NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER  NO-UNDO.
+        VAR TurnPlan p.
+        VAR INTEGER i.
         p = NEW TurnPlan().
         p:Add(MakeTeam(1, 3)).
         p:Add(MakeTeam(2, 3)).
@@ -131,8 +130,8 @@ CLASS ProGriddle.Games.BlastBuddies.TurnPlanTests:
 
     @Test.
     METHOD PUBLIC VOID APlanRefusesAFifthTeamAndAnUnknownTeam():
-        DEFINE VARIABLE p       AS TurnPlan NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL  NO-UNDO.
+        VAR TurnPlan p.
+        VAR LOGICAL lThrown.
         p = NEW TurnPlan().
         p:Add(MakeTeam(1, 3)).
         p:Add(MakeTeam(2, 3)).
@@ -157,8 +156,8 @@ CLASS ProGriddle.Games.BlastBuddies.TurnPlanTests:
 
     @Test.
     METHOD PUBLIC VOID ASetupChecksItsNumbersAndHasADefault():
-        DEFINE VARIABLE s       AS BuddySetup NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL    NO-UNDO.
+        VAR BuddySetup s.
+        VAR LOGICAL lThrown.
         s = NEW BuddySetup(3, 4, 2, Theme:Candy).
         Assert:Equals(3, s:Teams).
         Assert:Equals(4, s:BuddiesEach).
@@ -206,10 +205,10 @@ CLASS ProGriddle.Games.BlastBuddies.TurnPlanTests:
 
     @Test.
     METHOD PUBLIC VOID TheNamesAreShortCapitalsTheFontCanDrawAndAllDifferent():
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER k.
+        VAR LOGICAL lThrown.
         Assert:IsTrue(BuddyNames:Count() >= 16).
         DO i = 1 TO BuddyNames:Count():
             Assert:IsTrue(LENGTH(BuddyNames:NameAt(i)) >= 2 AND LENGTH(BuddyNames:NameAt(i)) <= 8, BuddyNames:NameAt(i)).

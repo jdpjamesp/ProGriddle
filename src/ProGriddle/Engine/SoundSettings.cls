@@ -17,7 +17,7 @@ CLASS ProGriddle.Engine.SoundSettings FINAL:
 
     /* Mutes the player if sound.on is false and gives it the volume of sound.volume. */
     METHOD PUBLIC STATIC VOID Apply(INPUT poPlayer AS ISoundPlayer, INPUT poSettings AS ISettings):
-        DEFINE VARIABLE volume AS INTEGER NO-UNDO.
+        VAR INTEGER volume.
         IF NOT VALID-OBJECT(poPlayer) OR NOT VALID-OBJECT(poSettings) THEN UNDO, THROW NEW GridException("Sound settings need a player and settings").
         volume = poSettings:GetInteger("sound.volume", DefaultVolume()).
         poPlayer:Volume = MINIMUM(100, MAXIMUM(0, volume)).

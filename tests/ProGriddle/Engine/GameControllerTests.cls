@@ -7,10 +7,10 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.GameControllerTests:
 
-    DEFINE PRIVATE VARIABLE mGame       AS CountingGame     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRenderer   AS RecordingRenderer NO-UNDO.
-    DEFINE PRIVATE VARIABLE mClock      AS FakeClock        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mController AS GameController   NO-UNDO.
+    VAR PRIVATE CountingGame mGame.
+    VAR PRIVATE RecordingRenderer mRenderer.
+    VAR PRIVATE FakeClock mClock.
+    VAR PRIVATE GameController mController.
 
     /* A fresh game that is over after 5 steps, with the controller built around it. */
     @Setup.
@@ -149,7 +149,7 @@ CLASS ProGriddle.Engine.GameControllerTests:
 
     @Test.
     METHOD PUBLIC VOID SpeedStaysWithinTheLimits():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 10:
             mController:SpeedUp().
         END.
@@ -239,19 +239,19 @@ CLASS ProGriddle.Engine.GameControllerTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ConstructorThrowsWithoutAGame():
-        DEFINE VARIABLE g AS ISteppableGame NO-UNDO.
+        VAR ISteppableGame g.
         NEW GameController(g, mRenderer, mClock).
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ConstructorThrowsWithoutARenderer():
-        DEFINE VARIABLE r AS IGridRenderer NO-UNDO.
+        VAR IGridRenderer r.
         NEW GameController(mGame, r, mClock).
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ConstructorThrowsWithoutAClock():
-        DEFINE VARIABLE c AS IClock NO-UNDO.
+        VAR IClock c.
         NEW GameController(mGame, mRenderer, c).
     END METHOD.
 

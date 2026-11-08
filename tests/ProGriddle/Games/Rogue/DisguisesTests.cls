@@ -9,8 +9,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.Rogue.DisguisesTests:
 
     METHOD PRIVATE LOGICAL AllDifferent(INPUT poDisguises AS Disguises, INPUT poType AS ItemType):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
         DO i = 0 TO 13:
             IF poDisguises:Appearance(poType, i) = "" THEN RETURN FALSE.
             DO j = i + 1 TO 13:
@@ -22,8 +22,7 @@ CLASS ProGriddle.Games.Rogue.DisguisesTests:
 
     @Test.
     METHOD PUBLIC VOID EveryKindOfEverySortHasItsOwnName():
-        DEFINE VARIABLE oDisguises AS Disguises NO-UNDO.
-        oDisguises = NEW Disguises(NEW SeededRandom(1)).
+        VAR Disguises oDisguises = NEW Disguises(NEW SeededRandom(1)).
         Assert:IsTrue(AllDifferent(oDisguises, ItemType:Potion)).
         Assert:IsTrue(AllDifferent(oDisguises, ItemType:Scroll)).
         Assert:IsTrue(AllDifferent(oDisguises, ItemType:Wand)).
@@ -32,8 +31,8 @@ CLASS ProGriddle.Games.Rogue.DisguisesTests:
 
     @Test.
     METHOD PUBLIC VOID ManySeedsAllGiveDistinctNames():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oDisguises AS Disguises NO-UNDO.
+        VAR INTEGER i.
+        VAR Disguises oDisguises.
         DO i = 1 TO 12:
             oDisguises = NEW Disguises(NEW SeededRandom(i * 17)).
             Assert:IsTrue(AllDifferent(oDisguises, ItemType:Potion)).
@@ -45,11 +44,11 @@ CLASS ProGriddle.Games.Rogue.DisguisesTests:
 
     @Test.
     METHOD PUBLIC VOID TheSameSeedGivesTheSameNamesAndAnotherSeedOtherOnes():
-        DEFINE VARIABLE a AS Disguises NO-UNDO.
-        DEFINE VARIABLE b AS Disguises NO-UNDO.
-        DEFINE VARIABLE c AS Disguises NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE differs AS LOGICAL NO-UNDO.
+        VAR Disguises a.
+        VAR Disguises b.
+        VAR Disguises c.
+        VAR INTEGER i.
+        VAR LOGICAL differs.
         a = NEW Disguises(NEW SeededRandom(5)).
         b = NEW Disguises(NEW SeededRandom(5)).
         c = NEW Disguises(NEW SeededRandom(6)).
@@ -63,16 +62,14 @@ CLASS ProGriddle.Games.Rogue.DisguisesTests:
 
     @Test.
     METHOD PUBLIC VOID ANewGameStartsWithNothingKnown():
-        DEFINE VARIABLE oDisguises AS Disguises NO-UNDO.
-        oDisguises = NEW Disguises(NEW SeededRandom(2)).
+        VAR Disguises oDisguises = NEW Disguises(NEW SeededRandom(2)).
         Assert:Equals(0, oDisguises:KnownCount()).
         Assert:IsFalse(oDisguises:IsKnown(ItemType:Potion, 3)).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID LearningAKindMakesItKnownAndOnlyThatKind():
-        DEFINE VARIABLE oDisguises AS Disguises NO-UNDO.
-        oDisguises = NEW Disguises(NEW SeededRandom(2)).
+        VAR Disguises oDisguises = NEW Disguises(NEW SeededRandom(2)).
         oDisguises:Learn(ItemType:Potion, 3).
         oDisguises:Learn(ItemType:Ring, 0).
         Assert:IsTrue(oDisguises:IsKnown(ItemType:Potion, 3)).
@@ -84,8 +81,7 @@ CLASS ProGriddle.Games.Rogue.DisguisesTests:
 
     @Test.
     METHOD PUBLIC VOID ShufflingForANewGameForgetsEverything():
-        DEFINE VARIABLE oDisguises AS Disguises NO-UNDO.
-        oDisguises = NEW Disguises(NEW SeededRandom(2)).
+        VAR Disguises oDisguises = NEW Disguises(NEW SeededRandom(2)).
         oDisguises:Learn(ItemType:Wand, 5).
         oDisguises:Shuffle(NEW SeededRandom(3)).
         Assert:Equals(0, oDisguises:KnownCount()).
@@ -104,8 +100,8 @@ CLASS ProGriddle.Games.Rogue.DisguisesTests:
 
     @Test.
     METHOD PUBLIC VOID ABadSortKindOrRandomSourceIsRefused():
-        DEFINE VARIABLE oDisguises AS Disguises NO-UNDO.
-        DEFINE VARIABLE thrown     AS INTEGER   NO-UNDO.
+        VAR Disguises oDisguises.
+        VAR INTEGER thrown.
         oDisguises = NEW Disguises(NEW SeededRandom(2)).
         DO ON ERROR UNDO, THROW:
             oDisguises:Appearance(ItemType:Weapon, 0).

@@ -14,7 +14,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID CreateGridMakesABoundedMooreGridOnATableStore():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = MinesweeperFactory:CreateGrid(12, 7).
             Assert:Equals(12, g:Width).
@@ -31,7 +31,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID CreateMakesAGameReadyForAFirstClick():
-        DEFINE VARIABLE g AS MinesweeperGame NO-UNDO.
+        VAR MinesweeperGame g.
         DO ON ERROR UNDO, THROW:
             g = MinesweeperFactory:Create(16, 16, 40, NEW SeededRandom(1), NEW FakeClock()).
             Assert:Equals("Minesweeper", g:Name).

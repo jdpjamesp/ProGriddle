@@ -73,8 +73,7 @@ CLASS ProGriddle.Games.Rogue.Item FINAL:
 
     /* A copy of this item with a count of piCount. */
     METHOD PUBLIC Item Duplicate(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE oCopy AS Item NO-UNDO.
-        oCopy = NEW Item(Category, Kind).
+        VAR Item oCopy = NEW Item(Category, Kind).
         oCopy:Count = piCount.
         oCopy:Bonus = Bonus.
         oCopy:DamageBonus = DamageBonus.

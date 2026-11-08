@@ -8,9 +8,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Snake.SnakeInputTests:
 
-    DEFINE PRIVATE VARIABLE mGame     AS SnakeGame      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS MemorySettings NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInput    AS SnakeInput     NO-UNDO.
+    VAR PRIVATE SnakeGame mGame.
+    VAR PRIVATE MemorySettings mSettings.
+    VAR PRIVATE SnakeInput mInput.
 
     @Setup.
     METHOD PUBLIC VOID BuildInput():
@@ -27,7 +27,7 @@ CLASS ProGriddle.Games.Snake.SnakeInputTests:
 
     /* Runs the game until the snake crashes into the right wall. */
     METHOD PRIVATE VOID Crash():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 6:
             mGame:Tick(150).
         END.
@@ -118,9 +118,9 @@ CLASS ProGriddle.Games.Snake.SnakeInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheStatusLineSaysWhenTheSnakeHasWon():
-        DEFINE VARIABLE body AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER   NO-UNDO.
+        VAR CHARACTER body.
+        VAR INTEGER x.
+        VAR INTEGER y.
         mGame:Dispose().
         mGame = NEW SnakeGame(SnakeFactory:CreateGrid(5, 5), NEW ScriptedRandom("0")).
         mInput = NEW SnakeInput(mGame, mSettings).
@@ -307,7 +307,7 @@ CLASS ProGriddle.Games.Snake.SnakeInputTests:
 
     @Test.
     METHOD PUBLIC VOID ASizeThatIsNotASizeOrIsOutOfRangeIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mInput:SetOption(1, "huge").
             CATCH e1 AS GridException:
@@ -338,7 +338,7 @@ CLASS ProGriddle.Games.Snake.SnakeInputTests:
 
     @Test.
     METHOD PUBLIC VOID OnlyOptionNumberOneExists():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mInput:OptionLabel(2).
             CATCH e1 AS GridException:
@@ -397,8 +397,7 @@ CLASS ProGriddle.Games.Snake.SnakeInputTests:
 
     @Test.
     METHOD PUBLIC VOID SoundIsOfferedOnlyWithAWorkingPlayerAndSwitchesItAndRemembersIt():
-        DEFINE VARIABLE oPlayer AS RecordingSoundPlayer NO-UNDO.
-        oPlayer = NEW RecordingSoundPlayer().
+        VAR RecordingSoundPlayer oPlayer = NEW RecordingSoundPlayer().
         mInput = NEW SnakeInput(mGame, mSettings, oPlayer).
         Assert:Equals("Sound:M", mInput:CommandNames).
         mInput:Perform("Sound").
@@ -415,7 +414,7 @@ CLASS ProGriddle.Games.Snake.SnakeInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheInputNeedsASoundPlayer():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW SnakeInput(mGame, mSettings, ?).
             CATCH e1 AS GridException:
@@ -427,7 +426,7 @@ CLASS ProGriddle.Games.Snake.SnakeInputTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownCommandThrows():
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             mInput:Perform("Nothing").
             CATCH e AS GridException:
@@ -439,7 +438,7 @@ CLASS ProGriddle.Games.Snake.SnakeInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheInputNeedsAGameAndSettings():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW SnakeInput(?, mSettings).
             CATCH e1 AS GridException:

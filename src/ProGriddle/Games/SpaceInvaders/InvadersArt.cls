@@ -17,11 +17,11 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersArt FINAL:
 
     &SCOPED-DEFINE PICTURES 45
 
-    DEFINE PRIVATE STATIC VARIABLE sSprites AS Sprite NO-UNDO EXTENT 45.
+    VAR PRIVATE STATIC Sprite[45] sSprites.
 
     CONSTRUCTOR STATIC InvadersArt():
-        DEFINE VARIABLE sRaw AS CHARACTER NO-UNDO EXTENT 45.
-        DEFINE VARIABLE i    AS INTEGER   NO-UNDO.
+        VAR CHARACTER[45] sRaw.
+        VAR INTEGER i.
         sRaw[1] = "...++.../..####../.######./##+##+##/########/..*..*../.*.**.*./*.*..*.*".
         sRaw[2] = "...++.../..####../.######./##+##+##/########/.*.**.*./*.*..*.*/*......*".
         sRaw[3] = "..+.....+../...#...#.../..#######../.##+###+##./###########/*.#######.*/*.#.....#.*/...**.**...".

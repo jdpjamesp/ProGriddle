@@ -11,7 +11,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Tetris.TetrisAnimationTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS TetrisGame NO-UNDO.
+    VAR PRIVATE TetrisGame mGame.
 
     METHOD PRIVATE VOID NewGame(INPUT pcPieces AS CHARACTER):
         mGame = TetrisFactory:Create(NEW SeededRandom(1)).
@@ -26,8 +26,8 @@ CLASS ProGriddle.Games.Tetris.TetrisAnimationTests:
 
     /* n rows, each full but for a gap at column 7, as one string for LoadLocked. */
     METHOD PRIVATE CHARACTER GappedRows(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER result.
         DO i = 1 TO piCount:
             result = result + (IF i > 1 THEN "/" ELSE "") + "IIIIIII.II".
         END.
@@ -36,7 +36,7 @@ CLASS ProGriddle.Games.Tetris.TetrisAnimationTests:
 
     /* An I piece stood up in column 7, dropped on the gapped rows: it fills the gaps and clears every row there is. */
     METHOD PRIVATE VOID DropIntoTheGap():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mGame:RotateClockwise().
         DO i = 1 TO 3:
             mGame:MoveRight().
@@ -63,7 +63,7 @@ CLASS ProGriddle.Games.Tetris.TetrisAnimationTests:
 
     @Test.
     METHOD PUBLIC VOID TheSerialOfAGameGoesUpWithEveryNewGame():
-        DEFINE VARIABLE first1 AS INTEGER NO-UNDO.
+        VAR INTEGER first1.
         NewGame("I,O,T").
         first1 = mGame:GameSerial.
         mGame:Initialise().
@@ -72,7 +72,7 @@ CLASS ProGriddle.Games.Tetris.TetrisAnimationTests:
 
     @Test.
     METHOD PUBLIC VOID TheBestScoreIsKeptForThePainterAndRefusesAnythingBelowZero():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         NewGame("I,O,T").
         Assert:Equals(0, mGame:BestScore).
         mGame:BestScore = 38250.
@@ -104,7 +104,7 @@ CLASS ProGriddle.Games.Tetris.TetrisAnimationTests:
 
     @Test.
     METHOD PUBLIC VOID APieceThatGravitySettlesIsNotAHardDrop():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         NewGame("O,I,T").
         /* 800 ms a row at level 1: the O (2 high) reaches the floor after 18 steps and settles on the next */
         DO i = 1 TO 19:
@@ -192,7 +192,7 @@ CLASS ProGriddle.Games.Tetris.TetrisAnimationTests:
 
     @Test.
     METHOD PUBLIC VOID TheClearDelayIsBetweenZeroAndTwoSeconds():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         NewGame("I,O,T").
         mGame:ClearDelayMs = 2000.
         Assert:Equals(2000, mGame:ClearDelayMs).
@@ -213,7 +213,7 @@ CLASS ProGriddle.Games.Tetris.TetrisAnimationTests:
 
     @Test.
     METHOD PUBLIC VOID TenLinesRaiseTheLevelAndTheGameRemembersWhen():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         NewGame("I,I,I,I,I,I,I,I,I,I,I,I").
         Assert:Equals(-1, mGame:LevelUpMs).
         DO i = 1 TO 10:
@@ -259,8 +259,8 @@ CLASS ProGriddle.Games.Tetris.TetrisAnimationTests:
 
     @Test.
     METHOD PUBLIC VOID ADangerouslyHighStackKeepsTheGameAnimatingUntilItDrops():
-        DEFINE VARIABLE i    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE rows AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER rows.
         NewGame("I,O,T").
         mGame:Animated = TRUE.
         mGame:Initialise().
@@ -280,7 +280,7 @@ CLASS ProGriddle.Games.Tetris.TetrisAnimationTests:
 
     @Test.
     METHOD PUBLIC VOID AGameThatIsOverKeepsAnimatingForAboutThreeAndAHalfSecondsAndRemembersWhenItEnded():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         NewGame("O,O,O,O,O,O,O,O,O,O,O,O").
         mGame:Animated = TRUE.
         mGame:Initialise().
@@ -301,7 +301,7 @@ CLASS ProGriddle.Games.Tetris.TetrisAnimationTests:
 
     @Test.
     METHOD PUBLIC VOID WithoutAnimationAGameThatIsOverIsQuietAsBefore():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         NewGame("O,O,O,O,O,O,O,O,O,O,O,O").
         DO i = 1 TO 12 WHILE NOT mGame:IsOver:
             mGame:HardDrop().

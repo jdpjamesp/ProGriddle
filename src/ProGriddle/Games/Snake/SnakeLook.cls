@@ -11,12 +11,12 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Snake.SnakeLook FINAL:
 
-    DEFINE PRIVATE STATIC VARIABLE sColours AS INTEGER   NO-UNDO EXTENT 31.
-    DEFINE PRIVATE STATIC VARIABLE sHexes   AS CHARACTER NO-UNDO EXTENT 31.
+    VAR PRIVATE STATIC INTEGER[31] sColours.
+    VAR PRIVATE STATIC CHARACTER[31] sHexes.
 
     CONSTRUCTOR STATIC SnakeLook():
-        DEFINE VARIABLE sHex AS CHARACTER NO-UNDO EXTENT 31.
-        DEFINE VARIABLE i    AS INTEGER   NO-UNDO.
+        VAR CHARACTER[31] sHex.
+        VAR INTEGER i.
         sHex[1] = "0A0E16".   /* the background at the top, and the strip */
         sHex[2] = "0E131E".   /* the background at the bottom */
         sHex[3] = "2D3D5F".   /* the rules of a banner plate */
@@ -69,7 +69,7 @@ CLASS ProGriddle.Games.Snake.SnakeLook FINAL:
     /* The five tones of a colour row made from its base colour, lightest first, as hex colours separated by commas: the base
        mixed with white by 70 and 30 percent, the base itself, and the base mixed with the shade colour by 32 and 64 percent. */
     METHOD PUBLIC STATIC CHARACTER ToneRow(INPUT piColour AS INTEGER):
-        DEFINE VARIABLE shade AS INTEGER NO-UNDO.
+        VAR INTEGER shade.
         IF piColour = ? THEN UNDO, THROW NEW GridException("A colour row needs a colour").
         shade = Colour(SnakeTint:Shade).
         RETURN SUBSTITUTE("&1,&2,&3,&4,&5", ColourMath:ToHex(Blend(piColour, 16777215, 70)), ColourMath:ToHex(Blend(piColour, 16777215, 30)),
@@ -86,9 +86,9 @@ CLASS ProGriddle.Games.Snake.SnakeLook FINAL:
     END METHOD.
 
     METHOD PRIVATE STATIC INTEGER BlendChannel(INPUT piFrom AS INTEGER, INPUT piTo AS INTEGER, INPUT piPercent AS INTEGER):
-        DEFINE VARIABLE hundredths AS INTEGER NO-UNDO.
-        DEFINE VARIABLE whole      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rest       AS INTEGER NO-UNDO.
+        VAR INTEGER hundredths.
+        VAR INTEGER whole.
+        VAR INTEGER rest.
         hundredths = piFrom * (100 - piPercent) + piTo * piPercent.
         whole = INTEGER(TRUNCATE(hundredths / 100, 0)).
         rest = hundredths - whole * 100.

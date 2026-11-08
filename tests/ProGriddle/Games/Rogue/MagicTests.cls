@@ -8,7 +8,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.MagicTests:
 
-    DEFINE PRIVATE VARIABLE mWorld AS RogueWorld NO-UNDO.
+    VAR PRIVATE RogueWorld mWorld.
 
     /* A lit room with floor (5, 5) to (14, 8), the hero in it at (6, 6) with the starting kit (slots 0 to 4). */
     METHOD PRIVATE VOID Build(INPUT pcScript AS CHARACTER):
@@ -30,7 +30,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
     END METHOD.
 
     METHOD PRIVATE Monster Beside(INPUT poKind AS MonsterKind, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
+        VAR Monster oMonster.
         oMonster = mWorld:AddMonster(poKind, piX, piY).
         oMonster:Hp = 30.
         oMonster:MaxHp = 30.
@@ -51,7 +51,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID AMangoFeedsLessAndNeverOverfills():
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         Build("5").
         slot = Carry(ItemType:Food, INTEGER(FoodKind:Mango)).
         mWorld:Hero:Nutrition = 100.
@@ -65,7 +65,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID OnlyFoodCanBeEaten():
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         Build("5").
         slot = Carry(ItemType:Potion, 0).
         Assert:IsFalse(Magic:Eat(mWorld, slot)).
@@ -75,14 +75,14 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
     /* ============================== potions ============================== */
 
     METHOD PRIVATE LOGICAL Drink(INPUT poKind AS PotionKind):
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         slot = Carry(ItemType:Potion, INTEGER(poKind)).
         RETURN Magic:Quaff(mWorld, slot).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID DrinkingUsesUpOnePotionAndLearnsItsKind():
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         Build("5").
         slot = Carry(ItemType:Potion, INTEGER(PotionKind:GainStrength)).
         Carry(ItemType:Potion, INTEGER(PotionKind:GainStrength)).
@@ -117,7 +117,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID PoisonWeakensTheHeroUnlessTheyAreSustained():
-        DEFINE VARIABLE oRing AS Item NO-UNDO.
+        VAR Item oRing.
         Build("5").
         Drink(PotionKind:Poison).
         Assert:IsTrue(mWorld:Hero:Strength < 16).
@@ -205,7 +205,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID WhatIsMagicIsPotionsScrollsWandsRingsAndAnythingWithAPlus():
-        DEFINE VARIABLE oMace AS Item NO-UNDO.
+        VAR Item oMace.
         Assert:IsTrue(Magic:IsMagic(Items:Make(ItemType:Potion, 0))).
         Assert:IsTrue(Magic:IsMagic(Items:Make(ItemType:Scroll, 0))).
         Assert:IsTrue(Magic:IsMagic(Items:Make(ItemType:Wand, 0))).
@@ -233,14 +233,14 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
     /* ============================== scrolls ============================== */
 
     METHOD PRIVATE LOGICAL Read(INPUT poKind AS ScrollKind, OUTPUT plPick AS LOGICAL):
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         slot = Carry(ItemType:Scroll, INTEGER(poKind)).
         RETURN Magic:ReadScroll(mWorld, slot, OUTPUT plPick).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID AScrollIsUsedUpAndItsKindLearntOnReading():
-        DEFINE VARIABLE pick AS LOGICAL NO-UNDO.
+        VAR LOGICAL pick.
         Build("5").
         Assert:IsTrue(Read(ScrollKind:RemoveCurse, OUTPUT pick)).
         Assert:IsFalse(pick).
@@ -250,7 +250,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID OnlyScrollsCanBeRead():
-        DEFINE VARIABLE pick AS LOGICAL NO-UNDO.
+        VAR LOGICAL pick.
         Build("5").
         Assert:IsFalse(Magic:ReadScroll(mWorld, 0, OUTPUT pick)).
         Assert:IsFalse(pick).
@@ -258,8 +258,8 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID IdentifyAsksWhichThingAndThenTellsTheHero():
-        DEFINE VARIABLE pick AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR LOGICAL pick.
+        VAR INTEGER slot.
         Build("5").
         slot = Carry(ItemType:Potion, INTEGER(PotionKind:Healing)).
         Read(ScrollKind:Identify, OUTPUT pick).
@@ -272,7 +272,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID IdentifyingAWeaponShowsItsPlusWithoutNamingAKind():
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         Build("5").
         slot = Carry(ItemType:Weapon, INTEGER(WeaponKind:Spear)).
         mWorld:Pack:At(slot):Bonus = 2.
@@ -285,7 +285,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID EnchantArmourImprovesAndUncursesTheSuitWorn():
-        DEFINE VARIABLE pick AS LOGICAL NO-UNDO.
+        VAR LOGICAL pick.
         Build("5").
         mWorld:Pack:Worn():Cursed = TRUE.
         Read(ScrollKind:EnchantArmour, OUTPUT pick).
@@ -295,7 +295,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID EnchantingWithNothingWornIsNotLearnt():
-        DEFINE VARIABLE pick AS LOGICAL NO-UNDO.
+        VAR LOGICAL pick.
         Build("5").
         mWorld:Pack:WornSlot = -1.
         Read(ScrollKind:EnchantArmour, OUTPUT pick).
@@ -310,7 +310,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID EnchantWeaponAddsOnePlusToHitOrToDamage():
-        DEFINE VARIABLE pick AS LOGICAL NO-UNDO.
+        VAR LOGICAL pick.
         Build("0").
         Read(ScrollKind:EnchantWeapon, OUTPUT pick).
         Assert:Equals(2, mWorld:Pack:Weapon():Bonus).
@@ -324,7 +324,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID RemoveCurseFreesEverythingInThePack():
-        DEFINE VARIABLE pick AS LOGICAL NO-UNDO.
+        VAR LOGICAL pick.
         Build("5").
         mWorld:Pack:At(1):Cursed = TRUE.
         mWorld:Pack:At(2):Cursed = TRUE.
@@ -335,7 +335,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID MonsterConfusionMakesTheNextHitConfuse():
-        DEFINE VARIABLE pick AS LOGICAL NO-UNDO.
+        VAR LOGICAL pick.
         Build("5").
         Read(ScrollKind:MonsterConfusion, OUTPUT pick).
         Assert:IsTrue(mWorld:Hero:ConfusingTouch).
@@ -343,7 +343,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID SleepPutsTheHeroToSleep():
-        DEFINE VARIABLE pick AS LOGICAL NO-UNDO.
+        VAR LOGICAL pick.
         Build("5").
         Read(ScrollKind:SleepSpell, OUTPUT pick).
         Assert:IsTrue(mWorld:Hero:Asleep >= 4).
@@ -351,7 +351,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID MagicMappingShowsEveryCellAndFindsSecretDoors():
-        DEFINE VARIABLE pick AS LOGICAL NO-UNDO.
+        VAR LOGICAL pick.
         Build("5").
         mWorld:Cave:SetTerrain(15, 7, Terrain:SecretDown).
         mWorld:Cave:SetTerrain(16, 7, Terrain:Passage).
@@ -365,9 +365,9 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID HoldMonsterFreezesTheMonstersNearbyAndIsNotLearntWithNobodyThere():
-        DEFINE VARIABLE pick AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE oNear AS Monster NO-UNDO.
-        DEFINE VARIABLE oFar  AS Monster NO-UNDO.
+        VAR LOGICAL pick.
+        VAR Monster oNear.
+        VAR Monster oFar.
         Build("5").
         Read(ScrollKind:HoldMonster, OUTPUT pick).
         Assert:IsFalse(mWorld:Names:IsKnown(ItemType:Scroll, INTEGER(ScrollKind:HoldMonster))).
@@ -381,7 +381,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID CreateMonsterPutsOneNextToTheHero():
-        DEFINE VARIABLE pick AS LOGICAL NO-UNDO.
+        VAR LOGICAL pick.
         Build("6").
         Read(ScrollKind:CreateMonster, OUTPUT pick).
         Assert:Equals(1, mWorld:MonsterCount).
@@ -391,9 +391,9 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID ANewMonsterIsAwakeAndEveryOneOfEightSquaresCanTakeOne():
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oMon    AS Monster NO-UNDO.
-        DEFINE VARIABLE awake   AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR Monster oMon.
+        VAR INTEGER awake.
         Build("3").
         mWorld:PlaceHero(10, 6).
         DO i = 1 TO 8:
@@ -410,8 +410,8 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID ScareMonsterReadFreezesTheMonstersInSight():
-        DEFINE VARIABLE pick AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR LOGICAL pick.
+        VAR Monster oOrc.
         Build("5").
         oOrc = Beside(MonsterKind:Orc, 12, 7).
         mWorld:Cave:SetInView(12, 7, TRUE).
@@ -421,7 +421,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID FoodDetectionNeedsFoodOnTheFloorToBeLearnt():
-        DEFINE VARIABLE pick AS LOGICAL NO-UNDO.
+        VAR LOGICAL pick.
         Build("5").
         Read(ScrollKind:FoodDetection, OUTPUT pick).
         Assert:IsFalse(mWorld:Names:IsKnown(ItemType:Scroll, INTEGER(ScrollKind:FoodDetection))).
@@ -434,8 +434,8 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID AggravateWakesEveryMonster():
-        DEFINE VARIABLE pick AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE oNymph AS Monster NO-UNDO.
+        VAR LOGICAL pick.
+        VAR Monster oNymph.
         Build("5").
         oNymph = Beside(MonsterKind:Nymph, 14, 8).
         Assert:IsFalse(oNymph:Awake).
@@ -445,7 +445,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID ProtectArmourWardsTheSuitAgainstRust():
-        DEFINE VARIABLE pick AS LOGICAL NO-UNDO.
+        VAR LOGICAL pick.
         Build("5").
         Read(ScrollKind:ProtectArmour, OUTPUT pick).
         Assert:IsTrue(mWorld:Pack:Worn():Warded).
@@ -463,7 +463,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
     /* ============================== wands ============================== */
 
     METHOD PRIVATE INTEGER Wand(INPUT poKind AS WandKind, INPUT piCharges AS INTEGER):
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         slot = Carry(ItemType:Wand, INTEGER(poKind)).
         mWorld:Pack:At(slot):Charges = piCharges.
         RETURN slot.
@@ -471,7 +471,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID AWandWithNoChargesDoesNothing():
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         Build("5").
         slot = Wand(WandKind:Fire, 0).
         Assert:IsTrue(Magic:Zap(mWorld, slot, 1, 0)).
@@ -487,7 +487,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID AZapUsesACharge():
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         Build("5").
         slot = Wand(WandKind:Nothing, 3).
         Magic:Zap(mWorld, slot, 1, 0).
@@ -496,8 +496,8 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID FireHurtsTheFirstMonsterInTheWayAndIsLearnt():
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR INTEGER slot.
+        VAR Monster oOrc.
         Build("5").
         oOrc = Beside(MonsterKind:Orc, 10, 6).
         slot = Wand(WandKind:Fire, 4).
@@ -509,8 +509,8 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID MagicMissileDoesLessThanFire():
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR INTEGER slot.
+        VAR Monster oOrc.
         Build("1").
         oOrc = Beside(MonsterKind:Orc, 10, 6).
         slot = Wand(WandKind:MagicMissile, 4).
@@ -520,7 +520,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID ABoltAtNothingHitsNothingAndIsNotLearnt():
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         Build("5").
         slot = Wand(WandKind:Cold, 4).
         Magic:Zap(mWorld, slot, 0, -1).
@@ -541,7 +541,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID InvisibilitySlowAndHasteChangeTheMonster():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR Monster oOrc.
         Build("5").
         oOrc = Beside(MonsterKind:Orc, 10, 6).
         Magic:Zap(mWorld, Wand(WandKind:Invisibility, 3), 1, 0).
@@ -557,7 +557,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID PolymorphMakesAnotherKindOfMonsterInTheSamePlace():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR Monster oOrc.
         Build("5").
         oOrc = Beside(MonsterKind:Orc, 10, 6).
         Magic:Zap(mWorld, Wand(WandKind:Polymorph, 3), 1, 0).
@@ -568,7 +568,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID TeleportAwaySendsTheMonsterOffAndTeleportToPullsItNear():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR Monster oOrc.
         Build("5").
         oOrc = Beside(MonsterKind:Orc, 12, 6).
         Magic:Zap(mWorld, Wand(WandKind:TeleportTo, 3), 1, 0).
@@ -579,7 +579,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID LightLightsADarkRoomButNotACorridor():
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         Build("5").
         mWorld:SetRoomLit(1, FALSE).
         slot = Wand(WandKind:Light, 5).
@@ -595,7 +595,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID DrainLifeCostsTheHeroHalfTheirHitPointsAndHurtsWhatIsInSight():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR Monster oOrc.
         Build("5").
         mWorld:Hero:Hp = 12.
         oOrc = Beside(MonsterKind:Orc, 10, 6).
@@ -607,7 +607,7 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID DrainLifeIsRefusedByAHeroWithAHitPointLeft():
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         Build("5").
         mWorld:Hero:Hp = 1.
         slot = Wand(WandKind:DrainLife, 3).
@@ -618,9 +618,9 @@ CLASS ProGriddle.Games.Rogue.MagicTests:
 
     @Test.
     METHOD PUBLIC VOID AFreeFloorSquareIsNeverTheHeroOrAMonster():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER i.
         Build("7").
         Beside(MonsterKind:Orc, 7, 6).
         DO i = 1 TO 10:

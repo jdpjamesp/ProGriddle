@@ -15,17 +15,17 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Tetris.TetrisCues FINAL IMPLEMENTS ICueSource:
 
-    DEFINE PRIVATE VARIABLE mSerial AS INTEGER NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mPlaced AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLines  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLevel  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mOver   AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDanger AS LOGICAL NO-UNDO.
+    VAR PRIVATE INTEGER mSerial = -1.
+    VAR PRIVATE INTEGER mPlaced.
+    VAR PRIVATE INTEGER mLines.
+    VAR PRIVATE INTEGER mLevel.
+    VAR PRIVATE LOGICAL mOver.
+    VAR PRIVATE LOGICAL mDanger.
 
     /* Throws GridException for a game that is not a TetrisGame. */
     METHOD PUBLIC CHARACTER Poll(INPUT poGame AS IGame):
-        DEFINE VARIABLE oGame AS TetrisGame NO-UNDO.
-        DEFINE VARIABLE cues  AS CHARACTER  NO-UNDO.
+        VAR TetrisGame oGame.
+        VAR CHARACTER cues.
         IF NOT TYPE-OF(poGame, TetrisGame) THEN UNDO, THROW NEW GridException("The cues of Tetris need a Tetris game").
         oGame = CAST(poGame, TetrisGame).
         IF oGame:GameSerial <> mSerial THEN DO:

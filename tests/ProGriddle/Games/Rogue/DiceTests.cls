@@ -9,7 +9,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.Rogue.DiceTests:
 
     METHOD PRIVATE LOGICAL Refused(INPUT pcSpec AS CHARACTER):
-        DEFINE VARIABLE oRefused AS LOGICAL NO-UNDO.
+        VAR LOGICAL oRefused.
         DO ON ERROR UNDO, THROW:
             Dice:Number(pcSpec).
             CATCH e AS GridException:
@@ -47,19 +47,18 @@ CLASS ProGriddle.Games.Rogue.DiceTests:
 
     @Test.
     METHOD PUBLIC VOID ARollOfNoDiceIsZeroAndUsesNoRandomNumbers():
-        DEFINE VARIABLE oRandom AS ScriptedRandom NO-UNDO.
-        oRandom = NEW ScriptedRandom("5").
+        VAR ScriptedRandom oRandom = NEW ScriptedRandom("5").
         Assert:Equals(0, Dice:Roll("0d0", oRandom)).
         Assert:Equals(0, oRandom:Calls).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID RollsStayInRangeAndReachBothEnds():
-        DEFINE VARIABLE oRandom AS SeededRandom NO-UNDO.
-        DEFINE VARIABLE i       AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE r       AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE lowest  AS INTEGER      NO-UNDO INITIAL 99.
-        DEFINE VARIABLE highest AS INTEGER      NO-UNDO.
+        VAR SeededRandom oRandom.
+        VAR INTEGER i.
+        VAR INTEGER r.
+        VAR INTEGER lowest = 99.
+        VAR INTEGER highest.
         oRandom = NEW SeededRandom(3).
         DO i = 1 TO 500:
             r = Dice:Roll("1d6", oRandom).
@@ -81,7 +80,7 @@ CLASS ProGriddle.Games.Rogue.DiceTests:
 
     @Test.
     METHOD PUBLIC VOID BadSpecsAndBadAttackNumbersAreRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         Assert:IsTrue(Refused("four")).
         Assert:IsTrue(Refused("d4")).
         Assert:IsTrue(Refused("2d")).

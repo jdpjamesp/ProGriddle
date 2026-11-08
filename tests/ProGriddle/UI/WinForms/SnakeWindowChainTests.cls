@@ -12,9 +12,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.UI.WinForms.SnakeWindowChainTests:
 
-    DEFINE PRIVATE VARIABLE mGame    AS SnakeGame    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mView    AS GridView     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPainter AS SnakePainter NO-UNDO.
+    VAR PRIVATE SnakeGame mGame.
+    VAR PRIVATE GridView mView.
+    VAR PRIVATE SnakePainter mPainter.
 
     @Setup.
     METHOD PUBLIC VOID BuildChain():
@@ -47,9 +47,9 @@ CLASS ProGriddle.UI.WinForms.SnakeWindowChainTests:
 
     @Test.
     METHOD PUBLIC VOID EveryPixelOfTheViewIsTheColourThePainterDrew():
-        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bad AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER bad.
         mPainter:Render(mGame:Grid, mGame).
         DO y = 0 TO 183:
             DO x = 0 TO 159:

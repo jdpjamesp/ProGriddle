@@ -16,11 +16,11 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersLook FINAL:
 
     &SCOPED-DEFINE COLOURS 79
 
-    DEFINE PRIVATE STATIC VARIABLE sColours AS INTEGER NO-UNDO EXTENT 79.
+    VAR PRIVATE STATIC INTEGER[79] sColours.
 
     CONSTRUCTOR STATIC InvadersLook():
-        DEFINE VARIABLE sHex AS CHARACTER NO-UNDO EXTENT 79.
-        DEFINE VARIABLE i    AS INTEGER   NO-UNDO.
+        VAR CHARACTER[79] sHex.
+        VAR INTEGER i.
         sHex[1] = "06051A".  /* the top of the sky, almost black with a hint of indigo */
         sHex[2] = "1D0B3A".  /* the sky at the horizon, a deep violet */
         sHex[3] = "0A0814".  /* below the ground line */

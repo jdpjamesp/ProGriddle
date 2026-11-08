@@ -19,18 +19,18 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Asteroids.AsteroidsCues FINAL IMPLEMENTS ICueSource, ILoopSource:
 
-    DEFINE PRIVATE VARIABLE mPhase   AS GamePhase NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLives   AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShots   AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSaucShots AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBroken  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSaucers AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHyper   AS LOGICAL   NO-UNDO.
+    VAR PRIVATE GamePhase mPhase.
+    VAR PRIVATE INTEGER mLives.
+    VAR PRIVATE INTEGER mShots.
+    VAR PRIVATE INTEGER mSaucShots.
+    VAR PRIVATE INTEGER mBroken.
+    VAR PRIVATE INTEGER mSaucers.
+    VAR PRIVATE LOGICAL mHyper.
 
     /* Throws GridException for a game that is not an AsteroidsGame. */
     METHOD PUBLIC CHARACTER Poll(INPUT poGame AS IGame):
-        DEFINE VARIABLE oGame AS AsteroidsGame NO-UNDO.
-        DEFINE VARIABLE cues  AS CHARACTER     NO-UNDO.
+        VAR AsteroidsGame oGame.
+        VAR CHARACTER cues.
         IF NOT TYPE-OF(poGame, AsteroidsGame) THEN UNDO, THROW NEW GridException("The cues of Asteroids need an Asteroids game").
         oGame = CAST(poGame, AsteroidsGame).
         /* the first look and the title screen: take the state as it is, and say nothing */
@@ -51,8 +51,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsCues FINAL IMPLEMENTS ICueSource, ILoo
 
     /* The thrust rumbles while the ship thrusts, and a saucer hums while it is out, in a game that is being played and is not paused. */
     METHOD PUBLIC CHARACTER Loops(INPUT poGame AS IGame):
-        DEFINE VARIABLE oGame AS AsteroidsGame NO-UNDO.
-        DEFINE VARIABLE loops AS CHARACTER     NO-UNDO.
+        VAR AsteroidsGame oGame.
+        VAR CHARACTER loops.
         IF NOT TYPE-OF(poGame, AsteroidsGame) THEN UNDO, THROW NEW GridException("The cues of Asteroids need an Asteroids game").
         oGame = CAST(poGame, AsteroidsGame).
         IF oGame:Phase <> GamePhase:Playing OR oGame:Paused THEN RETURN "".

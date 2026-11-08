@@ -10,21 +10,21 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.Chase FINAL:
 
-    DEFINE PRIVATE VARIABLE mDist  AS INTEGER NO-UNDO EXTENT 1680.
-    DEFINE PRIVATE VARIABLE mQueue AS INTEGER NO-UNDO EXTENT 1680.
+    VAR PRIVATE INTEGER[1680] mDist.
+    VAR PRIVATE INTEGER[1680] mQueue.
 
     /* Works out the distances from the hero's square: 0 there, -1 for squares that cannot be reached. */
     METHOD PUBLIC VOID Refresh(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE head AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tail AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE nx   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ny   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE here AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER head.
+        VAR INTEGER tail.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER nx.
+        VAR INTEGER ny.
+        VAR INTEGER here.
         DO i = 1 TO 1680:
             mDist[i] = -1.
         END.
@@ -61,12 +61,12 @@ CLASS ProGriddle.Games.Rogue.Chase FINAL:
        already next to the hero, boxed in, or cannot reach the hero). Squares with another monster on them are not stepped on; of
        several equally good steps one is chosen at random. */
     METHOD PUBLIC LOGICAL BestStep(INPUT poWorld AS RogueWorld, INPUT poMonster AS Monster, OUTPUT piDX AS INTEGER, OUTPUT piDY AS INTEGER):
-        DEFINE VARIABLE here  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE best  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ties  AS INTEGER NO-UNDO.
+        VAR INTEGER here.
+        VAR INTEGER best.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER d.
+        VAR INTEGER ties.
         piDX = 0.
         piDY = 0.
         here = DistanceAt(poMonster:X, poMonster:Y).

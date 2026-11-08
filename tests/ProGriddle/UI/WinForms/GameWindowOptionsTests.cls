@@ -13,12 +13,12 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.UI.WinForms.GameWindowOptionsTests:
 
-    DEFINE PRIVATE VARIABLE mGame     AS LifeGame       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mView     AS GridView       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mClock    AS FakeClock      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS MemorySettings NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWindow   AS GameWindow     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mController AS GameController NO-UNDO.
+    VAR PRIVATE LifeGame mGame.
+    VAR PRIVATE GridView mView.
+    VAR PRIVATE FakeClock mClock.
+    VAR PRIVATE MemorySettings mSettings.
+    VAR PRIVATE GameWindow mWindow.
+    VAR PRIVATE GameController mController.
 
     @Setup.
     METHOD PUBLIC VOID BuildParts():

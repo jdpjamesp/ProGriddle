@@ -26,7 +26,7 @@ CLASS ProGriddle.Engine.BoardSizes FINAL:
     END METHOD.
 
     METHOD PRIVATE STATIC INTEGER Part(INPUT pcSize AS CHARACTER, INPUT piPart AS INTEGER, INPUT piMin AS INTEGER, INPUT piMax AS INTEGER):
-        DEFINE VARIABLE sideCells AS INTEGER NO-UNDO.
+        VAR INTEGER sideCells.
         IF pcSize = ? OR NUM-ENTRIES(TRIM(pcSize), "x") <> 2 THEN
             UNDO, THROW NEW GridException("A board size looks like 100 x 70, not " + STRING(pcSize)).
         sideCells = INTEGER(TRIM(ENTRY(piPart, TRIM(pcSize), "x"))) NO-ERROR.

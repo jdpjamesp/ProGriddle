@@ -15,11 +15,11 @@ USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
 USING ProGriddle.UI.WinForms.*.
 
-DEFINE VARIABLE iAutoClose AS INTEGER       NO-UNDO.
-DEFINE VARIABLE cFolder    AS CHARACTER     NO-UNDO INITIAL "run".
-DEFINE VARIABLE oCatalog   AS IGameCatalog  NO-UNDO.
-DEFINE VARIABLE oLauncher  AS IGameLauncher NO-UNDO.
-DEFINE VARIABLE oWindow    AS ArcadeWindow  NO-UNDO.
+VAR INTEGER iAutoClose.
+VAR CHARACTER cFolder = "run".
+VAR IGameCatalog oCatalog.
+VAR IGameLauncher oLauncher.
+VAR ArcadeWindow oWindow.
 
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 2 THEN iAutoClose = INTEGER(ENTRY(2, SESSION:PARAMETER)).
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 3 THEN cFolder = ENTRY(3, SESSION:PARAMETER).

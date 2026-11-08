@@ -11,9 +11,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.Sprite FINAL:
 
-    DEFINE PRIVATE VARIABLE mXs    AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mYs    AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mTones AS INTEGER NO-UNDO EXTENT.
+    VAR PRIVATE INTEGER[] mXs.
+    VAR PRIVATE INTEGER[] mYs.
+    VAR PRIVATE INTEGER[] mTones.
 
     /* Width of the widest row, and the number of rows. */
     DEFINE PUBLIC PROPERTY Width AS INTEGER NO-UNDO
@@ -32,11 +32,11 @@ CLASS ProGriddle.Engine.Sprite FINAL:
     /* Throws GridException for no rows, a character that is not . # + or *, or a picture with no
        cell in it. */
     CONSTRUCTOR PUBLIC Sprite(INPUT pcRows AS CHARACTER):
-        DEFINE VARIABLE y    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE n    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE row  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE ch   AS CHARACTER NO-UNDO.
+        VAR INTEGER y.
+        VAR INTEGER x.
+        VAR INTEGER n.
+        VAR CHARACTER row.
+        VAR CHARACTER ch.
         IF pcRows = ? OR pcRows = "" THEN UNDO, THROW NEW GridException("A sprite needs at least one row").
         Height = NUM-ENTRIES(pcRows, "/").
         DO y = 1 TO Height:
@@ -90,7 +90,7 @@ CLASS ProGriddle.Engine.Sprite FINAL:
 
     /* The tone at a position of the picture, 0 for an empty cell or a position outside it. */
     METHOD PUBLIC INTEGER ToneAt(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO Count:
             IF mXs[i] = piX AND mYs[i] = piY THEN RETURN mTones[i].
         END.
@@ -99,10 +99,10 @@ CLASS ProGriddle.Engine.Sprite FINAL:
 
     /* The picture as text again, in the form the constructor reads, every row as wide as the widest. */
     METHOD PUBLIC OVERRIDE CHARACTER ToString():
-        DEFINE VARIABLE y      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE row    AS CHARACTER NO-UNDO.
+        VAR INTEGER y.
+        VAR INTEGER x.
+        VAR CHARACTER result.
+        VAR CHARACTER row.
         DO y = 0 TO Height - 1:
             row = "".
             DO x = 0 TO Width - 1:

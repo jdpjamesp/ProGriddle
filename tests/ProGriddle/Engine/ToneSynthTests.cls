@@ -9,7 +9,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.ToneSynthTests:
 
-    DEFINE PRIVATE VARIABLE mSynth AS ToneSynth NO-UNDO.
+    VAR PRIVATE ToneSynth mSynth.
 
     @Setup.
     METHOD PUBLIC VOID BuildSynth():
@@ -23,8 +23,8 @@ CLASS ProGriddle.Engine.ToneSynthTests:
 
     /* the cycle length in samples of a square wave: from the first rising edge at or after piFrom to the next one */
     METHOD PRIVATE INTEGER PeriodAt(INPUT pmData AS MEMPTR, INPUT piFrom AS INTEGER):
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE edge AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER edge.
         DO i = piFrom TO GET-SIZE(pmData) - 1:
             IF GET-BYTE(pmData, i) < 128 AND GET-BYTE(pmData, i + 1) >= 128 THEN DO:
                 IF edge = 0 THEN edge = i.
@@ -48,7 +48,7 @@ CLASS ProGriddle.Engine.ToneSynthTests:
 
     @Test.
     METHOD PUBLIC VOID MakeGivesExactlyThatManySamplesAndSilenceAtBothEnds():
-        DEFINE VARIABLE mData AS MEMPTR NO-UNDO.
+        VAR MEMPTR mData.
         mSynth:Make("440:200,880:100", 100, OUTPUT mData).
         Assert:Equals(mSynth:SampleCount("440:200,880:100"), GET-SIZE(mData)).
         Assert:Equals(128, GET-BYTE(mData, 1)).
@@ -60,7 +60,7 @@ CLASS ProGriddle.Engine.ToneSynthTests:
 
     @Test.
     METHOD PUBLIC VOID ARecipeThatStartsWithAtHasNoFadeAtItsVeryStartAndEndSoItCanLoop():
-        DEFINE VARIABLE mData AS MEMPTR NO-UNDO.
+        VAR MEMPTR mData.
         mSynth:Make("@440:100:0", 100, OUTPUT mData).
         Assert:Equals(mSynth:SampleCount("440:100:0"), GET-SIZE(mData)).
         Assert:Equals(mSynth:SampleCount("440:100:0"), mSynth:SampleCount("@440:100:0")).
@@ -78,11 +78,11 @@ CLASS ProGriddle.Engine.ToneSynthTests:
 
     @Test.
     METHOD PUBLIC VOID AToneWithNoDecayIsASquareWaveOfTwoLevelsAroundSilence():
-        DEFINE VARIABLE mData AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE high  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE low   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE other AS INTEGER NO-UNDO.
+        VAR MEMPTR mData.
+        VAR INTEGER i.
+        VAR INTEGER high.
+        VAR INTEGER low.
+        VAR INTEGER other.
         mSynth:Make("440:200:0", 100, OUTPUT mData).
         /* past the rise at the start and before the fall at the end: only 255 (128 + 127) and 1 (128 - 127) */
         DO i = 100 TO 2000:
@@ -100,10 +100,10 @@ CLASS ProGriddle.Engine.ToneSynthTests:
 
     @Test.
     METHOD PUBLIC VOID TheVolumeIsAPercentageOfTheFullSwingAndZeroIsSilent():
-        DEFINE VARIABLE mData AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE top   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE other AS INTEGER NO-UNDO.
+        VAR MEMPTR mData.
+        VAR INTEGER i.
+        VAR INTEGER top.
+        VAR INTEGER other.
         mSynth:Make("440:200:0", 50, OUTPUT mData).
         DO i = 100 TO 2000:
             top = MAXIMUM(top, GET-BYTE(mData, i)).
@@ -123,10 +123,10 @@ CLASS ProGriddle.Engine.ToneSynthTests:
 
     @Test.
     METHOD PUBLIC VOID ADecayMakesTheToneFadeAcrossItsPart():
-        DEFINE VARIABLE mData AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE early AS INTEGER NO-UNDO.
-        DEFINE VARIABLE late  AS INTEGER NO-UNDO.
+        VAR MEMPTR mData.
+        VAR INTEGER i.
+        VAR INTEGER early.
+        VAR INTEGER late.
         /* a tone that loses 80 percent of its swing: loud near the start, quiet near the end */
         mSynth:Make("440:400:80", 100, OUTPUT mData).
         DO i = 100 TO 400:
@@ -145,9 +145,9 @@ CLASS ProGriddle.Engine.ToneSynthTests:
 
     @Test.
     METHOD PUBLIC VOID ASlideUpGetsShorterCyclesAndASlideDownGetsLongerOnes():
-        DEFINE VARIABLE mData AS MEMPTR NO-UNDO.
-        DEFINE VARIABLE early AS INTEGER NO-UNDO.
-        DEFINE VARIABLE late  AS INTEGER NO-UNDO.
+        VAR MEMPTR mData.
+        VAR INTEGER early.
+        VAR INTEGER late.
         mSynth:Make("200>800:400:0", 100, OUTPUT mData).
         early = PeriodAt(mData, 100).
         late = PeriodAt(mData, 4000).
@@ -166,8 +166,8 @@ CLASS ProGriddle.Engine.ToneSynthTests:
 
     @Test.
     METHOD PUBLIC VOID AFixedToneHasTheCycleLengthOfItsPitch():
-        DEFINE VARIABLE mData AS MEMPTR NO-UNDO.
-        DEFINE VARIABLE cycle AS INTEGER NO-UNDO.
+        VAR MEMPTR mData.
+        VAR INTEGER cycle.
         /* 11025 / 441 = 25 samples */
         mSynth:Make("441:200:0", 100, OUTPUT mData).
         cycle = PeriodAt(mData, 100).
@@ -179,11 +179,11 @@ CLASS ProGriddle.Engine.ToneSynthTests:
 
     @Test.
     METHOD PUBLIC VOID ATrianglePartHasManyLevelsAndARestIsSilent():
-        DEFINE VARIABLE mData   AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE levels  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE other   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE seen    AS LOGICAL NO-UNDO EXTENT 256.
+        VAR MEMPTR mData.
+        VAR INTEGER i.
+        VAR INTEGER levels.
+        VAR INTEGER other.
+        VAR LOGICAL[256] seen.
         mSynth:Make("t220:200:0", 100, OUTPUT mData).
         DO i = 100 TO 2000:
             seen[GET-BYTE(mData, i) + 1] = TRUE.
@@ -206,12 +206,12 @@ CLASS ProGriddle.Engine.ToneSynthTests:
 
     @Test.
     METHOD PUBLIC VOID NoiseSwitchesBetweenItsLevelsAtIrregularTimes():
-        DEFINE VARIABLE mData       AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE i           AS INTEGER NO-UNDO.
-        DEFINE VARIABLE changes     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE shortRuns   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE longRuns    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE runLength   AS INTEGER NO-UNDO.
+        VAR MEMPTR mData.
+        VAR INTEGER i.
+        VAR INTEGER changes.
+        VAR INTEGER shortRuns.
+        VAR INTEGER longRuns.
+        VAR INTEGER runLength.
         mSynth:Make("n:300:0", 100, OUTPUT mData).
         runLength = 1.
         DO i = 101 TO 3000:
@@ -234,11 +234,11 @@ CLASS ProGriddle.Engine.ToneSynthTests:
 
     @Test.
     METHOD PUBLIC VOID SlowNoiseChangesLevelFarLessOftenThanNoise():
-        DEFINE VARIABLE mFast    AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE mSlow    AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE i        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE fastEdges AS INTEGER NO-UNDO.
-        DEFINE VARIABLE slowEdges AS INTEGER NO-UNDO.
+        VAR MEMPTR mFast.
+        VAR MEMPTR mSlow.
+        VAR INTEGER i.
+        VAR INTEGER fastEdges.
+        VAR INTEGER slowEdges.
         mSynth:Make("n:300:0", 100, OUTPUT mFast).
         mSynth:Make("m:300:0", 100, OUTPUT mSlow).
         Assert:Equals(GET-SIZE(mFast), GET-SIZE(mSlow)).
@@ -256,10 +256,10 @@ CLASS ProGriddle.Engine.ToneSynthTests:
 
     @Test.
     METHOD PUBLIC VOID TheSameRecipeGivesTheSameBytes():
-        DEFINE VARIABLE mFirst  AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE mSecond AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE differ  AS INTEGER NO-UNDO.
+        VAR MEMPTR mFirst.
+        VAR MEMPTR mSecond.
+        VAR INTEGER i.
+        VAR INTEGER differ.
         mSynth:Make("880>440:80,n:120,t330:60:30", 80, OUTPUT mFirst).
         mSynth:Make("880>440:80,n:120,t330:60:30", 80, OUTPUT mSecond).
         Assert:Equals(GET-SIZE(mFirst), GET-SIZE(mSecond)).
@@ -275,10 +275,10 @@ CLASS ProGriddle.Engine.ToneSynthTests:
 
     @Test.
     METHOD PUBLIC VOID ABadRecipeOrVolumeThrowsGridException():
-        DEFINE VARIABLE mData  AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bad    AS CHARACTER NO-UNDO EXTENT 11.
+        VAR MEMPTR mData.
+        VAR INTEGER thrown.
+        VAR INTEGER i.
+        VAR CHARACTER[11] bad.
         bad[1] = "".
         bad[2] = "abc".
         bad[3] = "440".
@@ -327,9 +327,9 @@ CLASS ProGriddle.Engine.ToneSynthTests:
        docs/framework/sound.md, this only guards against a slow down. */
     @Test.
     METHOD PUBLIC VOID AboutASecondOfMixedSoundIsMadeInWellUnderAHalfSecond():
-        DEFINE VARIABLE mData  AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE start  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE took   AS INTEGER NO-UNDO.
+        VAR MEMPTR mData.
+        VAR INTEGER start.
+        VAR INTEGER took.
         start = ETIME.
         mSynth:Make("523:60,659:60,784:60,1047:60,784:50,1047:50,1319:200", 80, OUTPUT mData).
         SET-SIZE(mData) = 0.

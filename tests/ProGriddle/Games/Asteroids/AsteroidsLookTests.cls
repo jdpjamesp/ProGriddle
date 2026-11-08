@@ -12,7 +12,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsLookTests:
 
     @Test.
     METHOD PUBLIC VOID EveryColourIsAnRgbNumber():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:IsTrue(AsteroidsLook:Count() >= 60).
         DO i = 0 TO AsteroidsLook:Count() - 1:
             Assert:IsTrue(AsteroidsLook:Colour(Palette:GetEnum(i)) >= 0 AND AsteroidsLook:Colour(Palette:GetEnum(i)) <= 16777215).
@@ -58,7 +58,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsLookTests:
 
     @Test.
     METHOD PUBLIC VOID RampsHaveFourOrSixStepsAndRefuseTheRest():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         Assert:Equals(ColourMath:FromHex("FFC24D"), AsteroidsLook:RampColour(Ramp:Exhaust, 0)).
         Assert:Equals(ColourMath:FromHex("5E4318"), AsteroidsLook:RampColour(Ramp:Exhaust, 3)).
         Assert:Equals(ColourMath:FromHex("FFD9B8"), AsteroidsLook:RampColour(Ramp:Ember, 0)).
@@ -92,7 +92,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsLookTests:
 
     @Test.
     METHOD PUBLIC VOID RocksHaveAColourForEachSizeAndADimOneForTheTitle():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         Assert:Equals(AsteroidsLook:Colour(Palette:RockLarge), AsteroidsLook:SizeColour(FALSE, 1)).
         Assert:Equals(AsteroidsLook:Colour(Palette:RockMedium), AsteroidsLook:SizeColour(FALSE, 2)).
         Assert:Equals(AsteroidsLook:Colour(Palette:RockSmall), AsteroidsLook:SizeColour(FALSE, 3)).
@@ -153,7 +153,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsLookTests:
 
     @Test.
     METHOD PUBLIC VOID ADebrisRampFadesFromBrightToDark():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 0 TO 4:
             Assert:IsTrue(ColourMath:Red(AsteroidsLook:RampColour(Ramp:RockDebris, i)) >= ColourMath:Red(AsteroidsLook:RampColour(Ramp:RockDebris, i + 1))).
             Assert:IsTrue(ColourMath:Red(AsteroidsLook:RampColour(Ramp:ShipDebris, i)) >= ColourMath:Red(AsteroidsLook:RampColour(Ramp:ShipDebris, i + 1))).
@@ -164,7 +164,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsLookTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownColourIsRefused():
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             AsteroidsLook:Colour(?).
             CATCH e AS GridException:

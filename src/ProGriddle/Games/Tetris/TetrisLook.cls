@@ -19,14 +19,14 @@ CLASS ProGriddle.Games.Tetris.TetrisLook FINAL:
 
     &SCOPED-DEFINE COLOURS 24
 
-    DEFINE PRIVATE STATIC VARIABLE sColours AS INTEGER   NO-UNDO EXTENT 24.
-    DEFINE PRIVATE STATIC VARIABLE sHexes   AS CHARACTER NO-UNDO EXTENT 24.
+    VAR PRIVATE STATIC INTEGER[24] sColours.
+    VAR PRIVATE STATIC CHARACTER[24] sHexes.
     /* the rows of tones: pieces 1 to 7 (I O T S Z J L), 8 the dead blocks, 9 gold */
-    DEFINE PRIVATE STATIC VARIABLE sTones   AS CHARACTER NO-UNDO EXTENT 9.
+    VAR PRIVATE STATIC CHARACTER[9] sTones.
 
     CONSTRUCTOR STATIC TetrisLook():
-        DEFINE VARIABLE sHex AS CHARACTER NO-UNDO EXTENT 24.
-        DEFINE VARIABLE i    AS INTEGER   NO-UNDO.
+        VAR CHARACTER[24] sHex.
+        VAR INTEGER i.
         sHex[1] = "0A0E16".   /* the background at the top, and the Snake strip */
         sHex[2] = "0E131E".   /* the background at the bottom */
         sHex[3] = "121A29".   /* a faint dot in the panel */
@@ -88,14 +88,14 @@ CLASS ProGriddle.Games.Tetris.TetrisLook FINAL:
     /* The same row lit up, as a block is when it settles or is about to clear: everything one step lighter and the highlight
        pure white (tone 1 becomes white, tone 2 the old tone 1, and so on, the old tone 4 becoming the edge). */
     METHOD PUBLIC STATIC CHARACTER LitTones(INPUT piRow AS INTEGER):
-        DEFINE VARIABLE t AS CHARACTER NO-UNDO.
+        VAR CHARACTER t.
         t = Tones(piRow).
         RETURN SUBSTITUTE("FFFFFF,&1,&2,&3,&4", ENTRY(1, t), ENTRY(2, t), ENTRY(3, t), ENTRY(4, t)).
     END METHOD.
 
     /* The row with only its highlight turned white, for the second half of a lock flash. */
     METHOD PUBLIC STATIC CHARACTER WhiteTopTones(INPUT piRow AS INTEGER):
-        DEFINE VARIABLE t AS CHARACTER NO-UNDO.
+        VAR CHARACTER t.
         t = Tones(piRow).
         RETURN SUBSTITUTE("FFFFFF,&1,&2,&3,&4", ENTRY(2, t), ENTRY(3, t), ENTRY(4, t), ENTRY(5, t)).
     END METHOD.

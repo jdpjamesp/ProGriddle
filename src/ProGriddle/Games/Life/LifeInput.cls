@@ -21,11 +21,11 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Life.LifeInput FINAL IMPLEMENTS IGameInput, IGameOptions, IDragInput:
 
-    DEFINE PRIVATE VARIABLE mGame    AS LifeGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRandom  AS IRandom  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDensity AS DECIMAL  NO-UNDO INITIAL 0.25.
-    DEFINE PRIVATE VARIABLE mChoice  AS CHARACTER NO-UNDO INITIAL "Glider".
-    DEFINE PRIVATE VARIABLE mNotice  AS CHARACTER NO-UNDO.
+    VAR PRIVATE LifeGame mGame.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE DECIMAL mDensity = 0.25.
+    VAR PRIVATE CHARACTER mChoice = "Glider".
+    VAR PRIVATE CHARACTER mNotice.
 
     DEFINE PUBLIC PROPERTY StatusText AS CHARACTER NO-UNDO
         GET():
@@ -91,7 +91,7 @@ CLASS ProGriddle.Games.Life.LifeInput FINAL IMPLEMENTS IGameInput, IGameOptions,
 
     /* What the last change of rules or size said, once. */
     METHOD PUBLIC CHARACTER TakeNotice():
-        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        VAR CHARACTER notice.
         notice = mNotice.
         mNotice = "".
         RETURN notice.
@@ -132,9 +132,9 @@ CLASS ProGriddle.Games.Life.LifeInput FINAL IMPLEMENTS IGameInput, IGameOptions,
     END METHOD.
 
     METHOD PUBLIC VOID SecondaryAction(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE pattern AS Shape   NO-UNDO.
-        DEFINE VARIABLE x       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y       AS INTEGER NO-UNDO.
+        VAR Shape pattern.
+        VAR INTEGER x.
+        VAR INTEGER y.
         IF NOT mGame:Grid:InBounds(piX, piY) THEN RETURN.
         pattern = LifePatterns:ByName(mChoice).
         IF pattern:Width > mGame:Grid:Width OR pattern:Height > mGame:Grid:Height THEN RETURN.
@@ -161,8 +161,8 @@ CLASS ProGriddle.Games.Life.LifeInput FINAL IMPLEMENTS IGameInput, IGameOptions,
 
     /* The usual choices, and the game's own value as well when it is not one of them. */
     METHOD PUBLIC CHARACTER OptionNames(INPUT piOption AS INTEGER):
-        DEFINE VARIABLE names   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE chosen AS CHARACTER NO-UNDO.
+        VAR CHARACTER names.
+        VAR CHARACTER chosen.
         CheckOption(piOption).
         names = (IF piOption = 1 THEN LifeRules:PresetNames() ELSE LifeSizes:Names()).
         chosen = OptionValue(piOption).
@@ -173,7 +173,7 @@ CLASS ProGriddle.Games.Life.LifeInput FINAL IMPLEMENTS IGameInput, IGameOptions,
     /* The name of the preset the game's rules are, or their notation when they are none of them;
        the size as "100 x 70". */
     METHOD PUBLIC CHARACTER OptionValue(INPUT piOption AS INTEGER):
-        DEFINE VARIABLE preset AS CHARACTER NO-UNDO.
+        VAR CHARACTER preset.
         CheckOption(piOption).
         IF piOption = 2 THEN RETURN LifeSizes:Label(mGame:Grid:Width, mGame:Grid:Height).
         preset = LifeRules:PresetNameOf(mGame:Rules:Notation).
@@ -183,10 +183,10 @@ CLASS ProGriddle.Games.Life.LifeInput FINAL IMPLEMENTS IGameInput, IGameOptions,
     /* Rules: a preset name, or B/S notation such as B36/S23. Board: a size such as "150 x 100". Throws
        GridException for anything else. Choosing what is chosen already changes nothing. */
     METHOD PUBLIC VOID SetOption(INPUT piOption AS INTEGER, INPUT pcValue AS CHARACTER):
-        DEFINE VARIABLE rules    AS LifeRules NO-UNDO.
-        DEFINE VARIABLE notation AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE w        AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE h        AS INTEGER   NO-UNDO.
+        VAR LifeRules rules.
+        VAR CHARACTER notation.
+        VAR INTEGER w.
+        VAR INTEGER h.
         CheckOption(piOption).
         IF pcValue = ? THEN UNDO, THROW NEW GridException("An option cannot be set to the unknown value").
         IF pcValue = OptionValue(piOption) THEN RETURN.

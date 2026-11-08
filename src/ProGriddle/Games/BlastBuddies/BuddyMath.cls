@@ -11,9 +11,9 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyMath FINAL:
 
     /* The sine of an angle in radians, as a decimal between -1 and 1. */
     METHOD PUBLIC STATIC DECIMAL SinRad(INPUT pdRadians AS DECIMAL):
-        DEFINE VARIABLE t  AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE i0 AS INTEGER NO-UNDO.
-        DEFINE VARIABLE f  AS DECIMAL NO-UNDO.
+        VAR DECIMAL t.
+        VAR INTEGER i0.
+        VAR DECIMAL f.
         /* a full turn of 2 pi radians is 64 steps */
         t = pdRadians * 10.185916357881302.
         t = t - 64 * TRUNCATE(t / 64, 0).

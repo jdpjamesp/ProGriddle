@@ -57,7 +57,7 @@ CLASS ProGriddle.Games.Rogue.RogueLook FINAL:
 
     /* The colour of a monster of a level: green up to 2, yellow to 5, orange to 9, and red above. */
     METHOD PUBLIC STATIC INTEGER OfMonster(INPUT poKind AS MonsterKind):
-        DEFINE VARIABLE level AS INTEGER NO-UNDO.
+        VAR INTEGER level.
         level = Bestiary:Level(poKind).
         IF level <= 2 THEN RETURN Colour(RogueTint:MonsterLow).
         IF level <= 5 THEN RETURN Colour(RogueTint:MonsterMid).

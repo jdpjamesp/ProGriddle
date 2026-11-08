@@ -18,23 +18,23 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Centipede.CentipedeCues FINAL IMPLEMENTS ICueSource, ILoopSource:
 
-    DEFINE PRIVATE VARIABLE mPhase     AS GamePhase NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShots     AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSegments  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHeads     AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mMushrooms AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFleaHits  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFleas     AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSpiders   AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScorpions AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDeaths    AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mExtras    AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWaves     AS INTEGER   NO-UNDO.
+    VAR PRIVATE GamePhase mPhase.
+    VAR PRIVATE INTEGER mShots.
+    VAR PRIVATE INTEGER mSegments.
+    VAR PRIVATE INTEGER mHeads.
+    VAR PRIVATE INTEGER mMushrooms.
+    VAR PRIVATE INTEGER mFleaHits.
+    VAR PRIVATE INTEGER mFleas.
+    VAR PRIVATE INTEGER mSpiders.
+    VAR PRIVATE INTEGER mScorpions.
+    VAR PRIVATE INTEGER mDeaths.
+    VAR PRIVATE INTEGER mExtras.
+    VAR PRIVATE INTEGER mWaves.
 
     /* Throws GridException for a game that is not a CentipedeGame. */
     METHOD PUBLIC CHARACTER Poll(INPUT poGame AS IGame):
-        DEFINE VARIABLE oGame AS CentipedeGame NO-UNDO.
-        DEFINE VARIABLE cues  AS CHARACTER     NO-UNDO.
+        VAR CentipedeGame oGame.
+        VAR CHARACTER cues.
         IF NOT TYPE-OF(poGame, CentipedeGame) THEN UNDO, THROW NEW GridException("The cues of Centipede need a Centipede game").
         oGame = CAST(poGame, CentipedeGame).
         /* the first look and the title screen: take the state as it is, and say nothing */
@@ -59,8 +59,8 @@ CLASS ProGriddle.Games.Centipede.CentipedeCues FINAL IMPLEMENTS ICueSource, ILoo
 
     /* The spider and the scorpion hum while they are out, in a game that is being played and is not paused. */
     METHOD PUBLIC CHARACTER Loops(INPUT poGame AS IGame):
-        DEFINE VARIABLE oGame AS CentipedeGame NO-UNDO.
-        DEFINE VARIABLE loops AS CHARACTER     NO-UNDO.
+        VAR CentipedeGame oGame.
+        VAR CHARACTER loops.
         IF NOT TYPE-OF(poGame, CentipedeGame) THEN UNDO, THROW NEW GridException("The cues of Centipede need a Centipede game").
         oGame = CAST(poGame, CentipedeGame).
         IF oGame:Phase <> GamePhase:Playing OR oGame:Paused THEN RETURN "".

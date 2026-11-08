@@ -11,7 +11,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.ForEach.ForEachRulesTests:
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN n = ForEachRules:DibbySpeed(0).
@@ -281,7 +281,7 @@ CLASS ProGriddle.Games.ForEach.ForEachRulesTests:
 
     @Test.
     METHOD PUBLIC VOID APhantomIsNeverFasterThanDibbyOnTheSameLevelNotEvenMaryAtHerWorst():
-        DEFINE VARIABLE level AS INTEGER NO-UNDO.
+        VAR INTEGER level.
         DO level = 1 TO 30:
             Assert:IsTrue(ForEachRules:PhantomSpeed(level) < ForEachRules:DibbySpeed(level)).
             Assert:IsTrue(ForEachRules:RageSpeed(level, 2) <= ForEachRules:DibbySpeed(level)).

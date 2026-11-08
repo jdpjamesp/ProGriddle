@@ -8,7 +8,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.UpkeepTests:
 
-    DEFINE PRIVATE VARIABLE mWorld AS RogueWorld NO-UNDO.
+    VAR PRIVATE RogueWorld mWorld.
 
     METHOD PRIVATE VOID Build(INPUT pcScript AS CHARACTER):
         mWorld = NEW RogueWorld(LevelMap:CreateGrid(), NEW ScriptedRandom(pcScript)).
@@ -51,7 +51,7 @@ CLASS ProGriddle.Games.Rogue.UpkeepTests:
 
     @Test.
     METHOD PUBLIC VOID ARingOfSlowDigestionHalvesTheCost():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Build("5").
         Wear(RingKind:SlowDigestion).
         DO i = 0 TO 9:
@@ -98,7 +98,7 @@ CLASS ProGriddle.Games.Rogue.UpkeepTests:
 
     @Test.
     METHOD PUBLIC VOID HitPointsComeBackOneEveryTwentyTurnsAtTheFirstLevel():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Build("5").
         mWorld:Hero:Hp = 5.
         DO i = 1 TO 19:

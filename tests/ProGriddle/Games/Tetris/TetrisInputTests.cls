@@ -8,9 +8,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
-    DEFINE PRIVATE VARIABLE mGame     AS TetrisGame    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS MemorySettings NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInput    AS TetrisInput   NO-UNDO.
+    VAR PRIVATE TetrisGame mGame.
+    VAR PRIVATE MemorySettings mSettings.
+    VAR PRIVATE TetrisInput mInput.
 
     @Setup.
     METHOD PUBLIC VOID BuildInput():
@@ -79,7 +79,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
     @Test.
     METHOD PUBLIC VOID AKeyIsTakenEvenWhenTheMoveIsImpossible():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 5:
             mInput:HandleKey("Left").
         END.
@@ -89,7 +89,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
     @Test.
     METHOD PUBLIC VOID MovementKeysRepeatWhileHeld():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 3:
             mInput:HandleKey("Left").
         END.
@@ -102,7 +102,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
     @Test.
     METHOD PUBLIC VOID ATurnKeyHeldDownTurnsOnceNotOnEveryRepeat():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 6:
             mInput:HandleKey("Up").
         END.
@@ -114,7 +114,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheSpaceBarHeldDownDropsOnePieceNotAWholeStack():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 6:
             mInput:HandleKey("Space").
         END.
@@ -166,7 +166,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
     /* Plays the game out by dropping pieces in the middle. */
     METHOD PRIVATE VOID PlayToTheEnd():
-        DEFINE VARIABLE drops AS INTEGER NO-UNDO.
+        VAR INTEGER drops.
         mGame:StartWith("O,O,O,O,O,O,O,O,O,O,O,O").
         DO WHILE NOT mGame:IsOver AND drops < 15:
             mGame:HardDrop().
@@ -176,8 +176,8 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
     @Test.
     METHOD PUBLIC VOID AGameThatEndsIsPutOnTheHighScoreListOnce():
-        DEFINE VARIABLE scores AS TetrisHighScores NO-UNDO.
-        DEFINE VARIABLE statusLine AS CHARACTER NO-UNDO.
+        VAR TetrisHighScores scores.
+        VAR CHARACTER statusLine.
         PlayToTheEnd().
         Assert:IsTrue(INDEX(mInput:StatusText, "New best score") > 0).
         statusLine = mInput:StatusText.
@@ -189,8 +189,8 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheGameIsToldTheBestScoreFromBeforeThisGameAndLearnsTheNewOneWhenTheNextGameBegins():
-        DEFINE VARIABLE scores AS TetrisHighScores NO-UNDO.
-        DEFINE VARIABLE line   AS CHARACTER        NO-UNDO.
+        VAR TetrisHighScores scores.
+        VAR CHARACTER line.
         scores = NEW TetrisHighScores(mSettings).
         scores:Record(5000, 10).
         mInput = NEW TetrisInput(mGame, mSettings).
@@ -209,8 +209,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
     @Test.
     METHOD PUBLIC VOID ALaterGameSaysWhichPlaceItGot():
-        DEFINE VARIABLE scores AS TetrisHighScores NO-UNDO.
-        scores = NEW TetrisHighScores(mSettings).
+        VAR TetrisHighScores scores = NEW TetrisHighScores(mSettings).
         scores:Record(999999, 99).
         PlayToTheEnd().
         Assert:IsTrue(INDEX(mInput:StatusText, "High score, place 2") > 0).
@@ -218,8 +217,8 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
     @Test.
     METHOD PUBLIC VOID AGameThatDoesNotMakeTheListSaysNothingOfIt():
-        DEFINE VARIABLE scores AS TetrisHighScores NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        VAR TetrisHighScores scores.
+        VAR INTEGER i.
         scores = NEW TetrisHighScores(mSettings).
         DO i = 1 TO 10:
             scores:Record(999000 + i, 99).
@@ -232,8 +231,8 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
     @Test.
     METHOD PUBLIC VOID AnotherGameAfterANewOneIsRecordedAgain():
-        DEFINE VARIABLE scores AS TetrisHighScores NO-UNDO.
-        DEFINE VARIABLE statusLine AS CHARACTER NO-UNDO.
+        VAR TetrisHighScores scores.
+        VAR CHARACTER statusLine.
         PlayToTheEnd().
         statusLine = mInput:StatusText.
         mGame:Initialise().
@@ -246,15 +245,14 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheStatusLineShowsTheBestScoreWhileThereIsOne():
-        DEFINE VARIABLE scores AS TetrisHighScores NO-UNDO.
-        scores = NEW TetrisHighScores(mSettings).
+        VAR TetrisHighScores scores = NEW TetrisHighScores(mSettings).
         scores:Record(1234, 9).
         Assert:Equals("Score 0   Lines 0   Level 1   Next O   Best 1234", mInput:StatusText).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID TheHelpScreenListsTheHighScoresAboveTheKeys():
-        DEFINE VARIABLE scores AS TetrisHighScores NO-UNDO.
+        VAR TetrisHighScores scores.
         Assert:Equals(0, INDEX(mInput:InfoText, "High scores")).
         scores = NEW TetrisHighScores(mSettings).
         scores:Record(1234, 9).
@@ -276,7 +274,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheStatusLineSaysGameOverWithTheFinalScore():
-        DEFINE VARIABLE drops AS INTEGER NO-UNDO.
+        VAR INTEGER drops.
         mGame:StartWith("O,O,O,O,O,O,O,O,O,O,O,O").
         DO WHILE NOT mGame:IsOver AND drops < 15:
             mGame:HardDrop().
@@ -288,7 +286,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheBannerIsAlwaysEmptyBecauseThePainterDrawsPausedAndGameOver():
-        DEFINE VARIABLE drops AS INTEGER NO-UNDO.
+        VAR INTEGER drops.
         Assert:Equals("", mInput:BannerText).
         mGame:Paused = TRUE.
         Assert:Equals("", mInput:BannerText).
@@ -351,8 +349,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
     @Test.
     METHOD PUBLIC VOID SoundIsOfferedOnlyWithAWorkingPlayerAndSwitchesItAndRemembersIt():
-        DEFINE VARIABLE oPlayer AS RecordingSoundPlayer NO-UNDO.
-        oPlayer = NEW RecordingSoundPlayer().
+        VAR RecordingSoundPlayer oPlayer = NEW RecordingSoundPlayer().
         mInput = NEW TetrisInput(mGame, mSettings, oPlayer).
         Assert:Equals("Ghost:G,Sound:M", mInput:CommandNames).
         mInput:Perform("Sound").
@@ -371,7 +368,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheInputNeedsASoundPlayer():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW TetrisInput(mGame, mSettings, ?).
             CATCH e1 AS GridException:
@@ -403,8 +400,8 @@ CLASS ProGriddle.Games.Tetris.TetrisInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheInputNeedsAGameAndSettings():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i      AS TetrisInput NO-UNDO.
+        VAR INTEGER thrown.
+        VAR TetrisInput i.
         DO ON ERROR UNDO, THROW:
             i = NEW TetrisInput(?, mSettings).
             CATCH e1 AS GridException:

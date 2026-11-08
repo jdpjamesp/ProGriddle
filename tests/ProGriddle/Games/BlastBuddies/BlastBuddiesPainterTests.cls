@@ -10,15 +10,15 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
-    DEFINE PRIVATE VARIABLE mGame     AS BlastBuddiesGame    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInner    AS RecordingRenderer   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPainter  AS BlastBuddiesPainter NO-UNDO.
+    VAR PRIVATE BlastBuddiesGame mGame.
+    VAR PRIVATE RecordingRenderer mInner.
+    VAR PRIVATE BlastBuddiesPainter mPainter.
 
     /* a game on an empty map, so the sky can be looked at, with a painter that has not drawn yet */
     @Setup.
     METHOD PUBLIC VOID Setup():
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b AS INTEGER NO-UNDO.
+        VAR INTEGER t.
+        VAR INTEGER b.
         mGame = BlastBuddiesFactory:Create(NEW SeededRandom(5), NEW BuddySetup(2, 3, 1, Theme:Meadow)).
         mGame:Land:FillRect(0, 0, 383, 239, FALSE).
         /* the buddies are put off the left side of the map, where they cannot be in the way of the sky */
@@ -50,7 +50,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
     END METHOD.
 
     METHOD PRIVATE VOID Frames(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO piCount:
             mGame:Advance().
         END.
@@ -67,8 +67,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID APainterNeedsARendererAndAGameAndOnlyDrawsABlastBuddiesGame():
-        DEFINE VARIABLE p       AS BlastBuddiesPainter NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL             NO-UNDO.
+        VAR BlastBuddiesPainter p.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             p = NEW BlastBuddiesPainter(?, mGame, NEW SeededRandom(1)).
             CATCH e AS GridException:
@@ -244,11 +244,11 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     /* whether the picture shows a sprite as it was asked for, with its feet at (x, y): every pixel of it from a row of the sprite on */
     METHOD PRIVATE LOGICAL Shows(INPUT pcName AS CHARACTER, INPUT piTeam AS INTEGER, INPUT plMirror AS LOGICAL, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piFromRow AS INTEGER):
-        DEFINE VARIABLE sp  AS BuddySprites NO-UNDO.
-        DEFINE VARIABLE st  AS PixelStamp   NO-UNDO.
-        DEFINE VARIABLE sx  AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE sy  AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE ok  AS LOGICAL      NO-UNDO INITIAL TRUE.
+        VAR BuddySprites sp.
+        VAR PixelStamp st.
+        VAR INTEGER sx.
+        VAR INTEGER sy.
+        VAR LOGICAL ok = TRUE.
         sp = NEW BuddySprites().
         st = sp:Stamp(pcName, piTeam, plMirror).
         DO sy = piFromRow TO st:Height - 1:
@@ -282,12 +282,12 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheTeamMarkSitsOnTheHead():
-        DEFINE VARIABLE sp   AS BuddySprites NO-UNDO.
-        DEFINE VARIABLE st   AS PixelStamp   NO-UNDO.
-        DEFINE VARIABLE sx   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sy   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE head AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ok   AS LOGICAL NO-UNDO INITIAL TRUE.
+        VAR BuddySprites sp.
+        VAR PixelStamp st.
+        VAR INTEGER sx.
+        VAR INTEGER sy.
+        VAR INTEGER head.
+        VAR LOGICAL ok = TRUE.
         Floor().
         sp = NEW BuddySprites().
         mGame:Plan:TeamAt(1):BuddyAt(1):PlaceAt(100, 150).
@@ -321,7 +321,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID AGoonThatHasJustWalkedShowsAWalkingFrameAndOneJustLandedShowsTheLand():
-        DEFINE VARIABLE b AS Buddy NO-UNDO.
+        VAR Buddy b.
         Floor().
         b = mGame:Plan:TeamAt(1):BuddyAt(1).
         b:PlaceAt(100, 150).
@@ -340,14 +340,14 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheGoonInTurnAimsWithTheBazookaTurnedToTheAim():
-        DEFINE VARIABLE b  AS Buddy        NO-UNDO.
-        DEFINE VARIABLE sp AS BuddySprites NO-UNDO.
-        DEFINE VARIABLE st AS PixelStamp   NO-UNDO.
-        DEFINE VARIABLE r  AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE sx AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE sy AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE ok AS LOGICAL      NO-UNDO INITIAL TRUE.
-        DEFINE VARIABLE k  AS INTEGER      NO-UNDO.
+        VAR Buddy b.
+        VAR BuddySprites sp.
+        VAR PixelStamp st.
+        VAR INTEGER r.
+        VAR INTEGER sx.
+        VAR INTEGER sy.
+        VAR LOGICAL ok = TRUE.
+        VAR INTEGER k.
         Floor().
         DO k = 0 TO 5:
             mGame:Plan:TeamAt(k MODULO 2 + 1):BuddyAt(INTEGER(TRUNCATE(k / 2, 0)) + 1):PlaceAt(200 + 20 * k, 150).
@@ -373,7 +373,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     /* the buddies in a row on the floor, the first of team 1 at column 100 and the first of team 2 at 136, the rest well away */
     METHOD PRIVATE VOID SetTheStage():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        VAR INTEGER k.
         Floor().
         DO k = 0 TO 5:
             mGame:Plan:TeamAt(k MODULO 2 + 1):BuddyAt(INTEGER(TRUNCATE(k / 2, 0)) + 1):PlaceAt(250 + 20 * k, 150).
@@ -386,11 +386,11 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID ARocketInFlightIsDrawnTurnedToItsCourseWithATrailOfSmokeBehindIt():
-        DEFINE VARIABLE sp  AS BuddySprites NO-UNDO.
-        DEFINE VARIABLE st  AS PixelStamp   NO-UNDO.
-        DEFINE VARIABLE sx  AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE sy  AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE ok  AS LOGICAL      NO-UNDO INITIAL TRUE.
+        VAR BuddySprites sp.
+        VAR PixelStamp st.
+        VAR INTEGER sx.
+        VAR INTEGER sy.
+        VAR LOGICAL ok = TRUE.
         sp = NEW BuddySprites().
         st = sp:Stamp("rocket", 0, FALSE).
         mGame:Shells:Launch(WeaponKind:Bazooka, 1, 200 * 256, 100 * 256, 1024, 0).
@@ -417,14 +417,14 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheReticleSitsTwentyEightPixelsOutAlongTheAimOfTheGoonInTurn():
-        DEFINE VARIABLE sp    AS BuddySprites NO-UNDO.
-        DEFINE VARIABLE st    AS PixelStamp NO-UNDO.
-        DEFINE VARIABLE rname AS CHARACTER  NO-UNDO.
-        DEFINE VARIABLE cx    AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE cy    AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE sx    AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE sy    AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE ok    AS LOGICAL    NO-UNDO INITIAL TRUE.
+        VAR BuddySprites sp.
+        VAR PixelStamp st.
+        VAR CHARACTER rname.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR INTEGER sx.
+        VAR INTEGER sy.
+        VAR LOGICAL ok = TRUE.
         SetTheStage().
         Assert:IsTrue(mGame:Phase = BuddyPhase:Turn).
         mPainter:Render(mGame:Grid, mGame).
@@ -454,10 +454,10 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID ABlastFloatsTheDamageNumberUpOverTheBuddyItHurtAndASquealBubble():
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hurt   AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE bubble AS LOGICAL NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR LOGICAL hurt.
+        VAR LOGICAL bubble.
         SetTheStage().
         mGame:SetAim(1).
         Frames(12).
@@ -478,8 +478,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     /* whether a colour is anywhere in a rectangle of the picture */
     METHOD PRIVATE LOGICAL Somewhere(INPUT piColour AS INTEGER, INPUT piX1 AS INTEGER, INPUT piY1 AS INTEGER, INPUT piX2 AS INTEGER, INPUT piY2 AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO y = piY1 TO piY2:
             DO x = piX1 TO piX2:
                 IF Px(x, y) = piColour THEN RETURN TRUE.
@@ -522,8 +522,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheWindShowsAsManyLitChevronsAsItsStrength():
-        DEFINE VARIABLE lit AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
+        VAR INTEGER lit.
+        VAR INTEGER i.
         SetTheStage().
         mPainter:Render(mGame:Grid, mGame).
         /* the tip of a chevron is its middle row, and unlit ones are the colour of the panel rule */
@@ -547,7 +547,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheBannerAtTheStartOfATurnNamesTheBuddyAndTheTeam():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        VAR INTEGER k.
         Floor().
         DO k = 0 TO 5:
             mGame:Plan:TeamAt(k MODULO 2 + 1):BuddyAt(INTEGER(TRUNCATE(k / 2, 0)) + 1):PlaceAt(250 + 20 * k, 150).
@@ -603,8 +603,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheScorchRingGlowsAndCoolsToItsOwnColourOverSixHundredMilliseconds():
-        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
         DropAShell().
         mPainter:Render(mGame:Grid, mGame).
         cx = mGame:LastBlastX.
@@ -631,7 +631,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID ADyingBuddyShowsTheAlarmFramesWithASkullThenAPuffOfSmoke():
-        DEFINE VARIABLE e AS Buddy NO-UNDO.
+        VAR Buddy e.
         SetTheStage().
         e = mGame:Plan:TeamAt(2):BuddyAt(1).
         e:Facing = 1.
@@ -652,7 +652,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID AGravestoneRisesOutOfTheGroundAndAHaloFloatsUpOverIt():
-        DEFINE VARIABLE b AS Buddy NO-UNDO.
+        VAR Buddy b.
         Floor().
         b = mGame:Plan:TeamAt(1):BuddyAt(1).
         b:PlaceAt(100, 150).
@@ -671,11 +671,11 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     /* whether the top ten rows of the sink picture of team 1 are in the picture with the feet at the water line */
     METHOD PRIVATE LOGICAL SinkShown(INPUT piX AS INTEGER):
-        DEFINE VARIABLE sp AS BuddySprites NO-UNDO.
-        DEFINE VARIABLE st AS PixelStamp   NO-UNDO.
-        DEFINE VARIABLE sx AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE sy AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE ok AS LOGICAL      NO-UNDO INITIAL TRUE.
+        VAR BuddySprites sp.
+        VAR PixelStamp st.
+        VAR INTEGER sx.
+        VAR INTEGER sy.
+        VAR LOGICAL ok = TRUE.
         sp = NEW BuddySprites().
         st = sp:Stamp("goon_sink", 1, FALSE).
         DO sy = 0 TO 9:
@@ -689,7 +689,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID ABuddyThatReachesTheWaterSplashesAndSinksOutOfSight():
-        DEFINE VARIABLE b AS Buddy NO-UNDO.
+        VAR Buddy b.
         Floor().
         b = mGame:Plan:TeamAt(1):BuddyAt(1).
         b:PlaceAt(100, 150).
@@ -710,7 +710,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     /* the stage set, team 2 wiped out and the game run on until the Winner phase */
     METHOD PRIVATE VOID TeamOneWins():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         SetTheStage().
         DO i = 1 TO 3:
             mGame:Plan:TeamAt(2):BuddyAt(i):Hurt(100).
@@ -737,7 +737,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheWinnersDanceInTheFramesOneTwoThreeTwo():
-        DEFINE VARIABLE n AS CHARACTER NO-UNDO.
+        VAR CHARACTER n.
         TeamOneWins().
         mPainter:Render(mGame:Grid, mGame).
         n = ENTRY(INTEGER(TRUNCATE(mGame:ElapsedMs / 150, 0)) MODULO 4 + 1, "1,2,3,2").
@@ -746,7 +746,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID WhenNobodyWinsTheBandSaysSo():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         SetTheStage().
         DO i = 1 TO 3:
             mGame:Plan:TeamAt(1):BuddyAt(i):Hurt(100).
@@ -776,7 +776,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID WhileTheComputerThinksAThoughtBubbleBobsOverItsBuddy():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        VAR INTEGER k.
         mGame:Brain = NEW SimulatingBrain(NEW SeededRandom(2), BuddySkill:Hard).
         Floor().
         DO k = 0 TO 5:
@@ -798,14 +798,14 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheTitleScreenHasTheBigNameFourGoonsAndAHintPanel():
-        DEFINE VARIABLE g  AS BlastBuddiesGame    NO-UNDO.
-        DEFINE VARIABLE p  AS BlastBuddiesPainter NO-UNDO.
-        DEFINE VARIABLE gy AS INTEGER             NO-UNDO.
-        DEFINE VARIABLE sp AS BuddySprites        NO-UNDO.
-        DEFINE VARIABLE st AS PixelStamp          NO-UNDO.
-        DEFINE VARIABLE sx AS INTEGER             NO-UNDO.
-        DEFINE VARIABLE sy AS INTEGER             NO-UNDO.
-        DEFINE VARIABLE ok AS LOGICAL             NO-UNDO INITIAL TRUE.
+        VAR BlastBuddiesGame g.
+        VAR BlastBuddiesPainter p.
+        VAR INTEGER gy.
+        VAR BuddySprites sp.
+        VAR PixelStamp st.
+        VAR INTEGER sx.
+        VAR INTEGER sy.
+        VAR LOGICAL ok = TRUE.
         TitleStage(OUTPUT g, OUTPUT p).
         p:Render(g:Grid, g).
         mPainter = p.
@@ -830,12 +830,12 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheTitleRocketFliesInAndTakesABiteOutOfTheLastS():
-        DEFINE VARIABLE g     AS BlastBuddiesGame    NO-UNDO.
-        DEFINE VARIABLE p     AS BlastBuddiesPainter NO-UNDO.
-        DEFINE VARIABLE dx    AS INTEGER             NO-UNDO.
-        DEFINE VARIABLE dy    AS INTEGER             NO-UNDO.
-        DEFINE VARIABLE inkBefore AS INTEGER         NO-UNDO.
-        DEFINE VARIABLE inkAfter  AS INTEGER         NO-UNDO.
+        VAR BlastBuddiesGame g.
+        VAR BlastBuddiesPainter p.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER inkBefore.
+        VAR INTEGER inkAfter.
         TitleStage(OUTPUT g, OUTPUT p).
         mPainter = p.
         mGame = g.
@@ -871,11 +871,11 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheBuddiesComeDownByParachuteOneAfterAnotherAndThenStand():
-        DEFINE VARIABLE g  AS BlastBuddiesGame    NO-UNDO.
-        DEFINE VARIABLE p  AS BlastBuddiesPainter NO-UNDO.
-        DEFINE VARIABLE i  AS INTEGER             NO-UNDO.
-        DEFINE VARIABLE b  AS Buddy               NO-UNDO.
-        DEFINE VARIABLE reds AS INTEGER           NO-UNDO.
+        VAR BlastBuddiesGame g.
+        VAR BlastBuddiesPainter p.
+        VAR INTEGER i.
+        VAR Buddy b.
+        VAR INTEGER reds.
         TitleStage(OUTPUT g, OUTPUT p).
         mPainter = p.
         mGame = g.
@@ -917,8 +917,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID APainterNeedsARandomSourceToo():
-        DEFINE VARIABLE p       AS BlastBuddiesPainter NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL             NO-UNDO.
+        VAR BlastBuddiesPainter p.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             p = NEW BlastBuddiesPainter(mInner, mGame, ?).
             CATCH e AS GridException:
@@ -930,9 +930,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheHealthIsWrittenOverALivingGoonInItsTeamColour():
-        DEFINE VARIABLE found AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
+        VAR LOGICAL found.
+        VAR INTEGER x.
+        VAR INTEGER y.
         Floor().
         mGame:Plan:TeamAt(1):BuddyAt(1):PlaceAt(100, 150).
         mPainter:Render(mGame:Grid, mGame).
@@ -946,7 +946,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID ABuriedBuddyIsAGravestoneAndADrownedOneIsNotDrawn():
-        DEFINE VARIABLE b AS Buddy NO-UNDO.
+        VAR Buddy b.
         Floor().
         b = mGame:Plan:TeamAt(1):BuddyAt(1).
         b:PlaceAt(100, 150).
@@ -962,15 +962,15 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheSpritesAreMadeOnceMirroredAndRecoloured():
-        DEFINE VARIABLE sp      AS BuddySprites NO-UNDO.
-        DEFINE VARIABLE a       AS PixelStamp   NO-UNDO.
-        DEFINE VARIABLE m       AS PixelStamp   NO-UNDO.
-        DEFINE VARIABLE bl      AS PixelStamp   NO-UNDO.
-        DEFINE VARIABLE x       AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE y       AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE ok      AS LOGICAL      NO-UNDO INITIAL TRUE.
-        DEFINE VARIABLE differs AS LOGICAL      NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL      NO-UNDO.
+        VAR BuddySprites sp.
+        VAR PixelStamp a.
+        VAR PixelStamp m.
+        VAR PixelStamp bl.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR LOGICAL ok = TRUE.
+        VAR LOGICAL differs.
+        VAR LOGICAL lThrown.
         sp = NEW BuddySprites().
         a = sp:Stamp("goon_idle_1", 1, FALSE).
         m = sp:Stamp("goon_idle_1", 1, TRUE).
@@ -1014,15 +1014,15 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID AWeaponTurnedToTheRightIsThePictureItselfAndTurnedToTheLeftIsHalfATurn():
-        DEFINE VARIABLE sp  AS BuddySprites NO-UNDO.
-        DEFINE VARIABLE src AS PixelStamp   NO-UNDO.
-        DEFINE VARIABLE r1  AS PixelStamp   NO-UNDO.
-        DEFINE VARIABLE r2  AS PixelStamp   NO-UNDO.
-        DEFINE VARIABLE r   AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE x   AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE y   AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE ok1 AS LOGICAL      NO-UNDO INITIAL TRUE.
-        DEFINE VARIABLE ok2 AS LOGICAL      NO-UNDO INITIAL TRUE.
+        VAR BuddySprites sp.
+        VAR PixelStamp src.
+        VAR PixelStamp r1.
+        VAR PixelStamp r2.
+        VAR INTEGER r.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR LOGICAL ok1 = TRUE.
+        VAR LOGICAL ok2 = TRUE.
         sp = NEW BuddySprites().
         src = sp:Stamp("held_bazooka", 0, FALSE).
         r = sp:Reach("held_bazooka").
@@ -1060,11 +1060,11 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainterTests:
 
     @Test.
     METHOD PUBLIC VOID ThePaintingOfAWholeMapTakesUnderASecondAndABlastUnderFiftyMilliseconds():
-        DEFINE VARIABLE g  AS BlastBuddiesGame    NO-UNDO.
-        DEFINE VARIABLE p  AS BlastBuddiesPainter NO-UNDO.
-        DEFINE VARIABLE ms AS INTEGER             NO-UNDO.
-        DEFINE VARIABLE bl AS INTEGER             NO-UNDO.
-        DEFINE VARIABLE still AS INTEGER           NO-UNDO.
+        VAR BlastBuddiesGame g.
+        VAR BlastBuddiesPainter p.
+        VAR INTEGER ms.
+        VAR INTEGER bl.
+        VAR INTEGER still.
         g = BlastBuddiesFactory:Create(NEW SeededRandom(2), BuddySetup:Default()).
         p = NEW BlastBuddiesPainter(NEW RecordingRenderer(), g, NEW SeededRandom(1)).
         ETIME(TRUE).

@@ -8,8 +8,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.SoundSettingsTests:
 
-    DEFINE PRIVATE VARIABLE mPlayer   AS RecordingSoundPlayer NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS MemorySettings       NO-UNDO.
+    VAR PRIVATE RecordingSoundPlayer mPlayer.
+    VAR PRIVATE MemorySettings mSettings.
 
     @Setup.
     METHOD PUBLIC VOID BuildSettings():
@@ -58,7 +58,7 @@ CLASS ProGriddle.Engine.SoundSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID ANeededPlayerOrSettingsThatIsMissingThrowsGridException():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             SoundSettings:Apply(?, mSettings).
             CATCH e1 AS GridException:

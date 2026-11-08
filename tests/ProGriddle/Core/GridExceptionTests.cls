@@ -8,8 +8,7 @@ CLASS ProGriddle.Core.GridExceptionTests:
 
     @Test.
     METHOD PUBLIC VOID CarriesItsMessage():
-        DEFINE VARIABLE e AS GridException NO-UNDO.
-        e = NEW GridException("cell out of range").
+        VAR GridException e = NEW GridException("cell out of range").
         Assert:Equals("cell out of range", e:GetMessage(1)).
     END METHOD.
 

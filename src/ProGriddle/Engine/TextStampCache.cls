@@ -12,16 +12,16 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.TextStampCache FINAL:
 
-    DEFINE PRIVATE VARIABLE mStamp AS TextStamp NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mKey   AS CHARACTER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mSlots AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNext  AS INTEGER   NO-UNDO.
+    VAR PRIVATE TextStamp[] mStamp.
+    VAR PRIVATE CHARACTER[] mKey.
+    VAR PRIVATE INTEGER mSlots.
+    VAR PRIVATE INTEGER mNext.
 
     /* How many stamps are kept now. */
     DEFINE PUBLIC PROPERTY Count AS INTEGER NO-UNDO
         GET():
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
-            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            VAR INTEGER i.
+            VAR INTEGER n.
             DO i = 1 TO mSlots:
                 IF VALID-OBJECT(mStamp[i]) THEN n = n + 1.
             END.
@@ -42,8 +42,8 @@ CLASS ProGriddle.Engine.TextStampCache FINAL:
 
     /* The stamp for some text, made if there is not one already. See TextStamp for the arguments. */
     METHOD PUBLIC TextStamp Get(INPUT pcText AS CHARACTER, INPUT piScale AS INTEGER, INPUT piTop AS INTEGER, INPUT piBottom AS INTEGER, INPUT piEdge AS INTEGER):
-        DEFINE VARIABLE key AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i   AS INTEGER   NO-UNDO.
+        VAR CHARACTER key.
+        VAR INTEGER i.
         key = SUBSTITUTE("&1|&2|&3|&4|&5", pcText, piScale, piTop, piBottom, piEdge).
         DO i = 1 TO mSlots:
             IF mKey[i] = key AND VALID-OBJECT(mStamp[i]) THEN RETURN mStamp[i].
@@ -57,7 +57,7 @@ CLASS ProGriddle.Engine.TextStampCache FINAL:
 
     /* Frees every stamp. Safe to call more than once. */
     METHOD PUBLIC VOID Dispose():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO mSlots:
             IF VALID-OBJECT(mStamp[i]) THEN mStamp[i]:Dispose().
             mStamp[i] = ?.

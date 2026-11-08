@@ -11,7 +11,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Centipede.CentipedeGameTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS CentipedeGame NO-UNDO.
+    VAR PRIVATE CentipedeGame mGame.
 
     @Setup.
     METHOD PUBLIC VOID BuildGame():
@@ -36,7 +36,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGameTests:
     /* Something for the game to be about, so the wave is not over: a wall of mushrooms down column 26 keeps a segment in the three
        columns on the right, so it never gets near anything the tests do in the middle. */
     METHOD PRIVATE VOID KeepAlive():
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER y.
         DO y = 0 TO 23:
             mGame:PlaceMushroom(26, y, 4).
         END.
@@ -44,7 +44,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGameTests:
     END METHOD.
 
     METHOD PRIVATE VOID Frames(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO piCount:
             mGame:Advance().
         END.
@@ -108,8 +108,8 @@ CLASS ProGriddle.Games.Centipede.CentipedeGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheGridMustHaveTheRightShapeAndALayerOfMushroomsAndPoison():
-        DEFINE VARIABLE thrown AS INTEGER        NO-UNDO.
-        DEFINE VARIABLE oOther AS CentipedeGame  NO-UNDO.
+        VAR INTEGER thrown.
+        VAR CentipedeGame oOther.
         DO ON ERROR UNDO, THROW:
             oOther = NEW CentipedeGame(NEW Grid(NEW ArrayStore(20, 30, "mushroom,poison")), NEW ScriptedRandom("1")).
             CATCH e1 AS GridException:
@@ -417,7 +417,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheSegmentReadersRefuseAnIndexThatIsNotASegment():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         Scene().
         mGame:AddSegment(5, 5, -1, TRUE).
         DO ON ERROR UNDO, THROW:
@@ -445,7 +445,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGameTests:
 
     @Test.
     METHOD PUBLIC VOID AddSegmentRefusesABadTileAndADirectionThatIsNotOneOrMinusOne():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mGame:AddSegment(5, 30, -1, TRUE).
             CATCH e1 AS GridException:
@@ -542,7 +542,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheThirdShooterLostEndsTheGameAndTheFireKeyReturnsToTheTitle():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Scene().
         DO i = 1 TO 3:
             KillShooter().
@@ -591,7 +591,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGameTests:
 
     @Test.
     METHOD PUBLIC VOID APointsOrBestScoreBelowZeroIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mGame:AddScore(-1).
             CATCH e1 AS GridException:
@@ -637,7 +637,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheFieldVersionGoesUpWhenAMushroomChanges():
-        DEFINE VARIABLE v AS INTEGER NO-UNDO.
+        VAR INTEGER v.
         v = mGame:FieldVersion.
         mGame:PlaceMushroom(3, 4, 4).
         Assert:IsTrue(mGame:FieldVersion > v).
@@ -651,7 +651,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGameTests:
 
     @Test.
     METHOD PUBLIC VOID MushroomsRefuseATileOffTheBoardAndBadHitPoints():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mGame:PlaceMushroom(30, 0, 4).
             CATCH e1 AS GridException:
@@ -702,7 +702,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheFleaTakesTwoHitsAndIsWorthTwoHundred():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Scene().
         KeepAlive().
         mGame:PlacePlayer(96, 224).
@@ -734,7 +734,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheFleaStaysAwayWhileThePlayerZoneHasMushrooms():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         Scene().
         KeepAlive().
         DO x = 0 TO 5:
@@ -769,7 +769,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGameTests:
 
     @Test.
     METHOD PUBLIC VOID SpawnFleaRefusesAColumnOffTheBoard():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mGame:SpawnFlea(30).
             CATCH e1 AS GridException:
@@ -847,7 +847,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGameTests:
 
     @Test.
     METHOD PUBLIC VOID SpawnSpiderRefusesARowOutsideTheLowerRows():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mGame:SpawnSpider(TRUE, 10).
             CATCH e1 AS GridException:
@@ -928,7 +928,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGameTests:
 
     @Test.
     METHOD PUBLIC VOID SpawnScorpionRefusesARowThatIsNotInTheUpperBoard():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mGame:SpawnScorpion(0, TRUE).
             CATCH e1 AS GridException:

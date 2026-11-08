@@ -7,7 +7,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.CountingGame INHERITS AbstractGame IMPLEMENTS ISteppableGame:
 
-    DEFINE PRIVATE VARIABLE mLimit AS INTEGER NO-UNDO.
+    VAR PRIVATE INTEGER mLimit.
 
     /* How many times Initialise has run. */
     DEFINE PUBLIC PROPERTY InitialiseCount AS INTEGER NO-UNDO

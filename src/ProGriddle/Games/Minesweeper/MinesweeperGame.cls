@@ -38,24 +38,24 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame IMPLEMENTS ITurnBasedGame:
 
 
-    DEFINE PRIVATE VARIABLE mRandom    AS IRandom  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mClock     AS IClock   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mMines     AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFlags     AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRevealed  AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mExploded  AS INTEGER  NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mStarted   AS LOGICAL  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDisposed  AS LOGICAL  NO-UNDO.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE IClock mClock.
+    VAR PRIVATE INTEGER mMines.
+    VAR PRIVATE INTEGER mFlags.
+    VAR PRIVATE INTEGER mRevealed.
+    VAR PRIVATE INTEGER mExploded = -1.
+    VAR PRIVATE LOGICAL mStarted.
+    VAR PRIVATE LOGICAL mDisposed.
     /* the flood fill stack: cell indexes as 4 byte integers, at most one entry per cell */
-    DEFINE PRIVATE VARIABLE mStack     AS MEMPTR   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mStackTop  AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNeighbours AS INTEGER NO-UNDO EXTENT 8.
-    DEFINE PRIVATE VARIABLE mAround    AS INTEGER  NO-UNDO EXTENT 8.
-    DEFINE PRIVATE VARIABLE mLMine     AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLRevealed AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLFlag     AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLAdjacent AS INTEGER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLView     AS INTEGER  NO-UNDO.
+    VAR PRIVATE MEMPTR mStack.
+    VAR PRIVATE INTEGER mStackTop.
+    VAR PRIVATE INTEGER[8] mNeighbours.
+    VAR PRIVATE INTEGER[8] mAround.
+    VAR PRIVATE INTEGER mLMine.
+    VAR PRIVATE INTEGER mLRevealed.
+    VAR PRIVATE INTEGER mLFlag.
+    VAR PRIVATE INTEGER mLAdjacent.
+    VAR PRIVATE INTEGER mLView.
 
     /* Number of moves that changed the game since Initialise (reveals, flags and chords). */
     DEFINE PUBLIC PROPERTY Turn AS INTEGER NO-UNDO
@@ -115,7 +115,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
        The game is ready for a first click when the constructor returns. */
     CONSTRUCTOR PUBLIC MinesweeperGame(INPUT poGrid AS Grid, INPUT piMines AS INTEGER,
                                        INPUT poRandom AS IRandom, INPUT poClock AS IClock):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         SUPER("Minesweeper", poGrid).
         IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("A Minesweeper game needs a random source").
         IF NOT VALID-OBJECT(poClock) THEN UNDO, THROW NEW GridException("A Minesweeper game needs a clock").
@@ -142,7 +142,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
        classic limits for a custom game (9 to 30 by 9 to 24) are the caller's to apply, see
        MinesweeperLevels. */
     METHOD PUBLIC VOID Configure(INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER, INPUT piMines AS INTEGER):
-        DEFINE VARIABLE previous AS Grid NO-UNDO.
+        VAR Grid previous.
         IF piWidth = ? OR piHeight = ? OR piWidth < 1 OR piHeight < 1 THEN
             UNDO, THROW NEW GridException("A board needs a width and a height of at least 1").
         IF piWidth * piHeight > 100000 THEN
@@ -164,12 +164,12 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
        an empty cell, for example ".../.*./..." is a 3 x 3 board with a mine in the middle. Every row must be the same length. The board
        is resized to fit and the game is ready for a first click. */
     METHOD PUBLIC VOID LoadBoard(INPUT pcRows AS CHARACTER):
-        DEFINE VARIABLE rowCount  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE w     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE mines AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rowText  AS CHARACTER NO-UNDO.
+        VAR INTEGER rowCount.
+        VAR INTEGER w.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER mines.
+        VAR CHARACTER rowText.
         IF pcRows = ? OR pcRows = "" THEN UNDO, THROW NEW GridException("A board needs at least one row").
         rowCount = NUM-ENTRIES(pcRows, "/").
         w = LENGTH(ENTRY(1, pcRows, "/")).
@@ -194,7 +194,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
     /* Opens a cell. Does nothing when the game is over, or the cell is flagged or already
        open. Throws GridException for a cell off the board. */
     METHOD PUBLIC VOID Reveal(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE idx AS INTEGER NO-UNDO.
+        VAR INTEGER idx.
         idx = Grid:IndexOf(piX, piY).
         IF IsOver THEN RETURN.
         IF Grid:Store:GetCellAt(mLFlag, idx) = 1 OR Grid:Store:GetCellAt(mLRevealed, idx) = 1 THEN RETURN.
@@ -207,8 +207,8 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
        nothing when the game is over or the cell is open. Throws GridException for a cell off
        the board. */
     METHOD PUBLIC VOID ToggleFlag(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE idx  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE flag AS INTEGER NO-UNDO.
+        VAR INTEGER idx.
+        VAR INTEGER flag.
         idx = Grid:IndexOf(piX, piY).
         IF IsOver THEN RETURN.
         IF Grid:Store:GetCellAt(mLRevealed, idx) = 1 THEN RETURN.
@@ -231,11 +231,11 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
        unflagged neighbour. Anything else does nothing and is not a move. Throws GridException
        for a cell off the board. */
     METHOD PUBLIC VOID Chord(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE idx   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE flags AS INTEGER NO-UNDO.
-        DEFINE VARIABLE nb    AS INTEGER NO-UNDO.
+        VAR INTEGER idx.
+        VAR INTEGER n.
+        VAR INTEGER j.
+        VAR INTEGER flags.
+        VAR INTEGER nb.
         idx = Grid:IndexOf(piX, piY).
         IF IsOver THEN RETURN.
         IF Grid:Store:GetCellAt(mLRevealed, idx) = 0 THEN RETURN.
@@ -311,7 +311,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
 
     /* The first reveal: make sure it is not a mine, then start the timer. */
     METHOD PRIVATE VOID Begin(INPUT piIdx AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF Grid:Store:GetCellAt(mLMine, piIdx) = 1 THEN DO:
             Grid:Store:SetCellAt(mLMine, piIdx, 0).
             DO i = 0 TO Grid:CellCount - 1:
@@ -340,12 +340,12 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
        Each cell is marked open as it is pushed, so it is pushed at most once and the stack
        cannot overflow. */
     METHOD PRIVATE VOID FloodFrom(INPUT piStart AS INTEGER):
-        DEFINE VARIABLE cur AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cx  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE nb  AS INTEGER NO-UNDO.
+        VAR INTEGER cur.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR INTEGER n.
+        VAR INTEGER j.
+        VAR INTEGER nb.
         IF OpenOne(piStart) <> 0 THEN RETURN.
         PUT-LONG(mStack, 1) = piStart.
         mStackTop = 1.
@@ -369,7 +369,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
 
     /* Marks one cell open (clearing a question mark) and returns how many mines are around it. */
     METHOD PRIVATE INTEGER OpenOne(INPUT piIdx AS INTEGER):
-        DEFINE VARIABLE adj AS INTEGER NO-UNDO.
+        VAR INTEGER adj.
         adj = Grid:Store:GetCellAt(mLAdjacent, piIdx).
         Grid:Store:SetCellAt(mLRevealed, piIdx, 1).
         IF Grid:Store:GetCellAt(mLFlag, piIdx) <> 0 THEN Grid:Store:SetCellAt(mLFlag, piIdx, 0).
@@ -380,7 +380,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
 
     /* Ends the game on the mine at piIdx: shows the other mines and marks the wrong flags. */
     METHOD PRIVATE VOID Lose(INPUT piIdx AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mExploded = piIdx.
         IsLost = TRUE.
         IsOver = TRUE.
@@ -396,7 +396,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
 
     /* Ends the game with a win and flags every mine that is not flagged yet. */
     METHOD PRIVATE VOID Win():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IsWon = TRUE.
         IsOver = TRUE.
         mClock:Stop().
@@ -414,10 +414,10 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
     /* Puts mMines mines on an empty board, each cell equally likely. A board that is mostly
        mines is filled and then cleared, so the work never grows with the crowding. */
     METHOD PRIVATE VOID PlaceMines():
-        DEFINE VARIABLE cells  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE placed AS INTEGER NO-UNDO.
-        DEFINE VARIABLE target AS INTEGER NO-UNDO.
+        VAR INTEGER cells.
+        VAR INTEGER i.
+        VAR INTEGER placed.
+        VAR INTEGER target.
         cells = Grid:CellCount.
         IF mMines * 2 <= cells THEN DO:
             DO WHILE placed < mMines:
@@ -443,12 +443,12 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
 
     /* Sets the adjacent layer from the mine layer. */
     METHOD PRIVATE VOID ComputeAdjacent():
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE adj AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cx  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy  AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER n.
+        VAR INTEGER adj.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
         DO i = 0 TO Grid:CellCount - 1:
             cx = i MODULO Grid:Width.
             cy = INTEGER(TRUNCATE(i / Grid:Width, 0)).
@@ -474,8 +474,8 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGame FINAL INHERITS AbstractGame I
     END METHOD.
 
     METHOD PRIVATE VOID CheckGrid(INPUT poGrid AS Grid):
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE layers AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER layers.
         layers = MinesweeperFactory:Layers().
         IF poGrid:Store:LayerCount <> NUM-ENTRIES(layers) THEN
             UNDO, THROW NEW GridException("A Minesweeper grid has the layers " + layers).

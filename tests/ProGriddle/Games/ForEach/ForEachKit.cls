@@ -64,7 +64,7 @@ CLASS ProGriddle.Games.ForEach.ForEachKit FINAL:
 
     /* Advances the game one frame at a time until it is in the phase, for at most piMax frames. Returns true when it got there. */
     METHOD PUBLIC STATIC LOGICAL RunUntil(INPUT poGame AS ForEachGame, INPUT poPhase AS ForEachPhase, INPUT piMax AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO n = 1 TO piMax:
             IF poGame:Phase = poPhase THEN RETURN TRUE.
             poGame:Advance().
@@ -79,7 +79,7 @@ CLASS ProGriddle.Games.ForEach.ForEachKit FINAL:
     END METHOD.
 
     METHOD PUBLIC STATIC VOID Frames(INPUT poGame AS ForEachGame, INPUT piCount AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO n = 1 TO piCount:
             poGame:Advance().
         END.

@@ -26,19 +26,19 @@ USING ProGriddle.Engine.*.
 USING ProGriddle.Games.Life.*.
 USING ProGriddle.UI.WinForms.*.
 
-DEFINE VARIABLE cSettingsFile AS CHARACTER        NO-UNDO INITIAL "default".
-DEFINE VARIABLE iAutoClose    AS INTEGER          NO-UNDO.
-DEFINE VARIABLE oSettings     AS ISettings        NO-UNDO.
-DEFINE VARIABLE oRules        AS LifeRules        NO-UNDO.
-DEFINE VARIABLE oGame         AS LifeGame         NO-UNDO.
-DEFINE VARIABLE oView         AS GridView         NO-UNDO.
-DEFINE VARIABLE oClock        AS WinFormsClock    NO-UNDO.
-DEFINE VARIABLE oController   AS GameController   NO-UNDO.
-DEFINE VARIABLE oWindow       AS GameWindow       NO-UNDO.
-DEFINE VARIABLE oStart        AS Shape            NO-UNDO.
-DEFINE VARIABLE iWidth        AS INTEGER          NO-UNDO.
-DEFINE VARIABLE iHeight       AS INTEGER          NO-UNDO.
-DEFINE VARIABLE cStart        AS CHARACTER        NO-UNDO.
+VAR CHARACTER cSettingsFile = "default".
+VAR INTEGER iAutoClose.
+VAR ISettings oSettings.
+VAR LifeRules oRules.
+VAR LifeGame oGame.
+VAR GridView oView.
+VAR WinFormsClock oClock.
+VAR GameController oController.
+VAR GameWindow oWindow.
+VAR Shape oStart.
+VAR INTEGER iWidth.
+VAR INTEGER iHeight.
+VAR CHARACTER cStart.
 
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 2 THEN cSettingsFile = ENTRY(2, SESSION:PARAMETER).
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 3 THEN iAutoClose = INTEGER(ENTRY(3, SESSION:PARAMETER)).

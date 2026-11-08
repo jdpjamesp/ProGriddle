@@ -14,8 +14,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
    letters, : the ghost, | the divider and _ the panel beside the board. */
 CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS TetrisGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mText AS TextGridRenderer NO-UNDO.
+    VAR PRIVATE TetrisGame mGame.
+    VAR PRIVATE TextGridRenderer mText.
 
     /* A new game whose first pieces are the ones named. */
     METHOD PRIVATE VOID NewGame(INPUT pcPieces AS CHARACTER):
@@ -37,8 +37,8 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     /* n rows, each full but for a gap at column 7, as one string for LoadLocked. */
     METHOD PRIVATE CHARACTER GappedRows(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER result.
         DO i = 1 TO piCount:
             result = result + (IF i > 1 THEN "/" ELSE "") + "IIIIIII.II".
         END.
@@ -47,9 +47,9 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     /* Settled cells on the board. */
     METHOD PRIVATE INTEGER LockedCount():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         DO y = 0 TO 19:
             DO x = 0 TO 9:
                 IF mGame:LockedAt(x, y) <> 0 THEN n = n + 1.
@@ -60,9 +60,9 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     /* Cells the falling piece covers. */
     METHOD PRIVATE INTEGER ActiveCount():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         DO y = 0 TO 19:
             DO x = 0 TO 9:
                 IF mGame:ActiveAt(x, y) THEN n = n + 1.
@@ -141,7 +141,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID APieceMovesLeftAndRightUntilItReachesAWall():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         NewGame("I,O,T").
         DO i = 1 TO 3:
             Assert:IsTrue(mGame:MoveLeft()).
@@ -159,7 +159,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID APieceCannotMoveIntoASettledBlock():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         NewGame("I,O,T").
         /* a column of blocks at x = 2 in the bottom ten rows */
         mGame:LoadLocked("..O...../..O...../..O...../..O...../..O...../..O...../..O...../..O...../..O...../..O.....").
@@ -179,7 +179,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID ASoftDropMovesOneRowForAPointAndStopsOnTheFloor():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         NewGame("I,O,T").
         Assert:IsTrue(mGame:SoftDrop()).
         Assert:Equals(1, mGame:PieceY).
@@ -355,7 +355,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID APieceTurnedAgainstAWallIsKickedAwayFromIt():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         NewGame("I,O,T").
         mGame:RotateClockwise().
         DO i = 1 TO 4:
@@ -370,7 +370,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID ATurnThatHasNoRoomAtAnyKickIsRefused():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         NewGame("I,O,T").
         mGame:LoadLocked("IIII.IIIII/IIII.IIIII/IIII.IIIII/IIII.IIIII/IIII.IIIII/IIII.IIIII/IIII.IIIII/IIII.IIIII/IIII.IIIII/IIII.IIIII/IIII.IIIII/IIII.IIIII/IIII.IIIII/IIII.IIIII/IIII.IIIII/IIII.IIIII").
         Assert:IsTrue(mGame:RotateClockwise()).
@@ -399,10 +399,10 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID ClearingOneTwoThreeOrFourLinesScoresOneHundredThreeHundredFiveHundredAndEightHundred():
-        DEFINE VARIABLE n        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE expected AS INTEGER NO-UNDO EXTENT 4 INITIAL [132, 332, 532, 832].
-        DEFINE VARIABLE i        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bad      AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER[4] expected = [132, 332, 532, 832].
+        VAR INTEGER i.
+        VAR INTEGER bad.
         DO n = 1 TO 4:
             NewGame("I,I,I,I,I,I").
             mGame:LoadLocked(GappedRows(n)).
@@ -420,7 +420,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID WhatIsLeftOfThePieceAfterTwoLinesAreClearedDropsToTheFloor():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         NewGame("I,I,I,I").
         mGame:LoadLocked(GappedRows(2)).
         mGame:RotateClockwise().
@@ -437,7 +437,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID ClearingAllFourLinesLeavesAnEmptyBoard():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         NewGame("I,I,I,I").
         mGame:LoadLocked(GappedRows(4)).
         mGame:RotateClockwise().
@@ -450,7 +450,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID BlocksAboveAClearedLineFallWithTheRowsAndLinesThatAreNotFullStay():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         NewGame("I,I,I,I").
         /* a loose block in the top row, then an empty row, a row with a gap at column 7 and a row with a
            gap at column 9. The piece stands in column 7 on the bottom row's block and fills the first gap */
@@ -474,7 +474,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheScoreForLinesIsMultipliedByTheLevel():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         NewGame("I,I,I").
         mGame:StartLevel = 3.
         mGame:StartWith("I,I,I").
@@ -490,8 +490,8 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID EveryTenLinesRaiseTheLevelAndTheGravityGetsFaster():
-        DEFINE VARIABLE round AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        VAR INTEGER round.
+        VAR INTEGER i.
         NewGame("I,I,I,I,I,I,I,I,I,I,I,I").
         DO round = 1 TO 3:
             mGame:LoadLocked(GappedRows(4)).
@@ -516,7 +516,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheGameIsOverWhenANewPieceHasNoRoomToAppear():
-        DEFINE VARIABLE drops AS INTEGER NO-UNDO.
+        VAR INTEGER drops.
         NewGame("O,O,O,O,O,O,O,O,O,O,O,O").
         DO WHILE NOT mGame:IsOver AND drops < 15:
             mGame:HardDrop().
@@ -530,7 +530,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID NothingWorksOnceTheGameIsOver():
-        DEFINE VARIABLE drops AS INTEGER NO-UNDO.
+        VAR INTEGER drops.
         NewGame("O,O,O,O,O,O,O,O,O,O,O,O").
         DO WHILE NOT mGame:IsOver AND drops < 15:
             mGame:HardDrop().
@@ -558,7 +558,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID ANewGameAfterGameOverStartsClean():
-        DEFINE VARIABLE drops AS INTEGER NO-UNDO.
+        VAR INTEGER drops.
         NewGame("O,O,O,O,O,O,O,O,O,O,O,O").
         DO WHILE NOT mGame:IsOver AND drops < 15:
             mGame:HardDrop().
@@ -662,7 +662,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID LockedAtAndActiveAtRefuseCellsOffTheBoard():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         NewGame("I").
         DO ON ERROR UNDO, THROW:
             mGame:LockedAt(10, 0).
@@ -681,8 +681,8 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheConstructorRefusesAnythingThatIsNotATetrisGrid():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE g      AS TetrisGame NO-UNDO.
+        VAR INTEGER thrown.
+        VAR TetrisGame g.
         DO ON ERROR UNDO, THROW:
             g = NEW TetrisGame(NEW Grid(NEW TableStore(17, 20, "locked,active,view")), NEW SeededRandom(1)).
             CATCH e1 AS GridException:
@@ -718,7 +718,7 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID ABoardOfAnotherSizeWorks():
-        DEFINE VARIABLE g AS TetrisGame NO-UNDO.
+        VAR TetrisGame g.
         DO ON ERROR UNDO, THROW:
             g = TetrisFactory:CreateSized(8, 12, NEW SeededRandom(2)).
             Assert:Equals(8, g:BoardWidth).
@@ -735,9 +735,9 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID APlayerWhoDoesNothingLosesWhenThePiecesPileUpAndTheClockStops():
-        DEFINE VARIABLE clock      AS FakeClock          NO-UNDO.
-        DEFINE VARIABLE controller AS RealTimeController NO-UNDO.
-        DEFINE VARIABLE renderer   AS TextGridRenderer   NO-UNDO.
+        VAR FakeClock clock.
+        VAR RealTimeController controller.
+        VAR TextGridRenderer renderer.
         DO ON ERROR UNDO, THROW:
             NewGame("O,O,O,O,O,O,O,O,O,O,O,O").
             clock = NEW FakeClock().
@@ -758,13 +758,13 @@ CLASS ProGriddle.Games.Tetris.TetrisGameTests:
 
     @Test.
     METHOD PUBLIC VOID ARandomPlayerNeverBreaksTheBoardAndTheGameAlwaysEnds():
-        DEFINE VARIABLE rnd   AS SeededRandom NO-UNDO.
-        DEFINE VARIABLE step  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bad   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
-        DEFINE VARIABLE overlap AS INTEGER NO-UNDO.
+        VAR SeededRandom rnd.
+        VAR INTEGER step.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER bad.
+        VAR INTEGER before.
+        VAR INTEGER overlap.
         mGame = TetrisFactory:Create(NEW SeededRandom(9)).
         rnd = NEW SeededRandom(77).
         DO step = 1 TO 400 WHILE NOT mGame:IsOver:

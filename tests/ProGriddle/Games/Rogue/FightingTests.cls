@@ -8,7 +8,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.FightingTests:
 
-    DEFINE PRIVATE VARIABLE mWorld AS RogueWorld NO-UNDO.
+    VAR PRIVATE RogueWorld mWorld.
 
     /* A world whose random source always says the same number, with the usual kit and a lit room: floor (5, 5) to (14, 8), the hero at (6, 6). */
     METHOD PRIVATE VOID Build(INPUT pcScript AS CHARACTER):
@@ -27,7 +27,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     /* a monster next to the hero with a fixed number of hit points */
     METHOD PRIVATE Monster Beside(INPUT poKind AS MonsterKind, INPUT piHp AS INTEGER):
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
+        VAR Monster oMonster.
         oMonster = mWorld:AddMonster(poKind, 7, 6).
         oMonster:Hp = piHp.
         oMonster:MaxHp = piHp.
@@ -58,7 +58,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID ARingOfProtectionLowersTheArmourClass():
-        DEFINE VARIABLE oRing AS Item NO-UNDO.
+        VAR Item oRing.
         Build("5").
         oRing = Items:Make(ItemType:Ring, INTEGER(RingKind:Protection)).
         oRing:Bonus = 2.
@@ -68,7 +68,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID StrengthAndRingsChangeTheBonusesOfTheHand():
-        DEFINE VARIABLE oRing AS Item NO-UNDO.
+        VAR Item oRing.
         Build("5").
         /* the mace is +1,+1 and the strength 16 */
         Assert:Equals(1, Fighting:HitBonus(mWorld)).
@@ -100,7 +100,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID TheHeroHitsAMonsterAndItLosesHitPoints():
-        DEFINE VARIABLE oBat AS Monster NO-UNDO.
+        VAR Monster oBat.
         Build("19").
         oBat = Beside(MonsterKind:Bat, 30).
         oBat:Awake = FALSE.
@@ -113,7 +113,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID TheHeroMissesAndSaysSo():
-        DEFINE VARIABLE oBat AS Monster NO-UNDO.
+        VAR Monster oBat.
         Build("0").
         oBat = Beside(MonsterKind:Emu, 30).
         Fighting:HeroAttack(mWorld, oBat).
@@ -123,7 +123,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID ASleepingMonsterIsEasierToHit():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR Monster oOrc.
         /* an orc has armour class 6 and the hero needs 13 + 0 : a roll of 1 + the bonus 1 misses, with +4 for sleep it is still short, so use a roll of 8 */
         Build("7").
         oOrc = Beside(MonsterKind:Orc, 30).
@@ -137,11 +137,11 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID AKillGivesExperienceAndDropsWhatTheMonsterCarried():
-        DEFINE VARIABLE oBat   AS Monster NO-UNDO.
-        DEFINE VARIABLE oPotion AS Item   NO-UNDO.
-        DEFINE VARIABLE x       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE gold    AS INTEGER NO-UNDO.
+        VAR Monster oBat.
+        VAR Item oPotion.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER gold.
         Build("19").
         oBat = Beside(MonsterKind:Bat, 1).
         oPotion = Items:Make(ItemType:Potion, 3).
@@ -186,7 +186,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterHitsAndTheHeroLosesHitPoints():
-        DEFINE VARIABLE oHob AS Monster NO-UNDO.
+        VAR Monster oHob.
         Build("19").
         oHob = Beside(MonsterKind:Hobgoblin, 8).
         Fighting:MonsterAttack(mWorld, oHob).
@@ -197,7 +197,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterMissesWhenTheRollIsLow():
-        DEFINE VARIABLE oHob AS Monster NO-UNDO.
+        VAR Monster oHob.
         Build("0").
         oHob = Beside(MonsterKind:Hobgoblin, 8).
         Fighting:MonsterAttack(mWorld, oHob).
@@ -207,7 +207,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterWithThreeAttacksHasThreeBlows():
-        DEFINE VARIABLE oCentaur AS Monster NO-UNDO.
+        VAR Monster oCentaur.
         Build("19").
         mWorld:Hero:Hp = 99.
         mWorld:Hero:MaxHp = 99.
@@ -219,7 +219,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID TheHeroDiesAtZeroHitPointsAndTheCauseIsKept():
-        DEFINE VARIABLE oHob AS Monster NO-UNDO.
+        VAR Monster oHob.
         Build("19").
         mWorld:Hero:Hp = 3.
         oHob = Beside(MonsterKind:Hobgoblin, 8).
@@ -232,7 +232,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID ADeadHeroIsNotKilledAgainAndGetsNoMoreBlows():
-        DEFINE VARIABLE oCentaur AS Monster NO-UNDO.
+        VAR Monster oCentaur.
         Build("19").
         mWorld:Hero:Hp = 1.
         oCentaur = Beside(MonsterKind:Centaur, 8).
@@ -245,7 +245,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterYouCannotSeeIsSomethingToYou():
-        DEFINE VARIABLE oPhantom AS Monster NO-UNDO.
+        VAR Monster oPhantom.
         Build("19").
         oPhantom = Beside(MonsterKind:Phantom, 8).
         Assert:Equals("something", Fighting:Name(mWorld, oPhantom, FALSE)).
@@ -258,7 +258,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID AnAquatorRustsTheArmour():
-        DEFINE VARIABLE oAquator AS Monster NO-UNDO.
+        VAR Monster oAquator.
         Build("19").
         oAquator = Beside(MonsterKind:Aquator, 8).
         Fighting:MonsterAttack(mWorld, oAquator).
@@ -268,8 +268,8 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID WardedArmourOrARingOfMaintainArmourDoesNotRust():
-        DEFINE VARIABLE oAquator AS Monster NO-UNDO.
-        DEFINE VARIABLE oRing    AS Item    NO-UNDO.
+        VAR Monster oAquator.
+        VAR Item oRing.
         Build("19").
         oAquator = Beside(MonsterKind:Aquator, 8).
         mWorld:Pack:Worn():Warded = TRUE.
@@ -284,7 +284,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID AnIceMonsterFreezesTheHero():
-        DEFINE VARIABLE oIce AS Monster NO-UNDO.
+        VAR Monster oIce.
         Build("19").
         oIce = Beside(MonsterKind:IceMonster, 8).
         Fighting:MonsterAttack(mWorld, oIce).
@@ -293,7 +293,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID AVenusFlytrapHoldsTheHeroAndSqueezesHarderEachTurn():
-        DEFINE VARIABLE oPlant AS Monster NO-UNDO.
+        VAR Monster oPlant.
         Build("19").
         oPlant = Beside(MonsterKind:VenusFlytrap, 8).
         Fighting:MonsterAttack(mWorld, oPlant).
@@ -307,8 +307,8 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID ARattlesnakeWeakensTheHeroUnlessTheyAreSustained():
-        DEFINE VARIABLE oSnake AS Monster NO-UNDO.
-        DEFINE VARIABLE oRing  AS Item    NO-UNDO.
+        VAR Monster oSnake.
+        VAR Item oRing.
         Build("19").
         mWorld:Hero:Hp = 99.
         oSnake = Beside(MonsterKind:Rattlesnake, 8).
@@ -322,7 +322,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID AVampireDrainsTheMostHitPoints():
-        DEFINE VARIABLE oVamp AS Monster NO-UNDO.
+        VAR Monster oVamp.
         Build("19").
         mWorld:Hero:MaxHp = 40.
         mWorld:Hero:Hp = 40.
@@ -334,7 +334,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID AWraithDrainsALevelAndKillsAHeroOfTheFirst():
-        DEFINE VARIABLE oWraith AS Monster NO-UNDO.
+        VAR Monster oWraith.
         Build("19").
         mWorld:Hero:Rank = 3.
         mWorld:Hero:Experience = 50.
@@ -353,7 +353,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID AMedusaConfusesTheHero():
-        DEFINE VARIABLE oMedusa AS Monster NO-UNDO.
+        VAR Monster oMedusa.
         Build("19").
         mWorld:Hero:Hp = 99.
         oMedusa = Beside(MonsterKind:Medusa, 8).
@@ -363,7 +363,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID ALeprechaunStealsGoldAndVanishes():
-        DEFINE VARIABLE oLep AS Monster NO-UNDO.
+        VAR Monster oLep.
         Build("19").
         mWorld:Hero:Gold = 500.
         oLep = Beside(MonsterKind:Leprechaun, 8).
@@ -374,7 +374,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID ALeprechaunWithNothingToStealStaysAndHits():
-        DEFINE VARIABLE oLep AS Monster NO-UNDO.
+        VAR Monster oLep.
         Build("19").
         oLep = Beside(MonsterKind:Leprechaun, 8).
         Fighting:MonsterAttack(mWorld, oLep).
@@ -383,8 +383,8 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID ANymphStealsSomethingThatIsNotInUseAndVanishes():
-        DEFINE VARIABLE oNymph AS Monster NO-UNDO.
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR Monster oNymph.
+        VAR INTEGER before.
         Build("19").
         oNymph = Beside(MonsterKind:Nymph, 8).
         before = mWorld:Pack:Count.
@@ -399,7 +399,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID ACancelledMonsterHasNoSpecial():
-        DEFINE VARIABLE oAquator AS Monster NO-UNDO.
+        VAR Monster oAquator.
         Build("19").
         oAquator = Beside(MonsterKind:Aquator, 8).
         oAquator:Cancelled = TRUE.
@@ -409,7 +409,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID AHeroAsleepIsEasyToHit():
-        DEFINE VARIABLE oHob AS Monster NO-UNDO.
+        VAR Monster oHob.
         /* a hobgoblin needs 20 - 1 - 6 = 13; a roll of 9 plus 4 for a sleeping hero lands, 9 alone does not */
         Build("8").
         oHob = Beside(MonsterKind:Hobgoblin, 8).
@@ -433,7 +433,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID DamagingAMonsterKillsItAtZero():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR Monster oOrc.
         Build("5").
         oOrc = Beside(MonsterKind:Orc, 10).
         Assert:IsFalse(Fighting:DamageMonster(mWorld, oOrc, 4)).
@@ -444,7 +444,7 @@ CLASS ProGriddle.Games.Rogue.FightingTests:
 
     @Test.
     METHOD PUBLIC VOID AConfusingTouchConfusesTheMonsterOnceThenWearsOff():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR Monster oOrc.
         Build("19").
         oOrc = Beside(MonsterKind:Orc, 99).
         mWorld:Hero:ConfusingTouch = TRUE.

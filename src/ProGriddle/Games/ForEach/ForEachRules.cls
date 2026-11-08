@@ -123,7 +123,7 @@ CLASS ProGriddle.Games.ForEach.ForEachRules FINAL:
 
     /* The bits and commit tokens left when Mary reaches the stage of rage: 20 and 10 on level 1, and more as the levels go up. */
     METHOD PUBLIC STATIC INTEGER RageBits(INPUT piLevel AS INTEGER, INPUT piStage AS INTEGER):
-        DEFINE VARIABLE stageOne AS INTEGER NO-UNDO.
+        VAR INTEGER stageOne.
         IF piStage <> 1 AND piStage <> 2 THEN UNDO, THROW NEW GridException("Rage has stages 1 and 2").
         CheckLevel(piLevel).
         IF piLevel = 1 THEN stageOne = 20.

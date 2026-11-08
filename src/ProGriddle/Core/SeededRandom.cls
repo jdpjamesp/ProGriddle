@@ -8,7 +8,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Core.SeededRandom FINAL IMPLEMENTS IRandom:
 
-    DEFINE PRIVATE VARIABLE mState AS INT64 NO-UNDO.
+    VAR PRIVATE INT64 mState.
 
     /* Any whole number is a valid seed. */
     CONSTRUCTOR PUBLIC SeededRandom(INPUT piSeed AS INT64):

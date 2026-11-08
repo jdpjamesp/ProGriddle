@@ -11,7 +11,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddiesLookTests:
 
     @Test.
     METHOD PUBLIC VOID TheTwelveToneRowsAreFiveColoursEachWithTheFourTeamsFirst():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:Equals(12, NUM-ENTRIES(BuddiesLook:ToneRowNames())).
         Assert:Equals("Reds", ENTRY(1, BuddiesLook:ToneRowNames())).
         Assert:Equals("Blues", ENTRY(2, BuddiesLook:ToneRowNames())).
@@ -40,7 +40,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddiesLookTests:
 
     @Test.
     METHOD PUBLIC VOID ThereAreFortySixNamedColoursAndTheyAreAllInTheTable():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:Equals(45, INTEGER(BuddyTint:Sheet)).
         DO i = 0 TO 45:
             Assert:IsTrue(BuddiesLook:Colour(BuddyTint:GetEnum(i)) >= 0).
@@ -49,9 +49,9 @@ CLASS ProGriddle.Games.BlastBuddies.BuddiesLookTests:
 
     @Test.
     METHOD PUBLIC VOID ANeededNameThatIsMissingOrUnknownThrowsGridException():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
+        VAR CHARACTER x.
+        VAR INTEGER n.
         DO ON ERROR UNDO, THROW:
             x = BuddiesLook:ToneRow("Purple").
             CATCH e1 AS GridException:
@@ -87,9 +87,9 @@ CLASS ProGriddle.Games.BlastBuddies.BuddiesLookTests:
 
     @Test.
     METHOD PUBLIC VOID EveryKeyOfEveryThemeHasAColourAndTheThemesDiffer():
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE same AS INTEGER NO-UNDO.
+        VAR INTEGER t.
+        VAR INTEGER k.
+        VAR INTEGER same.
         Assert:Equals(24, INTEGER(ThemeKey:Foam)).
         DO t = 0 TO 2:
             DO k = 0 TO 24:
@@ -103,8 +103,8 @@ CLASS ProGriddle.Games.BlastBuddies.BuddiesLookTests:
 
     @Test.
     METHOD PUBLIC VOID ANeededThemeOrKeyThatIsMissingThrowsGridException():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             n = TerrainThemes:Colour(?, ThemeKey:Top1).
             CATCH e1 AS GridException:

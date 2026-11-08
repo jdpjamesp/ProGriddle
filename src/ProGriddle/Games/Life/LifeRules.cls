@@ -14,8 +14,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Life.LifeRules FINAL:
 
-    DEFINE PRIVATE VARIABLE mBirth   AS LOGICAL NO-UNDO EXTENT 9.
-    DEFINE PRIVATE VARIABLE mSurvive AS LOGICAL NO-UNDO EXTENT 9.
+    VAR PRIVATE LOGICAL[9] mBirth.
+    VAR PRIVATE LOGICAL[9] mSurvive.
 
     /* Canonical notation, for example "B3/S23". */
     DEFINE PUBLIC PROPERTY Notation AS CHARACTER NO-UNDO
@@ -25,11 +25,11 @@ CLASS ProGriddle.Games.Life.LifeRules FINAL:
     /* Throws GridException unless the notation is "B" digits "/" "S" digits, with digits 0 to 8
        that do not repeat. Either list of digits may be empty, as in "B/S". */
     CONSTRUCTOR PUBLIC LifeRules(INPUT pcNotation AS CHARACTER):
-        DEFINE VARIABLE norm AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE b    AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE s    AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE d    AS INTEGER   NO-UNDO.
+        VAR CHARACTER norm.
+        VAR CHARACTER b.
+        VAR CHARACTER s.
+        VAR INTEGER i.
+        VAR INTEGER d.
 
         IF pcNotation = ? THEN UNDO, THROW NEW GridException("Life rules cannot be unknown").
         norm = CAPS(TRIM(pcNotation)).
@@ -96,8 +96,8 @@ CLASS ProGriddle.Games.Life.LifeRules FINAL:
     /* The name of the preset with this notation (any spelling LifeRules accepts), or an empty
        string when it is not one of them, or is not a notation at all. */
     METHOD PUBLIC STATIC CHARACTER PresetNameOf(INPUT pcNotation AS CHARACTER):
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE canon AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER canon.
         IF pcNotation = ? THEN RETURN "".
         DO ON ERROR UNDO, THROW:
             canon = NEW LifeRules(pcNotation):Notation.

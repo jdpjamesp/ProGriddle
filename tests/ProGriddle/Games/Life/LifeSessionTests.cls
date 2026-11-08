@@ -11,7 +11,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Life.LifeSessionTests:
 
-    DEFINE PRIVATE VARIABLE LF AS CHARACTER NO-UNDO.
+    VAR PRIVATE CHARACTER LF.
 
     CONSTRUCTOR PUBLIC LifeSessionTests():
         LF = CHR(10).
@@ -27,10 +27,10 @@ CLASS ProGriddle.Games.Life.LifeSessionTests:
 
     @Test.
     METHOD PUBLIC VOID AScriptedSessionWithABlinker():
-        DEFINE VARIABLE game     AS LifeGame NO-UNDO.
-        DEFINE VARIABLE renderer AS TextGridRenderer NO-UNDO.
-        DEFINE VARIABLE clock    AS FakeClock NO-UNDO.
-        DEFINE VARIABLE ctrl     AS GameController NO-UNDO.
+        VAR LifeGame game.
+        VAR TextGridRenderer renderer.
+        VAR FakeClock clock.
+        VAR GameController ctrl.
         DO ON ERROR UNDO, THROW:
             game = LifeFactory:Create(5, 5, FALSE, LifeRules:Conway(), 0.01).
             game:Place(LifePatterns:Blinker(), 1, 2).
@@ -75,9 +75,9 @@ CLASS ProGriddle.Games.Life.LifeSessionTests:
 
     @Test.
     METHOD PUBLIC VOID TheSpeedKeysChangeHowManyGenerationsPassInASecond():
-        DEFINE VARIABLE game     AS LifeGame NO-UNDO.
-        DEFINE VARIABLE clock    AS FakeClock NO-UNDO.
-        DEFINE VARIABLE ctrl     AS GameController NO-UNDO.
+        VAR LifeGame game.
+        VAR FakeClock clock.
+        VAR GameController ctrl.
         DO ON ERROR UNDO, THROW:
             game = LifeFactory:Create(5, 5, FALSE, LifeRules:Conway(), 0.01).
             game:Place(LifePatterns:Blinker(), 1, 2).
@@ -107,9 +107,9 @@ CLASS ProGriddle.Games.Life.LifeSessionTests:
 
     @Test.
     METHOD PUBLIC VOID EditingTheBoardWhilePausedShowsOnTheNextDraw():
-        DEFINE VARIABLE game     AS LifeGame NO-UNDO.
-        DEFINE VARIABLE renderer AS TextGridRenderer NO-UNDO.
-        DEFINE VARIABLE ctrl     AS GameController NO-UNDO.
+        VAR LifeGame game.
+        VAR TextGridRenderer renderer.
+        VAR GameController ctrl.
         DO ON ERROR UNDO, THROW:
             game = LifeFactory:Create(5, 5, FALSE, LifeRules:Conway(), 0.5).
             renderer = NEW TextGridRenderer("state", ".#").
@@ -129,14 +129,14 @@ CLASS ProGriddle.Games.Life.LifeSessionTests:
 
     @Test.
     METHOD PUBLIC VOID ADenseAndASparseSessionDrawTheSameThing():
-        DEFINE VARIABLE dense   AS LifeGame NO-UNDO.
-        DEFINE VARIABLE sparse  AS LifeGame NO-UNDO.
-        DEFINE VARIABLE rd      AS TextGridRenderer NO-UNDO.
-        DEFINE VARIABLE rs      AS TextGridRenderer NO-UNDO.
-        DEFINE VARIABLE cd      AS FakeClock NO-UNDO.
-        DEFINE VARIABLE cs      AS FakeClock NO-UNDO.
-        DEFINE VARIABLE ctrlD   AS GameController NO-UNDO.
-        DEFINE VARIABLE ctrlS   AS GameController NO-UNDO.
+        VAR LifeGame dense.
+        VAR LifeGame sparse.
+        VAR TextGridRenderer rd.
+        VAR TextGridRenderer rs.
+        VAR FakeClock cd.
+        VAR FakeClock cs.
+        VAR GameController ctrlD.
+        VAR GameController ctrlS.
         DO ON ERROR UNDO, THROW:
             dense = LifeFactory:Create(30, 20, TRUE, LifeRules:Conway(), 0.5).
             sparse = LifeFactory:Create(30, 20, TRUE, LifeRules:Conway(), 0.01).

@@ -11,12 +11,12 @@ CLASS ProGriddle.Core.MooreNeighbourhood FINAL INHERITS CustomNeighbourhood:
     END CONSTRUCTOR.
 
     METHOD PRIVATE STATIC INTEGER EXTENT 8 MooreXs():
-        DEFINE VARIABLE xs AS INTEGER NO-UNDO EXTENT 8 INITIAL [-1, 0, 1, -1, 1, -1, 0, 1].
+        VAR INTEGER[8] xs = [-1, 0, 1, -1, 1, -1, 0, 1].
         RETURN xs.
     END METHOD.
 
     METHOD PRIVATE STATIC INTEGER EXTENT 8 MooreYs():
-        DEFINE VARIABLE ys AS INTEGER NO-UNDO EXTENT 8 INITIAL [-1, -1, -1, 0, 0, 1, 1, 1].
+        VAR INTEGER[8] ys = [-1, -1, -1, 0, 0, 1, 1, 1].
         RETURN ys.
     END METHOD.
 

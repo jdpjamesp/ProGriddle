@@ -9,7 +9,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
-    DEFINE PRIVATE VARIABLE mWorld AS RogueWorld NO-UNDO.
+    VAR PRIVATE RogueWorld mWorld.
 
     @Setup.
     METHOD PUBLIC VOID BuildWorld():
@@ -59,11 +59,11 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID EveryMonsterOfABuiltLevelStandsWhereTheMapSaysAndNoneOnTheHero():
-        DEFINE VARIABLE seed     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE seen     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
-        DEFINE VARIABLE oWorld   AS RogueWorld NO-UNDO.
+        VAR INTEGER seed.
+        VAR INTEGER i.
+        VAR INTEGER seen.
+        VAR Monster oMonster.
+        VAR RogueWorld oWorld.
         DO seed = 1 TO 12:
             oWorld = NEW RogueWorld(LevelMap:CreateGrid(), NEW SeededRandom(seed)).
             oWorld:Reset().
@@ -86,10 +86,10 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID ALevelHasThingsOnItsFloorAndTheFirstLevelHasSomeMonstersAcrossSeeds():
-        DEFINE VARIABLE seed   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE items  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE mons   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE oWorld AS RogueWorld NO-UNDO.
+        VAR INTEGER seed.
+        VAR INTEGER items.
+        VAR INTEGER mons.
+        VAR RogueWorld oWorld.
         DO seed = 1 TO 20:
             oWorld = NEW RogueWorld(LevelMap:CreateGrid(), NEW SeededRandom(seed)).
             oWorld:Reset().
@@ -103,10 +103,10 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID TheAmuletLiesOnTheLastLevelOnly():
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE found AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oItem AS Item    NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER found.
+        VAR Item oItem.
         mWorld:Reset().
         mWorld:NewLevel(26).
         DO y = 0 TO 20:
@@ -131,10 +131,10 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID TheLevelsOfADepthAreDarkerTheDeeperTheyAre():
-        DEFINE VARIABLE dark   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE seed   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oWorld AS RogueWorld NO-UNDO.
+        VAR INTEGER dark.
+        VAR INTEGER i.
+        VAR INTEGER seed.
+        VAR RogueWorld oWorld.
         DO seed = 1 TO 8:
             oWorld = NEW RogueWorld(LevelMap:CreateGrid(), NEW SeededRandom(seed)).
             oWorld:Reset().
@@ -151,7 +151,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID RoomLightCanBeSetAndOnlyForRealRooms():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         mWorld:SetRoomLit(3, FALSE).
         Assert:IsFalse(mWorld:RoomLit(3)).
         mWorld:SetRoomLit(3, TRUE).
@@ -186,7 +186,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID ARoomThatDoesNotFitIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mWorld:CarveRoom(0, 5, 4, 4).
             CATCH e1 AS GridException:
@@ -210,7 +210,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterIsPutInACellWithTheHitPointsOfItsLevel():
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
+        VAR Monster oMonster.
         Scene().
         oMonster = mWorld:AddMonster(MonsterKind:Hobgoblin, 9, 6).
         Assert:Equals(9, oMonster:X).
@@ -225,7 +225,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterMayCarrySomethingAndTheNymphAlwaysDoes():
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
+        VAR Monster oMonster.
         Scene().
         oMonster = mWorld:AddMonster(MonsterKind:Nymph, 9, 6).
         Assert:IsTrue(VALID-OBJECT(oMonster:Carried)).
@@ -235,7 +235,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterCannotBePutInARockOrOnAnotherMonster():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         Scene().
         mWorld:AddMonster(MonsterKind:Bat, 9, 6).
         DO ON ERROR UNDO, THROW:
@@ -255,10 +255,10 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID TheLevelHoldsAtMostSixtyFourMonsters():
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
+        VAR INTEGER thrown.
         mWorld:ClearLevel().
         mWorld:CarveRoom(5, 5, 20, 4).
         DO y = 5 TO 8:
@@ -281,7 +281,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterMovesKeepingTheMapInStep():
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
+        VAR Monster oMonster.
         Scene().
         oMonster = mWorld:AddMonster(MonsterKind:Orc, 9, 6).
         mWorld:MoveMonster(oMonster, 10, 7).
@@ -293,8 +293,8 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterCannotMoveIntoWallOrAnotherMonster():
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
-        DEFINE VARIABLE thrown   AS INTEGER NO-UNDO.
+        VAR Monster oMonster.
+        VAR INTEGER thrown.
         Scene().
         oMonster = mWorld:AddMonster(MonsterKind:Orc, 9, 6).
         mWorld:AddMonster(MonsterKind:Bat, 10, 6).
@@ -315,7 +315,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID ARemovedMonsterIsGoneFromTheListAndTheMap():
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
+        VAR Monster oMonster.
         Scene().
         oMonster = mWorld:AddMonster(MonsterKind:Orc, 9, 6).
         mWorld:Hero:HeldBy = oMonster.
@@ -330,8 +330,8 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterNotWhereItSaysItIsIsRefusedWhenRemovedOrMoved():
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
-        DEFINE VARIABLE thrown   AS INTEGER NO-UNDO.
+        VAR Monster oMonster.
+        VAR INTEGER thrown.
         Scene().
         oMonster = NEW Monster(MonsterKind:Bat, 3).
         oMonster:X = 9.
@@ -359,7 +359,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID AThingIsLaidInACellAndPickedUpAgain():
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
+        VAR Item oItem.
         Scene().
         oItem = Items:Make(ItemType:Potion, 2).
         Assert:IsTrue(mWorld:DropOnFloor(oItem, 8, 7)).
@@ -374,8 +374,8 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID AThingDroppedOnAThingLandsOnTheNextFreeSquare():
-        DEFINE VARIABLE a AS Item NO-UNDO.
-        DEFINE VARIABLE b AS Item NO-UNDO.
+        VAR Item a.
+        VAR Item b.
         Scene().
         a = Items:Make(ItemType:Potion, 2).
         b = Items:Make(ItemType:Scroll, 1).
@@ -406,10 +406,10 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID TheLevelHoldsAtMostOneHundredAndTwentyThings():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE placed AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER placed.
         mWorld:ClearLevel().
         mWorld:CarveRoom(2, 2, 40, 10).
         DO y = 2 TO 11:
@@ -423,10 +423,10 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID AFreeFloorSquareHasNothingOnItAndNobodyInIt():
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE room  AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER i.
+        VAR INTEGER room.
         mWorld:Reset().
         room = mWorld:Builder:PickRoom().
         DO i = 1 TO 20:
@@ -469,7 +469,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID ANewGameMakesNewNamesAndForgetsWhatWasLearnt():
-        DEFINE VARIABLE before AS CHARACTER NO-UNDO.
+        VAR CHARACTER before.
         mWorld:Reset().
         before = mWorld:Names:Appearance(ItemType:Potion, 0).
         mWorld:Names:Learn(ItemType:Potion, 0).
@@ -481,7 +481,7 @@ CLASS ProGriddle.Games.Rogue.RogueWorldTests:
 
     @Test.
     METHOD PUBLIC VOID ALevelThatDoesNotExistIsRefusedAndNoGridOrNoSourceToo():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mWorld:NewLevel(0).
             CATCH e1 AS GridException:

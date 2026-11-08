@@ -13,8 +13,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.CellPath FINAL:
 
-    DEFINE PRIVATE VARIABLE mXs AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mYs AS INTEGER NO-UNDO EXTENT.
+    VAR PRIVATE INTEGER[] mXs.
+    VAR PRIVATE INTEGER[] mYs.
 
     /* How many cells the last Plan found. */
     DEFINE PUBLIC PROPERTY Count AS INTEGER NO-UNDO
@@ -24,10 +24,10 @@ CLASS ProGriddle.Engine.CellPath FINAL:
     /* Finds the cells after piX0, piY0 up to and including piX1, piY1, and returns how many there are (0 when the
        two are the same cell). Throws GridException for an unknown value. */
     METHOD PUBLIC INTEGER Plan(INPUT piX0 AS INTEGER, INPUT piY0 AS INTEGER, INPUT piX1 AS INTEGER, INPUT piY1 AS INTEGER):
-        DEFINE VARIABLE dx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER n.
+        VAR INTEGER i.
         IF piX0 = ? OR piY0 = ? OR piX1 = ? OR piY1 = ? THEN UNDO, THROW NEW GridException("A cell path needs known cells").
         dx = piX1 - piX0.
         dy = piY1 - piY0.

@@ -10,8 +10,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.TurnController FINAL IMPLEMENTS IGameController:
 
-    DEFINE PRIVATE VARIABLE mGame     AS ITurnBasedGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRenderer AS IGridRenderer  NO-UNDO.
+    VAR PRIVATE ITurnBasedGame mGame.
+    VAR PRIVATE IGridRenderer mRenderer.
 
     DEFINE PUBLIC PROPERTY Steppable AS LOGICAL NO-UNDO
         GET():

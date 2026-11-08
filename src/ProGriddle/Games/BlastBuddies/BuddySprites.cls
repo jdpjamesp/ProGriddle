@@ -12,15 +12,15 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.BlastBuddies.BuddySprites FINAL:
 
     /* the stamps by sprite, tone row (0 for its own, 1 to 4 for a team) and mirror: ((sprite - 1) * 5 + row) * 2 + mirror + 1 */
-    DEFINE PRIVATE VARIABLE mStamp  AS PixelStamp NO-UNDO EXTENT 720.
+    VAR PRIVATE PixelStamp[720] mStamp.
     /* the turned stamps by turnable sprite, mirror and heading: ((turnable - 1) * 2 + mirror) * 64 + heading + 1. Only the sprites that are turned
        have a place (a class can hold only about 32000 bytes of variables, so the table is small) */
-    DEFINE PRIVATE VARIABLE mTurned AS PixelStamp NO-UNDO EXTENT 1024.
-    DEFINE PRIVATE VARIABLE mNames  AS CHARACTER  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDisposed AS LOGICAL  NO-UNDO.
+    VAR PRIVATE PixelStamp[1024] mTurned.
+    VAR PRIVATE CHARACTER mNames.
+    VAR PRIVATE LOGICAL mDisposed.
 
     CONSTRUCTOR PUBLIC BuddySprites():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO BuddiesArt:Count():
             mNames = mNames + (IF i > 1 THEN "," ELSE "") + BuddiesArt:NameAt(i).
         END.
@@ -32,7 +32,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddySprites FINAL:
 
     /* Frees every stamp. Safe to call more than once. */
     METHOD PUBLIC VOID Dispose():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF mDisposed THEN RETURN.
         mDisposed = TRUE.
         DO i = 1 TO EXTENT(mStamp):
@@ -45,7 +45,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddySprites FINAL:
 
     /* The place of a sprite in the design's list. Throws GridException for a name that is not in it. */
     METHOD PRIVATE INTEGER IndexOf(INPUT pcName AS CHARACTER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         n = LOOKUP(pcName, mNames).
         IF n = 0 THEN UNDO, THROW NEW GridException("There is no sprite " + STRING(pcName)).
         RETURN n.
@@ -79,9 +79,9 @@ CLASS ProGriddle.Games.BlastBuddies.BuddySprites FINAL:
 
     /* The first row of a picture that is not empty or the outline in its middle column: where a goon's head begins, for its mark. */
     METHOD PUBLIC INTEGER HeadTop(INPUT pcName AS CHARACTER):
-        DEFINE VARIABLE t  AS Tile      NO-UNDO.
-        DEFINE VARIABLE y  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE ch AS CHARACTER NO-UNDO.
+        VAR Tile t.
+        VAR INTEGER y.
+        VAR CHARACTER ch.
         t = BuddiesArt:TileOf(pcName).
         DO y = 0 TO t:Height - 1:
             ch = t:PixelAt(INTEGER(TRUNCATE(t:Width / 2, 0)), y).
@@ -92,13 +92,13 @@ CLASS ProGriddle.Games.BlastBuddies.BuddySprites FINAL:
 
     /* A sprite as a stamp, in the colours of a team (1 to 4, or 0 for its own), mirrored if asked. */
     METHOD PUBLIC PixelStamp Stamp(INPUT pcName AS CHARACTER, INPUT piTeam AS INTEGER, INPUT plMirror AS LOGICAL):
-        DEFINE VARIABLE slot AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE base AS PixelStamp NO-UNDO.
-        DEFINE VARIABLE w    AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE h    AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE cols AS INTEGER    NO-UNDO EXTENT.
+        VAR INTEGER slot.
+        VAR PixelStamp base.
+        VAR INTEGER w.
+        VAR INTEGER h.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER[] cols.
         IF piTeam < 0 OR piTeam > 4 THEN UNDO, THROW NEW GridException("A team is 1 to 4, or 0 for none").
         slot = ((IndexOf(pcName) - 1) * 5 + piTeam) * 2 + (IF plMirror THEN 1 ELSE 0) + 1.
         IF VALID-OBJECT(mStamp[slot]) THEN RETURN mStamp[slot].
@@ -128,21 +128,21 @@ CLASS ProGriddle.Games.BlastBuddies.BuddySprites FINAL:
     /* A held weapon turned to a heading (0 up, 16 right, 32 down, 48 left), for a buddy facing the way given. A weapon facing left is
        mirrored first and then turned by the heading it is given. The stamp is Reach x 2 + 1 square, and the pivot is its middle. */
     METHOD PUBLIC PixelStamp Turned(INPUT pcName AS CHARACTER, INPUT piHeading AS INTEGER, INPUT plMirror AS LOGICAL):
-        DEFINE VARIABLE slot  AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE turnable AS INTEGER NO-UNDO.
-        DEFINE VARIABLE src   AS PixelStamp NO-UNDO.
-        DEFINE VARIABLE r     AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE size  AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE hd    AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE c     AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE s     AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE ox    AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE oy    AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE dx    AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE dy    AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE sx    AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE sy    AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE cols  AS INTEGER    NO-UNDO EXTENT.
+        VAR INTEGER slot.
+        VAR INTEGER turnable.
+        VAR PixelStamp src.
+        VAR INTEGER r.
+        VAR INTEGER size.
+        VAR INTEGER hd.
+        VAR INTEGER c.
+        VAR INTEGER s.
+        VAR INTEGER ox.
+        VAR INTEGER oy.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER sx.
+        VAR INTEGER sy.
+        VAR INTEGER[] cols.
         hd = Heading:Wrap(piHeading).
         turnable = LOOKUP(pcName, "held_bazooka,held_shotgun,rocket,exhaust_0,exhaust_1,missile,flare_0,flare_1").
         IF turnable = 0 THEN UNDO, THROW NEW GridException("The sprite " + STRING(pcName) + " is not one that is turned").

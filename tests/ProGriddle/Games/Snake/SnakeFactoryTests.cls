@@ -7,7 +7,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Snake.SnakeFactoryTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS SnakeGame NO-UNDO.
+    VAR PRIVATE SnakeGame mGame.
 
     @Setup.
     METHOD PUBLIC VOID BuildGame():
@@ -27,7 +27,7 @@ CLASS ProGriddle.Games.Snake.SnakeFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID CreateGridMakesAnEmptyBoardOfTheSizeAskedFor():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         g = SnakeFactory:CreateGrid(14, 9).
         Assert:Equals(14, g:Width).
         Assert:Equals(9, g:Height).
@@ -58,7 +58,7 @@ CLASS ProGriddle.Games.Snake.SnakeFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID RebuildRefusesASideOutOfRangeAndChangesNothing():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             SnakeFactory:Rebuild(mGame, 4, 20).
             CATCH e1 AS GridException:

@@ -22,8 +22,8 @@ CLASS ProGriddle.Games.Snake.SnakeLookTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownColourIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t      AS SnakeTint NO-UNDO.
+        VAR INTEGER thrown.
+        VAR SnakeTint t.
         DO ON ERROR UNDO, THROW:
             SnakeLook:Colour(t).
             CATCH e1 AS GridException:
@@ -51,7 +51,7 @@ CLASS ProGriddle.Games.Snake.SnakeLookTests:
 
     @Test.
     METHOD PUBLIC VOID ABlendRoundsHalvesToTheEvenNumberAndRefusesNonsense():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         /* half way from 0 to 1 is 0.5, which rounds to 0; from 1 to 2 is 1.5, which rounds to 2 */
         Assert:Equals(0, SnakeLook:Blend(0, 1, 50)).
         Assert:Equals(2, SnakeLook:Blend(1, 2, 50)).
@@ -68,8 +68,8 @@ CLASS ProGriddle.Games.Snake.SnakeLookTests:
 
     @Test.
     METHOD PUBLIC VOID AToneRowNeedsAColour():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c      AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
+        VAR INTEGER c.
         c = ?.
         DO ON ERROR UNDO, THROW:
             SnakeLook:ToneRow(c).
@@ -87,7 +87,7 @@ CLASS ProGriddle.Games.Snake.SnakeLookTests:
 
     @Test.
     METHOD PUBLIC VOID TheCrashFadeGoesFromTheBodyTowardsTheColourItFadesToInFiveSteps():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         /* a fifth of the way from 2FB383 to 2A3345 is 2E9977 */
         Assert:Equals("2E9977", ENTRY(3, SnakeLook:CrashTones(1))).
         Assert:Equals(SnakeLook:ToneRow(SnakeLook:Colour(SnakeTint:CrashEnd)), SnakeLook:CrashTones(5)).

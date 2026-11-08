@@ -10,13 +10,13 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Centipede.CentipedeCuesTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS CentipedeGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCues AS CentipedeCues NO-UNDO.
+    VAR PRIVATE CentipedeGame mGame.
+    VAR PRIVATE CentipedeCues mCues.
 
     /* A game in play on an empty field with a segment kept out of the way, the shooter at 96, 224, and the cue source up to date. */
     @Setup.
     METHOD PUBLIC VOID BuildCues():
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER y.
         mGame = CentipedeFactory:Create(NEW ScriptedRandom("1")).
         mCues = NEW CentipedeCues().
         /* the first look takes the title as it is, and the next the new game */
@@ -46,9 +46,9 @@ CLASS ProGriddle.Games.Centipede.CentipedeCuesTests:
 
     /* Advances piFrames frames, polling after each, and gives every cue that was reported as a comma list. */
     METHOD PRIVATE CHARACTER Collect(INPUT piFrames AS INTEGER):
-        DEFINE VARIABLE i    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE got  AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER cues.
+        VAR CHARACTER got.
         DO i = 1 TO piFrames:
             mGame:Advance().
             got = mCues:Poll(mGame).
@@ -63,8 +63,8 @@ CLASS ProGriddle.Games.Centipede.CentipedeCuesTests:
 
     @Test.
     METHOD PUBLIC VOID TheTitleScreenAndTheStartOfAGameAreSilent():
-        DEFINE VARIABLE oGame AS CentipedeGame NO-UNDO.
-        DEFINE VARIABLE oCues AS CentipedeCues NO-UNDO.
+        VAR CentipedeGame oGame.
+        VAR CentipedeCues oCues.
         oGame = CentipedeFactory:Create(NEW ScriptedRandom("1")).
         oCues = NEW CentipedeCues().
         oGame:FireHeld = TRUE.
@@ -90,7 +90,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeCuesTests:
 
     @Test.
     METHOD PUBLIC VOID ABrokenMushroomGivesTheBreakCueAndTheFireCue():
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
+        VAR CHARACTER cues.
         mGame:PlaceMushroom(12, 20, 1).
         mGame:FireHeld = TRUE.
         cues = Collect(12).
@@ -100,7 +100,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeCuesTests:
 
     @Test.
     METHOD PUBLIC VOID ABodySegmentAndAHeadSoundDifferent():
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
+        VAR CHARACTER cues.
         mGame:AddSegment(12, 26, -1, FALSE).
         mGame:FireHeld = TRUE.
         cues = Collect(2).
@@ -117,7 +117,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeCuesTests:
 
     @Test.
     METHOD PUBLIC VOID TheFleaGivesAHitCueAndThenAKillCue():
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
+        VAR CHARACTER cues.
         mGame:SpawnFlea(12).
         mGame:FireHeld = TRUE.
         cues = Collect(80).
@@ -127,7 +127,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeCuesTests:
 
     @Test.
     METHOD PUBLIC VOID TheScorpionAndTheSpiderGiveTheirKillCues():
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
+        VAR CHARACTER cues.
         mGame:PlacePlayer(120, 224).
         mGame:SpawnScorpion(10, TRUE).
         Collect(112).
@@ -165,7 +165,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeCuesTests:
 
     @Test.
     METHOD PUBLIC VOID TheDeathCueComesBeforeTheOthers():
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
+        VAR CHARACTER cues.
         mGame:AddSegment(12, 28, -1, TRUE).
         mGame:AddScore(12000).
         mGame:Advance().
@@ -194,7 +194,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeCuesTests:
 
     @Test.
     METHOD PUBLIC VOID TheDeathOfTheShooterAndTheTitleHaveNoLoops():
-        DEFINE VARIABLE oGame AS CentipedeGame NO-UNDO.
+        VAR CentipedeGame oGame.
         mGame:SpawnSpider(TRUE, 26).
         mGame:AddSegment(12, 28, -1, TRUE).
         mGame:Advance().
@@ -215,7 +215,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeCuesTests:
 
     @Test.
     METHOD PUBLIC VOID AGameThatIsNotCentipedeIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mCues:Poll(?).
             CATCH e1 AS GridException:

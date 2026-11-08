@@ -10,7 +10,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.ForEach.MazeDirsTests:
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE dir AS MazeDir NO-UNDO.
+        VAR MazeDir dir.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN MazeDirs:Dx(dir).

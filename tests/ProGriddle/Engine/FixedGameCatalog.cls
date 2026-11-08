@@ -7,7 +7,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.FixedGameCatalog IMPLEMENTS IGameCatalog:
 
-    DEFINE PRIVATE VARIABLE mGames AS CHARACTER NO-UNDO.
+    VAR PRIVATE CHARACTER mGames.
 
     DEFINE PUBLIC PROPERTY Count AS INTEGER NO-UNDO
         GET():
@@ -28,13 +28,13 @@ CLASS ProGriddle.Engine.FixedGameCatalog IMPLEMENTS IGameCatalog:
     END METHOD.
 
     METHOD PUBLIC CHARACTER AccentAt(INPUT piPlace AS INTEGER):
-        DEFINE VARIABLE item AS CHARACTER NO-UNDO.
+        VAR CHARACTER item.
         item = ENTRY(piPlace, mGames, ";").
         RETURN (IF NUM-ENTRIES(item, "|") >= 4 THEN ENTRY(4, item, "|") ELSE "").
     END METHOD.
 
     METHOD PUBLIC CHARACTER CategoryAt(INPUT piPlace AS INTEGER):
-        DEFINE VARIABLE item AS CHARACTER NO-UNDO.
+        VAR CHARACTER item.
         item = ENTRY(piPlace, mGames, ";").
         RETURN (IF NUM-ENTRIES(item, "|") >= 5 THEN ENTRY(5, item, "|") ELSE "").
     END METHOD.

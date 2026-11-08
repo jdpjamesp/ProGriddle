@@ -21,14 +21,14 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Battleships.HuntTargetOpponent FINAL IMPLEMENTS IBattleshipsOpponent:
 
-    DEFINE PRIVATE VARIABLE mRandom AS IRandom   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mKnown  AS ArrayStore NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWidth  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHeight AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mParity AS INTEGER   NO-UNDO.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE ArrayStore mKnown.
+    VAR PRIVATE INTEGER mWidth.
+    VAR PRIVATE INTEGER mHeight.
+    VAR PRIVATE INTEGER mParity.
     /* candidate cells for the next shot, and a work stack for finding a sunk ship */
-    DEFINE PRIVATE VARIABLE mCandidates AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mStack      AS INTEGER NO-UNDO EXTENT.
+    VAR PRIVATE INTEGER[] mCandidates.
+    VAR PRIVATE INTEGER[] mStack.
 
     CONSTRUCTOR PUBLIC HuntTargetOpponent(INPUT poRandom AS IRandom):
         IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("An opponent needs a random source").
@@ -52,11 +52,11 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponent FINAL IMPLEMENTS IBattlesh
     END METHOD.
 
     METHOD PUBLIC VOID NextShot(OUTPUT piX AS INTEGER, OUTPUT piY AS INTEGER):
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pick AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER pick.
         IF NOT VALID-OBJECT(mKnown) THEN UNDO, THROW NEW GridException("The opponent has not been reset to a board").
 
         /* targeting: next to a hit that is not part of a sunk ship */
@@ -112,12 +112,12 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponent FINAL IMPLEMENTS IBattlesh
        In a line of two or more hits only the two cells that extend the line count. A lone hit
        has up to four. */
     METHOD PRIVATE INTEGER AddTargets(INPUT piIdx AS INTEGER, INPUT piCount AS INTEGER):
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE a     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE found AS LOGICAL NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
+        VAR INTEGER a.
+        VAR INTEGER b.
+        VAR LOGICAL found.
         n = piCount.
         x = piIdx MODULO mWidth.
         y = INTEGER(TRUNCATE(piIdx / mWidth, 0)).
@@ -165,12 +165,12 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponent FINAL IMPLEMENTS IBattlesh
        cell (two ships cannot touch, so nothing else is joined). Turn it into sunk cells and
        turn every unfired cell round it into water. */
     METHOD PRIVATE VOID MarkSunk(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE depth AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cur AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cx  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy  AS INTEGER NO-UNDO.
+        VAR INTEGER depth.
+        VAR INTEGER cur.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
         mKnown:SetCell(1, piX, piY, 3).
         mStack[1] = piY * mWidth + piX.
         depth = 1.

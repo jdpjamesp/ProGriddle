@@ -43,89 +43,89 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     &SCOPED-DEFINE FX-MAX 24
     &SCOPED-DEFINE ZAP-MAX 2
 
-    DEFINE PRIVATE VARIABLE mRandom    AS IRandom NO-UNDO.
-    DEFINE PRIVATE VARIABLE mAcc       AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNotice    AS CHARACTER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFireReady AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNextExtra AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScrollAcc AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNextRow   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mMaxRow    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLandOff   AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mStageStart AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mStageSols AS INTEGER NO-UNDO.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE INTEGER mAcc.
+    VAR PRIVATE CHARACTER mNotice.
+    VAR PRIVATE LOGICAL mFireReady.
+    VAR PRIVATE INTEGER mNextExtra.
+    VAR PRIVATE INTEGER mScrollAcc.
+    VAR PRIVATE INTEGER mNextRow.
+    VAR PRIVATE INTEGER mMaxRow.
+    VAR PRIVATE LOGICAL mLandOff.
+    VAR PRIVATE INTEGER mStageStart.
+    VAR PRIVATE INTEGER mStageSols.
     /* the ship, the Zapper and the Blaster */
-    DEFINE PRIVATE VARIABLE mPx        AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPy        AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mProtect   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mZapCool   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mZapOn     AS LOGICAL NO-UNDO EXTENT {&ZAP-MAX}.
-    DEFINE PRIVATE VARIABLE mZapX      AS INTEGER NO-UNDO EXTENT {&ZAP-MAX}.
-    DEFINE PRIVATE VARIABLE mZapY      AS INTEGER NO-UNDO EXTENT {&ZAP-MAX}.
-    DEFINE PRIVATE VARIABLE mBombOn    AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBombT     AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBombSx    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBombSy    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBombTx    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBombTy    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBurstOn   AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBurstT    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBurstX    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBurstY    AS INTEGER NO-UNDO.
+    VAR PRIVATE INTEGER mPx.
+    VAR PRIVATE INTEGER mPy.
+    VAR PRIVATE INTEGER mProtect.
+    VAR PRIVATE INTEGER mZapCool.
+    VAR PRIVATE LOGICAL[{&ZAP-MAX}] mZapOn.
+    VAR PRIVATE INTEGER[{&ZAP-MAX}] mZapX.
+    VAR PRIVATE INTEGER[{&ZAP-MAX}] mZapY.
+    VAR PRIVATE LOGICAL mBombOn.
+    VAR PRIVATE INTEGER mBombT.
+    VAR PRIVATE INTEGER mBombSx.
+    VAR PRIVATE INTEGER mBombSy.
+    VAR PRIVATE INTEGER mBombTx.
+    VAR PRIVATE INTEGER mBombTy.
+    VAR PRIVATE LOGICAL mBurstOn.
+    VAR PRIVATE INTEGER mBurstT.
+    VAR PRIVATE INTEGER mBurstX.
+    VAR PRIVATE INTEGER mBurstY.
     /* the air enemies: where they began (the column of its anchor and the row of its start), the age in frames, which side a Torkan
        came from, the column a Terrazi was aimed at, how far a Bacura has been pushed back, and where each is now */
-    DEFINE PRIVATE VARIABLE mAirOn     AS LOGICAL NO-UNDO EXTENT {&AIR-MAX}.
-    DEFINE PRIVATE VARIABLE mAirKind   AS INTEGER NO-UNDO EXTENT {&AIR-MAX}.
-    DEFINE PRIVATE VARIABLE mAirA      AS INTEGER NO-UNDO EXTENT {&AIR-MAX}.
-    DEFINE PRIVATE VARIABLE mAirY0     AS INTEGER NO-UNDO EXTENT {&AIR-MAX}.
-    DEFINE PRIVATE VARIABLE mAirAge    AS INTEGER NO-UNDO EXTENT {&AIR-MAX}.
-    DEFINE PRIVATE VARIABLE mAirWay    AS INTEGER NO-UNDO EXTENT {&AIR-MAX}.
-    DEFINE PRIVATE VARIABLE mAirAim    AS INTEGER NO-UNDO EXTENT {&AIR-MAX}.
-    DEFINE PRIVATE VARIABLE mAirPush   AS INTEGER NO-UNDO EXTENT {&AIR-MAX}.
-    DEFINE PRIVATE VARIABLE mAirX      AS INTEGER NO-UNDO EXTENT {&AIR-MAX}.
-    DEFINE PRIVATE VARIABLE mAirY      AS INTEGER NO-UNDO EXTENT {&AIR-MAX}.
+    VAR PRIVATE LOGICAL[{&AIR-MAX}] mAirOn.
+    VAR PRIVATE INTEGER[{&AIR-MAX}] mAirKind.
+    VAR PRIVATE INTEGER[{&AIR-MAX}] mAirA.
+    VAR PRIVATE INTEGER[{&AIR-MAX}] mAirY0.
+    VAR PRIVATE INTEGER[{&AIR-MAX}] mAirAge.
+    VAR PRIVATE INTEGER[{&AIR-MAX}] mAirWay.
+    VAR PRIVATE INTEGER[{&AIR-MAX}] mAirAim.
+    VAR PRIVATE INTEGER[{&AIR-MAX}] mAirPush.
+    VAR PRIVATE INTEGER[{&AIR-MAX}] mAirX.
+    VAR PRIVATE INTEGER[{&AIR-MAX}] mAirY.
     /* the ground targets: 0 for none, 1 standing, 2 destroyed (a scorch that scrolls away) */
-    DEFINE PRIVATE VARIABLE mGrState   AS INTEGER NO-UNDO EXTENT {&GROUND-MAX}.
-    DEFINE PRIVATE VARIABLE mGrKind    AS INTEGER NO-UNDO EXTENT {&GROUND-MAX}.
-    DEFINE PRIVATE VARIABLE mGrX       AS INTEGER NO-UNDO EXTENT {&GROUND-MAX}.
-    DEFINE PRIVATE VARIABLE mGrY       AS INTEGER NO-UNDO EXTENT {&GROUND-MAX}.
-    DEFINE PRIVATE VARIABLE mGrT       AS INTEGER NO-UNDO EXTENT {&GROUND-MAX}.
-    DEFINE PRIVATE VARIABLE mGrHp      AS INTEGER NO-UNDO EXTENT {&GROUND-MAX}.
-    DEFINE PRIVATE VARIABLE mGrWay     AS INTEGER NO-UNDO EXTENT {&GROUND-MAX}.
+    VAR PRIVATE INTEGER[{&GROUND-MAX}] mGrState.
+    VAR PRIVATE INTEGER[{&GROUND-MAX}] mGrKind.
+    VAR PRIVATE INTEGER[{&GROUND-MAX}] mGrX.
+    VAR PRIVATE INTEGER[{&GROUND-MAX}] mGrY.
+    VAR PRIVATE INTEGER[{&GROUND-MAX}] mGrT.
+    VAR PRIVATE INTEGER[{&GROUND-MAX}] mGrHp.
+    VAR PRIVATE INTEGER[{&GROUND-MAX}] mGrWay.
     /* enemy bullets, in eighths of a pixel */
-    DEFINE PRIVATE VARIABLE mBuOn      AS LOGICAL NO-UNDO EXTENT {&BULLET-MAX}.
-    DEFINE PRIVATE VARIABLE mBuX       AS INTEGER NO-UNDO EXTENT {&BULLET-MAX}.
-    DEFINE PRIVATE VARIABLE mBuY       AS INTEGER NO-UNDO EXTENT {&BULLET-MAX}.
-    DEFINE PRIVATE VARIABLE mBuVx      AS INTEGER NO-UNDO EXTENT {&BULLET-MAX}.
-    DEFINE PRIVATE VARIABLE mBuVy      AS INTEGER NO-UNDO EXTENT {&BULLET-MAX}.
+    VAR PRIVATE LOGICAL[{&BULLET-MAX}] mBuOn.
+    VAR PRIVATE INTEGER[{&BULLET-MAX}] mBuX.
+    VAR PRIVATE INTEGER[{&BULLET-MAX}] mBuY.
+    VAR PRIVATE INTEGER[{&BULLET-MAX}] mBuVx.
+    VAR PRIVATE INTEGER[{&BULLET-MAX}] mBuVy.
     /* effects for a painter: the kind (-1 for none), where, the frame it began and a number to show */
-    DEFINE PRIVATE VARIABLE mFxKind    AS INTEGER NO-UNDO EXTENT {&FX-MAX} INITIAL -1.
-    DEFINE PRIVATE VARIABLE mFxX       AS INTEGER NO-UNDO EXTENT {&FX-MAX}.
-    DEFINE PRIVATE VARIABLE mFxY       AS INTEGER NO-UNDO EXTENT {&FX-MAX}.
-    DEFINE PRIVATE VARIABLE mFxStart   AS INTEGER NO-UNDO EXTENT {&FX-MAX}.
-    DEFINE PRIVATE VARIABLE mFxValue   AS INTEGER NO-UNDO EXTENT {&FX-MAX}.
-    DEFINE PRIVATE VARIABLE mFxNext    AS INTEGER NO-UNDO INITIAL 1.
+    VAR PRIVATE INTEGER[{&FX-MAX}] mFxKind = -1.
+    VAR PRIVATE INTEGER[{&FX-MAX}] mFxX.
+    VAR PRIVATE INTEGER[{&FX-MAX}] mFxY.
+    VAR PRIVATE INTEGER[{&FX-MAX}] mFxStart.
+    VAR PRIVATE INTEGER[{&FX-MAX}] mFxValue.
+    VAR PRIVATE INTEGER mFxNext = 1.
     /* the mothership */
-    DEFINE PRIVATE VARIABLE mBossOn    AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBossSpawned AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBossDone  AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBossX     AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBossY     AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBossHp    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBossT     AS INTEGER NO-UNDO.
+    VAR PRIVATE LOGICAL mBossOn.
+    VAR PRIVATE LOGICAL mBossSpawned.
+    VAR PRIVATE LOGICAL mBossDone.
+    VAR PRIVATE INTEGER mBossX.
+    VAR PRIVATE INTEGER mBossY.
+    VAR PRIVATE INTEGER mBossHp.
+    VAR PRIVATE INTEGER mBossT.
     /* the wave being sent: what kind, how many to come, frames between them, frames to the next, where the first goes, the step
        from one to the next, which one it is, and which side (for a Torkan). mWaveTimer counts down to the next wave. */
-    DEFINE PRIVATE VARIABLE mQKind     AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mQLeft     AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mQGap      AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mQTimer    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mQX        AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mQDx       AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mQIndex    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mQWay      AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWaveTimer AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mStageGround AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mStageKilled AS INTEGER NO-UNDO.
+    VAR PRIVATE INTEGER mQKind.
+    VAR PRIVATE INTEGER mQLeft.
+    VAR PRIVATE INTEGER mQGap.
+    VAR PRIVATE INTEGER mQTimer.
+    VAR PRIVATE INTEGER mQX.
+    VAR PRIVATE INTEGER mQDx.
+    VAR PRIVATE INTEGER mQIndex.
+    VAR PRIVATE INTEGER mQWay.
+    VAR PRIVATE INTEGER mWaveTimer.
+    VAR PRIVATE INTEGER mStageGround.
+    VAR PRIVATE INTEGER mStageKilled.
 
     DEFINE PUBLIC PROPERTY Paused AS LOGICAL NO-UNDO
         GET.
@@ -295,8 +295,8 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     /* Zapper shots in the air now. */
     DEFINE PUBLIC PROPERTY ZapCount AS INTEGER NO-UNDO
         GET():
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
-            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            VAR INTEGER i.
+            VAR INTEGER n.
             DO i = 1 TO {&ZAP-MAX}:
                 IF mZapOn[i] THEN n = n + 1.
             END.
@@ -359,7 +359,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     /* True when a ground target that can be seen is under the sight. */
     DEFINE PUBLIC PROPERTY SightOnTarget AS LOGICAL NO-UNDO
         GET():
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
+            VAR INTEGER i.
             DO i = 1 TO {&GROUND-MAX}:
                 IF mGrState[i] = 1 AND NOT XeviousRules:IsHidden(XeviousGround:GetEnum(mGrKind[i]))
                    AND Overlap(SightX, SightY, 1, 1, mGrX[i] + GroundLeft(i), mGrY[i] + GroundTop(i), GroundWide(i), GroundHigh(i)) THEN RETURN TRUE.
@@ -392,8 +392,8 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     /* Air enemies, enemy bullets and ground targets standing (hidden ones too) now. */
     DEFINE PUBLIC PROPERTY AirCount AS INTEGER NO-UNDO
         GET():
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
-            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            VAR INTEGER i.
+            VAR INTEGER n.
             DO i = 1 TO {&AIR-MAX}:
                 IF mAirOn[i] THEN n = n + 1.
             END.
@@ -402,8 +402,8 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
 
     DEFINE PUBLIC PROPERTY BulletCount AS INTEGER NO-UNDO
         GET():
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
-            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            VAR INTEGER i.
+            VAR INTEGER n.
             DO i = 1 TO {&BULLET-MAX}:
                 IF mBuOn[i] THEN n = n + 1.
             END.
@@ -412,8 +412,8 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
 
     DEFINE PUBLIC PROPERTY GroundCount AS INTEGER NO-UNDO
         GET():
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
-            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            VAR INTEGER i.
+            VAR INTEGER n.
             DO i = 1 TO {&GROUND-MAX}:
                 IF mGrState[i] = 1 THEN n = n + 1.
             END.
@@ -485,7 +485,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     /* Moves time on: the milliseconds become frames (at SpeedPercent of 60 a second) and each one is made. Returns true when
        a frame was made, so the controller redraws. A stall of more than 100 ms is cut to 100. Does nothing while Paused. */
     METHOD PUBLIC LOGICAL Tick(INPUT piElapsedMs AS INTEGER):
-        DEFINE VARIABLE made AS INTEGER NO-UNDO.
+        VAR INTEGER made.
         IF Paused OR piElapsedMs = ? OR piElapsedMs <= 0 THEN RETURN FALSE.
         mAcc = mAcc + INTEGER(ROUND(MINIMUM(piElapsedMs, {&MOST-MS}) * 0.6 * SpeedPercent, 0)).
         DO WHILE mAcc >= 1000 AND made < {&MOST-FRAMES}:
@@ -517,7 +517,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* A few words about what just happened (an extra ship, a stage), or "" for nothing. Taking them clears them. */
     METHOD PUBLIC CHARACTER TakeNotice():
-        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        VAR CHARACTER notice.
         notice = mNotice.
         mNotice = "".
         RETURN notice.
@@ -560,7 +560,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* Takes every air enemy away, and the wave that was on its way. */
     METHOD PUBLIC VOID ClearAir():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&AIR-MAX}:
             mAirOn[i] = FALSE.
         END.
@@ -580,14 +580,14 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     END METHOD.
 
     METHOD PUBLIC VOID ClearGround():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&GROUND-MAX}:
             mGrState[i] = 0.
         END.
     END METHOD.
 
     METHOD PUBLIC VOID ClearBullets():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&BULLET-MAX}:
             mBuOn[i] = FALSE.
         END.
@@ -851,7 +851,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     END METHOD.
 
     METHOD PRIVATE VOID FireWeapons():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF mZapCool > 0 THEN mZapCool = mZapCool - 1.
         IF ZapHeld AND mZapCool = 0 THEN DO:
             DO i = 1 TO {&ZAP-MAX}:
@@ -878,7 +878,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* The ground goes down the screen by ScrollNum pixels in every ScrollDen frames, and the new row at the top is made. */
     METHOD PRIVATE VOID StepScroll():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mScrollAcc = mScrollAcc + XeviousRules:ScrollNum().
         IF mScrollAcc < XeviousRules:ScrollDen() THEN RETURN.
         mScrollAcc = mScrollAcc - XeviousRules:ScrollDen().
@@ -900,8 +900,8 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* Puts on the map every row of ground that has come within 32 pixels above the screen. */
     METHOD PRIVATE VOID Generate():
-        DEFINE VARIABLE kind AS XeviousGround NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER       NO-UNDO.
+        VAR XeviousGround kind.
+        VAR INTEGER y.
         DO WHILE RowY(mNextRow) > -32 AND NOT mLandOff:
             kind = XeviousMap:KindAt(Stage, mNextRow).
             IF VALID-OBJECT(kind) THEN DO:
@@ -916,7 +916,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     /* Puts a ground target in the first free slot. plCount says it is new to the map, so it counts for the bonus. Returns false
        when there is no room. */
     METHOD PRIVATE LOGICAL AddGround(INPUT poKind AS XeviousGround, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT plCount AS LOGICAL):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&GROUND-MAX}:
             IF mGrState[i] = 0 THEN DO:
                 ASSIGN mGrState[i] = 1
@@ -936,7 +936,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     /* ============================== the air ============================== */
 
     METHOD PRIVATE VOID StepWaves():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         IF mBossOn THEN RETURN.
         IF mQLeft > 0 THEN DO:
             mQTimer = mQTimer - 1.
@@ -961,8 +961,8 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* Chooses the next wave: a kind that has come in by this stage, and how many, where and how far apart. */
     METHOD PRIVATE VOID StartWave():
-        DEFINE VARIABLE tries AS INTEGER NO-UNDO.
-        DEFINE VARIABLE kind  AS XeviousAir NO-UNDO.
+        VAR INTEGER tries.
+        VAR XeviousAir kind.
         kind = XeviousAir:Toroid.
         DO tries = 1 TO 12:
             kind = XeviousAir:GetEnum(mRandom:NextInt(8)).
@@ -993,7 +993,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     /* Puts an air enemy in the first free slot. Returns false when there is no room. */
     METHOD PRIVATE LOGICAL TrySpawnAir(INPUT poKind AS XeviousAir, INPUT piX AS INTEGER, INPUT piY AS INTEGER,
                                        INPUT piWay AS INTEGER, INPUT piAimX AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&AIR-MAX}:
             IF NOT mAirOn[i] THEN DO:
                 ASSIGN mAirOn[i] = TRUE
@@ -1013,8 +1013,8 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     END METHOD.
 
     METHOD PRIVATE VOID StepAir():
-        DEFINE VARIABLE i    AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE kind AS XeviousAir NO-UNDO.
+        VAR INTEGER i.
+        VAR XeviousAir kind.
         DO i = 1 TO {&AIR-MAX}:
             IF mAirOn[i] THEN DO:
                 kind = XeviousAir:GetEnum(mAirKind[i]).
@@ -1044,7 +1044,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* An air enemy is destroyed by a Zapper shot: its points, its blast, and the slot is free. */
     METHOD PRIVATE VOID KillAir(INPUT piIndex AS INTEGER):
-        DEFINE VARIABLE points AS INTEGER NO-UNDO.
+        VAR INTEGER points.
         points = XeviousRules:AirPoints(XeviousAir:GetEnum(mAirKind[piIndex])).
         mAirOn[piIndex] = FALSE.
         AirKills = AirKills + 1.
@@ -1056,9 +1056,9 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     /* ============================== the ground ============================== */
 
     METHOD PRIVATE VOID StepGround():
-        DEFINE VARIABLE i      AS INTEGER        NO-UNDO.
-        DEFINE VARIABLE kind   AS XeviousGround  NO-UNDO.
-        DEFINE VARIABLE period AS INTEGER        NO-UNDO.
+        VAR INTEGER i.
+        VAR XeviousGround kind.
+        VAR INTEGER period.
         DO i = 1 TO {&GROUND-MAX}:
             IF mGrState[i] <> 0 THEN mGrT[i] = mGrT[i] + 1.
             /* a revealed tower bursts after 24 frames and leaves its scorch */
@@ -1105,8 +1105,8 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* A ground target is hit by a bomb. A hidden one is found (and goes), a target with hit points left only takes one. */
     METHOD PRIVATE VOID HitGround(INPUT piIndex AS INTEGER):
-        DEFINE VARIABLE kind   AS XeviousGround NO-UNDO.
-        DEFINE VARIABLE points AS INTEGER       NO-UNDO.
+        VAR XeviousGround kind.
+        VAR INTEGER points.
         kind = XeviousGround:GetEnum(mGrKind[piIndex]).
         mGrHp[piIndex] = mGrHp[piIndex] - 1.
         IF mGrHp[piIndex] > 0 THEN DO:
@@ -1143,7 +1143,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     /* ============================== the mothership ============================== */
 
     METHOD PRIVATE VOID StepBoss():
-        DEFINE VARIABLE period AS INTEGER NO-UNDO.
+        VAR INTEGER period.
         IF NOT mBossOn THEN RETURN.
         mBossT = mBossT + 1.
         IF mBossY < 56 AND mBossT MODULO 2 = 0 THEN mBossY = mBossY + 1.
@@ -1160,8 +1160,8 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     /* ============================== the weapons ============================== */
 
     METHOD PRIVATE VOID StepZaps():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
         DO i = 1 TO {&ZAP-MAX}:
             IF mZapOn[i] THEN DO:
                 mZapY[i] = mZapY[i] - XeviousRules:ZapSpeed().
@@ -1206,8 +1206,8 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* What a bomb that has landed at piX, piY hits: ground targets, and the core of the mothership. */
     METHOD PRIVATE VOID Blast(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER r.
         r = XeviousRules:BlastRadius().
         DO i = 1 TO {&GROUND-MAX}:
             IF mGrState[i] = 1 AND mGrY[i] > -16 AND Overlap(piX - r, piY - r, 2 * r, 2 * r, mGrX[i] + GroundLeft(i), mGrY[i] + GroundTop(i), GroundWide(i), GroundHigh(i)) THEN HitGround(i).
@@ -1233,12 +1233,12 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     /* A bullet from piFromX, piFromY (its centre) towards piToX, piToY at this stage's speed. Nothing happens when the air is full
        of bullets. */
     METHOD PRIVATE VOID FireAt(INPUT piFromX AS INTEGER, INPUT piFromY AS INTEGER, INPUT piToX AS INTEGER, INPUT piToY AS INTEGER):
-        DEFINE VARIABLE dx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE a     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE len   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE speed AS INTEGER NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER a.
+        VAR INTEGER b.
+        VAR INTEGER len.
+        VAR INTEGER speed.
         speed = XeviousRules:BulletSpeed(Stage).
         dx = piToX - piFromX.
         dy = piToY - piFromY.
@@ -1251,8 +1251,8 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* A ring of eight bullets from a centre. */
     METHOD PRIVATE VOID Ring(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE s AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER s.
+        VAR INTEGER c.
         s = XeviousRules:BulletSpeed(Stage).
         c = XeviousMotion:Div(s * 7, 10).
         AddBullet(piX, piY, s, 0).
@@ -1266,7 +1266,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     END METHOD.
 
     METHOD PRIVATE VOID AddBullet(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piVx AS INTEGER, INPUT piVy AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&BULLET-MAX}:
             IF NOT mBuOn[i] THEN DO:
                 ASSIGN mBuOn[i] = TRUE
@@ -1281,9 +1281,9 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
     END METHOD.
 
     METHOD PRIVATE VOID StepBullets():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO i = 1 TO {&BULLET-MAX}:
             IF mBuOn[i] THEN DO:
                 mBuX[i] = mBuX[i] + mBuVx[i].
@@ -1313,7 +1313,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* The ship comes back: the stage goes back to the last checkpoint, the air is clear and the ship is protected. */
     METHOD PRIVATE VOID Respawn():
-        DEFINE VARIABLE row AS INTEGER NO-UNDO.
+        VAR INTEGER row.
         Distance = XeviousMotion:Div(Distance, XeviousRules:CheckpointEvery()) * XeviousRules:CheckpointEvery().
         mScrollAcc = 0.
         ClearGround().

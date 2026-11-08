@@ -8,9 +8,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.2048.TilesInputTests:
 
-    DEFINE PRIVATE VARIABLE mGame     AS TilesGame     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS MemorySettings NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInput    AS TilesInput    NO-UNDO.
+    VAR PRIVATE TilesGame mGame.
+    VAR PRIVATE MemorySettings mSettings.
+    VAR PRIVATE TilesInput mInput.
 
     @Setup.
     METHOD PUBLIC VOID BuildInput():
@@ -163,7 +163,7 @@ CLASS ProGriddle.Games.2048.TilesInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheBestScoreIsReadFromTheSettingsAndNotLowered():
-        DEFINE VARIABLE other AS TilesInput NO-UNDO.
+        VAR TilesInput other.
         mSettings:SetInteger("2048.best", 500).
         other = NEW TilesInput(mGame, mSettings).
         mGame:StartWith("1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0").
@@ -204,7 +204,7 @@ CLASS ProGriddle.Games.2048.TilesInputTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownCommandThrows():
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             mInput:Perform("Nothing").
             CATCH e AS GridException:
@@ -216,7 +216,7 @@ CLASS ProGriddle.Games.2048.TilesInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheInputNeedsAGameAndSettings():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW TilesInput(?, mSettings).
             CATCH e1 AS GridException:

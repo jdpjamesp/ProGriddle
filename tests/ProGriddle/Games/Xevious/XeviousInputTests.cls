@@ -10,9 +10,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Xevious.XeviousInputTests:
 
-    DEFINE PRIVATE VARIABLE mGame     AS XeviousGame    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS MemorySettings NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInput    AS XeviousInput   NO-UNDO.
+    VAR PRIVATE XeviousGame mGame.
+    VAR PRIVATE MemorySettings mSettings.
+    VAR PRIVATE XeviousInput mInput.
 
     @Setup.
     METHOD PUBLIC VOID BuildInput():
@@ -123,9 +123,9 @@ CLASS ProGriddle.Games.Xevious.XeviousInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheSpeedAndTheBestScoreComeFromTheSettings():
-        DEFINE VARIABLE oSettings AS MemorySettings NO-UNDO.
-        DEFINE VARIABLE oGame     AS XeviousGame    NO-UNDO.
-        DEFINE VARIABLE oInput    AS XeviousInput   NO-UNDO.
+        VAR MemorySettings oSettings.
+        VAR XeviousGame oGame.
+        VAR XeviousInput oInput.
         oSettings = NEW MemorySettings().
         oSettings:SetInteger("xevious.speed", 50).
         oSettings:SetInteger("xevious.hiscore", 1234).
@@ -166,7 +166,7 @@ CLASS ProGriddle.Games.Xevious.XeviousInputTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownCommandIsRefusedAndTheOtherActionsDoNothing():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mInput:Perform("Dance").
             CATCH e1 AS GridException:
@@ -190,8 +190,8 @@ CLASS ProGriddle.Games.Xevious.XeviousInputTests:
 
     @Test.
     METHOD PUBLIC VOID ItNeedsAGameSettingsAndAPlayer():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oOther AS XeviousInput NO-UNDO.
+        VAR INTEGER thrown.
+        VAR XeviousInput oOther.
         DO ON ERROR UNDO, THROW:
             oOther = NEW XeviousInput(?, mSettings).
             CATCH e1 AS GridException:

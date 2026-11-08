@@ -18,23 +18,23 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
     &SCOPED-DEFINE MOST-FRAMES 4
     &SCOPED-DEFINE MOST-MS 100
 
-    DEFINE PRIVATE VARIABLE mRandom  AS IRandom        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSetup   AS BuddySetup     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPhysics AS BuddyPhysics   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTerrain AS Terrain        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlan    AS TurnPlan       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mAcc     AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTimer   AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettle  AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShells  AS ShellPool      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mExplosion AS Explosion    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDeathT  AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBrain   AS IBuddyBrain    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTitle   AS LOGICAL        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWalkAcc AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mAimAcc  AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mJumpAt  AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mJumpWas AS INTEGER        NO-UNDO.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE BuddySetup mSetup.
+    VAR PRIVATE BuddyPhysics mPhysics.
+    VAR PRIVATE Terrain mTerrain.
+    VAR PRIVATE TurnPlan mPlan.
+    VAR PRIVATE INTEGER mAcc.
+    VAR PRIVATE INTEGER mTimer.
+    VAR PRIVATE INTEGER mSettle.
+    VAR PRIVATE ShellPool mShells.
+    VAR PRIVATE Explosion mExplosion.
+    VAR PRIVATE INTEGER mDeathT.
+    VAR PRIVATE IBuddyBrain mBrain.
+    VAR PRIVATE LOGICAL mTitle.
+    VAR PRIVATE INTEGER mWalkAcc.
+    VAR PRIVATE INTEGER mAimAcc.
+    VAR PRIVATE INTEGER mJumpAt.
+    VAR PRIVATE INTEGER mJumpWas.
 
     /* True while the game is stopped: the clock and the moves do nothing. */
     DEFINE PUBLIC PROPERTY Paused AS LOGICAL NO-UNDO GET. SET.
@@ -214,7 +214,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
     /* Moves time on by piElapsedMs milliseconds and makes the frames that are due at the speed, up to 4. Returns true when a frame was
        made. Does nothing while Paused. */
     METHOD PUBLIC LOGICAL Tick(INPUT piElapsedMs AS INTEGER):
-        DEFINE VARIABLE made AS INTEGER NO-UNDO.
+        VAR INTEGER made.
         IF Paused OR piElapsedMs <= 0 THEN RETURN FALSE.
         mAcc = mAcc + INTEGER(ROUND(MINIMUM(piElapsedMs, {&MOST-MS}) * 0.6 * SpeedPercent, 0)).
         DO WHILE mAcc >= 1000 AND made < {&MOST-FRAMES}:
@@ -321,18 +321,18 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
 
     /* A new game: new land, new buddies, the arrival. */
     METHOD PROTECTED OVERRIDE VOID OnInitialise():
-        DEFINE VARIABLE total  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tmp    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE xs     AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE ys     AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE order  AS INTEGER NO-UNDO EXTENT 24.
-        DEFINE VARIABLE gen    AS TerrainGenerator NO-UNDO.
-        DEFINE VARIABLE team   AS Team    NO-UNDO.
-        DEFINE VARIABLE buddy  AS Buddy   NO-UNDO.
-        DEFINE VARIABLE teams  AS Team    NO-UNDO EXTENT 4.
+        VAR INTEGER total.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER k.
+        VAR INTEGER tmp.
+        VAR INTEGER[] xs.
+        VAR INTEGER[] ys.
+        VAR INTEGER[24] order.
+        VAR TerrainGenerator gen.
+        VAR Team team.
+        VAR Buddy buddy.
+        VAR Team[4] teams.
         IF VALID-OBJECT(mTerrain) THEN mTerrain:Dispose().
         MapSerial = MapSerial + 1.
         MapTheme = (IF mSetup:RandomTheme THEN Theme:GetEnum(mRandom:NextInt(3)) ELSE mSetup:LandTheme).
@@ -403,9 +403,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
 
     /* One frame: every buddy moves under physics, and the phase clock runs. */
     METHOD PRIVATE VOID Step():
-        DEFINE VARIABLE i          AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j          AS INTEGER NO-UNDO.
-        DEFINE VARIABLE wasDrowned AS LOGICAL NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR LOGICAL wasDrowned.
         FrameCount = FrameCount + 1.
         DO i = 1 TO mPlan:TeamCount():
             DO j = 1 TO mPlan:TeamAt(i):Count():
@@ -474,8 +474,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
     /* The shot goes, with the power built up: a bazooka rocket leaves the muzzle, 6 pixels from the buddy along the aim, at a speed that
        grows with the power, and the retreat begins. */
     METHOD PRIVATE VOID FireShot():
-        DEFINE VARIABLE aimStep AS INTEGER NO-UNDO.
-        DEFINE VARIABLE speed   AS INTEGER NO-UNDO.
+        VAR INTEGER aimStep.
+        VAR INTEGER speed.
         LastPower = PowerPercent.
         ShotsFired = ShotsFired + 1.
         Charging = FALSE.
@@ -493,24 +493,24 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
     /* One frame of flight for every shell: gravity and the wind bend its path, and it is moved a pixel at a time so nothing is skipped
        over. It blows up on ground or on a buddy, and is gone in the water or past the sides of the map. */
     METHOD PRIVATE VOID StepShells():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO ShellPool:Capacity():
             IF mShells:Active(i) THEN StepShell(i).
         END.
     END METHOD.
 
     METHOD PRIVATE VOID StepShell(INPUT piSlot AS INTEGER):
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE vx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE vy    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE px    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE age   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x0    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y0    AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER vx.
+        VAR INTEGER vy.
+        VAR INTEGER n.
+        VAR INTEGER k.
+        VAR INTEGER px.
+        VAR INTEGER py.
+        VAR INTEGER age.
+        VAR INTEGER x0.
+        VAR INTEGER y0.
         mShells:Grow(piSlot).
         age = mShells:Age(piSlot).
         vx = mShells:VX(piSlot) + Wind.
@@ -546,9 +546,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
     /* Whether a shell at a pixel is inside a buddy that is not out of it: a buddy standing or flying, living or not. The buddy that fired it
        is safe for the first few frames, while the shell leaves it. */
     METHOD PRIVATE LOGICAL ShellHitsBuddy(INPUT piSlot AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b AS Buddy   NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR Buddy b.
         DO i = 1 TO mPlan:TeamCount():
             DO j = 1 TO mPlan:TeamAt(i):Count():
                 b = mPlan:TeamAt(i):BuddyAt(j).
@@ -587,9 +587,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
 
     /* Everything is still: the next buddy that has died is shown dying, or if there is none the next turn begins. */
     METHOD PRIVATE VOID NextDeathOrBanner():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b AS Buddy   NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR Buddy b.
         DO i = 1 TO mPlan:TeamCount():
             DO j = 1 TO mPlan:TeamAt(i):Count():
                 b = mPlan:TeamAt(i):BuddyAt(j).
@@ -615,7 +615,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
 
     /* Starts the next turn's banner with the next buddy and the wind, or ends the game if one team or none is left. */
     METHOD PRIVATE VOID BeginBanner():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         CASE mPlan:TeamsAlive():
             WHEN 0 THEN DO:
                 Phase = BuddyPhase:Draw.
@@ -646,8 +646,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGame FINAL INHERITS AbstractGame
 
     /* Whether any living buddy is off the ground. */
     METHOD PRIVATE LOGICAL AnyoneInTheAir():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
         DO i = 1 TO mPlan:TeamCount():
             DO j = 1 TO mPlan:TeamAt(i):Count():
                 IF mPlan:TeamAt(i):BuddyAt(j):State = BuddyState:Airborne THEN RETURN TRUE.

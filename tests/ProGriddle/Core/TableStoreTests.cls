@@ -8,8 +8,8 @@ CLASS ProGriddle.Core.TableStoreTests:
 
     /* Runs a query over the store's buffer and returns the number of rows it finds. */
     METHOD PRIVATE INTEGER RowsMatching(INPUT poStore AS TableStore, INPUT pcWhere AS CHARACTER):
-        DEFINE VARIABLE hQuery AS HANDLE  NO-UNDO.
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
+        VAR HANDLE hQuery.
+        VAR INTEGER n.
         DO ON ERROR UNDO, THROW:
             CREATE QUERY hQuery.
             hQuery:SET-BUFFERS(poStore:BufferHandle()).
@@ -30,8 +30,8 @@ CLASS ProGriddle.Core.TableStoreTests:
 
     @Test.
     METHOD PUBLIC VOID HasOneRecordPerCellAndNamedFieldsPerLayer():
-        DEFINE VARIABLE s AS TableStore NO-UNDO.
-        DEFINE VARIABLE b AS HANDLE     NO-UNDO.
+        VAR TableStore s.
+        VAR HANDLE b.
         DO ON ERROR UNDO, THROW:
             s = NEW TableStore(10, 20, "locked,ghost").
             b = s:BufferHandle().
@@ -49,7 +49,7 @@ CLASS ProGriddle.Core.TableStoreTests:
 
     @Test.
     METHOD PUBLIC VOID LayerValuesCanBeQueriedByNameAndPosition():
-        DEFINE VARIABLE s AS TableStore NO-UNDO.
+        VAR TableStore s.
         DO ON ERROR UNDO, THROW:
             s = NEW TableStore(5, 5, "mine,revealed").
             s:SetCell(1, 2, 1, 1).
@@ -67,7 +67,7 @@ CLASS ProGriddle.Core.TableStoreTests:
 
     @Test.
     METHOD PUBLIC VOID GameStyleLayerNamesWorkAsFields():
-        DEFINE VARIABLE s AS TableStore NO-UNDO.
+        VAR TableStore s.
         DO ON ERROR UNDO, THROW:
             s = NEW TableStore(3, 3, "mine,revealed,flag,adjacent,ship,shot,locked,state,count,value,label").
             s:SetCell(s:LayerIndex("value"), 1, 1, 5).
@@ -85,7 +85,7 @@ CLASS ProGriddle.Core.TableStoreTests:
     METHOD PUBLIC VOID WorksPastTheOldExtentLimits():
         /* 40,000 cells is beyond both the 28,000 element extent limit and the few thousand
            element limit of a ROWID extent. */
-        DEFINE VARIABLE s AS TableStore NO-UNDO.
+        VAR TableStore s.
         DO ON ERROR UNDO, THROW:
             s = NEW TableStore(200, 200, "a").
             s:SetCell(1, 199, 199, 3).
@@ -106,8 +106,7 @@ CLASS ProGriddle.Core.TableStoreTests:
 
     @Test.
     METHOD PUBLIC VOID DisposeDeletesTheTable():
-        DEFINE VARIABLE s AS TableStore NO-UNDO.
-        s = NEW TableStore(3, 3, "a").
+        VAR TableStore s = NEW TableStore(3, 3, "a").
         Assert:IsTrue(VALID-HANDLE(s:BufferHandle())).
         s:Dispose().
         Assert:IsFalse(VALID-HANDLE(s:BufferHandle())).
@@ -115,8 +114,8 @@ CLASS ProGriddle.Core.TableStoreTests:
 
     @Test.
     METHOD PUBLIC VOID TwoStoresDoNotShareRecords():
-        DEFINE VARIABLE a AS TableStore NO-UNDO.
-        DEFINE VARIABLE b AS TableStore NO-UNDO.
+        VAR TableStore a.
+        VAR TableStore b.
         DO ON ERROR UNDO, THROW:
             a = NEW TableStore(3, 3, "v").
             b = NEW TableStore(3, 3, "v").

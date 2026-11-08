@@ -6,7 +6,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.UI.WinForms.KeyMapTests:
 
-    DEFINE PRIVATE VARIABLE mMap AS KeyMap NO-UNDO.
+    VAR PRIVATE KeyMap mMap.
 
     @Setup.
     METHOD PUBLIC VOID BuildMap():

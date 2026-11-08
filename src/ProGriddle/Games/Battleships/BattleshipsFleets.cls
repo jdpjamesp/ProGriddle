@@ -54,9 +54,9 @@ CLASS ProGriddle.Games.Battleships.BattleshipsFleets FINAL:
 
     /* How many cells the fleet covers. */
     METHOD PUBLIC STATIC INTEGER CellsOf(INPUT pcName AS CHARACTER):
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE fleet AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE total AS INTEGER   NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER fleet.
+        VAR INTEGER total.
         fleet = FleetOf(pcName).
         DO i = 1 TO NUM-ENTRIES(fleet):
             total = total + INTEGER(ENTRY(i, fleet)).
@@ -67,7 +67,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsFleets FINAL:
     /* The standard size whose board is this side long and whose fleet is this one, or an empty
        string when there is none. */
     METHOD PUBLIC STATIC CHARACTER NameFor(INPUT piSide AS INTEGER, INPUT pcFleet AS CHARACTER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO NUM-ENTRIES(Names()):
             IF SideOf(ENTRY(i, Names())) = piSide AND FleetOf(ENTRY(i, Names())) = pcFleet THEN RETURN ENTRY(i, Names()).
         END.

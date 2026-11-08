@@ -16,7 +16,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID TheGridIsTwoHundredTwentyFourByTwoHundredFiftySixWithTheThreeLayers():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         g = SpaceInvadersFactory:CreateGrid().
         Assert:Equals(224, g:Width).
         Assert:Equals(256, g:Height).
@@ -29,7 +29,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID ANewGameShowsTheTitleScreen():
-        DEFINE VARIABLE game AS SpaceInvadersGame NO-UNDO.
+        VAR SpaceInvadersGame game.
         game = SpaceInvadersFactory:Create(NEW SeededRandom(1)).
         Assert:Equals(GamePhase:Title, game:Phase).
         Assert:Equals(224, game:Grid:Width).
@@ -38,13 +38,13 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID TheSameSeedGivesTheSameStarsAndTheDifferentSeedDoesNot():
-        DEFINE VARIABLE a AS SpaceInvadersGame NO-UNDO.
-        DEFINE VARIABLE b AS SpaceInvadersGame NO-UNDO.
-        DEFINE VARIABLE c AS SpaceInvadersGame NO-UNDO.
-        DEFINE VARIABLE same  AS LOGICAL NO-UNDO INITIAL TRUE.
-        DEFINE VARIABLE other AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR SpaceInvadersGame a.
+        VAR SpaceInvadersGame b.
+        VAR SpaceInvadersGame c.
+        VAR LOGICAL same = TRUE.
+        VAR LOGICAL other.
+        VAR INTEGER x.
+        VAR INTEGER y.
         a = SpaceInvadersFactory:Create(NEW SeededRandom(11)).
         b = SpaceInvadersFactory:Create(NEW SeededRandom(11)).
         c = SpaceInvadersFactory:Create(NEW SeededRandom(12)).

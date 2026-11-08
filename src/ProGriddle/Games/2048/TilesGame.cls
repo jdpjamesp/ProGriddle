@@ -25,9 +25,9 @@ CLASS ProGriddle.Games.2048.TilesGame INHERITS AbstractGame IMPLEMENTS ITurnBase
     &SCOPED-DEFINE MAX-POWER 20
     &SCOPED-DEFINE WIN-POWER 11
 
-    DEFINE PRIVATE VARIABLE mRandom AS IRandom NO-UNDO.
+    VAR PRIVATE IRandom mRandom.
     /* one lane of the board while it slides, made once so a move allocates nothing */
-    DEFINE PRIVATE VARIABLE mLane   AS INTEGER NO-UNDO EXTENT.
+    VAR PRIVATE INTEGER[] mLane.
 
     /* The sum of the values of the tiles made by joins. */
     DEFINE PUBLIC PROPERTY Score AS INTEGER NO-UNDO
@@ -48,8 +48,8 @@ CLASS ProGriddle.Games.2048.TilesGame INHERITS AbstractGame IMPLEMENTS ITurnBase
     /* The power of the largest tile on the board, 0 for an empty board (11 is a 2048). */
     DEFINE PUBLIC PROPERTY TopTile AS INTEGER NO-UNDO
         GET():
-            DEFINE VARIABLE i   AS INTEGER NO-UNDO.
-            DEFINE VARIABLE top AS INTEGER NO-UNDO.
+            VAR INTEGER i.
+            VAR INTEGER top.
             DO i = 0 TO Grid:CellCount - 1:
                 IF Grid:Store:GetCellAt(1, i) > top THEN top = Grid:Store:GetCellAt(1, i).
             END.
@@ -72,8 +72,8 @@ CLASS ProGriddle.Games.2048.TilesGame INHERITS AbstractGame IMPLEMENTS ITurnBase
     /* Slides every tile toward the left edge. True when anything moved. Throws GridException
        when the game is over. */
     METHOD PUBLIC LOGICAL MoveLeft():
-        DEFINE VARIABLE lane AS INTEGER NO-UNDO.
-        DEFINE VARIABLE moved AS LOGICAL NO-UNDO.
+        VAR INTEGER lane.
+        VAR LOGICAL moved.
         CheckNotOver().
         DO lane = 0 TO Grid:Height - 1:
             IF Slide(lane * Grid:Width, 1, Grid:Width) THEN moved = TRUE.
@@ -83,8 +83,8 @@ CLASS ProGriddle.Games.2048.TilesGame INHERITS AbstractGame IMPLEMENTS ITurnBase
 
     /* Slides every tile toward the right edge. */
     METHOD PUBLIC LOGICAL MoveRight():
-        DEFINE VARIABLE lane AS INTEGER NO-UNDO.
-        DEFINE VARIABLE moved AS LOGICAL NO-UNDO.
+        VAR INTEGER lane.
+        VAR LOGICAL moved.
         CheckNotOver().
         DO lane = 0 TO Grid:Height - 1:
             IF Slide(lane * Grid:Width + Grid:Width - 1, -1, Grid:Width) THEN moved = TRUE.
@@ -94,8 +94,8 @@ CLASS ProGriddle.Games.2048.TilesGame INHERITS AbstractGame IMPLEMENTS ITurnBase
 
     /* Slides every tile toward the top edge. */
     METHOD PUBLIC LOGICAL MoveUp():
-        DEFINE VARIABLE lane AS INTEGER NO-UNDO.
-        DEFINE VARIABLE moved AS LOGICAL NO-UNDO.
+        VAR INTEGER lane.
+        VAR LOGICAL moved.
         CheckNotOver().
         DO lane = 0 TO Grid:Width - 1:
             IF Slide(lane, Grid:Width, Grid:Height) THEN moved = TRUE.
@@ -105,8 +105,8 @@ CLASS ProGriddle.Games.2048.TilesGame INHERITS AbstractGame IMPLEMENTS ITurnBase
 
     /* Slides every tile toward the bottom edge. */
     METHOD PUBLIC LOGICAL MoveDown():
-        DEFINE VARIABLE lane AS INTEGER NO-UNDO.
-        DEFINE VARIABLE moved AS LOGICAL NO-UNDO.
+        VAR INTEGER lane.
+        VAR LOGICAL moved.
         CheckNotOver().
         DO lane = 0 TO Grid:Width - 1:
             IF Slide((Grid:Height - 1) * Grid:Width + lane, - Grid:Width, Grid:Height) THEN moved = TRUE.
@@ -117,9 +117,9 @@ CLASS ProGriddle.Games.2048.TilesGame INHERITS AbstractGame IMPLEMENTS ITurnBase
     /* True when some move would change the board: an empty cell, or two equal tiles side by
        side. */
     METHOD PUBLIC LOGICAL CanMove():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE v AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER v.
         DO y = 0 TO Grid:Height - 1:
             DO x = 0 TO Grid:Width - 1:
                 v = Grid:Store:GetCellAt(1, y * Grid:Width + x).
@@ -135,8 +135,8 @@ CLASS ProGriddle.Games.2048.TilesGame INHERITS AbstractGame IMPLEMENTS ITurnBase
        per cell, row by row (0 empty, 1 a 2, 2 a 4). The score and the turns start at 0. Throws
        GridException unless there is one whole number from 0 to 20 for every cell. */
     METHOD PUBLIC VOID StartWith(INPUT pcTiles AS CHARACTER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE v AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER v.
         IF pcTiles = ? OR NUM-ENTRIES(pcTiles) <> Grid:CellCount THEN
             UNDO, THROW NEW GridException(SUBSTITUTE("A 2048 board needs &1 tiles", Grid:CellCount)).
         /* check everything before changing anything */
@@ -167,11 +167,11 @@ CLASS ProGriddle.Games.2048.TilesGame INHERITS AbstractGame IMPLEMENTS ITurnBase
        the distance to the next one in the lane. Walks the lane once, writing the joined and
        packed tiles into mLane, then puts them back if they differ. True when the lane changed. */
     METHOD PRIVATE LOGICAL Slide(INPUT piStart AS INTEGER, INPUT piStep AS INTEGER, INPUT piLength AS INTEGER):
-        DEFINE VARIABLE k       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE v       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pending AS INTEGER NO-UNDO.
-        DEFINE VARIABLE changed AS LOGICAL NO-UNDO.
+        VAR INTEGER k.
+        VAR INTEGER v.
+        VAR INTEGER n.
+        VAR INTEGER pending.
+        VAR LOGICAL changed.
         DO k = 0 TO piLength - 1:
             v = Grid:Store:GetCellAt(1, piStart + k * piStep).
             IF v = 0 THEN NEXT.
@@ -215,10 +215,10 @@ CLASS ProGriddle.Games.2048.TilesGame INHERITS AbstractGame IMPLEMENTS ITurnBase
     /* Puts a new tile in a random empty cell. A 4 for a draw of 0 in 10, a 2 otherwise. Does
        nothing on a full board. */
     METHOD PRIVATE VOID AddTile():
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE empty AS INTEGER NO-UNDO.
-        DEFINE VARIABLE kind  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pick  AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER empty.
+        VAR INTEGER kind.
+        VAR INTEGER pick.
         DO i = 0 TO Grid:CellCount - 1:
             IF Grid:Store:GetCellAt(1, i) = 0 THEN empty = empty + 1.
         END.

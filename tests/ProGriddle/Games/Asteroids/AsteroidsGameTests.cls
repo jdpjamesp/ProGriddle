@@ -12,7 +12,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
 
-    DEFINE PRIVATE VARIABLE mGame AS AsteroidsGame NO-UNDO.
+    VAR PRIVATE AsteroidsGame mGame.
 
     @Setup.
     METHOD PUBLIC VOID BuildGame():
@@ -37,8 +37,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
     END METHOD.
 
     METHOD PRIVATE VOID Frames(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
-        DEFINE VARIABLE drawn AS LOGICAL NO-UNDO.
+        VAR INTEGER n.
+        VAR LOGICAL drawn.
         /* only the last frame is drawn (and none if the test turned Drawing off): a picture of every frame is what made
            the tests slow */
         drawn = mGame:Drawing.
@@ -50,7 +50,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
     END METHOD.
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE other AS AsteroidsGame NO-UNDO.
+        VAR AsteroidsGame other.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN other = NEW AsteroidsGame(?, NEW SeededRandom(1)).
@@ -91,9 +91,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheBackgroundIsADarkVignetteLighterInTheMiddle():
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE centre AS INTEGER NO-UNDO.
-        DEFINE VARIABLE edge   AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER centre.
+        VAR INTEGER edge.
         /* a cell with no dust in it, near the middle and near the corner */
         DO x = 150 TO 170:
             IF mGame:Canvas:BackAt(x, 120) = AsteroidsLook:Colour(Palette:VoidCentre) THEN centre = centre + 1.
@@ -107,11 +107,11 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID SeventyCellsOfDustAreBakedIntoTheBackground():
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dim   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE mid   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bright AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER dim.
+        VAR INTEGER mid.
+        VAR INTEGER bright.
         DO y = 0 TO 239:
             DO x = 0 TO 319:
                 CASE mGame:Canvas:BackAt(x, y):
@@ -128,10 +128,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     /* The cells below the HUD that are in a dust colour and not the background's: the drifting dust. */
     METHOD PRIVATE INTEGER DriftingDust():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER c.
+        VAR INTEGER n.
         DO y = 50 TO 239:
             DO x = 0 TO 319:
                 c = mGame:Canvas:ColourAt(x, y).
@@ -143,10 +143,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheDustDriftsLeftAndDownAndWraps():
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
-        DEFINE VARIABLE after  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER before.
+        VAR INTEGER after.
+        VAR INTEGER y.
         /* with the rocks taken away, the cells of the dust colours that differ from the background are the drifting dust
            (the title and its words are in other colours) */
         mGame:Rocks:Clear().
@@ -278,7 +278,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ADragSlowsTheShipWhenItIsNotThrusting():
-        DEFINE VARIABLE v1 AS INTEGER NO-UNDO.
+        VAR INTEGER v1.
         Play().
         mGame:ThrustHeld = TRUE.
         Frames(20).
@@ -291,7 +291,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheShipHasATopSpeed():
-        DEFINE VARIABLE speed AS DECIMAL NO-UNDO.
+        VAR DECIMAL speed.
         Play().
         mGame:ThrustHeld = TRUE.
         Frames(600).
@@ -302,8 +302,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheShipComesBackInOnTheOtherSideOfEveryEdge():
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE wentY AS LOGICAL NO-UNDO.
+        VAR INTEGER i.
+        VAR LOGICAL wentY.
         Play().
         mGame:ThrustHeld = TRUE.
         mGame:Drawing = FALSE.
@@ -343,9 +343,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ThereIsNoFlameUntilTheThrustIsOnAndThenItIsBehindTheShip():
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lit  AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER lit.
         Play().
         mGame:ThrustHeld = TRUE.
         Frames(1).
@@ -380,10 +380,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ANewFrameStartsFromTheBackgroundSoNothingSmears():
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE other AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER other.
+        VAR INTEGER i.
         Play().
         mGame:ThrustHeld = TRUE.
         Quiet(100).
@@ -422,8 +422,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
     /* Frames with the rocks taken away before each one, except a small rock in the far corner that is only there so the
        wave never looks cleared and the next wave's rocks cannot get in the way of a test. It is taken away at the end. */
     METHOD PRIVATE VOID Quiet(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
-        DEFINE VARIABLE drawn AS LOGICAL NO-UNDO.
+        VAR INTEGER n.
+        VAR LOGICAL drawn.
         drawn = mGame:Drawing.
         DO n = 1 TO piCount:
             mGame:Rocks:Clear().
@@ -437,7 +437,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     /* The ship is hit by a rock at the middle of the screen, and the rock goes. */
     METHOD PRIVATE VOID Crash():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO WHILE mGame:ShieldFrames > 0 AND i < 200:
             mGame:Rocks:Clear().
             mGame:Advance().
@@ -495,8 +495,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID HoldingFireMakesAShotEveryEightFramesUpToFourInTheAir():
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE top AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER top.
         EmptySky().
         mGame:FireHeld = TRUE.
         Frames(8).
@@ -534,7 +534,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ASlotMustBeZeroToThree():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mGame:ShotX(4).
             CATCH e1 AS GridException:
@@ -592,9 +592,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheFirstRocksAreWellAwayFromTheShip():
-        DEFINE VARIABLE r  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
+        VAR INTEGER r.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
         mGame:StartGame().
         mGame:SkipIntro().
         DO r = 0 TO 63:
@@ -609,9 +609,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheRocksDriftAndSpin():
-        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y0 AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h0 AS INTEGER NO-UNDO.
+        VAR INTEGER x0.
+        VAR INTEGER y0.
+        VAR INTEGER h0.
         mGame:StartGame().
         mGame:SkipIntro().
         x0 = mGame:Rocks:X(0).
@@ -673,10 +673,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ThePiecesOfARockFlyApartWithTheOldVelocityBetweenThem():
-        DEFINE VARIABLE a   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
+        VAR INTEGER a.
+        VAR INTEGER b.
+        VAR INTEGER r.
+        VAR INTEGER n.
         EmptySky().
         RockAt(1, 160, 60).
         mGame:FireHeld = TRUE.
@@ -714,7 +714,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID RockPointsAre20And50And100AndNothingElseIsAnAnswer():
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         Assert:Equals(20, AsteroidsGame:RockPoints(1)).
         Assert:Equals(50, AsteroidsGame:RockPoints(2)).
         Assert:Equals(100, AsteroidsGame:RockPoints(3)).
@@ -749,9 +749,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheRocksBehindTheTitleAreDim():
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dimly AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER dimly.
         mGame:Rocks:Clear().
         mGame:Advance().
         Frames(8).
@@ -887,7 +887,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheRocksKeepDriftingBehindGameOver():
-        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        VAR INTEGER x0.
         EmptySky().
         Crash().
         Quiet(200).
@@ -951,7 +951,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ADestroyedSaucerExplodesIntoTwentyTwoOrTwentyThreePiecesButOneThatFliesOffDoesNot():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         EmptySky().
         mGame:LaunchSaucerAt(TRUE, 1, 100).
         mGame:PlaceSaucer(154, 60).
@@ -1004,8 +1004,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID AKilledSaucerLeavesItsScoreRisingInGoldAndFadingForFortyEightFrames():
-        DEFINE VARIABLE gold AS INTEGER NO-UNDO.
-        DEFINE VARIABLE fade AS INTEGER NO-UNDO.
+        VAR INTEGER gold.
+        VAR INTEGER fade.
         gold = AsteroidsLook:Colour(Palette:Gold).
         fade = AsteroidsLook:Colour(Palette:GoldFade).
         EmptySky().
@@ -1029,8 +1029,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID AWarningMarkShowsForTheLastSixtyFramesBeforeASaucerEnters():
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ahead  AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER ahead.
         EmptySky().
         Assert:IsFalse(mGame:SaucerWarning).
         mGame:Drawing = FALSE.
@@ -1052,8 +1052,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheWarningMarkIsAFiveCellChevronAtTheEdgeItBlinksEightFramesOnAndEightOff():
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE warn AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER warn.
         warn = AsteroidsLook:Colour(Palette:Warning).
         EmptySky().
         mGame:Drawing = FALSE.
@@ -1078,7 +1078,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID WhenTheShipCrossesAnEdgeABarFlashesOnBothEdgesThroughThreeColoursInTwelveFrames():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         Play().
         mGame:ThrustHeld = TRUE.
         mGame:Drawing = FALSE.
@@ -1107,7 +1107,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID RocksAndSaucersDoNotFlashWhenTheyWrap():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         EmptySky().
         mGame:Rocks:Add(160 * 4096, 2 * 4096, 0, -4096, 3, 0, 0, 1000, 1).
         Frames(5).
@@ -1117,8 +1117,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheNewIconOfAnExtraShipFlashesWhiteEveryFourFramesForFortyFrames():
-        DEFINE VARIABLE icon  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE flash AS INTEGER NO-UNDO.
+        VAR INTEGER icon.
+        VAR INTEGER flash.
         icon = AsteroidsLook:Colour(Palette:ShipIcon).
         flash = AsteroidsLook:Colour(Palette:Flash).
         EmptySky().
@@ -1140,7 +1140,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ADimDashedRingMarksTheMiddleWhileANewShipWaitsForItToClear():
-        DEFINE VARIABLE rule AS INTEGER NO-UNDO.
+        VAR INTEGER rule.
         rule = AsteroidsLook:Colour(Palette:TitleRule).
         EmptySky().
         Crash().
@@ -1203,7 +1203,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheTitleIsTracedLetterByLetterOverTheFirstSecondsOfTheTitleScreen():
-        DEFINE VARIABLE core AS INTEGER NO-UNDO.
+        VAR INTEGER core.
         core = AsteroidsLook:Colour(Palette:TitleCore).
         Frames(10).
         Assert:Equals(0, CellsOf(core, 0, 50, 320, 50)).
@@ -1217,7 +1217,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheRuleGrowsFromTheMiddleBetweenTicksOneHundredAndTenAndOneHundredAndTwentyEight():
-        DEFINE VARIABLE rule AS INTEGER NO-UNDO.
+        VAR INTEGER rule.
         rule = AsteroidsLook:Colour(Palette:TitleRule).
         Frames(110).
         Assert:Equals(0, CellsOf(rule, 0, 98, 320, 1)).
@@ -1233,8 +1233,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheSubtitleTypesInALetterATickFromTickOneHundredAndTwentyEight():
-        DEFINE VARIABLE labelCol AS INTEGER NO-UNDO.
-        DEFINE VARIABLE early    AS INTEGER NO-UNDO.
+        VAR INTEGER labelCol.
+        VAR INTEGER early.
         labelCol = AsteroidsLook:Colour(Palette:Label).
         Frames(127).
         Assert:Equals(0, CellsOf(labelCol, 85, 106, 160, 9)).
@@ -1250,9 +1250,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheHintLinesFadeInThroughRuleLabelAndDimFiveTicksAStepTwentyTicksApart():
-        DEFINE VARIABLE rule AS INTEGER NO-UNDO.
-        DEFINE VARIABLE labelCol AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dimCol AS INTEGER NO-UNDO.
+        VAR INTEGER rule.
+        VAR INTEGER labelCol.
+        VAR INTEGER dimCol.
         rule = AsteroidsLook:Colour(Palette:TitleRule).
         labelCol = AsteroidsLook:Colour(Palette:Label).
         dimCol = AsteroidsLook:Colour(Palette:Dim).
@@ -1276,7 +1276,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID PressSpaceAppearsAtTickTwoHundredAndBlinksThirtySixOnTwentyFourOff():
-        DEFINE VARIABLE white AS INTEGER NO-UNDO.
+        VAR INTEGER white.
         white = AsteroidsLook:Colour(Palette:TextWhite).
         Frames(199).
         Assert:Equals(0, CellsOf(white, 95, 204, 130, 14)).
@@ -1292,9 +1292,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ALargeSaucerCrossesTheTitleScreenLeftToRightAtRowOneHundredFortyEveryFourteenSecondsAndFiresNothing():
-        DEFINE VARIABLE x0   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE shots AS INTEGER NO-UNDO.
+        VAR INTEGER x0.
+        VAR INTEGER n.
+        VAR INTEGER shots.
         mGame:Drawing = FALSE.
         Frames(839).
         Assert:IsFalse(mGame:SaucerActive).
@@ -1331,7 +1331,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID StartingAGameTakesTheTitleAwayAndANewTitleStartsAgainFromTheBeginning():
-        DEFINE VARIABLE core AS INTEGER NO-UNDO.
+        VAR INTEGER core.
         core = AsteroidsLook:Colour(Palette:TitleCore).
         Frames(130).
         Play().
@@ -1381,7 +1381,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID NewHiScoreBlinksInGoldTenFramesOnAndTenOffAndOnlyWhenTheRecordIsBeaten():
-        DEFINE VARIABLE gold AS INTEGER NO-UNDO.
+        VAR INTEGER gold.
         gold = AsteroidsLook:Colour(Palette:Gold).
         GameOverScreen().
         Quiet(5).
@@ -1407,7 +1407,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID PressSpaceAppearsAfterNinetyFramesAndBlinksThirtySixOnAndTwentyFourOff():
-        DEFINE VARIABLE white AS INTEGER NO-UNDO.
+        VAR INTEGER white.
         white = AsteroidsLook:Colour(Palette:TextWhite).
         GameOverScreen().
         Quiet(89).
@@ -1424,7 +1424,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     /* Runs frames, rocks away, until the saucer has fired once (up to piMax frames). */
     METHOD PRIVATE VOID UntilTheFirstSaucerShot(INPUT piMax AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO WHILE n < piMax AND mGame:SaucerShotCount = 0:
             Quiet(1).
             n = n + 1.
@@ -1457,7 +1457,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ASaucerFromTheRightFliesLeftAndLeavesTheScreen():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         EmptySky().
         mGame:LaunchSaucerAt(FALSE, -1, 100).
         Assert:Equals(328, mGame:SaucerX).
@@ -1473,7 +1473,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID OnlyOneSaucerAtATimeAndOnlyInAGame():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mGame:LaunchSaucer(TRUE, 1).
             CATCH e1 AS GridException:
@@ -1493,7 +1493,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ABadSaucerRequestIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         EmptySky().
         DO ON ERROR UNDO, THROW:
             mGame:LaunchSaucerAt(?, 1, 100).
@@ -1534,13 +1534,13 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheSmallSaucerAimsAtTheShipWhenTheScoreIsHigh():
-        DEFINE VARIABLE sx0  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sy0  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ax   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ay   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h1   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h2   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE diff AS INTEGER NO-UNDO.
+        VAR INTEGER sx0.
+        VAR INTEGER sy0.
+        VAR INTEGER ax.
+        VAR INTEGER ay.
+        VAR INTEGER h1.
+        VAR INTEGER h2.
+        VAR INTEGER diff.
         EmptySky().
         mGame:AddScore(30000).
         mGame:LaunchSaucerAt(FALSE, 1, 30).
@@ -1606,7 +1606,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ASaucerShotThatReachesTheShipBreaksIt():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         EmptySky().
         mGame:AddScore(30000).
         mGame:LaunchSaucerAt(FALSE, 1, 120).
@@ -1636,10 +1636,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ASaucerComesByItselfAfterTwentySecondsOrSoAndTheFirstOnesAreLarge():
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE seen  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE was   AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE small AS LOGICAL NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER seen.
+        VAR LOGICAL was.
+        VAR LOGICAL small.
         EmptySky().
         mGame:Drawing = FALSE.
         DO n = 1 TO 1500:
@@ -1657,10 +1657,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheSaucerIsDrawnWithItsGlowAndTheTwoLinesInside():
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE core AS INTEGER NO-UNDO.
-        DEFINE VARIABLE halo AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER core.
+        VAR INTEGER halo.
         EmptySky().
         mGame:LaunchSaucerAt(TRUE, 1, 100).
         mGame:PlaceSaucer(100, 60).
@@ -1821,9 +1821,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     /* How many cells of a colour there are in a rectangle of the picture. */
     METHOD PRIVATE INTEGER CellsOf(INPUT piColour AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         DO y = piY TO piY + piH - 1:
             DO x = piX TO piX + piW - 1:
                 IF mGame:Canvas:ColourAt(x, y) = piColour THEN n = n + 1.
@@ -1849,8 +1849,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheScoreDigitsChangeWithTheScoreAndTheWaveMovesLeftAsItGetsMoreDigits():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
-        DEFINE VARIABLE one    AS INTEGER NO-UNDO.
+        VAR INTEGER before.
+        VAR INTEGER one.
         mGame:StartGame().
         before = CellsOf(AsteroidsLook:Colour(Palette:TextWhite), 12, 18, 70, 14).
         mGame:AddScore(88).
@@ -1863,7 +1863,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ASmallShipIsShownForEverySpareShipUpToSix():
-        DEFINE VARIABLE icon AS INTEGER NO-UNDO.
+        VAR INTEGER icon.
         icon = AsteroidsLook:Colour(Palette:ShipIcon).
         EmptySky().
         /* three ships, one flying: two spares at (17, 44) and (28, 44), and none at (39, 44) */
@@ -1885,7 +1885,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheScoreTurnsGoldForTwentyFramesAfterASaucerOrAnExtraShip():
-        DEFINE VARIABLE gold AS INTEGER NO-UNDO.
+        VAR INTEGER gold.
         gold = AsteroidsLook:Colour(Palette:Gold).
         EmptySky().
         Assert:Equals(0, CellsOf(gold, 12, 18, 70, 14)).
@@ -1900,7 +1900,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID AWaveBeginsWithALineGrowingFromTheMiddleAndTheWordsInAShadeFromWhiteToGrey():
-        DEFINE VARIABLE dimN AS INTEGER NO-UNDO.
+        VAR INTEGER dimN.
         mGame:StartGame().
         Frames(4).
         /* the line is about a quarter grown at the 4th frame (16 of 60 cells each side) and the words are not there yet */
@@ -1983,7 +1983,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID NegativePointsAreRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mGame:AddScore(-5).
             CATCH e1 AS GridException:
@@ -2003,7 +2003,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TickMakesAFrameForEverySixtiethOfASecondAtFullSpeed():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         Play().
         before = mGame:FrameCount.
         Assert:IsTrue(mGame:Tick(17)).
@@ -2014,7 +2014,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID TickKeepsTheLeftOverTimeAndNeverMakesMoreThanFourFramesAtOnce():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         Play().
         before = mGame:FrameCount.
         mGame:Tick(1000).
@@ -2028,7 +2028,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ASlowerSpeedMakesFewerFramesAndTheSpeedIsKeptBetween20And100():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         Play().
         mGame:SpeedPercent = 50.
         before = mGame:FrameCount.
@@ -2045,7 +2045,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID NothingHappensWhilePaused():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         Play().
         mGame:ThrustHeld = TRUE.
         mGame:Paused = TRUE.
@@ -2059,8 +2059,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID PausingAGameThatHasRunDimsThePictureOnceAndShowsPaused():
-        DEFINE VARIABLE white AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sky   AS INTEGER NO-UNDO.
+        VAR INTEGER white.
+        VAR INTEGER sky.
         white = AsteroidsLook:Colour(Palette:TextWhite).
         sky = mGame:Canvas:BackAt(2, 235).
         Play().
@@ -2077,7 +2077,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID ThePausedPictureIsGoneAtTheNextFrameAfterResuming():
-        DEFINE VARIABLE white AS INTEGER NO-UNDO.
+        VAR INTEGER white.
         white = AsteroidsLook:Colour(Palette:TextWhite).
         Play().
         Quiet(5).
@@ -2090,8 +2090,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID WithDrawingOffAFrameIsMadeButNotDrawn():
-        DEFINE VARIABLE core AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y0   AS INTEGER NO-UNDO.
+        VAR INTEGER core.
+        VAR INTEGER y0.
         core = AsteroidsLook:Colour(Palette:ShipCore).
         Assert:IsTrue(mGame:Drawing).
         Play().
@@ -2112,7 +2112,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID APauseBeforeTheGameHasRunShowsNothing():
-        DEFINE VARIABLE sky AS INTEGER NO-UNDO.
+        VAR INTEGER sky.
         sky = mGame:Canvas:BackAt(2, 235).
         mGame:Paused = TRUE.
         Assert:Equals(sky, mGame:Canvas:ColourAt(2, 235)).
@@ -2153,7 +2153,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID RocksBrokenCountsEachRockAndKeepsTheSizeOfTheLast():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         EmptySky().
         Assert:Equals(0, mGame:RocksBroken).
         RockAt(2, 160, 90).
@@ -2181,7 +2181,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsGameTests:
 
     @Test.
     METHOD PUBLIC VOID AShotSaucerIsDestroyedButOneThatCrossesAndLeavesIsNot():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         EmptySky().
         mGame:LaunchSaucerAt(TRUE, 1, 100).
         mGame:PlaceSaucer(400, 100).

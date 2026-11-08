@@ -12,9 +12,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Snake.SnakePainterTests:
 
-    DEFINE PRIVATE VARIABLE mGame    AS SnakeGame               NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInner   AS SnakeRecordingRenderer  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPainter AS SnakePainter            NO-UNDO.
+    VAR PRIVATE SnakeGame mGame.
+    VAR PRIVATE SnakeRecordingRenderer mInner.
+    VAR PRIVATE SnakePainter mPainter.
 
     @Setup.
     METHOD PUBLIC VOID BuildPainter():
@@ -56,9 +56,9 @@ CLASS ProGriddle.Games.Snake.SnakePainterTests:
 
     /* How many pixels of a colour there are in a rectangle of the picture. */
     METHOD PRIVATE INTEGER CountOf(INPUT piColour AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         DO y = piY TO piY + piH - 1:
             DO x = piX TO piX + piW - 1:
                 IF mPainter:Canvas:ColourAt(x, y) = piColour THEN n = n + 1.
@@ -69,10 +69,10 @@ CLASS ProGriddle.Games.Snake.SnakePainterTests:
 
     /* How many pixels of a cell do not have the colour a tile gives them (only the pixels that are a tone, 1 to 5). */
     METHOD PRIVATE INTEGER Mismatches(INPUT piCellX AS INTEGER, INPUT piCellY AS INTEGER, INPUT poTile AS Tile, INPUT pcTones AS CHARACTER):
-        DEFINE VARIABLE x  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE n  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE ch AS CHARACTER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
+        VAR CHARACTER ch.
         DO y = 0 TO poTile:Height - 1:
             DO x = 0 TO poTile:Width - 1:
                 ch = poTile:PixelAt(x, y).
@@ -89,7 +89,7 @@ CLASS ProGriddle.Games.Snake.SnakePainterTests:
 
     /* Runs n steps, which at the start is 150 ms each. */
     METHOD PRIVATE VOID Steps(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO piCount:
             mGame:Tick(mGame:StepMs).
         END.
@@ -110,7 +110,7 @@ CLASS ProGriddle.Games.Snake.SnakePainterTests:
 
     @Test.
     METHOD PUBLIC VOID ThePainterNeedsAnInnerRendererAGameAndARandomSource():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW SnakePainter(?, mGame, NEW SeededRandom(3)).
             CATCH e1 AS GridException:
@@ -134,8 +134,8 @@ CLASS ProGriddle.Games.Snake.SnakePainterTests:
 
     @Test.
     METHOD PUBLIC VOID ThePainterOnlyDrawsASnakeGame():
-        DEFINE VARIABLE other  AS AnimatedRealTimeGame NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER              NO-UNDO.
+        VAR AnimatedRealTimeGame other.
+        VAR INTEGER thrown.
         other = NEW AnimatedRealTimeGame(NEW Grid(NEW ArrayStore(3, 3, "s")), 10, 10).
         DO ON ERROR UNDO, THROW:
             mPainter:Render(other:Grid, other).
@@ -545,7 +545,7 @@ CLASS ProGriddle.Games.Snake.SnakePainterTests:
 
     @Test.
     METHOD PUBLIC VOID ACrashThrowsTwelveSparksFromTheHeadThatAreGoneAfterThreeHundredMilliseconds():
-        DEFINE VARIABLE gold2 AS INTEGER NO-UNDO.
+        VAR INTEGER gold2.
         gold2 = ColourMath:FromHex(ENTRY(2, SnakeLook:ToneRow(Colour(SnakeTint:Gold)))).
         CrashAtTheWall().
         mGame:Tick(100).
@@ -620,7 +620,7 @@ CLASS ProGriddle.Games.Snake.SnakePainterTests:
 
     @Test.
     METHOD PUBLIC VOID ABeatenBestIsShownInGoldAtTheStripAndOnThePlateAndBlinks():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mGame:StartWith("3,4;4,4", "Right").
         mGame:SetFood(5, 4).
         DO WHILE NOT mGame:IsOver AND i < 30:
@@ -643,9 +643,9 @@ CLASS ProGriddle.Games.Snake.SnakePainterTests:
 
     /* The snake of the whole board but the last cell, in rows, with the head at 1, 7 facing left and the food at 0, 7. */
     METHOD PRIVATE VOID NearlyFull():
-        DEFINE VARIABLE body AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER   NO-UNDO.
+        VAR CHARACTER body.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO y = 0 TO 7:
             DO x = 0 TO 7:
                 IF y = 7 AND x > 6 THEN NEXT.

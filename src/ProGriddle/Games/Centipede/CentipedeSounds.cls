@@ -44,8 +44,8 @@ CLASS ProGriddle.Games.Centipede.CentipedeSounds FINAL:
 
     /* Makes the sound of every cue into a bank, under the cue's number. */
     METHOD PUBLIC STATIC VOID Fill(INPUT poBank AS SoundBank):
-        DEFINE VARIABLE i   AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE cue AS CentipedeCue NO-UNDO.
+        VAR INTEGER i.
+        VAR CentipedeCue cue.
         DO i = INTEGER(CentipedeCue:Fire) TO INTEGER(CentipedeCue:ScorpionLoop):
             cue = CentipedeCue:GetEnum(i).
             poBank:Define(i, Recipe(cue), VolumeOf(cue)).

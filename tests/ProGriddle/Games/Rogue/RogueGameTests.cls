@@ -9,7 +9,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.RogueGameTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS RogueGame NO-UNDO.
+    VAR PRIVATE RogueGame mGame.
 
     /* A started game whose level is swept away for a lit room: floor (5, 5) to (14, 8), the hero in it at (6, 6), the starting kit */
     @Setup.
@@ -30,7 +30,7 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
     END METHOD.
 
     METHOD PRIVATE Monster Beside(INPUT poKind AS MonsterKind, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
+        VAR Monster oMonster.
         oMonster = mGame:World:AddMonster(poKind, piX, piY).
         oMonster:Awake = TRUE.
         RETURN oMonster.
@@ -38,8 +38,7 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
 
     @Test.
     METHOD PUBLIC VOID ANewGameStartsInPlayOnTheFirstLevelWithAWelcome():
-        DEFINE VARIABLE oGame AS RogueGame NO-UNDO.
-        oGame = NEW RogueGame(LevelMap:CreateGrid(), NEW SeededRandom(3)).
+        VAR RogueGame oGame = NEW RogueGame(LevelMap:CreateGrid(), NEW SeededRandom(3)).
         oGame:Initialise().
         Assert:Equals("Rogue", oGame:Name).
         Assert:Equals(RogueMode:Play, oGame:Mode).
@@ -110,7 +109,7 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
 
     @Test.
     METHOD PUBLIC VOID WalkingIntoAMonsterIsAnAttack():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR Monster oOrc.
         oOrc = Beside(MonsterKind:Orc, 7, 6).
         oOrc:Hp = 500.
         oOrc:MaxHp = 500.
@@ -122,7 +121,7 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheMonstersMoveAfterTheHero():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR Monster oOrc.
         oOrc = Beside(MonsterKind:Orc, 14, 6).
         mGame:Command(".").
         Assert:Equals(13, oOrc:X).
@@ -130,7 +129,7 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
 
     @Test.
     METHOD PUBLIC VOID WalkingOntoGoldOrAThingPicksItUp():
-        DEFINE VARIABLE oGold AS Item NO-UNDO.
+        VAR Item oGold.
         oGold = Items:Make(ItemType:Gold, 0).
         oGold:Count = 33.
         mGame:World:DropOnFloor(oGold, 7, 6).
@@ -240,7 +239,7 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
 
     @Test.
     METHOD PUBLIC VOID AskingWithAnEmptyPackSaysSo():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 0 TO 4:
             mGame:World:Pack:Take(i, mGame:World:Pack:At(i):Count).
         END.
@@ -251,7 +250,7 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
 
     @Test.
     METHOD PUBLIC VOID WieldingWearingAndRingsGoThroughTheQuestions():
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         slot = mGame:World:Pack:Add(Items:Make(ItemType:Weapon, INTEGER(WeaponKind:Spear))).
         mGame:Command("w").
         mGame:Command("f").
@@ -272,8 +271,8 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
 
     @Test.
     METHOD PUBLIC VOID WithTwoRingsOnTheGameAsksWhichToTakeOff():
-        DEFINE VARIABLE a AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b AS INTEGER NO-UNDO.
+        VAR INTEGER a.
+        VAR INTEGER b.
         a = mGame:World:Pack:Add(Items:Make(ItemType:Ring, INTEGER(RingKind:Stealth))).
         b = mGame:World:Pack:Add(Items:Make(ItemType:Ring, INTEGER(RingKind:Searching))).
         Gear:PutOn(mGame:World, a).
@@ -295,7 +294,7 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
 
     @Test.
     METHOD PUBLIC VOID ThrowingAsksForAThingAndThenADirection():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         before = mGame:World:Pack:At(4):Count.
         mGame:Command("t").
         mGame:Command("e").
@@ -322,8 +321,8 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
 
     @Test.
     METHOD PUBLIC VOID ZappingAWandAsksForADirectionToo():
-        DEFINE VARIABLE slot  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oOrc  AS Monster NO-UNDO.
+        VAR INTEGER slot.
+        VAR Monster oOrc.
         slot = mGame:World:Pack:Add(Items:Make(ItemType:Wand, INTEGER(WandKind:SlowMonster))).
         mGame:World:Pack:At(slot):Charges = 3.
         oOrc = Beside(MonsterKind:Orc, 11, 6).
@@ -337,7 +336,7 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
 
     @Test.
     METHOD PUBLIC VOID AScrollOfIdentifyAsksWhatToIdentify():
-        DEFINE VARIABLE potion AS INTEGER NO-UNDO.
+        VAR INTEGER potion.
         potion = mGame:World:Pack:Add(Items:Make(ItemType:Potion, INTEGER(PotionKind:Healing))).
         mGame:World:Pack:Add(Items:Make(ItemType:Scroll, INTEGER(ScrollKind:Identify))).
         mGame:Command("r").
@@ -463,7 +462,7 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
 
     @Test.
     METHOD PUBLIC VOID AHastedHeroHasTwoCommandsToEachTurnOfTheMonsters():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR Monster oOrc.
         oOrc = Beside(MonsterKind:Orc, 14, 8).
         mGame:World:Hero:Hasted = 10.
         mGame:Command(".").
@@ -487,7 +486,7 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
 
     @Test.
     METHOD PUBLIC VOID AHeroHeldByAMonsterCannotWalkAway():
-        DEFINE VARIABLE oPlant AS Monster NO-UNDO.
+        VAR Monster oPlant.
         oPlant = Beside(MonsterKind:VenusFlytrap, 7, 6).
         mGame:World:Hero:HeldBy = oPlant.
         mGame:Command("4").
@@ -529,7 +528,7 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
 
     @Test.
     METHOD PUBLIC VOID RunningStopsWhenAMonsterComesIntoView():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR Monster oOrc.
         mGame:World:Cave:SetTerrain(15, 6, Terrain:Door).
         mGame:World:Cave:SetTerrain(16, 6, Terrain:Passage).
         oOrc = Beside(MonsterKind:Orc, 12, 8).
@@ -587,8 +586,8 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
 
     @Test.
     METHOD PUBLIC VOID AConfusedHeroSometimesStaggersTheWrongWay():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE moved AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER moved.
         mGame:World:Hero:Confused = 500.
         DO i = 1 TO 12:
             mGame:Command(".").
@@ -604,8 +603,7 @@ CLASS ProGriddle.Games.Rogue.RogueGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheGameCanBeDisposedAndTheGridGoesWithIt():
-        DEFINE VARIABLE oGame AS RogueGame NO-UNDO.
-        oGame = NEW RogueGame(LevelMap:CreateGrid(), NEW SeededRandom(2)).
+        VAR RogueGame oGame = NEW RogueGame(LevelMap:CreateGrid(), NEW SeededRandom(2)).
         oGame:Initialise().
         oGame:Dispose().
         Assert:IsTrue(TRUE).

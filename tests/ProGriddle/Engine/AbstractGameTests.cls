@@ -12,8 +12,8 @@ CLASS ProGriddle.Engine.AbstractGameTests:
 
     @Test.
     METHOD PUBLIC VOID ExposesItsNameGridAndStartingState():
-        DEFINE VARIABLE game AS CountingGame NO-UNDO.
-        DEFINE VARIABLE g    AS Grid NO-UNDO.
+        VAR CountingGame game.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NewGrid().
             game = NEW CountingGame(g, 0).
@@ -29,7 +29,7 @@ CLASS ProGriddle.Engine.AbstractGameTests:
 
     @Test.
     METHOD PUBLIC VOID InitialiseResetsTheCounterAndTheOverFlagAndCallsTheHook():
-        DEFINE VARIABLE game AS CountingGame NO-UNDO.
+        VAR CountingGame game.
         DO ON ERROR UNDO, THROW:
             game = NEW CountingGame(NewGrid(), 2).
             game:Step().
@@ -50,9 +50,8 @@ CLASS ProGriddle.Engine.AbstractGameTests:
 
     @Test.
     METHOD PUBLIC VOID DisposeDisposesTheGrid():
-        DEFINE VARIABLE game AS CountingGame NO-UNDO.
-        DEFINE VARIABLE s    AS ArrayStore NO-UNDO.
-        s = NEW ArrayStore(2, 2, "s").
+        VAR CountingGame game.
+        VAR ArrayStore s = NEW ArrayStore(2, 2, "s").
         game = NEW CountingGame(NEW Grid(s), 0).
         game:Dispose().
         /* a second call must be harmless */
@@ -61,7 +60,7 @@ CLASS ProGriddle.Engine.AbstractGameTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ConstructorThrowsWithoutAGrid():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         NEW CountingGame(g, 0).
     END METHOD.
 

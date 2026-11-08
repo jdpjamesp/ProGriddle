@@ -14,11 +14,11 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.UI.WinForms.ForEachWindowChainTests:
 
-    DEFINE PRIVATE VARIABLE mGame    AS ForEachGame    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mView    AS GridView       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPainter AS ForEachPainter NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSound   AS SoundRenderer  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInput   AS ForEachInput   NO-UNDO.
+    VAR PRIVATE ForEachGame mGame.
+    VAR PRIVATE GridView mView.
+    VAR PRIVATE ForEachPainter mPainter.
+    VAR PRIVATE SoundRenderer mSound.
+    VAR PRIVATE ForEachInput mInput.
 
     @Setup.
     METHOD PUBLIC VOID BuildChain():
@@ -51,9 +51,9 @@ CLASS ProGriddle.UI.WinForms.ForEachWindowChainTests:
 
     @Test.
     METHOD PUBLIC VOID EveryPixelOfTheViewIsTheColourThePainterDrew():
-        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bad AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER bad.
         mInput:HandleKey("Space").
         ForEachKit:RunUntil(mGame, ForEachPhase:Playing, 900).
         mPainter:Render(mGame:Grid, mGame).
@@ -70,10 +70,10 @@ CLASS ProGriddle.UI.WinForms.ForEachWindowChainTests:
 
     @Test.
     METHOD PUBLIC VOID ALongGameWithRandomKeysPlaysThroughTheRealRendererAndTheSoundWithoutAnError():
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE random AS SeededRandom NO-UNDO.
-        DEFINE VARIABLE ways   AS CHARACTER NO-UNDO INITIAL "Up,Left,Down,Right".
-        DEFINE VARIABLE ended AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR SeededRandom random.
+        VAR CHARACTER ways = "Up,Left,Down,Right".
+        VAR INTEGER ended.
         random = NEW SeededRandom(11).
         mInput:HandleKey("Space").
         DO n = 1 TO 12000:

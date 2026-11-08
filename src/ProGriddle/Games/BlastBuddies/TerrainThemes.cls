@@ -9,7 +9,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.BlastBuddies.TerrainThemes FINAL:
 
     /* the colour of key k (1 to 25) of theme t (0 to 2) is at (t * 25) + k */
-    DEFINE PRIVATE STATIC VARIABLE sColour AS INTEGER NO-UNDO EXTENT 75.
+    VAR PRIVATE STATIC INTEGER[75] sColour.
 
     CONSTRUCTOR STATIC TerrainThemes():
         sColour[1] = ColourMath:FromHex("5AAEE8").

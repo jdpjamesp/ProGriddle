@@ -9,8 +9,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.BlastBuddies.BuddyCuesTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS BlastBuddiesGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCues AS BuddyCues        NO-UNDO.
+    VAR PRIVATE BlastBuddiesGame mGame.
+    VAR PRIVATE BuddyCues mCues.
 
     @Setup.
     METHOD PUBLIC VOID Setup():
@@ -24,7 +24,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyCuesTests:
     END METHOD.
 
     METHOD PRIVATE VOID Frames(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO piCount:
             mGame:Advance().
         END.
@@ -37,7 +37,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyCuesTests:
 
     /* flat ground, the buddies spread out on it, the game run to the first turn (a person's) and the cues primed with a first poll */
     METHOD PRIVATE VOID ToTheFirstTurn():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        VAR INTEGER k.
         mGame:Land:FillRect(0, 0, 383, 239, FALSE).
         mGame:Land:FillRect(0, 150, 383, 239, TRUE).
         DO k = 0 TO 5:
@@ -52,11 +52,11 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyCuesTests:
 
     @Test.
     METHOD PUBLIC VOID EveryCueHasARecipeThatMakesSoundNotSilence():
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE oSynth AS ToneSynth NO-UNDO.
-        DEFINE VARIABLE mData  AS MEMPTR    NO-UNDO.
-        DEFINE VARIABLE loud   AS INTEGER   NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR ToneSynth oSynth.
+        VAR MEMPTR mData.
+        VAR INTEGER loud.
         oSynth = NEW ToneSynth().
         DO i = INTEGER(BuddyCue:WalkTick) TO INTEGER(BuddyCue:Draw):
             oSynth:Make(BuddySounds:Recipe(BuddyCue:GetEnum(i)), 100, OUTPUT mData).
@@ -74,9 +74,9 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyCuesTests:
 
     @Test.
     METHOD PUBLIC VOID OnlyTheRocketHissLoopsAndABigBlastIsLouderAndLongerThanASmallOne():
-        DEFINE VARIABLE i       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE oSynth  AS ToneSynth NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL   NO-UNDO.
+        VAR INTEGER i.
+        VAR ToneSynth oSynth.
+        VAR LOGICAL lThrown.
         DO i = INTEGER(BuddyCue:WalkTick) TO INTEGER(BuddyCue:Draw):
             IF i = INTEGER(BuddyCue:FlightLoop) THEN Assert:Equals("@", SUBSTRING(BuddySounds:Recipe(BuddyCue:GetEnum(i)), 1, 1)).
             ELSE Assert:IsFalse(SUBSTRING(BuddySounds:Recipe(BuddyCue:GetEnum(i)), 1, 1) = "@").
@@ -97,8 +97,8 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyCuesTests:
 
     @Test.
     METHOD PUBLIC VOID FillPutsEveryCueInABankUnderItsNumber():
-        DEFINE VARIABLE bank AS SoundBank NO-UNDO.
-        DEFINE VARIABLE i    AS INTEGER   NO-UNDO.
+        VAR SoundBank bank.
+        VAR INTEGER i.
         bank = NEW SoundBank().
         BuddySounds:Fill(bank).
         DO i = INTEGER(BuddyCue:WalkTick) TO INTEGER(BuddyCue:Draw):
@@ -120,7 +120,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyCuesTests:
 
     @Test.
     METHOD PUBLIC VOID ACuesSourceNeedsABlastBuddiesGame():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             mCues:Poll(?).
             CATCH e AS GridException:
@@ -149,7 +149,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyCuesTests:
 
     @Test.
     METHOD PUBLIC VOID AHopAndABackflipHaveTheirOwnBlipsAndAnotherSoundForTheLanding():
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
+        VAR CHARACTER cues.
         ToTheFirstTurn().
         mGame:Jump().
         Assert:IsTrue(Has(mCues:Poll(mGame), BuddyCue:Hop)).
@@ -164,7 +164,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyCuesTests:
 
     @Test.
     METHOD PUBLIC VOID WalkingTicksEveryThirdPixelAndAimingEveryFourthStep():
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
+        VAR CHARACTER cues.
         ToTheFirstTurn().
         mGame:SetWalk(1).
         Frames(10).
@@ -191,7 +191,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyCuesTests:
 
     @Test.
     METHOD PUBLIC VOID AShotWhooshesAndHissesWhileItFliesAndAnExplosionAnswersIt():
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
+        VAR CHARACTER cues.
         ToTheFirstTurn().
         mGame:StartCharge().
         Frames(45).
@@ -207,7 +207,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyCuesTests:
 
     @Test.
     METHOD PUBLIC VOID ABlastThatHurtsABuddyMakesItSqueal():
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
+        VAR CHARACTER cues.
         ToTheFirstTurn().
         mGame:Shells:Launch(WeaponKind:Bazooka, 1, 136 * 256, 100 * 256, 0, 2048).
         Frames(10).
@@ -218,7 +218,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyCuesTests:
 
     @Test.
     METHOD PUBLIC VOID ABuddyThatDiesAndOneThatDrownsHaveTheirSounds():
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
+        VAR CHARACTER cues.
         ToTheFirstTurn().
         mGame:Plan:TeamAt(2):BuddyAt(1):Hurt(100).
         mGame:Land:FillRect(190, 150, 230, 239, FALSE).
@@ -232,7 +232,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyCuesTests:
 
     @Test.
     METHOD PUBLIC VOID TheLastTenSecondsOfATurnTickOffAndWinnerAndDrawHaveEndings():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         ToTheFirstTurn().
         Frames(BuddyRules:TurnFrames() - 11 * 60).
         mCues:Poll(mGame).
@@ -252,7 +252,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyCuesTests:
 
     @Test.
     METHOD PUBLIC VOID ADrawHasItsFallingPairAndAFinishedOrPausedGameHasNoLoops():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         ToTheFirstTurn().
         DO i = 1 TO 3:
             mGame:Plan:TeamAt(1):BuddyAt(i):Hurt(100).
@@ -285,10 +285,10 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyCuesTests:
 
     @Test.
     METHOD PUBLIC VOID TheSoundCommandSwitchesTheSoundOnAndOffWhenThereIsADevice():
-        DEFINE VARIABLE player   AS RecordingSoundPlayer NO-UNDO.
-        DEFINE VARIABLE settings AS ISettings            NO-UNDO.
-        DEFINE VARIABLE input1   AS BlastBuddiesInput    NO-UNDO.
-        DEFINE VARIABLE lThrown  AS LOGICAL              NO-UNDO.
+        VAR RecordingSoundPlayer player.
+        VAR ISettings settings.
+        VAR BlastBuddiesInput input1.
+        VAR LOGICAL lThrown.
         player = NEW RecordingSoundPlayer().
         settings = NEW MemorySettings().
         input1 = NEW BlastBuddiesInput(mGame, settings, player).

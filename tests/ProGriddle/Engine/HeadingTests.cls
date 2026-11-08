@@ -38,8 +38,8 @@ CLASS ProGriddle.Engine.HeadingTests:
 
     @Test.
     METHOD PUBLIC VOID EveryHeadingHasALengthOfOneWithinAHalfPercent():
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE len AS INT64   NO-UNDO.
+        VAR INTEGER i.
+        VAR INT64 len.
         DO i = 0 TO 63:
             len = INT64(Heading:Sin(i)) * Heading:Sin(i) + INT64(Heading:Cos(i)) * Heading:Cos(i).
             Assert:IsTrue(len > 1043000 AND len < 1054000, SUBSTITUTE("heading &1 has squared length &2", i, len)).
@@ -48,7 +48,7 @@ CLASS ProGriddle.Engine.HeadingTests:
 
     @Test.
     METHOD PUBLIC VOID TurningOneStepMovesTheSineTheSameWayOnBothSidesOfTheTop():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 0 TO 63:
             Assert:Equals(Heading:Sin(i), - Heading:Sin(64 - i)).
             Assert:Equals(Heading:Cos(i), Heading:Cos(64 - i)).
@@ -67,7 +67,7 @@ CLASS ProGriddle.Engine.HeadingTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownHeadingIsRefused():
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             Heading:Wrap(?).
             CATCH e AS GridException:
@@ -100,7 +100,7 @@ CLASS ProGriddle.Engine.HeadingTests:
 
     @Test.
     METHOD PUBLIC VOID NearestOfNothingIsStraightUpAndNearestOfAHeadingIsThatHeading():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:Equals(0, Heading:Nearest(0, 0)).
         DO i = 0 TO 63:
             Assert:Equals(i, Heading:Nearest(Heading:DirX(i), Heading:DirY(i))).

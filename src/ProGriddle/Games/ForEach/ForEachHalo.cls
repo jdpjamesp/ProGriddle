@@ -11,8 +11,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.ForEachHalo FINAL:
 
-    DEFINE PRIVATE VARIABLE mX AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mY AS INTEGER NO-UNDO EXTENT.
+    VAR PRIVATE INTEGER[] mX.
+    VAR PRIVATE INTEGER[] mY.
 
     /* How many pixels the glow has. */
     DEFINE PUBLIC PROPERTY Count AS INTEGER NO-UNDO
@@ -21,12 +21,12 @@ CLASS ProGriddle.Games.ForEach.ForEachHalo FINAL:
 
     /* The glow of a picture. Throws GridException for no picture. */
     CONSTRUCTOR PUBLIC ForEachHalo(INPUT poTile AS Tile):
-        DEFINE VARIABLE w     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE full  AS LOGICAL NO-UNDO EXTENT.
+        VAR INTEGER w.
+        VAR INTEGER h.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
+        VAR LOGICAL[] full.
         IF NOT VALID-OBJECT(poTile) THEN UNDO, THROW NEW GridException("A halo needs a picture").
         ASSIGN w = poTile:Width
                h = poTile:Height.
@@ -69,8 +69,8 @@ CLASS ProGriddle.Games.ForEach.ForEachHalo FINAL:
        piFloorB or piFloorC. The canvas may be in a batch. */
     METHOD PUBLIC VOID DrawTo(INPUT poCanvas AS PixelCanvas, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piColour AS INTEGER,
                               INPUT piFloorA AS INTEGER, INPUT piFloorB AS INTEGER, INPUT piFloorC AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER c.
         DO i = 1 TO Count:
             c = poCanvas:BackAt(piX + mX[i], piY + mY[i]).
             IF c = piFloorA OR c = piFloorB OR c = piFloorC THEN poCanvas:Plot(piX + mX[i], piY + mY[i], 0, piColour).

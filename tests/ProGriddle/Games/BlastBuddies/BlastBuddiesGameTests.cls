@@ -9,7 +9,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS BlastBuddiesGame NO-UNDO.
+    VAR PRIVATE BlastBuddiesGame mGame.
 
     @Setup.
     METHOD PUBLIC VOID Setup():
@@ -22,7 +22,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
     END METHOD.
 
     METHOD PRIVATE VOID Frames(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO piCount:
             mGame:Advance().
         END.
@@ -35,8 +35,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID AGameStartsInTheArrivalWithTheTeamsAndBuddiesOfTheSetup():
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b AS INTEGER NO-UNDO.
+        VAR INTEGER t.
+        VAR INTEGER b.
         Assert:Equals("Blast Buddies", mGame:Name).
         Assert:IsTrue(mGame:Phase = BuddyPhase:Arrival).
         Assert:IsFalse(mGame:IsOver).
@@ -60,10 +60,10 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID BuddiesHaveDifferentNamesAndFaceTowardsTheMiddle():
-        DEFINE VARIABLE a AS Buddy NO-UNDO.
-        DEFINE VARIABLE b AS Buddy NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        VAR Buddy a.
+        VAR Buddy b.
+        VAR INTEGER i.
+        VAR INTEGER j.
         DO i = 1 TO 6:
             a = mGame:Plan:TeamAt((i MODULO 2) + 1):BuddyAt(INTEGER(TRUNCATE((i - 1) / 2, 0)) + 1).
             Assert:Equals(IF a:X() < 192 THEN 1 ELSE -1, a:Facing).
@@ -76,8 +76,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID AGameNeedsAGridOfTheRightSizeARandomSourceAndASetup():
-        DEFINE VARIABLE g       AS BlastBuddiesGame NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL          NO-UNDO.
+        VAR BlastBuddiesGame g.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             g = NEW BlastBuddiesGame(NEW Grid(NEW ArrayStore(100, 100, "view,kind,back")), NEW SeededRandom(1), BuddySetup:Default()).
             CATCH e AS GridException:
@@ -105,7 +105,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheFactoryMakesAGridOfThreeLayers():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         g = BlastBuddiesFactory:CreateGrid().
         Assert:Equals(384, g:Width).
         Assert:Equals(240, g:Height).
@@ -137,7 +137,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID WhenTheTurnClockRunsOutTheGameResolvesThenTheNextTeamHasTheNextBanner():
-        DEFINE VARIABLE firstOne AS Buddy NO-UNDO.
+        VAR Buddy firstOne.
         ToTheFirstTurn().
         firstOne = mGame:CurrentBuddy.
         Frames(BuddyRules:TurnFrames()).
@@ -155,7 +155,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID EndTurnWorksOnlyInATurnOrARetreat():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             mGame:EndTurn().
             CATCH e AS GridException:
@@ -170,7 +170,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID ARetreatLastsThreeSecondsThenResolves():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             mGame:BeginRetreat().
             CATCH e AS GridException:
@@ -200,7 +200,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID BuddiesFallWhateverThePhase():
-        DEFINE VARIABLE b AS Buddy NO-UNDO.
+        VAR Buddy b.
         b = mGame:Plan:TeamAt(1):BuddyAt(1).
         mGame:Land:FillRect(b:X() - 8, b:Y(), b:X() + 8, b:Y() + 30, FALSE).
         Frames(1).
@@ -238,7 +238,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheSameSeedGivesTheSameWindAndFirstBuddy():
-        DEFINE VARIABLE other AS BlastBuddiesGame NO-UNDO.
+        VAR BlastBuddiesGame other.
         other = BlastBuddiesFactory:Create(NEW SeededRandom(5), NEW BuddySetup(2, 3, 1, Theme:Meadow)).
         ToTheFirstTurn().
         Frames(0).
@@ -254,7 +254,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID WhenOnlyOneTeamHasBuddiesLeftItWins():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         ToTheFirstTurn().
         DO i = 1 TO 3:
             mGame:Plan:TeamAt(2):BuddyAt(i):Hurt(100).
@@ -312,7 +312,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID WhenEveryoneIsGoneItIsADraw():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         ToTheFirstTurn().
         DO i = 1 TO 3:
             mGame:Plan:TeamAt(1):BuddyAt(i):Hurt(100).
@@ -346,7 +346,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID AHeldWalkMovesTheBuddyInTurnOnePixelEveryFortyMilliseconds():
-        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        VAR INTEGER x0.
         ToTheFirstTurn().
         Flatten(mGame:CurrentBuddy).
         x0 = mGame:CurrentBuddy:X().
@@ -365,7 +365,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID WalkingStillWorksInTheRetreat():
-        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        VAR INTEGER x0.
         ToTheFirstTurn().
         Flatten(mGame:CurrentBuddy).
         x0 = mGame:CurrentBuddy:X().
@@ -377,8 +377,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID NobodyWalksInTheBannerOrAfterTheTurnHasChanged():
-        DEFINE VARIABLE b  AS Buddy   NO-UNDO.
-        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
+        VAR Buddy b.
+        VAR INTEGER x0.
         Frames(BuddyRules:ArrivalFrames()).
         b = mGame:CurrentBuddy.
         Flatten(b).
@@ -393,7 +393,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID AWalkDirectionIsMinusOneZeroOrOne():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             mGame:SetWalk(2).
             CATCH e AS GridException:
@@ -545,8 +545,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID ARocketLeavesTheMuzzleAtASpeedByThePowerAndFliesUnderGravityAndWind():
-        DEFINE VARIABLE x0 AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y0 AS INTEGER NO-UNDO.
+        VAR INTEGER x0.
+        VAR INTEGER y0.
         ReadyToShoot().
         x0 = mGame:CurrentBuddy:X256 + 1536.
         y0 = mGame:CurrentBuddy:Y256 - 1536.
@@ -614,8 +614,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID ARocketThatHitsAWallBlowsAHoleInItAndIsGone():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         ReadyToShoot().
         x = mGame:CurrentBuddy:X().
         y = mGame:CurrentBuddy:Y().
@@ -635,7 +635,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID ARocketThatHitsABuddyHurtsAndThrowsIt():
-        DEFINE VARIABLE enemy AS Buddy NO-UNDO.
+        VAR Buddy enemy.
         ReadyToShoot().
         enemy = mGame:Plan:TeamAt(2):BuddyAt(1).
         enemy:PlaceAt(mGame:CurrentBuddy:X() + 36, mGame:CurrentBuddy:Y()).
@@ -731,7 +731,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID AGameWithATitleWaitsOnItUntilTheMatchIsStarted():
-        DEFINE VARIABLE g AS BlastBuddiesGame NO-UNDO.
+        VAR BlastBuddiesGame g.
         Assert:IsFalse(mGame:HasTitle).
         g = BlastBuddiesFactory:CreateWithTitle(NEW SeededRandom(5), BuddySetup:Default()).
         Assert:IsTrue(g:HasTitle).
@@ -753,7 +753,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID AMatchStartedFromTheListsGoesStraightToTheArrival():
-        DEFINE VARIABLE g AS BlastBuddiesGame NO-UNDO.
+        VAR BlastBuddiesGame g.
         g = BlastBuddiesFactory:CreateWithTitle(NEW SeededRandom(5), BuddySetup:Default()).
         g:Restart(NEW BuddySetup(3, 3, 1, Theme:Candy)).
         Assert:IsTrue(g:Phase = BuddyPhase:Arrival).
@@ -773,7 +773,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesGameTests:
 
     @Test.
     METHOD PUBLIC VOID ThreeTeamsOfFourMakeTwelveBuddiesWithTheLastOnesPlayedByTheComputer():
-        DEFINE VARIABLE g AS BlastBuddiesGame NO-UNDO.
+        VAR BlastBuddiesGame g.
         g = BlastBuddiesFactory:Create(NEW SeededRandom(9), NEW BuddySetup(3, 4, 2, Theme:Canyon)).
         Assert:Equals(3, g:Plan:TeamCount()).
         Assert:Equals(4, g:Plan:TeamAt(3):Count()).

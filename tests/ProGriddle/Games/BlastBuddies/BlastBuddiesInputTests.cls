@@ -9,9 +9,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
 
-    DEFINE PRIVATE VARIABLE mGame     AS BlastBuddiesGame  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS ISettings         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInput    AS BlastBuddiesInput NO-UNDO.
+    VAR PRIVATE BlastBuddiesGame mGame.
+    VAR PRIVATE ISettings mSettings.
+    VAR PRIVATE BlastBuddiesInput mInput.
 
     @Setup.
     METHOD PUBLIC VOID Setup():
@@ -26,7 +26,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
     END METHOD.
 
     METHOD PRIVATE VOID Frames(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO piCount:
             mGame:Advance().
         END.
@@ -38,8 +38,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheGameKeysAreTakenAndOtherKeysAreLeftToTheWindow():
-        DEFINE VARIABLE keyList AS CHARACTER NO-UNDO INITIAL "Left,Right,Up,Down,Return,Enter,Space,Add,Subtract,Oemplus,OemMinus".
-        DEFINE VARIABLE i    AS INTEGER   NO-UNDO.
+        VAR CHARACTER keyList = "Left,Right,Up,Down,Return,Enter,Space,Add,Subtract,Oemplus,OemMinus".
+        VAR INTEGER i.
         DO i = 1 TO NUM-ENTRIES(keyList):
             Assert:IsTrue(mInput:HandleKey(ENTRY(i, keyList)), ENTRY(i, keyList)).
             mInput:ReleaseKey(ENTRY(i, keyList)).
@@ -163,8 +163,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheSpeedStaysBetweenTenAndTwoHundredAndStartsFromTheSetting():
-        DEFINE VARIABLE i   AS INTEGER             NO-UNDO.
-        DEFINE VARIABLE inp AS BlastBuddiesInput   NO-UNDO.
+        VAR INTEGER i.
+        VAR BlastBuddiesInput inp.
         DO i = 1 TO 30:
             mInput:HandleKey("Subtract").
         END.
@@ -187,7 +187,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheStatusLineSaysWhoWonAndOfADraw():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         ToTheFirstTurn().
         DO i = 1 TO 3:
             mGame:Plan:TeamAt(2):BuddyAt(i):Hurt(100).
@@ -199,7 +199,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheStatusLineOfADrawSaysSo():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         ToTheFirstTurn().
         DO i = 1 TO 3:
             mGame:Plan:TeamAt(1):BuddyAt(i):Hurt(100).
@@ -212,7 +212,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
 
     @Test.
     METHOD PUBLIC VOID ThereIsNoPickerNoCommandNoBannerNoInfoAndOtherCommandsAreRefused():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         Assert:Equals("", mInput:ChoiceLabel).
         Assert:Equals("", mInput:ChoiceNames).
         Assert:Equals("", mInput:Choice).
@@ -235,7 +235,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheFiveOptionsAreTheirLabelsKeysNamesAndTheCurrentValues():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:Equals(5, mInput:OptionCount).
         Assert:Equals("Teams", mInput:OptionLabel(1)).
         Assert:Equals("Land", mInput:OptionLabel(5)).
@@ -288,7 +288,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
 
     @Test.
     METHOD PUBLIC VOID ABadOptionOrValueIsRefused():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             mInput:SetOption(6, "x").
             CATCH e AS GridException:
@@ -340,8 +340,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
 
     @Test.
     METHOD PUBLIC VOID ANewGameGivesTheComputerPlayerTheSkillOfTheSetup():
-        DEFINE VARIABLE brain AS SimulatingBrain NO-UNDO.
-        brain = NEW SimulatingBrain(NEW SeededRandom(1), BuddySkill:Easy).
+        VAR SimulatingBrain brain = NEW SimulatingBrain(NEW SeededRandom(1), BuddySkill:Easy).
         mGame:Brain = brain.
         mInput:SetOption(4, "Hard").
         Assert:IsTrue(brain:Skill = BuddySkill:Hard).
@@ -349,7 +348,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
 
     @Test.
     METHOD PUBLIC VOID RestartingNeedsASetupAndTheMapIsInTheThemeOfTheSetup():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             mGame:Restart(?).
             CATCH e AS GridException:
@@ -365,9 +364,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
 
     @Test.
     METHOD PUBLIC VOID SpaceStartsTheMatchFromTheTitleAndANewGameFromTheEndScreen():
-        DEFINE VARIABLE g   AS BlastBuddiesGame  NO-UNDO.
-        DEFINE VARIABLE inp AS BlastBuddiesInput NO-UNDO.
-        DEFINE VARIABLE i   AS INTEGER           NO-UNDO.
+        VAR BlastBuddiesGame g.
+        VAR BlastBuddiesInput inp.
+        VAR INTEGER i.
         g = BlastBuddiesFactory:CreateWithTitle(NEW SeededRandom(5), BuddySetup:Default()).
         inp = NEW BlastBuddiesInput(g, mSettings).
         Assert:IsTrue(inp:StatusText BEGINS "Blast Buddies   Press Space").
@@ -394,8 +393,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInputTests:
 
     @Test.
     METHOD PUBLIC VOID InputNeedsAGameAndSettings():
-        DEFINE VARIABLE inp     AS BlastBuddiesInput NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL           NO-UNDO.
+        VAR BlastBuddiesInput inp.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             inp = NEW BlastBuddiesInput(?, mSettings).
             CATCH e AS GridException:

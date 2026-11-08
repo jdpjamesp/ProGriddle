@@ -9,7 +9,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.ForEachPictureHooksTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS ForEachGame NO-UNDO.
+    VAR PRIVATE ForEachGame mGame.
 
     @Setup.
     METHOD PUBLIC VOID BuildGame():
@@ -23,7 +23,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPictureHooksTests:
     END METHOD.
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN n = mGame:EatenColAt(1).
@@ -65,7 +65,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPictureHooksTests:
 
     @Test.
     METHOD PUBLIC VOID LevelSerialGoesUpEachTimeTheMazeIsFilled():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         before = mGame:LevelSerial.
         mGame:StartGame().
         Assert:Equals(before + 1, mGame:LevelSerial).
@@ -94,7 +94,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPictureHooksTests:
 
     @Test.
     METHOD PUBLIC VOID APhantomEatenLeavesAPopUpOfItsPointsWhereItWas():
-        DEFINE VARIABLE lane AS ForEachGame NO-UNDO.
+        VAR ForEachGame lane.
         lane = ForEachKit:GameOn(ForEachKit:ClosedCorridor()).
         ForEachKit:Play(lane).
         lane:PlacePhantom(PhantomKind:Mary, 80, 12, MazeDir:Right, PhantomMode:Chase).
@@ -111,7 +111,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPictureHooksTests:
 
     @Test.
     METHOD PUBLIC VOID AnItemEatenLeavesAPopUpThatLastsTwoSeconds():
-        DEFINE VARIABLE lane AS ForEachGame NO-UNDO.
+        VAR ForEachGame lane.
         lane = ForEachKit:GameOn(ForEachKit:ItemCorridor()).
         ForEachKit:Play(lane).
         lane:ShowItem().
@@ -138,7 +138,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPictureHooksTests:
 
     @Test.
     METHOD PUBLIC VOID ThereAreOnlyThreeCartoons():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mGame:StartIntermission(4).
             CATCH e AS GridException:

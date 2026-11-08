@@ -26,94 +26,94 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     &SCOPED-DEFINE SHORE-ROWS 7
     &SCOPED-DEFINE KIND-LAND 1
 
-    DEFINE PRIVATE VARIABLE mInner     AS IGridRenderer NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGame      AS BlastBuddiesGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas    AS PixelCanvas   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSkyGrid   AS Grid          NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSky       AS PixelCanvas   NO-UNDO.
+    VAR PRIVATE IGridRenderer mInner.
+    VAR PRIVATE BlastBuddiesGame mGame.
+    VAR PRIVATE PixelCanvas mCanvas.
+    VAR PRIVATE Grid mSkyGrid.
+    VAR PRIVATE PixelCanvas mSky.
     /* the colours of the sky canvas once it is drawn, for a quick look at any pixel of it (the view layer is the first third) */
-    DEFINE PRIVATE VARIABLE mSkyMem    AS MEMPTR        NO-UNDO.
+    VAR PRIVATE MEMPTR mSkyMem.
     /* the lowest row any cloud reaches, so the pixels below need no look at the clouds */
-    DEFINE PRIVATE VARIABLE mCloudLow  AS INTEGER       NO-UNDO.
+    VAR PRIVATE INTEGER mCloudLow.
     /* the four frames of waves as lists of cells (across, down from the wave row, colour), 48 cells of 12 bytes each, and how many each has */
-    DEFINE PRIVATE VARIABLE mWaveCells AS MEMPTR        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWaveCount AS INTEGER       NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mSprites   AS BuddySprites   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mText      AS TextStampCache NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDisposed  AS LOGICAL       NO-UNDO.
+    VAR PRIVATE MEMPTR mWaveCells.
+    VAR PRIVATE INTEGER[4] mWaveCount.
+    VAR PRIVATE BuddySprites mSprites.
+    VAR PRIVATE TextStampCache mText.
+    VAR PRIVATE LOGICAL mDisposed.
     /* what each buddy (team - 1) * 4 + place was doing at the last picture: its state and column, when it last moved and when it last landed */
-    DEFINE PRIVATE VARIABLE mPrevState AS INTEGER       NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mPrevX     AS INTEGER       NO-UNDO EXTENT 16 INITIAL -1.
-    DEFINE PRIVATE VARIABLE mMoveMs    AS INTEGER       NO-UNDO EXTENT 16 INITIAL -100000.
-    DEFINE PRIVATE VARIABLE mLandMs    AS INTEGER       NO-UNDO EXTENT 16 INITIAL -100000.
+    VAR PRIVATE INTEGER[16] mPrevState.
+    VAR PRIVATE INTEGER[16] mPrevX = -1.
+    VAR PRIVATE INTEGER[16] mMoveMs = -100000.
+    VAR PRIVATE INTEGER[16] mLandMs = -100000.
     /* the smoke of a rocket's trail: where each puff is, when it was made, and where the next goes */
-    DEFINE PRIVATE VARIABLE mTrailX    AS INTEGER       NO-UNDO EXTENT 12.
-    DEFINE PRIVATE VARIABLE mTrailY    AS INTEGER       NO-UNDO EXTENT 12.
-    DEFINE PRIVATE VARIABLE mTrailMs   AS INTEGER       NO-UNDO EXTENT 12 INITIAL -100000.
-    DEFINE PRIVATE VARIABLE mTrailNext AS INTEGER       NO-UNDO INITIAL 1.
-    DEFINE PRIVATE VARIABLE mTrailLast AS INTEGER       NO-UNDO INITIAL -100000.
+    VAR PRIVATE INTEGER[12] mTrailX.
+    VAR PRIVATE INTEGER[12] mTrailY.
+    VAR PRIVATE INTEGER[12] mTrailMs = -100000.
+    VAR PRIVATE INTEGER mTrailNext = 1.
+    VAR PRIVATE INTEGER mTrailLast = -100000.
     /* the smoke tones, lightest first */
-    DEFINE PRIVATE VARIABLE mSmoke     AS INTEGER       NO-UNDO EXTENT 5.
+    VAR PRIVATE INTEGER[5] mSmoke.
     /* the damage numbers floating up: whose, how much, and when they began; and how many blasts have been looked at */
-    DEFINE PRIVATE VARIABLE mDmgBuddy  AS Buddy         NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mDmgAmount AS INTEGER       NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mDmgMs     AS INTEGER       NO-UNDO EXTENT 16 INITIAL -100000.
-    DEFINE PRIVATE VARIABLE mDmgNext   AS INTEGER       NO-UNDO INITIAL 1.
-    DEFINE PRIVATE VARIABLE mBlastsSeen AS INTEGER      NO-UNDO.
+    VAR PRIVATE Buddy[16] mDmgBuddy.
+    VAR PRIVATE INTEGER[16] mDmgAmount.
+    VAR PRIVATE INTEGER[16] mDmgMs = -100000.
+    VAR PRIVATE INTEGER mDmgNext = 1.
+    VAR PRIVATE INTEGER mBlastsSeen.
     /* the blasts being shown: where, how big, when it went off, and the pixels of its scorch ring (up to 800 each, in blocks of 800) */
-    DEFINE PRIVATE VARIABLE mRandom    AS IRandom       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFxX       AS INTEGER       NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mFxY       AS INTEGER       NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mFxR       AS INTEGER       NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mFxMs      AS INTEGER       NO-UNDO EXTENT 4 INITIAL -100000.
-    DEFINE PRIVATE VARIABLE mFxRings   AS INTEGER       NO-UNDO EXTENT 4.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE INTEGER[4] mFxX.
+    VAR PRIVATE INTEGER[4] mFxY.
+    VAR PRIVATE INTEGER[4] mFxR.
+    VAR PRIVATE INTEGER[4] mFxMs = -100000.
+    VAR PRIVATE INTEGER[4] mFxRings.
     /* the scorch ring pixels of all four blasts, three whole numbers each (column, row, step), in memory: a class can hold only about
        32000 bytes of variables, so the big tables are not variables */
-    DEFINE PRIVATE VARIABLE mRing      AS MEMPTR        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFxNext    AS INTEGER       NO-UNDO INITIAL 1.
-    DEFINE PRIVATE VARIABLE mFxSeen    AS INTEGER       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTitleLoop AS INTEGER       NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mBlast     AS INTEGER       NO-UNDO EXTENT 5.
+    VAR PRIVATE MEMPTR mRing.
+    VAR PRIVATE INTEGER mFxNext = 1.
+    VAR PRIVATE INTEGER mFxSeen.
+    VAR PRIVATE INTEGER mTitleLoop = -1.
+    VAR PRIVATE INTEGER[5] mBlast.
     /* the pieces of ground thrown out by blasts: where, how fast (256ths of a pixel), what colour, how wide, and whether it is still flying */
-    DEFINE PRIVATE VARIABLE mDbX       AS INTEGER       NO-UNDO EXTENT 256.
-    DEFINE PRIVATE VARIABLE mDbY       AS INTEGER       NO-UNDO EXTENT 256.
-    DEFINE PRIVATE VARIABLE mDbVX      AS INTEGER       NO-UNDO EXTENT 256.
-    DEFINE PRIVATE VARIABLE mDbVY      AS INTEGER       NO-UNDO EXTENT 256.
-    DEFINE PRIVATE VARIABLE mDbC       AS INTEGER       NO-UNDO EXTENT 256.
-    DEFINE PRIVATE VARIABLE mDbWide    AS LOGICAL       NO-UNDO EXTENT 256.
-    DEFINE PRIVATE VARIABLE mDbLive    AS LOGICAL       NO-UNDO EXTENT 256.
-    DEFINE PRIVATE VARIABLE mDbNext    AS INTEGER       NO-UNDO INITIAL 1.
-    DEFINE PRIVATE VARIABLE mLastFrame AS INTEGER       NO-UNDO.
+    VAR PRIVATE INTEGER[256] mDbX.
+    VAR PRIVATE INTEGER[256] mDbY.
+    VAR PRIVATE INTEGER[256] mDbVX.
+    VAR PRIVATE INTEGER[256] mDbVY.
+    VAR PRIVATE INTEGER[256] mDbC.
+    VAR PRIVATE LOGICAL[256] mDbWide.
+    VAR PRIVATE LOGICAL[256] mDbLive.
+    VAR PRIVATE INTEGER mDbNext = 1.
+    VAR PRIVATE INTEGER mLastFrame.
     /* when each buddy was first seen buried (its gravestone rises from then), and when it went into the water, and where */
-    DEFINE PRIVATE VARIABLE mPrevBuried AS LOGICAL      NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mBuriedMs  AS INTEGER       NO-UNDO EXTENT 16 INITIAL -100000.
-    DEFINE PRIVATE VARIABLE mSinkMs    AS INTEGER       NO-UNDO EXTENT 16 INITIAL -100000.
-    DEFINE PRIVATE VARIABLE mSinkX     AS INTEGER       NO-UNDO EXTENT 16.
+    VAR PRIVATE LOGICAL[16] mPrevBuried.
+    VAR PRIVATE INTEGER[16] mBuriedMs = -100000.
+    VAR PRIVATE INTEGER[16] mSinkMs = -100000.
+    VAR PRIVATE INTEGER[16] mSinkX.
     /* the rings of the splashes: the column and the time of each */
-    DEFINE PRIVATE VARIABLE mSplX      AS INTEGER       NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mSplMs     AS INTEGER       NO-UNDO EXTENT 4 INITIAL -100000.
-    DEFINE PRIVATE VARIABLE mSplNext   AS INTEGER       NO-UNDO INITIAL 1.
+    VAR PRIVATE INTEGER[4] mSplX.
+    VAR PRIVATE INTEGER[4] mSplMs = -100000.
+    VAR PRIVATE INTEGER mSplNext = 1.
     /* the map whose last picture, dimmed, is baked into the background for the winner screen */
-    DEFINE PRIVATE VARIABLE mOverSerial AS INTEGER      NO-UNDO INITIAL -1.
+    VAR PRIVATE INTEGER mOverSerial = -1.
     /* the team tones 1 and 2 */
-    DEFINE PRIVATE VARIABLE mTone1     AS INTEGER       NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mTone2     AS INTEGER       NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mSerial    AS INTEGER       NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mLastKey   AS CHARACTER     NO-UNDO.
+    VAR PRIVATE INTEGER[4] mTone1.
+    VAR PRIVATE INTEGER[4] mTone2.
+    VAR PRIVATE INTEGER mSerial = -1.
+    VAR PRIVATE CHARACTER mLastKey.
     /* the colours of the sea and the sky, got once for the theme of the map */
-    DEFINE PRIVATE VARIABLE mWaterBack AS INTEGER       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWater     AS INTEGER       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCloud     AS INTEGER       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCloudShade AS INTEGER      NO-UNDO.
+    VAR PRIVATE INTEGER mWaterBack.
+    VAR PRIVATE INTEGER mWater.
+    VAR PRIVATE INTEGER mCloud.
+    VAR PRIVATE INTEGER mCloudShade.
     /* the colour of the ground in the seven rows the sea is drawn over, row by row, -1 for none */
-    DEFINE PRIVATE VARIABLE mShoreMem  AS MEMPTR        NO-UNDO.
+    VAR PRIVATE MEMPTR mShoreMem.
     /* the clouds: where each began, its size, how far all have drifted, and the time of the last drift */
-    DEFINE PRIVATE VARIABLE mCloudX    AS INTEGER       NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mCloudY    AS INTEGER       NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mCloudN    AS INTEGER       NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mDrift     AS INTEGER       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDriftMs   AS INTEGER       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLastMs    AS INTEGER       NO-UNDO.
+    VAR PRIVATE INTEGER[4] mCloudX.
+    VAR PRIVATE INTEGER[4] mCloudY.
+    VAR PRIVATE INTEGER[4] mCloudN.
+    VAR PRIVATE INTEGER mDrift.
+    VAR PRIVATE INTEGER mDriftMs.
+    VAR PRIVATE INTEGER mLastMs.
 
     /* The canvas the picture is drawn on, and the grid it is on (what the window's renderer is given). */
     DEFINE PUBLIC PROPERTY Canvas AS PixelCanvas NO-UNDO
@@ -140,8 +140,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* Throws GridException for no renderer or no game. */
     /* How many pieces of ground thrown out by blasts are still in the air. */
     METHOD PUBLIC INTEGER DebrisInFlight():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
         DO i = 1 TO 256:
             IF mDbLive[i] THEN n = n + 1.
         END.
@@ -150,7 +150,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* poRandom is for the effects (the pieces of ground thrown out by a blast). Throws GridException for no renderer, game or random source. */
     CONSTRUCTOR PUBLIC BlastBuddiesPainter(INPUT poInner AS IGridRenderer, INPUT poGame AS BlastBuddiesGame, INPUT poRandom AS IRandom):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF NOT VALID-OBJECT(poInner) THEN UNDO, THROW NEW GridException("A Blast Buddies painter needs a renderer to hand the picture to").
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("A Blast Buddies painter needs a game").
         IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("A Blast Buddies painter needs a random source").
@@ -185,7 +185,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* Draws the game on the canvas and gives the grid to the window's renderer. Throws GridException for a game that is not a Blast
        Buddies game. */
     METHOD PUBLIC VOID Render(INPUT poGrid AS Grid, INPUT poGame AS IGame):
-        DEFINE VARIABLE key AS CHARACTER NO-UNDO.
+        VAR CHARACTER key.
         IF NOT VALID-OBJECT(poGame) OR NOT TYPE-OF(poGame, BlastBuddiesGame) THEN UNDO, THROW NEW GridException("A Blast Buddies painter draws a Blast Buddies game").
         /* a redraw asked for with nothing changed since the last picture (every repeat of a held key asks for one) costs nothing */
         IF SkipUnchanged THEN DO:
@@ -243,7 +243,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* Frees the canvases and the stamps. Safe to call more than once. */
     METHOD PUBLIC VOID Dispose():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF mDisposed THEN RETURN.
         mDisposed = TRUE.
         IF VALID-OBJECT(mCanvas) THEN mCanvas:Dispose().
@@ -266,7 +266,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* Everything that belongs to one map: the sky, the waves, the clouds and the ground, drawn from the beginning. */
     METHOD PRIVATE VOID StartMap():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mSerial = mGame:MapSerial.
         mWaterBack = Look(ThemeKey:WaterBack).
         mWater = Look(ThemeKey:Water).
@@ -308,14 +308,14 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* The sky: a gradient, the sun and its ring of sparkles, and the far hills, drawn on the sky canvas. */
     METHOD PRIVATE VOID DrawSky():
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d2   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE skyTop AS INTEGER NO-UNDO.
-        DEFINE VARIABLE skyLow AS INTEGER NO-UNDO.
-        DEFINE VARIABLE far1 AS INTEGER NO-UNDO.
-        DEFINE VARIABLE farT AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER d2.
+        VAR INTEGER h.
+        VAR INTEGER skyTop.
+        VAR INTEGER skyLow.
+        VAR INTEGER far1.
+        VAR INTEGER farT.
         skyTop = Look(ThemeKey:SkyTop).
         skyLow = Look(ThemeKey:SkyLow).
         far1 = Look(ThemeKey:Far).
@@ -343,11 +343,11 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* The four frames of waves, each 16 wide and 3 high; F is foam, T the wave top and a dot lets the swell behind show. */
     METHOD PRIVATE VOID MakeWaves():
-        DEFINE VARIABLE rows   AS CHARACTER NO-UNDO EXTENT 4.
-        DEFINE VARIABLE f      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE ch     AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE n      AS INTEGER   NO-UNDO.
+        VAR CHARACTER[4] rows.
+        VAR INTEGER f.
+        VAR INTEGER i.
+        VAR CHARACTER ch.
+        VAR INTEGER n.
         rows[1] = "....FF.........." + "..FTTTF......FF." + "FTTTTTTTF..FTTTT".
         rows[2] = "........FF......" + "......FTTTF....." + ".FF..FTTTTTTTF..".
         rows[3] = "............FF.." + ".F........FTTTF." + "TTTF.....FTTTTTT".
@@ -376,8 +376,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* The column of the middle of a cloud's first circle now. A cloud that drifts off one side comes back in at the other, after a gap
        as wide as itself, so it goes round a loop of the map and the cloud. */
     METHOD PRIVATE INTEGER CloudOrigin(INPUT piIndex AS INTEGER):
-        DEFINE VARIABLE period AS INTEGER NO-UNDO.
-        DEFINE VARIABLE v      AS INTEGER NO-UNDO.
+        VAR INTEGER period.
+        VAR INTEGER v.
         period = {&W} + CloudWidth(piIndex).
         v = (mCloudX[piIndex] + CloudWidth(piIndex) + mDrift) MODULO period.
         IF v < 0 THEN v = v + period.
@@ -403,12 +403,12 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* The colour of the cloud at a pixel, or -1 if no cloud is there. A cloud is n + 2 circles in a row (radius 6 and a little higher
        for the odd ones, radius 5 for the even), and its underside is shaded. */
     METHOD PRIVATE INTEGER CloudAt(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE c  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ox AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r  AS INTEGER NO-UNDO.
+        VAR INTEGER c.
+        VAR INTEGER i.
+        VAR INTEGER ox.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR INTEGER r.
         DO c = 1 TO 4:
             IF piY < mCloudY[c] - 10 OR piY > mCloudY[c] + 3 THEN NEXT.
             ox = CloudOrigin(c).
@@ -427,12 +427,12 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* Lets the clouds drift with the time that has passed: one pixel every 800 - 60 x wind ms, to the right unless the wind blows left.
        The boxes the clouds were in and move to are coloured again. */
     METHOD PRIVATE VOID SyncClouds():
-        DEFINE VARIABLE period AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dir    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE moved  AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE l      AS INTEGER NO-UNDO EXTENT 4.
-        DEFINE VARIABLE r      AS INTEGER NO-UNDO EXTENT 4.
+        VAR INTEGER period.
+        VAR INTEGER dir.
+        VAR LOGICAL moved.
+        VAR INTEGER i.
+        VAR INTEGER[4] l.
+        VAR INTEGER[4] r.
         period = 800 - 60 * ABSOLUTE(mGame:Wind).
         dir = (IF mGame:Wind < 0 THEN -1 ELSE 1).
         mDriftMs = mDriftMs + MAXIMUM(mGame:ElapsedMs - mLastMs, 0).
@@ -462,12 +462,12 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* Colours a box of the picture again, on the view, from the ground, the clouds and the sky. Must be called in a batch. The box is
        cut to the map. */
     METHOD PRIVATE VOID PutBox(INPUT piL AS INTEGER, INPUT piT AS INTEGER, INPUT piR AS INTEGER, INPUT piB AS INTEGER):
-        DEFINE VARIABLE cells AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE land  AS Terrain NO-UNDO.
+        VAR MEMPTR cells.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
+        VAR INTEGER c.
+        VAR Terrain land.
         land = mGame:Land.
         piL = MAXIMUM(piL, 0).
         piT = MAXIMUM(piT, 0).
@@ -503,11 +503,11 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* Colours every ground pixel of a box, and nothing else (the sky is already there). Must be called in a batch. */
     METHOD PRIVATE VOID PutLand(INPUT piL AS INTEGER, INPUT piT AS INTEGER, INPUT piR AS INTEGER, INPUT piB AS INTEGER):
-        DEFINE VARIABLE cells AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c     AS INTEGER NO-UNDO.
+        VAR MEMPTR cells.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
+        VAR INTEGER c.
         DO ON ERROR UNDO, THROW:
             SET-SIZE(cells) = (piR - piL + 1) * (piB - piT + 1) * 12.
             DO y = piT TO piB:
@@ -529,8 +529,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* The ground in the rows the sea covers, for the whole map. */
     METHOD PRIVATE VOID FillShore():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO y = {&SHORE} TO {&SHORE} + {&SHORE-ROWS} - 1:
             DO x = 0 TO {&W} - 1:
                 PUT-LONG(mShoreMem, ((y - {&SHORE}) * {&W} + x) * 4 + 1) = (IF mGame:Land:IsSolid(x, y) THEN mGame:Land:ShadeAt(x, y) ELSE -1).
@@ -554,9 +554,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* Draws every buddy that is still on the map: the goon in the pose of what it is doing, in its team colours and facing the way it
        faces, its team mark on the head, the bazooka in its hands when it aims, and the numbers over it. A buried buddy is a gravestone. */
     METHOD PRIVATE VOID DrawBuddies():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b AS Buddy   NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR Buddy b.
         DO i = 1 TO mGame:Plan:TeamCount():
             DO j = 1 TO mGame:Plan:TeamAt(i):Count():
                 b = mGame:Plan:TeamAt(i):BuddyAt(j).
@@ -588,8 +588,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* Notes what a buddy has been doing since the last picture: when it walked, and when it came down. */
     METHOD PRIVATE VOID Track(INPUT poBuddy AS Buddy, INPUT piKey AS INTEGER):
-        DEFINE VARIABLE ms AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k  AS INTEGER NO-UNDO.
+        VAR INTEGER ms.
+        VAR INTEGER k.
         ms = mGame:ElapsedMs.
         IF poBuddy:X() <> mPrevX[piKey] AND mPrevX[piKey] >= 0 AND poBuddy:State = BuddyState:Standing THEN mMoveMs[piKey] = ms.
         IF mPrevState[piKey] = INTEGER(BuddyState:Airborne) AND poBuddy:State = BuddyState:Standing THEN mLandMs[piKey] = ms.
@@ -613,7 +613,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* Whether a shot is in the air within 48 pixels of a buddy, which worries it. */
     METHOD PRIVATE LOGICAL ShotNear(INPUT poBuddy AS Buddy):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO ShellPool:Capacity():
             IF mGame:Shells:Active(i) AND ABSOLUTE(BuddyRules:Pixel(mGame:Shells:X(i)) - poBuddy:X()) <= 48
                AND ABSOLUTE(BuddyRules:Pixel(mGame:Shells:Y(i)) - poBuddy:Y()) <= 48 THEN RETURN TRUE.
@@ -623,8 +623,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* The picture a goon is in now. */
     METHOD PRIVATE CHARACTER FrameFor(INPUT poBuddy AS Buddy, INPUT piKey AS INTEGER):
-        DEFINE VARIABLE ms AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t  AS INTEGER NO-UNDO.
+        VAR INTEGER ms.
+        VAR INTEGER t.
         ms = mGame:ElapsedMs.
         t = ms + piKey * 977.
         IF poBuddy:IsDead() THEN RETURN "goon_flinch".
@@ -644,8 +644,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* A goon in a picture, piUp pixels above where it stands, with its mark, and the bazooka in its hands when it aims. */
     METHOD PRIVATE VOID DrawPose(INPUT poBuddy AS Buddy, INPUT pcPose AS CHARACTER, INPUT piUp AS INTEGER):
-        DEFINE VARIABLE mirror AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE r      AS INTEGER NO-UNDO.
+        VAR LOGICAL mirror.
+        VAR INTEGER r.
         mirror = poBuddy:Facing < 0.
         DrawGoonAt(poBuddy:Team, pcPose, poBuddy:X(), poBuddy:Y() - piUp, mirror).
         IF pcPose = "goon_aim" THEN DO:
@@ -656,8 +656,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* A goon of a team in a picture with its feet at a place, with its mark on its head. */
     METHOD PRIVATE VOID DrawGoonAt(INPUT piTeam AS INTEGER, INPUT pcPose AS CHARACTER, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT plMirror AS LOGICAL):
-        DEFINE VARIABLE mark AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE head AS INTEGER   NO-UNDO.
+        VAR CHARACTER mark.
+        VAR INTEGER head.
         mSprites:Stamp(pcPose, piTeam, plMirror):DrawTo(mCanvas, piX - mSprites:OriginX(pcPose, plMirror), piY - mSprites:OriginY(pcPose)).
         head = piY - mSprites:OriginY(pcPose) + mSprites:HeadTop(pcPose).
         mark = ENTRY(piTeam, "mark_reds,mark_blues,mark_teals,mark_grapes").
@@ -666,12 +666,12 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* A buddy that has died, shown dying for a second: the alarm frames with a skull over its head, and then a puff of smoke where it was. */
     METHOD PRIVATE VOID DrawDying(INPUT poBuddy AS Buddy, INPUT piKey AS INTEGER):
-        DEFINE VARIABLE t    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hd   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tone AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cx   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy   AS INTEGER NO-UNDO.
+        VAR INTEGER t.
+        VAR INTEGER i.
+        VAR INTEGER hd.
+        VAR INTEGER tone.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
         t = mGame:DeathPercent * 10.
         IF t < 200 THEN DrawPose(poBuddy, "goon_alarm_1", 0).
         ELSE IF t < 400 THEN DrawPose(poBuddy, "goon_alarm_2", 6).
@@ -697,14 +697,14 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* The gravestone of a buried buddy: it rises out of the ground a pixel every 55 ms, clipped at the ground line, and a halo floats
        up over it and then bobs. */
     METHOD PRIVATE VOID DrawGravestone(INPUT poBuddy AS Buddy, INPUT piKey AS INTEGER):
-        DEFINE VARIABLE age  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE rise AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE st   AS PixelStamp NO-UNDO.
-        DEFINE VARIABLE sx   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE sy   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE x0   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y0   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE hy   AS INTEGER   NO-UNDO.
+        VAR INTEGER age.
+        VAR INTEGER rise.
+        VAR PixelStamp st.
+        VAR INTEGER sx.
+        VAR INTEGER sy.
+        VAR INTEGER x0.
+        VAR INTEGER y0.
+        VAR INTEGER hy.
         age = MAXIMUM(mGame:ElapsedMs - mBuriedMs[piKey], 0).
         rise = MAXIMUM(0, 11 - INTEGER(TRUNCATE(age / 55, 0))).
         st = mSprites:Stamp("gravestone", 0, FALSE).
@@ -726,11 +726,11 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* A buddy that has gone into the water: the sinking goon goes down a pixel every 60 ms, clipped at the water line, and the ring of
        the splash spreads out along the line. */
     METHOD PRIVATE VOID DrawSinking(INPUT piKey AS INTEGER):
-        DEFINE VARIABLE age AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE k   AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE st  AS PixelStamp NO-UNDO.
-        DEFINE VARIABLE sx  AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE sy  AS INTEGER    NO-UNDO.
+        VAR INTEGER age.
+        VAR INTEGER k.
+        VAR PixelStamp st.
+        VAR INTEGER sx.
+        VAR INTEGER sy.
         age = mGame:ElapsedMs - mSinkMs[piKey].
         IF age < 0 OR age >= 720 THEN RETURN.
         k = INTEGER(TRUNCATE(age / 60, 0)).
@@ -745,8 +745,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* The rings of the splashes along the water line: foam on either side of where something went in, a pixel a frame for 6 frames. */
     METHOD PRIVATE VOID DrawSplashRings():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE f AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER f.
         DO i = 1 TO 4:
             f = INTEGER(TRUNCATE((mGame:ElapsedMs - mSplMs[i]) * 60 / 1000, 0)).
             IF f < 0 OR f > 5 THEN NEXT.
@@ -757,10 +757,10 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* The health over a goon in its team colour, and the name of the goon whose turn it is. */
     METHOD PRIVATE VOID DrawLabels(INPUT poBuddy AS Buddy, INPUT piKey AS INTEGER):
-        DEFINE VARIABLE pose AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE head  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE words  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE ink   AS INTEGER   NO-UNDO.
+        VAR CHARACTER pose.
+        VAR INTEGER head.
+        VAR CHARACTER words.
+        VAR INTEGER ink.
         pose = FrameFor(poBuddy, piKey).
         head = poBuddy:Y() - mSprites:OriginY(pose) + mSprites:HeadTop(pose).
         ink = BuddiesLook:Colour(BuddyTint:Ink).
@@ -782,15 +782,15 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* The rockets in the air, each turned to the way it is flying, with its exhaust behind it and a trail of smoke that fades. */
     METHOD PRIVATE VOID DrawShells():
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hd   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE px   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ex   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE age  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tone AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ms   AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER hd.
+        VAR INTEGER px.
+        VAR INTEGER py.
+        VAR INTEGER r.
+        VAR CHARACTER ex.
+        VAR INTEGER age.
+        VAR INTEGER tone.
+        VAR INTEGER ms.
         ms = mGame:ElapsedMs.
         DO i = 1 TO ShellPool:Capacity():
             IF NOT mGame:Shells:Active(i) THEN NEXT.
@@ -830,10 +830,10 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* The puffs of smoke of a rocket's trail, the oldest palest. */
     METHOD PRIVATE VOID DrawTrail():
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE age  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tone AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ms   AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER age.
+        VAR INTEGER tone.
+        VAR INTEGER ms.
         ms = mGame:ElapsedMs.
         DO i = 1 TO 12:
             age = ms - mTrailMs[i].
@@ -849,17 +849,17 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* The reticle 28 pixels out along the aim of the buddy in turn, and while fire is held the dots that grow along the aim. */
     METHOD PRIVATE VOID DrawAim():
-        DEFINE VARIABLE b      AS Buddy   NO-UNDO.
-        DEFINE VARIABLE hd     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pivX   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pivY   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rname  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE colour AS INTEGER NO-UNDO.
+        VAR Buddy b.
+        VAR INTEGER hd.
+        VAR INTEGER pivX.
+        VAR INTEGER pivY.
+        VAR INTEGER k.
+        VAR INTEGER n.
+        VAR INTEGER d.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR CHARACTER rname.
+        VAR INTEGER colour.
         b = mGame:CurrentBuddy.
         IF NOT VALID-OBJECT(b) OR mGame:Phase <> BuddyPhase:Turn OR b:IsDead() THEN RETURN.
         hd = mGame:AimHeading.
@@ -883,13 +883,13 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* Damage numbers float up over the buddies the last blast hurt, 1 pixel every 40 ms for 24 pixels, and a squeal bubble over one that
        lost 10 or more. A new blast starts the numbers when the picture is next drawn. */
     METHOD PRIVATE VOID DrawDamage():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE age    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b      AS Buddy   NO-UNDO.
-        DEFINE VARIABLE words  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE colour AS INTEGER NO-UNDO.
-        DEFINE VARIABLE head   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ms     AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER age.
+        VAR Buddy b.
+        VAR CHARACTER words.
+        VAR INTEGER colour.
+        VAR INTEGER head.
+        VAR INTEGER ms.
         ms = mGame:ElapsedMs.
         IF mGame:BlastCount > mBlastsSeen THEN DO:
             mBlastsSeen = mGame:BlastCount.
@@ -920,7 +920,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* Starts showing any blast that has gone off since the last picture: its place, the pixels of its scorch ring, and the pieces of
        ground it throws out (24, 40 or 60 by its size, and one for every crumb the crumb rule took). */
     METHOD PRIVATE VOID SyncBlasts():
-        DEFINE VARIABLE frames AS INTEGER NO-UNDO.
+        VAR INTEGER frames.
         /* the pieces already in the air fly on by the frames that have passed */
         frames = mGame:FrameCount - mLastFrame.
         mLastFrame = mGame:FrameCount.
@@ -937,13 +937,13 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* Starts showing a blast at a place: its scorch ring (the ground from the edge of the hole to 3 pixels beyond it), and the pieces of
        ground it throws out, 24, 40 or 60 by its size and one for every crumb the crumb rule took. */
     METHOD PRIVATE VOID AddBlast(INPUT piCx AS INTEGER, INPUT piCy AS INTEGER, INPUT piR AS INTEGER):
-        DEFINE VARIABLE slot  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d2    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE stp   AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER d2.
+        VAR INTEGER n.
+        VAR INTEGER k.
+        VAR INTEGER stp.
         slot = mFxNext.
         mFxNext = mFxNext MODULO 4 + 1.
         mFxX[slot] = piCx.
@@ -986,8 +986,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* Throws a piece of ground out from a place: at an angle upwards (200 to 340 degrees), 1.5 to 3.5 pixels a frame. */
     METHOD PRIVATE VOID SpawnDebris(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piColour AS INTEGER, INPUT plWide AS LOGICAL, INPUT piSpread AS INTEGER):
-        DEFINE VARIABLE hd    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE speed AS INTEGER NO-UNDO.
+        VAR INTEGER hd.
+        VAR INTEGER speed.
         hd = mRandom:NextInt(2 * piSpread + 1) - piSpread.
         speed = 384 + mRandom:NextInt(513).
         mDbX[mDbNext] = piX * 256.
@@ -1003,10 +1003,10 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* Flies every piece of ground on by some frames: gravity pulls it down, and it is gone when it lands on the ground (it does not stick),
        reaches the water or leaves the sides. */
     METHOD PRIVATE VOID StepDebris(INPUT piFrames AS INTEGER):
-        DEFINE VARIABLE f  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE px AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py AS INTEGER NO-UNDO.
+        VAR INTEGER f.
+        VAR INTEGER i.
+        VAR INTEGER px.
+        VAR INTEGER py.
         DO f = 1 TO piFrames:
             DO i = 1 TO 256:
                 IF NOT mDbLive[i] THEN NEXT.
@@ -1022,9 +1022,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* A filled disc in a batch, one line a row. */
     METHOD PRIVATE VOID Disc(INPUT piCx AS INTEGER, INPUT piCy AS INTEGER, INPUT pdRadius AS DECIMAL, INPUT piColour AS INTEGER):
-        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
-        DEFINE VARIABLE w  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r  AS INTEGER NO-UNDO.
+        VAR INTEGER dy.
+        VAR INTEGER w.
+        VAR INTEGER r.
         r = INTEGER(TRUNCATE(pdRadius, 0)).
         DO dy = - r TO r:
             w = INTEGER(TRUNCATE(SQRT(pdRadius * pdRadius - dy * dy), 0)).
@@ -1035,22 +1035,22 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* The blasts as they go: the white flash, the fireball in bands that cool, the shock ring, the smoke, the glow of the scorch cooling,
        and the pieces of ground in the air. Must be called in a batch. */
     METHOD PRIVATE VOID DrawBlasts():
-        DEFINE VARIABLE s     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE big   AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE b     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE active   AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE ms    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tone  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sy    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rad   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hd    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bands AS DECIMAL NO-UNDO EXTENT 4.
+        VAR INTEGER s.
+        VAR INTEGER t.
+        VAR INTEGER r.
+        VAR DECIMAL big.
+        VAR INTEGER b.
+        VAR INTEGER k.
+        VAR INTEGER i.
+        VAR INTEGER n.
+        VAR LOGICAL active.
+        VAR INTEGER ms.
+        VAR INTEGER tone.
+        VAR INTEGER sx.
+        VAR INTEGER sy.
+        VAR INTEGER rad.
+        VAR INTEGER hd.
+        VAR DECIMAL[4] bands.
         bands[1] = 0.35.
         bands[2] = 0.6.
         bands[3] = 0.85.
@@ -1115,11 +1115,11 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* Shakes the whole picture, but not the HUD (which is drawn after): a radius 30 blast moves it 2 pixels for 5 frames, a radius 20
        blast 1 pixel for 3, and smaller ones not at all. */
     METHOD PRIVATE VOID ApplyShake():
-        DEFINE VARIABLE s  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE f  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t  AS INTEGER NO-UNDO.
+        VAR INTEGER s.
+        VAR INTEGER f.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER t.
         DO s = 1 TO 4:
             t = mGame:ElapsedMs - mFxMs[s].
             IF t < 0 OR t >= 84 THEN NEXT.
@@ -1142,8 +1142,8 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
        300 ms, in turn order, at 2 pixels a frame); negative while it is still on its way, and its distance to fall is then 12 pixels above the
        top of the map down to its place. */
     METHOD PRIVATE INTEGER ArrivalAge(INPUT poBuddy AS Buddy, INPUT piOrder AS INTEGER):
-        DEFINE VARIABLE since AS INTEGER NO-UNDO.
-        DEFINE VARIABLE fall  AS INTEGER NO-UNDO.
+        VAR INTEGER since.
+        VAR INTEGER fall.
         since = mGame:ElapsedMs - mGame:MatchStartMs - (300 + 150 * piOrder).
         fall = INTEGER(TRUNCATE((poBuddy:Y() + 12) * 1000 / 120, 0)).
         RETURN since - fall.
@@ -1151,11 +1151,11 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* A buddy in the first seconds: not there yet, or falling under a parachute, or just landed and pleased about it. */
     METHOD PRIVATE VOID DrawArriving(INPUT poBuddy AS Buddy, INPUT piKey AS INTEGER, INPUT piOrder AS INTEGER):
-        DEFINE VARIABLE since AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lift    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE age   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE head  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sway  AS INTEGER NO-UNDO.
+        VAR INTEGER since.
+        VAR INTEGER lift.
+        VAR INTEGER age.
+        VAR INTEGER head.
+        VAR INTEGER sway.
         IF poBuddy:State = BuddyState:Drowned THEN RETURN.
         since = mGame:ElapsedMs - mGame:MatchStartMs - (300 + 150 * piOrder).
         IF since < 0 THEN RETURN.
@@ -1178,24 +1178,24 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* The title screen: the name of the game in big gradient letters over the land, four goons being silly, and a rocket that comes
        in from the left, bites the last S of BUDDIES, and leaves a scorched bite in it. It all runs on a loop of 8 seconds. */
     METHOD PRIVATE VOID DrawTitle():
-        DEFINE VARIABLE t      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE loop1  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ink    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE top    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bottom AS INTEGER NO-UNDO.
-        DEFINE VARIABLE p      AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE rx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ry     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hd     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d2     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pose   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE gx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE gy     AS INTEGER NO-UNDO.
+        VAR INTEGER t.
+        VAR INTEGER loop1.
+        VAR INTEGER ink.
+        VAR INTEGER top.
+        VAR INTEGER bottom.
+        VAR DECIMAL p.
+        VAR INTEGER rx.
+        VAR INTEGER ry.
+        VAR INTEGER hd.
+        VAR INTEGER r.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER d2.
+        VAR INTEGER c.
+        VAR INTEGER i.
+        VAR CHARACTER pose.
+        VAR INTEGER gx.
+        VAR INTEGER gy.
         t = mGame:ElapsedMs MODULO 8000.
         loop1 = INTEGER(TRUNCATE(mGame:ElapsedMs / 8000, 0)).
         ink = BuddiesLook:Colour(BuddyTint:Outline).
@@ -1278,7 +1278,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* The dark band across the middle of the screen that carries the banner words, with orange rules on the given rows. */
     METHOD PRIVATE VOID BandPanel(INPUT piY AS INTEGER, INPUT piH AS INTEGER, INPUT piRules AS CHARACTER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mCanvas:BeginBatch().
         Panel(0, piY, 384, piH, -1).
         DO i = 1 TO NUM-ENTRIES(piRules):
@@ -1295,13 +1295,13 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* The winning team dances, and the band says who won, or that nobody did. */
     METHOD PRIVATE VOID DrawEndScreen():
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hop     AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE b       AS Buddy   NO-UNDO.
-        DEFINE VARIABLE names   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE ink     AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER n.
+        VAR LOGICAL hop.
+        VAR Buddy b.
+        VAR CHARACTER names.
+        VAR INTEGER ink.
         ink = BuddiesLook:Colour(BuddyTint:Outline).
         IF mGame:Phase = BuddyPhase:Winner THEN DO:
             /* the dance is the frames 1, 2, 3, 2 a hundred and fifty milliseconds each, with a hop of 2 pixels on the third */
@@ -1344,9 +1344,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* A panel in a batch: a dark plate with a lighter line on its second row and its second last, and the four corner pixels left out so it
        looks rounded. A frame colour of -1 is no frame, else the outer edge is drawn in it. */
     METHOD PRIVATE VOID Panel(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER, INPUT piFrame AS INTEGER):
-        DEFINE VARIABLE plate AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rule  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE edge  AS INTEGER NO-UNDO.
+        VAR INTEGER plate.
+        VAR INTEGER rule.
+        VAR INTEGER edge.
         plate = BuddiesLook:Colour(BuddyTint:Panel).
         rule = BuddiesLook:Colour(BuddyTint:PanelRule).
         edge = (IF piFrame >= 0 THEN piFrame ELSE plate).
@@ -1370,27 +1370,27 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* The timer, the buddy in turn, the wind, and the health of the teams. */
     METHOD PRIVATE VOID DrawHud():
-        DEFINE VARIABLE secs    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE playing AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE frame1  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE digits  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE words   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lit     AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE w       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE team    AS Team    NO-UNDO.
-        DEFINE VARIABLE len     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tones   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE ink     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hurtC   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE goodC   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ruleC   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tone2   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tone3   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tone4   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE phase1  AS BuddyPhase NO-UNDO.
+        VAR INTEGER secs.
+        VAR LOGICAL playing.
+        VAR INTEGER frame1.
+        VAR INTEGER digits.
+        VAR CHARACTER words.
+        VAR INTEGER i.
+        VAR LOGICAL lit.
+        VAR INTEGER w.
+        VAR INTEGER t.
+        VAR Team team.
+        VAR INTEGER len.
+        VAR INTEGER c.
+        VAR CHARACTER tones.
+        VAR INTEGER ink.
+        VAR INTEGER hurtC.
+        VAR INTEGER goodC.
+        VAR INTEGER ruleC.
+        VAR INTEGER tone2.
+        VAR INTEGER tone3.
+        VAR INTEGER tone4.
+        VAR BuddyPhase phase1.
         phase1 = mGame:Phase.
         playing = (phase1 = BuddyPhase:Turn OR phase1 = BuddyPhase:Retreat).
         secs = SecondsLeft().
@@ -1460,9 +1460,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
 
     /* The banner across the middle of the screen at the start of a turn: the buddy that plays and the team. */
     METHOD PRIVATE VOID DrawBanner():
-        DEFINE VARIABLE words AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE b     AS Buddy     NO-UNDO.
-        DEFINE VARIABLE accent AS INTEGER  NO-UNDO.
+        VAR CHARACTER words.
+        VAR Buddy b.
+        VAR INTEGER accent.
         IF mGame:Phase <> BuddyPhase:Banner OR NOT VALID-OBJECT(mGame:CurrentBuddy) THEN RETURN.
         b = mGame:CurrentBuddy.
         accent = BuddiesLook:Colour(BuddyTint:Accent).
@@ -1484,9 +1484,9 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
     /* The sea below the shore row, in the background: the back of the sea from row 223 to the row above the body, with the ground that
        stands in it, and the body from row 229. Must be called in a batch, after the ground and clouds are put and the shore is filled. */
     METHOD PRIVATE VOID PutSea():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER c.
         DO y = {&SHORE} + 1 TO {&WATER} + 2:
             mCanvas:DrawLine(0, y, {&W} - 1, y, 0, mWaterBack).
         END.
@@ -1505,13 +1505,13 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesPainter FINAL IMPLEMENTS IGridRe
        ((x + b) div 8) is even, b stepping every 120 ms, and only the top row of it is not already in the background) and the four frames
        of waves (a new one every 200 ms). Neither goes over ground. Must be called in a batch. */
     METHOD PRIVATE VOID DrawWater():
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE span AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE f    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ax   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ay   AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER b.
+        VAR INTEGER span.
+        VAR INTEGER i.
+        VAR INTEGER f.
+        VAR INTEGER ax.
+        VAR INTEGER ay.
         b = INTEGER(TRUNCATE(mGame:ElapsedMs / 120, 0)).
         x = 0.
         DO WHILE x < {&W}:

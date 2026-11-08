@@ -11,8 +11,8 @@ CLASS ProGriddle.Games.Rogue.Dice FINAL:
 
     /* The dice of a spec like "2d4": the number of dice, then the sides of each. 0d0 is allowed and always rolls 0. */
     METHOD PRIVATE STATIC INTEGER Part(INPUT pcSpec AS CHARACTER, INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE p AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER p.
+        VAR INTEGER n.
         IF pcSpec = ? THEN UNDO, THROW NEW GridException("Dice need a spec such as 2d4").
         p = INDEX(pcSpec, "d").
         IF p < 2 OR p = LENGTH(pcSpec) THEN UNDO, THROW NEW GridException("Not a dice spec, such as 2d4: " + pcSpec).
@@ -43,9 +43,9 @@ CLASS ProGriddle.Games.Rogue.Dice FINAL:
 
     /* Rolls a spec: each die from 1 to its sides, added up. */
     METHOD PUBLIC STATIC INTEGER Roll(INPUT pcSpec AS CHARACTER, INPUT poRandom AS IRandom):
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE total AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sides AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER total.
+        VAR INTEGER sides.
         sides = Sides(pcSpec).
         IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("Dice need a random source").
         IF sides = 0 THEN RETURN 0.

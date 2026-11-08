@@ -10,7 +10,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Life.LifeEngineTests:
 
-    DEFINE PRIVATE VARIABLE LF AS CHARACTER NO-UNDO.
+    VAR PRIVATE CHARACTER LF.
 
     CONSTRUCTOR PUBLIC LifeEngineTests():
         LF = CHR(10).
@@ -18,7 +18,7 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     /* Steps the game piSteps times. */
     METHOD PRIVATE VOID StepTimes(INPUT poGame AS LifeGame, INPUT piSteps AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO piSteps:
             poGame:Step().
         END.
@@ -28,8 +28,8 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID AnEmptyBoardStaysEmpty():
-        DEFINE VARIABLE k AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 6, 5, FALSE, LifeRules:Conway()).
             StepTimes(g, 5).
@@ -46,8 +46,8 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID ASingleCellDies():
-        DEFINE VARIABLE k AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 5, 5, FALSE, LifeRules:Conway()).
             g:SetAlive(2, 2, TRUE).
@@ -64,9 +64,9 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID ABlockIsAStillLife():
-        DEFINE VARIABLE k      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE g      AS LifeGame  NO-UNDO.
-        DEFINE VARIABLE before AS CHARACTER NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
+        VAR CHARACTER before.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 6, 6, FALSE, LifeRules:Conway()).
             g:Place(LifePatterns:Block(), 2, 2).
@@ -84,9 +84,9 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID ABeehiveIsAStillLife():
-        DEFINE VARIABLE k      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE g      AS LifeGame  NO-UNDO.
-        DEFINE VARIABLE before AS CHARACTER NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
+        VAR CHARACTER before.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 8, 7, FALSE, LifeRules:Conway()).
             g:Place(LifePatterns:Beehive(), 2, 2).
@@ -104,8 +104,8 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID ABlinkerOscillatesWithPeriodTwo():
-        DEFINE VARIABLE k AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 5, 5, FALSE, LifeRules:Conway()).
             g:Place(LifePatterns:Blinker(), 1, 2).
@@ -125,10 +125,10 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID AToadAndABeaconHavePeriodTwo():
-        DEFINE VARIABLE k      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE g      AS LifeGame  NO-UNDO.
-        DEFINE VARIABLE start  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE middle AS CHARACTER NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
+        VAR CHARACTER start.
+        VAR CHARACTER middle.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 8, 8, FALSE, LifeRules:Conway()).
             g:Place(LifePatterns:Toad(), 1, 1).
@@ -160,9 +160,9 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID AGliderMovesOneCellDiagonallyEveryFourGenerations():
-        DEFINE VARIABLE k        AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE g        AS LifeGame  NO-UNDO.
-        DEFINE VARIABLE expected AS LifeGame  NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
+        VAR LifeGame expected.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 12, 12, FALSE, LifeRules:Conway()).
             g:Place(LifePatterns:Glider(), 1, 1).
@@ -187,9 +187,9 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID AGliderOnATorusComesBackToItsStartAfterFourTimesTheWidth():
-        DEFINE VARIABLE k     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE g     AS LifeGame  NO-UNDO.
-        DEFINE VARIABLE start AS CHARACTER NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
+        VAR CHARACTER start.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 8, 8, TRUE, LifeRules:Conway()).
             g:Place(LifePatterns:Glider(), 1, 1).
@@ -210,9 +210,9 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID AGliderCrossesTheEdgeOfATorusButNotOfABoundedBoard():
-        DEFINE VARIABLE k AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE t AS LifeGame NO-UNDO.
-        DEFINE VARIABLE b AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame t.
+        VAR LifeGame b.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             t = LifeTestKit:Make(k, 10, 10, TRUE, LifeRules:Conway()).
             b = LifeTestKit:Make(k, 10, 10, FALSE, LifeRules:Conway()).
@@ -235,9 +235,9 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID ALightweightSpaceshipTravelsTwoCellsEveryFourGenerations():
-        DEFINE VARIABLE k        AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE g        AS LifeGame NO-UNDO.
-        DEFINE VARIABLE expected AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
+        VAR LifeGame expected.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 24, 8, FALSE, LifeRules:Conway()).
             g:Place(LifePatterns:LightweightSpaceship(), 1, 2).
@@ -259,12 +259,12 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID EveryGenerationMatchesTheSlowReferenceOnRandomBoards():
-        DEFINE VARIABLE k    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE wrap AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE seed AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE gen  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE g    AS LifeGame  NO-UNDO.
-        DEFINE VARIABLE want AS CHARACTER NO-UNDO.
+        VAR INTEGER k.
+        VAR INTEGER wrap.
+        VAR INTEGER seed.
+        VAR INTEGER gen.
+        VAR LifeGame g.
+        VAR CHARACTER want.
         DO k = 1 TO LifeTestKit:KindCount():
             DO wrap = 0 TO 1:
                 DO seed = 1 TO 4:
@@ -289,14 +289,14 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID TinyBoardsMatchTheSlowReference():
-        DEFINE VARIABLE ws   AS INTEGER   NO-UNDO EXTENT 7 INITIAL [1, 1, 5, 2, 2, 3, 2].
-        DEFINE VARIABLE hs   AS INTEGER   NO-UNDO EXTENT 7 INITIAL [1, 5, 1, 2, 3, 2, 2].
-        DEFINE VARIABLE k    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE s    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE wrap AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE gen  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE g    AS LifeGame  NO-UNDO.
-        DEFINE VARIABLE want AS CHARACTER NO-UNDO.
+        VAR INTEGER[7] ws = [1, 1, 5, 2, 2, 3, 2].
+        VAR INTEGER[7] hs = [1, 5, 1, 2, 3, 2, 2].
+        VAR INTEGER k.
+        VAR INTEGER s.
+        VAR INTEGER wrap.
+        VAR INTEGER gen.
+        VAR LifeGame g.
+        VAR CHARACTER want.
         DO k = 1 TO LifeTestKit:KindCount():
             DO s = 1 TO 7:
                 DO wrap = 0 TO 1:
@@ -321,11 +321,11 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID TheTwoEnginesGiveIdenticalGenerations():
-        DEFINE VARIABLE dense  AS LifeGame NO-UNDO.
-        DEFINE VARIABLE sparse AS LifeGame NO-UNDO.
-        DEFINE VARIABLE wrap   AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE seed   AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE gen    AS INTEGER  NO-UNDO.
+        VAR LifeGame dense.
+        VAR LifeGame sparse.
+        VAR INTEGER wrap.
+        VAR INTEGER seed.
+        VAR INTEGER gen.
         DO wrap = 0 TO 1:
             DO seed = 1 TO 3:
                 DO ON ERROR UNDO, THROW:
@@ -352,8 +352,8 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID TheRPentominoRunsTheSameOnBothEnginesForAHundredGenerations():
-        DEFINE VARIABLE dense  AS LifeGame NO-UNDO.
-        DEFINE VARIABLE sparse AS LifeGame NO-UNDO.
+        VAR LifeGame dense.
+        VAR LifeGame sparse.
         DO ON ERROR UNDO, THROW:
             dense = LifeTestKit:Make(1, 60, 60, FALSE, LifeRules:Conway()).
             sparse = LifeTestKit:Make(2, 60, 60, FALSE, LifeRules:Conway()).
@@ -374,9 +374,9 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID HighLifeGivesBirthOnSixNeighboursButConwayDoesNot():
-        DEFINE VARIABLE k     AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE conway AS LifeGame NO-UNDO.
-        DEFINE VARIABLE high   AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame conway.
+        VAR LifeGame high.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             /* the centre cell is dead and has exactly six live neighbours */
             conway = LifeTestKit:Make(k, 3, 3, FALSE, LifeRules:Conway()).
@@ -400,9 +400,9 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID SwappingTheRulesChangesHowAPatternEvolves():
-        DEFINE VARIABLE k      AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE conway AS LifeGame NO-UNDO.
-        DEFINE VARIABLE high   AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame conway.
+        VAR LifeGame high.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             conway = LifeTestKit:Make(k, 40, 40, FALSE, LifeRules:Conway()).
             high = LifeTestKit:Make(k, 40, 40, FALSE, LifeRules:HighLife()).
@@ -423,8 +423,8 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID RulesWithSurvivalOnZeroKeepAnIsolatedCellAlive():
-        DEFINE VARIABLE k AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 5, 5, FALSE, NEW LifeRules("B3/S023")).
             g:SetAlive(2, 2, TRUE).
@@ -442,7 +442,7 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID TheDenseEngineRunsRulesThatGiveBirthOnZeroNeighbours():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         DO ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(1, 3, 3, FALSE, NEW LifeRules("B0/S")).
             g:Step().
@@ -462,8 +462,8 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID ANonSquareBoardWorks():
-        DEFINE VARIABLE k AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 9, 3, FALSE, LifeRules:Conway()).
             g:Place(LifePatterns:Blinker(), 3, 1).
@@ -480,8 +480,8 @@ CLASS ProGriddle.Games.Life.LifeEngineTests:
 
     @Test.
     METHOD PUBLIC VOID TheGosperGunFiresAGliderEveryThirtyGenerations():
-        DEFINE VARIABLE k AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR INTEGER k.
+        VAR LifeGame g.
         DO k = 1 TO LifeTestKit:KindCount() ON ERROR UNDO, THROW:
             g = LifeTestKit:Make(k, 60, 30, FALSE, LifeRules:Conway()).
             g:Place(LifePatterns:GosperGliderGun(), 1, 1).

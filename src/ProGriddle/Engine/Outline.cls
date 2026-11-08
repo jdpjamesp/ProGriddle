@@ -14,11 +14,11 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.Outline FINAL:
 
-    DEFINE PRIVATE VARIABLE mStart  AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mCount  AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mClosed AS LOGICAL NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mXs     AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mYs     AS INTEGER NO-UNDO EXTENT.
+    VAR PRIVATE INTEGER[] mStart.
+    VAR PRIVATE INTEGER[] mCount.
+    VAR PRIVATE LOGICAL[] mClosed.
+    VAR PRIVATE INTEGER[] mXs.
+    VAR PRIVATE INTEGER[] mYs.
 
     /* Number of polylines. */
     DEFINE PUBLIC PROPERTY LineCount AS INTEGER NO-UNDO
@@ -42,15 +42,15 @@ CLASS ProGriddle.Engine.Outline FINAL:
 
     /* Throws GridException for text that is not an outline. */
     CONSTRUCTOR PUBLIC Outline(INPUT pcSpec AS CHARACTER):
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE n      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE total  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE lineText AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE tokens AS CHARACTER NO-UNDO EXTENT.
-        DEFINE VARIABLE word   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE pair   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE d      AS DECIMAL   NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER n.
+        VAR INTEGER total.
+        VAR CHARACTER lineText.
+        VAR CHARACTER[] tokens.
+        VAR CHARACTER word.
+        VAR CHARACTER pair.
+        VAR DECIMAL d.
         IF pcSpec = ? OR TRIM(pcSpec) = "" THEN UNDO, THROW NEW GridException("An outline needs at least one line").
         LineCount = NUM-ENTRIES(pcSpec, "/").
         EXTENT(mStart) = LineCount.
@@ -104,21 +104,21 @@ CLASS ProGriddle.Engine.Outline FINAL:
        than asking for each one. A line of more than 64 points is refused. */
     METHOD PUBLIC VOID DrawTo(INPUT poCanvas AS PixelCanvas, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piHeading AS INTEGER,
                               INPUT piKind AS INTEGER, INPUT piColour AS INTEGER, INPUT piOffsetX AS INTEGER, INPUT piOffsetY AS INTEGER):
-        DEFINE VARIABLE sn     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cs     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE baseX  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE baseY  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE l      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE p      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE origin AS INTEGER NO-UNDO.
-        DEFINE VARIABLE v      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE prevX  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE prevY  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE startX AS INTEGER NO-UNDO.
-        DEFINE VARIABLE startY AS INTEGER NO-UNDO.
+        VAR INTEGER sn.
+        VAR INTEGER cs.
+        VAR INTEGER baseX.
+        VAR INTEGER baseY.
+        VAR INTEGER l.
+        VAR INTEGER p.
+        VAR INTEGER n.
+        VAR INTEGER origin.
+        VAR INTEGER v.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER prevX.
+        VAR INTEGER prevY.
+        VAR INTEGER startX.
+        VAR INTEGER startY.
         IF NOT VALID-OBJECT(poCanvas) THEN UNDO, THROW NEW GridException("There is no canvas to draw on").
         sn = Heading:Sin(piHeading).
         cs = Heading:Cos(piHeading).
@@ -152,23 +152,23 @@ CLASS ProGriddle.Engine.Outline FINAL:
     METHOD PUBLIC VOID DrawScaledTo(INPUT poCanvas AS PixelCanvas, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piHeading AS INTEGER,
                                     INPUT piScaleAcross AS INTEGER, INPUT piScaleAlong AS INTEGER,
                                     INPUT piKind AS INTEGER, INPUT piColour AS INTEGER):
-        DEFINE VARIABLE sn     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cs     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE baseX  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE baseY  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE l      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE p      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE origin AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ly     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE v      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE prevX  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE prevY  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE startX AS INTEGER NO-UNDO.
-        DEFINE VARIABLE startY AS INTEGER NO-UNDO.
+        VAR INTEGER sn.
+        VAR INTEGER cs.
+        VAR INTEGER baseX.
+        VAR INTEGER baseY.
+        VAR INTEGER l.
+        VAR INTEGER p.
+        VAR INTEGER n.
+        VAR INTEGER origin.
+        VAR INTEGER lx.
+        VAR INTEGER ly.
+        VAR INTEGER v.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER prevX.
+        VAR INTEGER prevY.
+        VAR INTEGER startX.
+        VAR INTEGER startY.
         IF NOT VALID-OBJECT(poCanvas) THEN UNDO, THROW NEW GridException("There is no canvas to draw on").
         IF piScaleAcross = ? OR piScaleAcross < 0 OR piScaleAlong = ? OR piScaleAlong < 0 THEN
             UNDO, THROW NEW GridException("A scale is 0 percent or more").
@@ -234,8 +234,8 @@ CLASS ProGriddle.Engine.Outline FINAL:
 
     /* The number of words in a piece of text separated by spaces, not counting empty ones. */
     METHOD PRIVATE STATIC INTEGER Tokens(INPUT pcText AS CHARACTER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
         DO i = 1 TO NUM-ENTRIES(TRIM(pcText), " "):
             IF ENTRY(i, TRIM(pcText), " ") <> "" THEN n = n + 1.
         END.
@@ -244,8 +244,8 @@ CLASS ProGriddle.Engine.Outline FINAL:
 
     /* Word number piIndex of a piece of text separated by spaces, not counting empty ones. */
     METHOD PRIVATE STATIC CHARACTER Token(INPUT pcText AS CHARACTER, INPUT piIndex AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
         DO i = 1 TO NUM-ENTRIES(TRIM(pcText), " "):
             IF ENTRY(i, TRIM(pcText), " ") <> "" THEN DO:
                 n = n + 1.
@@ -258,11 +258,11 @@ CLASS ProGriddle.Engine.Outline FINAL:
     /* A number such as -3.6 as a whole number of 64ths. It is read digit by digit, so the way the machine
        writes decimals makes no difference. */
     METHOD PRIVATE STATIC INTEGER Fixed(INPUT pcNumber AS CHARACTER):
-        DEFINE VARIABLE negative AS LOGICAL   NO-UNDO.
-        DEFINE VARIABLE whole    AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE frac     AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE num    AS DECIMAL   NO-UNDO.
-        DEFINE VARIABLE i        AS INTEGER   NO-UNDO.
+        VAR LOGICAL negative.
+        VAR CHARACTER whole.
+        VAR CHARACTER frac.
+        VAR DECIMAL num.
+        VAR INTEGER i.
         IF pcNumber BEGINS "-" THEN ASSIGN negative = TRUE
                                            pcNumber = SUBSTRING(pcNumber, 2).
         IF NUM-ENTRIES(pcNumber, ".") > 2 THEN UNDO, THROW NEW GridException("An outline number is not " + pcNumber).

@@ -18,9 +18,9 @@ CLASS ProGriddle.Engine.AsciiPen FINAL:
     &SCOPED-DEFINE SLOTS 1021
     &SCOPED-DEFINE MOST 700
 
-    DEFINE PRIVATE VARIABLE mKey   AS INTEGER    NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mStamp AS PixelStamp NO-UNDO EXTENT {&SLOTS}.
-    DEFINE PRIVATE VARIABLE mUsed  AS INTEGER    NO-UNDO.
+    VAR PRIVATE INTEGER[{&SLOTS}] mKey.
+    VAR PRIVATE PixelStamp[{&SLOTS}] mStamp.
+    VAR PRIVATE INTEGER mUsed.
 
     /* How many stamps are kept now. */
     DEFINE PUBLIC PROPERTY Count AS INTEGER NO-UNDO
@@ -46,9 +46,9 @@ CLASS ProGriddle.Engine.AsciiPen FINAL:
     /* The stamp for a glyph in a colour (0xRRGGBB), made if there is not one already. A code with no glyph gives a question mark.
        Throws GridException for a colour outside 0 to 16777215. */
     METHOD PUBLIC PixelStamp Stamp(INPUT piCode AS INTEGER, INPUT piColour AS INTEGER):
-        DEFINE VARIABLE code AS INTEGER NO-UNDO.
-        DEFINE VARIABLE key  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER code.
+        VAR INTEGER key.
+        VAR INTEGER slot.
         IF piColour = ? OR piColour < 0 OR piColour > 16777215 THEN
             UNDO, THROW NEW GridException("A glyph colour is 0 to 16777215, not " + STRING(piColour)).
         code = (IF AsciiFont:HasGlyph(piCode) THEN piCode ELSE ASC("?")).
@@ -77,7 +77,7 @@ CLASS ProGriddle.Engine.AsciiPen FINAL:
 
     /* Draws a piece of text, one glyph after another, with its top left at (piX, piY). */
     METHOD PUBLIC VOID Text(INPUT poCanvas AS PixelCanvas, INPUT pcText AS CHARACTER, INPUT piColour AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF pcText = ? THEN RETURN.
         DO i = 1 TO LENGTH(pcText):
             Glyph(poCanvas, ASC(SUBSTRING(pcText, i, 1)), piColour, piX + (i - 1) * AsciiFont:GlyphWidth(), piY).
@@ -86,7 +86,7 @@ CLASS ProGriddle.Engine.AsciiPen FINAL:
 
     /* Frees every stamp. Safe to call more than once. */
     METHOD PUBLIC VOID Dispose():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&SLOTS}:
             IF mKey[i] <> 0 THEN DO:
                 IF VALID-OBJECT(mStamp[i]) THEN mStamp[i]:Dispose().
@@ -98,9 +98,9 @@ CLASS ProGriddle.Engine.AsciiPen FINAL:
     END METHOD.
 
     METHOD PRIVATE PixelStamp MakeStamp(INPUT piCode AS INTEGER, INPUT piColour AS INTEGER):
-        DEFINE VARIABLE colours AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE x       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y       AS INTEGER NO-UNDO.
+        VAR INTEGER[] colours.
+        VAR INTEGER x.
+        VAR INTEGER y.
         EXTENT(colours) = AsciiFont:GlyphWidth() * AsciiFont:GlyphHeight().
         DO y = 0 TO AsciiFont:GlyphHeight() - 1:
             DO x = 0 TO AsciiFont:GlyphWidth() - 1:

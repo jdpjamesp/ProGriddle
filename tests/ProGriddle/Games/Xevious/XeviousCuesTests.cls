@@ -10,8 +10,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Xevious.XeviousCuesTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS XeviousGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCues AS XeviousCues NO-UNDO.
+    VAR PRIVATE XeviousGame mGame.
+    VAR PRIVATE XeviousCues mCues.
 
     /* A game in play on an empty field, the ship at 104, 208, and the cue source up to date. */
     @Setup.
@@ -40,7 +40,7 @@ CLASS ProGriddle.Games.Xevious.XeviousCuesTests:
     END METHOD.
 
     METHOD PRIVATE VOID Frames(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO piCount:
             mGame:Advance().
         END.
@@ -48,8 +48,8 @@ CLASS ProGriddle.Games.Xevious.XeviousCuesTests:
 
     @Test.
     METHOD PUBLIC VOID TheTitleScreenIsSilent():
-        DEFINE VARIABLE oGame AS XeviousGame NO-UNDO.
-        DEFINE VARIABLE oCues AS XeviousCues NO-UNDO.
+        VAR XeviousGame oGame.
+        VAR XeviousCues oCues.
         oGame = XeviousFactory:Create(NEW ScriptedRandom("1")).
         oCues = NEW XeviousCues().
         Assert:Equals("", oCues:Poll(oGame)).
@@ -150,8 +150,8 @@ CLASS ProGriddle.Games.Xevious.XeviousCuesTests:
 
     @Test.
     METHOD PUBLIC VOID ItOnlyTakesAXeviousGame():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c      AS CHARACTER NO-UNDO.
+        VAR INTEGER thrown.
+        VAR CHARACTER c.
         DO ON ERROR UNDO, THROW:
             c = mCues:Poll(?).
             CATCH e1 AS Progress.Lang.Error:

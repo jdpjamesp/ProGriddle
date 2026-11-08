@@ -10,7 +10,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Xevious.XeviousSpritesTests:
 
-    DEFINE PRIVATE VARIABLE mSprites AS XeviousSprites NO-UNDO.
+    VAR PRIVATE XeviousSprites mSprites.
 
     @Setup.
     METHOD PUBLIC VOID BuildSprites():
@@ -25,7 +25,7 @@ CLASS ProGriddle.Games.Xevious.XeviousSpritesTests:
 
     @Test.
     METHOD PUBLIC VOID EverySpriteMakesAStampOfTheSizeInTheDesign():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = INTEGER(XeviousPicture:Lark) TO INTEGER(XeviousPicture:MiniLark):
             Assert:Equals(XeviousArt:Width(XeviousPicture:GetEnum(i)), mSprites:Stamp(XeviousPicture:GetEnum(i)):Width).
             Assert:Equals(XeviousArt:Height(XeviousPicture:GetEnum(i)), mSprites:Stamp(XeviousPicture:GetEnum(i)):Height).
@@ -41,12 +41,12 @@ CLASS ProGriddle.Games.Xevious.XeviousSpritesTests:
 
     @Test.
     METHOD PUBLIC VOID ASpriteTurnedAQuarterTurnHasItsCellsMovedRoundAndTheSizesSwap():
-        DEFINE VARIABLE s0 AS PixelStamp NO-UNDO.
-        DEFINE VARIABLE s1 AS PixelStamp NO-UNDO.
-        DEFINE VARIABLE s2 AS PixelStamp NO-UNDO.
-        DEFINE VARIABLE s3 AS PixelStamp NO-UNDO.
-        DEFINE VARIABLE x  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y  AS INTEGER NO-UNDO.
+        VAR PixelStamp s0.
+        VAR PixelStamp s1.
+        VAR PixelStamp s2.
+        VAR PixelStamp s3.
+        VAR INTEGER x.
+        VAR INTEGER y.
         s0 = mSprites:Stamp(XeviousPicture:ShieldN).
         s1 = mSprites:Turned(XeviousPicture:ShieldN, 1).
         s2 = mSprites:Turned(XeviousPicture:ShieldN, 2).
@@ -72,8 +72,8 @@ CLASS ProGriddle.Games.Xevious.XeviousSpritesTests:
 
     @Test.
     METHOD PUBLIC VOID ATurnOutsideZeroToThreeIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s      AS PixelStamp NO-UNDO.
+        VAR INTEGER thrown.
+        VAR PixelStamp s.
         DO ON ERROR UNDO, THROW:
             s = mSprites:Turned(XeviousPicture:Lark, 4).
             CATCH e1 AS GridException:
@@ -85,8 +85,8 @@ CLASS ProGriddle.Games.Xevious.XeviousSpritesTests:
 
     @Test.
     METHOD PUBLIC VOID TheTilesAreMadeForAnAreaAndTheFamilyAndMoodChangeTheirColours():
-        DEFINE VARIABLE dry  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE grn  AS INTEGER NO-UNDO.
+        VAR INTEGER dry.
+        VAR INTEGER grn.
         mSprites:ForArea(2).
         Assert:IsFalse(mSprites:Dry).
         Assert:Equals(0, mSprites:Mood).
@@ -113,7 +113,7 @@ CLASS ProGriddle.Games.Xevious.XeviousSpritesTests:
 
     @Test.
     METHOD PUBLIC VOID ALineOfATileIsCopiedIntoMemory():
-        DEFINE VARIABLE m AS MEMPTR NO-UNDO.
+        VAR MEMPTR m.
         DO ON ERROR UNDO, THROW:
             SET-SIZE(m) = 128.
             mSprites:ForArea(3).
@@ -130,9 +130,9 @@ CLASS ProGriddle.Games.Xevious.XeviousSpritesTests:
 
     @Test.
     METHOD PUBLIC VOID TilesNeedAnAreaFirstAndALineOrPixelInsideTheTile():
-        DEFINE VARIABLE m      AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c      AS INTEGER NO-UNDO.
+        VAR MEMPTR m.
+        VAR INTEGER thrown.
+        VAR INTEGER c.
         DO ON ERROR UNDO, THROW:
             SET-SIZE(m) = 64.
             DO ON ERROR UNDO, THROW:
@@ -187,8 +187,8 @@ CLASS ProGriddle.Games.Xevious.XeviousSpritesTests:
 
     @Test.
     METHOD PUBLIC VOID AVeilDarkensTheTilesTowardsInkAndIsKeptBetweenZeroAndOneHundred():
-        DEFINE VARIABLE plain  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER plain.
+        VAR INTEGER thrown.
         mSprites:ForArea(3).
         plain = mSprites:TilePixel(XeviousTilePicture:Open2, 0, 0).
         Assert:Equals(0, mSprites:Veil).

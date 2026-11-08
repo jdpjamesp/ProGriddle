@@ -16,16 +16,16 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Core.TableStore FINAL INHERITS AbstractCellStore:
 
-    DEFINE PRIVATE VARIABLE mTable  AS HANDLE NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBuffer AS HANDLE NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFields AS HANDLE NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mRows   AS MEMPTR NO-UNDO.
-    DEFINE PRIVATE VARIABLE mIdLen  AS INTEGER NO-UNDO.
+    VAR PRIVATE HANDLE mTable.
+    VAR PRIVATE HANDLE mBuffer.
+    VAR PRIVATE HANDLE[] mFields.
+    VAR PRIVATE MEMPTR mRows.
+    VAR PRIVATE INTEGER mIdLen.
 
     CONSTRUCTOR PUBLIC TableStore(INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER, INPUT pcLayers AS CHARACTER):
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hX AS HANDLE  NO-UNDO.
-        DEFINE VARIABLE hY AS HANDLE  NO-UNDO.
+        VAR INTEGER i.
+        VAR HANDLE hX.
+        VAR HANDLE hY.
 
         SUPER(piWidth, piHeight, pcLayers).
         IF mCells > 100000 THEN
@@ -106,8 +106,7 @@ CLASS ProGriddle.Core.TableStore FINAL INHERITS AbstractCellStore:
     END METHOD.
 
     METHOD PUBLIC OVERRIDE ICellStore Duplicate():
-        DEFINE VARIABLE copy AS TableStore NO-UNDO.
-        copy = NEW TableStore(mWidth, mHeight, LayerList()).
+        VAR TableStore copy = NEW TableStore(mWidth, mHeight, LayerList()).
         copy:CopyFrom(THIS-OBJECT).
         RETURN copy.
     END METHOD.

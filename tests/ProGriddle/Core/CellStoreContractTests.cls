@@ -10,7 +10,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Core.CellStoreContractTests:
 
-    DEFINE PRIVATE VARIABLE KindCount AS INTEGER NO-UNDO INITIAL 3.
+    VAR PRIVATE INTEGER KindCount = 3.
 
     /* ---- helpers ---- */
 
@@ -42,8 +42,8 @@ CLASS ProGriddle.Core.CellStoreContractTests:
        isfull, clearrow, shift: layer, row. */
     METHOD PRIVATE LOGICAL Throws(INPUT poStore AS ICellStore, INPUT pcOp AS CHARACTER,
                                   INPUT piA AS INTEGER, INPUT piB AS INTEGER, INPUT piC AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
-        DEFINE VARIABLE l AS LOGICAL NO-UNDO.
+        VAR INTEGER n.
+        VAR LOGICAL l.
         DO ON ERROR UNDO, THROW:
             CASE pcOp:
                 WHEN "get"      THEN n = poStore:GetCell(piA, piB, piC).
@@ -65,7 +65,7 @@ CLASS ProGriddle.Core.CellStoreContractTests:
     END METHOD.
 
     METHOD PRIVATE LOGICAL ConstructThrows(INPUT piKind AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER, INPUT pcLayers AS CHARACTER):
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR ICellStore s.
         DO ON ERROR UNDO, THROW:
             s = Make(piKind, piW, piH, pcLayers).
             CATCH e AS GridException:
@@ -82,8 +82,8 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID ReportsWidthHeightAndLayerCount():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 3, 5, "a,b").
             Assert:Equals(3, s:Width).
@@ -100,8 +100,8 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID LayersAreNumberedFromOneAndNamesAreCaseInsensitive():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 2, 2, "mine, Revealed ,flag").
             Assert:Equals(1, s:LayerIndex("mine")).
@@ -121,9 +121,9 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID UnknownLayerNameAndBadLayerNumbersThrow():
-        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s      AS ICellStore NO-UNDO.
-        DEFINE VARIABLE caught AS LOGICAL NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
+        VAR LOGICAL caught.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 2, 2, "a,b").
             caught = FALSE.
@@ -161,7 +161,7 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID ConstructorRejectsBadSizesAndBadLayerLists():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        VAR INTEGER k.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             Assert:IsTrue(ConstructThrows(k, 0, 3, "a")).
             Assert:IsTrue(ConstructThrows(k, 3, 0, "a")).
@@ -183,10 +183,10 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID NewStoreIsEmptyAndEveryCellIsZero():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE l AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR INTEGER k.
+        VAR INTEGER i.
+        VAR INTEGER l.
+        VAR ICellStore s.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 3, 5, "a,b").
             Assert:IsTrue(s:IsEmpty()).
@@ -209,11 +209,11 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID IndexIsRowMajorOnANonSquareGrid():
-        DEFINE VARIABLE k  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s  AS ICellStore NO-UNDO.
-        DEFINE VARIABLE xs AS INTEGER NO-UNDO EXTENT 5 INITIAL [0, 2, 0, 2, 1].
-        DEFINE VARIABLE ys AS INTEGER NO-UNDO EXTENT 5 INITIAL [0, 0, 4, 4, 2].
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
+        VAR INTEGER[5] xs = [0, 2, 0, 2, 1].
+        VAR INTEGER[5] ys = [0, 0, 4, 4, 2].
+        VAR INTEGER i.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 3, 5, "a").
             DO i = 1 TO 5:
@@ -238,8 +238,8 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID LayersAreIndependent():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 3, 3, "a,b").
             s:SetCell(1, 1, 1, 7).
@@ -259,8 +259,8 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID StoresNegativeAndLargeValuesAndAllowsOverwriting():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 2, 2, "a").
             s:SetCell(1, 0, 0, -5).
@@ -285,8 +285,8 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID OutOfRangeAccessThrows():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 3, 5, "a,b").
             /* x or y off the board */
@@ -331,8 +331,8 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID FillLayerAndCountOfWorkPerLayer():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 3, 4, "a,b").
             s:FillLayer(1, 5).
@@ -357,8 +357,8 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID IsEmptyTracksEveryLayer():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 3, 3, "a,b").
             Assert:IsTrue(s:IsEmpty()).
@@ -379,9 +379,9 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID DuplicateHasTheSameContentsAndIsIndependent():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
-        DEFINE VARIABLE d AS ICellStore NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
+        VAR ICellStore d.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 3, 3, "a,b").
             s:SetCell(1, 1, 1, 4).
@@ -414,9 +414,9 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID CopyFromOverwritesEveryCell():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
-        DEFINE VARIABLE t AS ICellStore NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
+        VAR ICellStore t.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 3, 3, "a,b").
             t = Make(k, 3, 3, "a,b").
@@ -445,10 +445,10 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID CopyFromRejectsADifferentSizeOrDifferentLayers():
-        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s      AS ICellStore NO-UNDO.
-        DEFINE VARIABLE other  AS ICellStore NO-UNDO.
-        DEFINE VARIABLE caught AS LOGICAL NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
+        VAR ICellStore other.
+        VAR LOGICAL caught.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 3, 3, "a,b").
             other = Make(k, 3, 4, "a,b").
@@ -492,10 +492,10 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID CopyFromWorksBetweenAnyTwoStoreKinds():
-        DEFINE VARIABLE k1 AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k2 AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s  AS ICellStore NO-UNDO.
-        DEFINE VARIABLE t  AS ICellStore NO-UNDO.
+        VAR INTEGER k1.
+        VAR INTEGER k2.
+        VAR ICellStore s.
+        VAR ICellStore t.
         DO k1 = 1 TO KindCount ON ERROR UNDO, THROW:
             DO k2 = 1 TO KindCount ON ERROR UNDO, THROW:
                 s = Make(k1, 3, 3, "a,b").
@@ -523,9 +523,9 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID CanPlaceChecksTheBoardEdgesAndOccupiedCells():
-        DEFINE VARIABLE k  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s  AS ICellStore NO-UNDO.
-        DEFINE VARIABLE el AS Shape NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
+        VAR Shape el.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 4, 4, "locked,other").
             el = Shape:Parse("X./XX").
@@ -550,9 +550,9 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID StampWritesTheShapeAndEraseClearsIt():
-        DEFINE VARIABLE k  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s  AS ICellStore NO-UNDO.
-        DEFINE VARIABLE el AS Shape NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
+        VAR Shape el.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 4, 4, "a,b").
             el = Shape:Parse("X./XX").
@@ -579,10 +579,10 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID StampOffTheBoardThrowsAndWritesNothing():
-        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s      AS ICellStore NO-UNDO.
-        DEFINE VARIABLE el     AS Shape NO-UNDO.
-        DEFINE VARIABLE caught AS LOGICAL NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
+        VAR Shape el.
+        VAR LOGICAL caught.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 4, 4, "a").
             el = Shape:Parse("X./XX").
@@ -616,15 +616,15 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     METHOD PRIVATE VOID SetRow(INPUT poStore AS ICellStore, INPUT piLayer AS INTEGER, INPUT piY AS INTEGER,
                                INPUT pcValues AS CHARACTER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         DO x = 1 TO NUM-ENTRIES(pcValues):
             poStore:SetCell(piLayer, x - 1, piY, INTEGER(ENTRY(x, pcValues))).
         END.
     END METHOD.
 
     METHOD PRIVATE CHARACTER RowText(INPUT poStore AS ICellStore, INPUT piLayer AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE x      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        VAR INTEGER x.
+        VAR CHARACTER result.
         DO x = 0 TO poStore:Width - 1:
             result = result + (IF x > 0 THEN "," ELSE "") + STRING(poStore:GetCell(piLayer, x, piY)).
         END.
@@ -633,8 +633,8 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID IsRowFullNeedsEveryCellNonZero():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 3, 3, "a,b").
             Assert:IsFalse(s:IsRowFull(1, 1)).
@@ -655,8 +655,8 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID ClearRowEmptiesOnlyThatRowOfThatLayer():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 3, 3, "a,b").
             SetRow(s, 1, 0, "1,1,1").
@@ -677,8 +677,8 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID ShiftRowsDownRemovesTheRowAndMovesTheRowsAboveIt():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 3, 4, "a,b").
             SetRow(s, 1, 0, "1,0,0").
@@ -704,8 +704,8 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID ShiftRowsDownOnTheTopAndBottomRows():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 2, 3, "a").
             SetRow(s, 1, 0, "1,1").
@@ -731,8 +731,8 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID RowOperationsThrowForABadRowOrLayer():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 3, 3, "a").
             Assert:IsTrue(Throws(s, "isfull", 1, -1, 0)).
@@ -758,8 +758,8 @@ CLASS ProGriddle.Core.CellStoreContractTests:
 
     @Test.
     METHOD PUBLIC VOID DisposeCanBeCalledMoreThanOnce():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s AS ICellStore NO-UNDO.
+        VAR INTEGER k.
+        VAR ICellStore s.
         DO k = 1 TO KindCount ON ERROR UNDO, THROW:
             s = Make(k, 3, 3, "a").
             s:SetCell(1, 1, 1, 1).

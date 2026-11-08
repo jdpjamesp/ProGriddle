@@ -14,11 +14,11 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Engine.AbstractSettings ABSTRACT IMPLEMENTS ISettings:
 
     /* The key and value pairs. A subclass may replace this object when it loads. */
-    DEFINE PROTECTED VARIABLE mValues AS JsonObject NO-UNDO.
+    VAR PROTECTED JsonObject mValues.
 
     /* The keys set since the object was built or last saved, as ",key1,key2," (keys cannot hold
        a comma). */
-    DEFINE PRIVATE VARIABLE mChanged AS CHARACTER NO-UNDO INITIAL ",".
+    VAR PRIVATE CHARACTER mChanged = ",".
 
     CONSTRUCTOR PROTECTED AbstractSettings():
         mValues = NEW JsonObject().
@@ -37,7 +37,7 @@ CLASS ProGriddle.Engine.AbstractSettings ABSTRACT IMPLEMENTS ISettings:
     END METHOD.
 
     METHOD PUBLIC INTEGER GetInteger(INPUT pcKey AS CHARACTER, INPUT piDefault AS INTEGER):
-        DEFINE VARIABLE d AS DECIMAL NO-UNDO.
+        VAR DECIMAL d.
         CheckKey(pcKey).
         IF mValues:Has(pcKey) AND mValues:GetType(pcKey) = JsonDataType:NUMBER THEN DO:
             d = mValues:GetDecimal(pcKey).
@@ -97,8 +97,8 @@ CLASS ProGriddle.Engine.AbstractSettings ABSTRACT IMPLEMENTS ISettings:
     /* Throws GridException unless the key is made of letters, digits, dot, underscore and
        hyphen, and is not empty. */
     METHOD PROTECTED VOID CheckKey(INPUT pcKey AS CHARACTER):
-        DEFINE VARIABLE i  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE ch AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER ch.
         IF pcKey = ? OR pcKey = "" THEN
             UNDO, THROW NEW GridException("A setting key cannot be empty").
         DO i = 1 TO LENGTH(pcKey):

@@ -31,7 +31,7 @@ CLASS ProGriddle.Games.Rogue.Bestiary FINAL:
 
     /* The kind drawn as a letter A to Z, whatever the case. Throws GridException for anything else. */
     METHOD PUBLIC STATIC MonsterKind OfLetter(INPUT pcLetter AS CHARACTER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         IF pcLetter = ? OR LENGTH(pcLetter) <> 1 THEN UNDO, THROW NEW GridException("A monster is one letter, A to Z").
         n = ASC(CAPS(pcLetter)) - ASC("A").
         IF n < 0 OR n > 25 THEN UNDO, THROW NEW GridException("There is no monster called " + pcLetter).
@@ -62,7 +62,7 @@ CLASS ProGriddle.Games.Rogue.Bestiary FINAL:
 
     /* The flags of the monster, as letters (see above): "" for none. */
     METHOD PUBLIC STATIC CHARACTER Flags(INPUT poKind AS MonsterKind):
-        DEFINE VARIABLE f AS CHARACTER NO-UNDO.
+        VAR CHARACTER f.
         f = ENTRY(INTEGER(poKind) + 1, "M,F,-,M,M,MS,MR,M,-,-,M,-,M,-,G,I,M,M,M,MR,M,MR,-,-,-,M").
         RETURN (IF f = "-" THEN "" ELSE f).
     END METHOD.
@@ -80,7 +80,7 @@ CLASS ProGriddle.Games.Rogue.Bestiary FINAL:
     /* A monster that suits a depth: the one at the position of the depth, moved by a roll of the dice from 6 up to 3 down the list, so
        a deep level can still turn up a weak monster and a shallow one now and then a strong one. */
     METHOD PUBLIC STATIC MonsterKind ForDepth(INPUT piDepth AS INTEGER, INPUT poRandom AS IRandom):
-        DEFINE VARIABLE d AS INTEGER NO-UNDO.
+        VAR INTEGER d.
         IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("A monster pick needs a random source").
         d = piDepth - 1 + poRandom:NextInt(10) - 6.
         IF d < 0 THEN d = poRandom:NextInt(5).

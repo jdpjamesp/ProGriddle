@@ -11,7 +11,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.BlastBuddies.BuddiesArtTests:
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN BuddiesArt:NameAt(0).
@@ -67,9 +67,9 @@ CLASS ProGriddle.Games.BlastBuddies.BuddiesArtTests:
 
     @Test.
     METHOD PUBLIC VOID EverySpriteIsATileOfItsSizeWithItsOriginInsideOrJustBelowIt():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sprite AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE oTile  AS Tile NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER sprite.
+        VAR Tile oTile.
         DO i = 1 TO BuddiesArt:Count():
             sprite = BuddiesArt:NameAt(i).
             oTile = BuddiesArt:TileOf(sprite).
@@ -82,10 +82,10 @@ CLASS ProGriddle.Games.BlastBuddies.BuddiesArtTests:
 
     @Test.
     METHOD PUBLIC VOID EverySpriteTurnsIntoColouredPixelsWithItsOwnToneRowAndLegend():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sprite AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE row    AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE oStamp AS PixelStamp NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER sprite.
+        VAR CHARACTER row.
+        VAR PixelStamp oStamp.
         DO i = 1 TO BuddiesArt:Count():
             sprite = BuddiesArt:NameAt(i).
             row = BuddiesArt:ToneRow(sprite).
@@ -97,11 +97,11 @@ CLASS ProGriddle.Games.BlastBuddies.BuddiesArtTests:
 
     @Test.
     METHOD PUBLIC VOID EveryGoonFrameIsDrawnInAllFourTeamColours():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sprite AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE oStamp AS PixelStamp NO-UNDO.
-        DEFINE VARIABLE rows   AS CHARACTER NO-UNDO INITIAL "Reds,Blues,Teals,Grapes".
+        VAR INTEGER i.
+        VAR INTEGER t.
+        VAR CHARACTER sprite.
+        VAR PixelStamp oStamp.
+        VAR CHARACTER rows = "Reds,Blues,Teals,Grapes".
         DO i = 1 TO BuddiesArt:Count():
             sprite = BuddiesArt:NameAt(i).
             IF NOT sprite BEGINS "goon_" THEN NEXT.
@@ -115,8 +115,8 @@ CLASS ProGriddle.Games.BlastBuddies.BuddiesArtTests:
 
     @Test.
     METHOD PUBLIC VOID TheGoonFramesFitTheBodyOfNineByElevenInsideTheOutline():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sprite AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER sprite.
         DO i = 1 TO BuddiesArt:Count():
             sprite = BuddiesArt:NameAt(i).
             IF NOT sprite BEGINS "goon_" THEN NEXT.
@@ -131,9 +131,9 @@ CLASS ProGriddle.Games.BlastBuddies.BuddiesArtTests:
 
     @Test.
     METHOD PUBLIC VOID NoLegendNeedsMoreThanSixteenColours():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sprite AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER sprite.
+        VAR INTEGER n.
         DO i = 1 TO BuddiesArt:Count():
             sprite = BuddiesArt:NameAt(i).
             n = (IF BuddiesArt:Legend(sprite) = "" THEN 0 ELSE NUM-ENTRIES(BuddiesArt:Legend(sprite))) + (IF BuddiesArt:ToneRow(sprite) = "" THEN 0 ELSE 5).
@@ -143,8 +143,8 @@ CLASS ProGriddle.Games.BlastBuddies.BuddiesArtTests:
 
     @Test.
     METHOD PUBLIC VOID EveryToneRowASpriteNamesExists():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sprite AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER sprite.
         DO i = 1 TO BuddiesArt:Count():
             sprite = BuddiesArt:NameAt(i).
             IF BuddiesArt:ToneRow(sprite) <> "" THEN Assert:IsTrue(LOOKUP(BuddiesArt:ToneRow(sprite), BuddiesLook:ToneRowNames()) > 0, sprite).

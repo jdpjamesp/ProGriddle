@@ -9,7 +9,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Engine.ColourMathTests:
 
     METHOD PRIVATE LOGICAL Refused(INPUT pcHex AS CHARACTER):
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             ColourMath:FromHex(pcHex).
             CATCH e AS GridException:
@@ -46,8 +46,8 @@ CLASS ProGriddle.Engine.ColourMathTests:
 
     @Test.
     METHOD PUBLIC VOID MixGoesFromOneColourToTheOtherInEvenSteps():
-        DEFINE VARIABLE black AS INTEGER NO-UNDO.
-        DEFINE VARIABLE white AS INTEGER NO-UNDO.
+        VAR INTEGER black.
+        VAR INTEGER white.
         black = 0.
         white = 16777215.
         Assert:Equals(black, ColourMath:Mix(black, white, 0, 10)).
@@ -65,8 +65,8 @@ CLASS ProGriddle.Engine.ColourMathTests:
 
     @Test.
     METHOD PUBLIC VOID MixWorksOnEachPartSeparatelyAndGoingDown():
-        DEFINE VARIABLE start AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dest AS INTEGER NO-UNDO.
+        VAR INTEGER start.
+        VAR INTEGER dest.
         start = ColourMath:Rgb(200, 100, 0).
         dest = ColourMath:Rgb(0, 100, 200).
         Assert:Equals(ColourMath:Rgb(100, 100, 100), ColourMath:Mix(start, dest, 1, 2)).

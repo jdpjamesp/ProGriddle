@@ -16,8 +16,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Life.LifeGame INHERITS AbstractGame IMPLEMENTS ISteppableGame:
 
-    DEFINE PRIVATE VARIABLE mEngine AS ILifeEngine NO-UNDO.
-    DEFINE PRIVATE VARIABLE mStart  AS ICellStore  NO-UNDO.
+    VAR PRIVATE ILifeEngine mEngine.
+    VAR PRIVATE ICellStore mStart.
 
     DEFINE PUBLIC PROPERTY Rules AS LifeRules NO-UNDO
         GET.
@@ -87,7 +87,7 @@ CLASS ProGriddle.Games.Life.LifeGame INHERITS AbstractGame IMPLEMENTS ISteppable
     /* Clears the board, then makes each cell alive with probability pdDensity (0 to 1). The same
        seeded random source gives the same board. */
     METHOD PUBLIC VOID Randomise(INPUT poRandom AS IRandom, INPUT pdDensity AS DECIMAL):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("Randomise needs a random source").
         IF pdDensity < 0 OR pdDensity > 1 THEN
             UNDO, THROW NEW GridException("Density must be from 0 to 1, not " + STRING(pdDensity)).
@@ -103,8 +103,8 @@ CLASS ProGriddle.Games.Life.LifeGame INHERITS AbstractGame IMPLEMENTS ISteppable
        the generation goes back to 0, because a smaller or larger board has no start to go back to.
        Throws GridException, and changes nothing, when the grid does not have the one layer "state". */
     METHOD PUBLIC VOID Replace(INPUT poGrid AS Grid, INPUT poRules AS LifeRules, INPUT poEngine AS ILifeEngine, INPUT plKeepStart AS LOGICAL):
-        DEFINE VARIABLE oldGrid   AS Grid        NO-UNDO.
-        DEFINE VARIABLE oldEngine AS ILifeEngine NO-UNDO.
+        VAR Grid oldGrid.
+        VAR ILifeEngine oldEngine.
         IF NOT VALID-OBJECT(poGrid) THEN UNDO, THROW NEW GridException("A Life game needs a grid").
         IF NOT VALID-OBJECT(poRules) THEN UNDO, THROW NEW GridException("A Life game needs rules").
         IF NOT VALID-OBJECT(poEngine) THEN UNDO, THROW NEW GridException("A Life game needs an engine").

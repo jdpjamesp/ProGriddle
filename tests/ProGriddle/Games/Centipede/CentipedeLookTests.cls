@@ -19,7 +19,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeLookTests:
 
     @Test.
     METHOD PUBLIC VOID EveryRealTintHasAColourAndNoColourIsBlack():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = INTEGER(CentipedeTint:Night) TO INTEGER(CentipedeTint:FamilyLight) - 1:
             Assert:IsTrue(CentipedeLook:Colour(CentipedeTint:GetEnum(i)) > 0).
         END.
@@ -27,7 +27,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeLookTests:
 
     @Test.
     METHOD PUBLIC VOID TheFamilyPlacesHaveNoColourOfTheirOwn():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             CentipedeLook:Colour(CentipedeTint:FamilyBody).
             CATCH e1 AS GridException:
@@ -45,8 +45,8 @@ CLASS ProGriddle.Games.Centipede.CentipedeLookTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownColourIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER       NO-UNDO.
-        DEFINE VARIABLE t      AS CentipedeTint NO-UNDO.
+        VAR INTEGER thrown.
+        VAR CentipedeTint t.
         DO ON ERROR UNDO, THROW:
             CentipedeLook:Colour(t).
             CATCH e1 AS GridException:
@@ -58,9 +58,9 @@ CLASS ProGriddle.Games.Centipede.CentipedeLookTests:
 
     @Test.
     METHOD PUBLIC VOID EveryColourHasItsOwnCharacterInASprite():
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lastTint AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER lastTint.
         lastTint = INTEGER(CentipedeTint:FamilyDeep).
         DO i = INTEGER(CentipedeTint:Night) TO lastTint:
             Assert:IsTrue(CentipedeLook:CodeOf(CentipedeTint:GetEnum(i)) <> ".").
@@ -73,7 +73,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeLookTests:
 
     @Test.
     METHOD PUBLIC VOID ThereAreSixFamiliesWithALightABodyAndADeepColour():
-        DEFINE VARIABLE f AS INTEGER NO-UNDO.
+        VAR INTEGER f.
         Assert:Equals(6, CentipedeLook:Families()).
         DO f = 1 TO 6:
             Assert:IsTrue(CentipedeLook:FamilyColour(f, 1) <> CentipedeLook:FamilyColour(f, 2)).
@@ -93,7 +93,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeLookTests:
 
     @Test.
     METHOD PUBLIC VOID TheCrawlerIsNeverOnBulbsOfItsOwnColourAndTheNightsRepeatEverySixWaves():
-        DEFINE VARIABLE w AS INTEGER NO-UNDO.
+        VAR INTEGER w.
         Assert:Equals(6, CentipedeLook:Nights()).
         DO w = 1 TO 12:
             Assert:IsTrue(CentipedeLook:CrawlerFamily(w) <> CentipedeLook:BulbFamily(w)).
@@ -106,10 +106,10 @@ CLASS ProGriddle.Games.Centipede.CentipedeLookTests:
 
     @Test.
     METHOD PUBLIC VOID EveryFamilyTakesBothJobsInTheCycle():
-        DEFINE VARIABLE w       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE crawler AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bulbs   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE f       AS INTEGER NO-UNDO.
+        VAR INTEGER w.
+        VAR INTEGER crawler.
+        VAR INTEGER bulbs.
+        VAR INTEGER f.
         DO f = 1 TO 6:
             crawler = 0.
             bulbs = 0.
@@ -124,7 +124,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeLookTests:
 
     @Test.
     METHOD PUBLIC VOID ABadFamilyShadeOrWaveIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             CentipedeLook:FamilyColour(0, 1).
             CATCH e1 AS GridException:

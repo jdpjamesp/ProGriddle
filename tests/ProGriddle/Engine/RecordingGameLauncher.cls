@@ -7,7 +7,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.RecordingGameLauncher IMPLEMENTS IGameLauncher:
 
-    DEFINE PRIVATE VARIABLE mRunning AS CHARACTER NO-UNDO INITIAL ",".
+    VAR PRIVATE CHARACTER mRunning = ",".
 
     /* Every program started, in order, separated by commas. */
     DEFINE PUBLIC PROPERTY Launched AS CHARACTER NO-UNDO
@@ -20,7 +20,7 @@ CLASS ProGriddle.Engine.RecordingGameLauncher IMPLEMENTS IGameLauncher:
         SET.
 
     METHOD PUBLIC VOID Launch(INPUT pcProgram AS CHARACTER):
-        DEFINE VARIABLE reason AS CHARACTER NO-UNDO.
+        VAR CHARACTER reason.
         IF FailWith <> "" THEN DO:
             reason = FailWith.
             FailWith = "".

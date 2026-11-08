@@ -34,7 +34,7 @@ CLASS ProGriddle.Games.Rogue.RecordsTests:
 
     @Test.
     METHOD PUBLIC VOID TheExperienceTableRisesAndEndsAtTheLastLevel():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:Equals(10, RogueRules:ExperienceToPass(1)).
         Assert:Equals(8000000, RogueRules:ExperienceToPass(20)).
         Assert:Equals(0, RogueRules:ExperienceToPass(21)).
@@ -60,8 +60,7 @@ CLASS ProGriddle.Games.Rogue.RecordsTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterStartsAsItsKindDoes():
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
-        oMonster = NEW Monster(MonsterKind:Hobgoblin, 7).
+        VAR Monster oMonster = NEW Monster(MonsterKind:Hobgoblin, 7).
         Assert:Equals(MonsterKind:Hobgoblin, oMonster:Kind).
         Assert:Equals(7, oMonster:Hp).
         Assert:Equals(7, oMonster:MaxHp).
@@ -77,8 +76,7 @@ CLASS ProGriddle.Games.Rogue.RecordsTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterHasPlaceStateAndTimers():
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
-        oMonster = NEW Monster(MonsterKind:Orc, 6).
+        VAR Monster oMonster = NEW Monster(MonsterKind:Orc, 6).
         oMonster:X = 12.
         oMonster:Y = 5.
         oMonster:Gold = 40.
@@ -102,7 +100,7 @@ CLASS ProGriddle.Games.Rogue.RecordsTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterNeedsAKindAndAHitPoint():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW Monster(?, 4).
             CATCH e1 AS GridException:
@@ -120,8 +118,7 @@ CLASS ProGriddle.Games.Rogue.RecordsTests:
 
     @Test.
     METHOD PUBLIC VOID TheHeroStartsWithTwelveHitPointsAStrengthOfSixteenAndAFullStomach():
-        DEFINE VARIABLE oHero AS Hero NO-UNDO.
-        oHero = NEW Hero().
+        VAR Hero oHero = NEW Hero().
         Assert:Equals(12, oHero:Hp).
         Assert:Equals(12, oHero:MaxHp).
         Assert:Equals(16, oHero:Strength).
@@ -144,8 +141,7 @@ CLASS ProGriddle.Games.Rogue.RecordsTests:
 
     @Test.
     METHOD PUBLIC VOID TheHeroHasAPlace():
-        DEFINE VARIABLE oHero AS Hero NO-UNDO.
-        oHero = NEW Hero().
+        VAR Hero oHero = NEW Hero().
         oHero:X = 30.
         oHero:Y = 9.
         Assert:Equals(30, oHero:X).
@@ -163,8 +159,7 @@ CLASS ProGriddle.Games.Rogue.RecordsTests:
 
     @Test.
     METHOD PUBLIC VOID AFlytrapsGripStartsAtNothing():
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
-        oMonster = NEW Monster(MonsterKind:VenusFlytrap, 8).
+        VAR Monster oMonster = NEW Monster(MonsterKind:VenusFlytrap, 8).
         Assert:Equals(0, oMonster:Grip).
         oMonster:Grip = 3.
         Assert:Equals(3, oMonster:Grip).

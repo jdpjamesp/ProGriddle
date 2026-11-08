@@ -16,7 +16,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperLookTests:
 
     @Test.
     METHOD PUBLIC VOID EveryColourIsSixHexDigits():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 15:
             Assert:Equals(6, LENGTH(ENTRY(i, MinesweeperLook:Palette()))).
             Assert:Equals(6, LENGTH(ENTRY(i, MinesweeperLook:GlyphColors()))).
@@ -25,7 +25,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperLookTests:
 
     @Test.
     METHOD PUBLIC VOID TheDigitsAreAtCodesFourToEleven():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO n = 1 TO 8:
             Assert:Equals(STRING(n), ENTRY(n + 4, MinesweeperLook:Glyphs())).
             Assert:Equals(STRING(n), SUBSTRING(MinesweeperLook:TextSymbols(), n + 4, 1)).

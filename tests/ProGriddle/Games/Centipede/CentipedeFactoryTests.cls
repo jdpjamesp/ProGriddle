@@ -15,7 +15,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID CreateGridMakesAnEmptyThirtyByThirtyBoard():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         g = CentipedeFactory:CreateGrid().
         Assert:Equals(30, g:Width).
         Assert:Equals(30, g:Height).
@@ -28,7 +28,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID CreateMakesAGameOnTheTitleScreen():
-        DEFINE VARIABLE oGame AS CentipedeGame NO-UNDO.
+        VAR CentipedeGame oGame.
         oGame = CentipedeFactory:Create(NEW SeededRandom(3)).
         Assert:IsTrue(oGame:Phase = GamePhase:Title).
         Assert:Equals(3, oGame:Lives).

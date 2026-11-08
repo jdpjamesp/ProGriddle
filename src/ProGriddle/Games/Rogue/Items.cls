@@ -30,8 +30,7 @@ CLASS ProGriddle.Games.Rogue.Items FINAL:
 
     /* A pile of gold for a depth: from 2 to 51 pieces on the first level and 10 more at most for each level below. */
     METHOD PUBLIC STATIC Item Gold(INPUT piDepth AS INTEGER, INPUT poRandom AS IRandom):
-        DEFINE VARIABLE oGold AS Item NO-UNDO.
-        oGold = NEW Item(ItemType:Gold, 0).
+        VAR Item oGold = NEW Item(ItemType:Gold, 0).
         oGold:Count = poRandom:NextInt(50 + 10 * MAXIMUM(1, piDepth)) + 2.
         RETURN oGold.
     END METHOD.
@@ -43,7 +42,7 @@ CLASS ProGriddle.Games.Rogue.Items FINAL:
 
     /* A random item. */
     METHOD PUBLIC STATIC Item Roll(INPUT poRandom AS IRandom):
-        DEFINE VARIABLE oType AS ItemType NO-UNDO.
+        VAR ItemType oType.
         IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("An item roll needs a random source").
         oType = SortAt(WeightedPick:Choose("26,36,16,7,7,4,4", poRandom)).
         RETURN OfSort(oType, poRandom).
@@ -51,7 +50,7 @@ CLASS ProGriddle.Games.Rogue.Items FINAL:
 
     /* A random item of a sort (not gold or the amulet). */
     METHOD PUBLIC STATIC Item OfSort(INPUT poType AS ItemType, INPUT poRandom AS IRandom):
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
+        VAR Item oItem.
         CASE poType:
             WHEN ItemType:Potion THEN RETURN NEW Item(ItemType:Potion, INTEGER(Potions:Roll(poRandom))).
             WHEN ItemType:Scroll THEN RETURN NEW Item(ItemType:Scroll, INTEGER(Scrolls:Roll(poRandom))).

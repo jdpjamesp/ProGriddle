@@ -20,35 +20,35 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrain FINAL IMPLEMENTS IBuddyBrain
     /* the fewest frames it thinks for, so the bubble can be seen */
     &SCOPED-DEFINE LEAST-THOUGHT 60
 
-    DEFINE PRIVATE VARIABLE mRandom  AS IRandom        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSim     AS ShotSimulator  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPhysics AS BuddyPhysics   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFrames  AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCandX   AS INTEGER        NO-UNDO EXTENT {&CANDIDATES}.
-    DEFINE PRIVATE VARIABLE mCandY   AS INTEGER        NO-UNDO EXTENT {&CANDIDATES}.
-    DEFINE PRIVATE VARIABLE mCands   AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTgtX    AS INTEGER        NO-UNDO EXTENT {&TARGETS}.
-    DEFINE PRIVATE VARIABLE mTargets AS INTEGER        NO-UNDO.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE ShotSimulator mSim.
+    VAR PRIVATE BuddyPhysics mPhysics.
+    VAR PRIVATE INTEGER mFrames.
+    VAR PRIVATE INTEGER[{&CANDIDATES}] mCandX.
+    VAR PRIVATE INTEGER[{&CANDIDATES}] mCandY.
+    VAR PRIVATE INTEGER mCands.
+    VAR PRIVATE INTEGER[{&TARGETS}] mTgtX.
+    VAR PRIVATE INTEGER mTargets.
     /* where the ladder of tries has got to: place, target, aim and power */
-    DEFINE PRIVATE VARIABLE mCi      AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTi      AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mEi      AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPi      AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRefine  AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScanned AS LOGICAL        NO-UNDO.
+    VAR PRIVATE INTEGER mCi.
+    VAR PRIVATE INTEGER mTi.
+    VAR PRIVATE INTEGER mEi.
+    VAR PRIVATE INTEGER mPi.
+    VAR PRIVATE INTEGER mRefine.
+    VAR PRIVATE LOGICAL mScanned.
     /* the best try so far */
-    DEFINE PRIVATE VARIABLE mBestScore AS INTEGER      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBestCand  AS INTEGER      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBestFace  AS INTEGER      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBestElev  AS INTEGER      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBestPower AS INTEGER      NO-UNDO.
+    VAR PRIVATE INTEGER mBestScore.
+    VAR PRIVATE INTEGER mBestCand.
+    VAR PRIVATE INTEGER mBestFace.
+    VAR PRIVATE INTEGER mBestElev.
+    VAR PRIVATE INTEGER mBestPower.
     /* what it has decided to do */
-    DEFINE PRIVATE VARIABLE mGoalX     AS INTEGER      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGoalFace  AS INTEGER      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGoalElev  AS INTEGER      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGoalPower AS INTEGER      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLastX     AS INTEGER      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mStuck     AS INTEGER      NO-UNDO.
+    VAR PRIVATE INTEGER mGoalX.
+    VAR PRIVATE INTEGER mGoalFace.
+    VAR PRIVATE INTEGER mGoalElev.
+    VAR PRIVATE INTEGER mGoalPower.
+    VAR PRIVATE INTEGER mLastX.
+    VAR PRIVATE INTEGER mStuck.
 
     DEFINE PUBLIC PROPERTY Skill AS BuddySkill NO-UNDO GET. SET.
 
@@ -140,16 +140,16 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrain FINAL IMPLEMENTS IBuddyBrain
 
     /* The places it could shoot from (here, and where 15 and 30 steps of walking either way would take it) and the enemies nearest to it. */
     METHOD PRIVATE VOID BeginThinking(INPUT poGame AS BlastBuddiesGame):
-        DEFINE VARIABLE me      AS Buddy NO-UNDO.
-        DEFINE VARIABLE scratch AS Buddy NO-UNDO.
-        DEFINE VARIABLE dir     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE step    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b       AS Buddy NO-UNDO.
-        DEFINE VARIABLE best    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bestD   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d       AS INTEGER NO-UNDO.
+        VAR Buddy me.
+        VAR Buddy scratch.
+        VAR INTEGER dir.
+        VAR INTEGER step.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR Buddy b.
+        VAR INTEGER best.
+        VAR INTEGER bestD.
+        VAR INTEGER d.
         me = poGame:CurrentBuddy.
         mCands = 1.
         mCandX[1] = me:X().
@@ -203,7 +203,7 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrain FINAL IMPLEMENTS IBuddyBrain
 
     /* Tries up to piMax flights. */
     METHOD PRIVATE VOID Think(INPUT poGame AS BlastBuddiesGame, INPUT piMax AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO WHILE n < piMax AND NOT mScanned:
             n = n + 1.
             IF mCi <= mCands THEN DO:
@@ -226,11 +226,11 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrain FINAL IMPLEMENTS IBuddyBrain
 
     /* One flight from a place, scored and kept if it is the best. */
     METHOD PRIVATE VOID TryShot(INPUT poGame AS BlastBuddiesGame, INPUT piCand AS INTEGER, INPUT piFace AS INTEGER, INPUT piElev AS INTEGER, INPUT piPower AS INTEGER):
-        DEFINE VARIABLE hd    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE speed AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hy    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE score AS INTEGER NO-UNDO.
+        VAR INTEGER hd.
+        VAR INTEGER speed.
+        VAR INTEGER hx.
+        VAR INTEGER hy.
+        VAR INTEGER score.
         hd = (IF piFace > 0 THEN piElev ELSE Heading:Wrap(64 - piElev)).
         speed = BuddyRules:ShotSpeedMin() + INTEGER(TRUNCATE((BuddyRules:ShotSpeedMax() - BuddyRules:ShotSpeedMin()) * piPower / 100, 0)).
         IF NOT mSim:Fly(poGame:Land, mCandX[piCand] * 256 + INTEGER(TRUNCATE(Heading:DirX(hd) * 3 / 2, 0)),
@@ -248,15 +248,15 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrain FINAL IMPLEMENTS IBuddyBrain
     /* What a bazooka blast at a pixel is worth to the buddy in turn, standing at (piMeX, piMeY): the damage to enemies, with a bonus for each kill,
        less 1.2 times the damage to its own team and itself. */
     METHOD PRIVATE INTEGER ScoreBlast(INPUT poGame AS BlastBuddiesGame, INPUT piHitX AS INTEGER, INPUT piHitY AS INTEGER, INPUT piMeX AS INTEGER, INPUT piMeY AS INTEGER):
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b     AS Buddy   NO-UNDO.
-        DEFINE VARIABLE reach AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d     AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE dmg   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE total AS DECIMAL NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR Buddy b.
+        VAR INTEGER reach.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR DECIMAL d.
+        VAR INTEGER dmg.
+        VAR DECIMAL total.
         reach = BuddyRules:BazookaRadius() + BuddyRules:BlastReach().
         DO i = 1 TO poGame:Plan:TeamCount():
             DO j = 1 TO poGame:Plan:TeamAt(i):Count():
@@ -278,8 +278,8 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrain FINAL IMPLEMENTS IBuddyBrain
 
     /* Settles on the best shot, with the mistake of its skill in the aim and the power. */
     METHOD PRIVATE VOID Decide():
-        DEFINE VARIABLE elevErr  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE powerErr AS INTEGER NO-UNDO.
+        VAR INTEGER elevErr.
+        VAR INTEGER powerErr.
         CASE Skill:
             WHEN BuddySkill:Easy THEN ASSIGN elevErr = 3 powerErr = 12.
             WHEN BuddySkill:Normal THEN ASSIGN elevErr = 1 powerErr = 5.
@@ -296,7 +296,7 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrain FINAL IMPLEMENTS IBuddyBrain
 
     /* Walks to the place it chose, and gives up on it if it makes no headway for a second and a half. */
     METHOD PRIVATE VOID Walk(INPUT poGame AS BlastBuddiesGame):
-        DEFINE VARIABLE b AS Buddy NO-UNDO.
+        VAR Buddy b.
         b = poGame:CurrentBuddy.
         IF b:State <> BuddyState:Standing THEN RETURN.
         IF b:X() = mGoalX THEN DO:

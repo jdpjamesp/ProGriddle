@@ -6,8 +6,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Minesweeper.MinesweeperBestTimesTests:
 
-    DEFINE PRIVATE VARIABLE mSettings AS MemorySettings        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBest     AS MinesweeperBestTimes  NO-UNDO.
+    VAR PRIVATE MemorySettings mSettings.
+    VAR PRIVATE MinesweeperBestTimes mBest.
 
     @Setup.
     METHOD PUBLIC VOID BuildBest():
@@ -53,7 +53,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperBestTimesTests:
 
     @Test.
     METHOD PUBLIC VOID TheListKeepsTheTenFastestAndDropsTheRest():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 10:
             mBest:Record("Beginner", 100 + i).
         END.
@@ -68,7 +68,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperBestTimesTests:
 
     @Test.
     METHOD PUBLIC VOID ATimeFasterThanTheSlowestOfAFullListTakesItsPlace():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 10:
             mBest:Record("Beginner", 100 + i).
         END.
@@ -151,8 +151,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperBestTimesTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID BestTimesNeedSettings():
-        DEFINE VARIABLE b AS MinesweeperBestTimes NO-UNDO.
-        b = NEW MinesweeperBestTimes(?).
+        VAR MinesweeperBestTimes b = NEW MinesweeperBestTimes(?).
     END METHOD.
 
 END CLASS.

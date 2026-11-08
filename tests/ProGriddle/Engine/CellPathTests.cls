@@ -8,7 +8,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.CellPathTests:
 
-    DEFINE PRIVATE VARIABLE mPath AS CellPath NO-UNDO.
+    VAR PRIVATE CellPath mPath.
 
     @Setup.
     METHOD PUBLIC VOID BuildPath():
@@ -17,8 +17,8 @@ CLASS ProGriddle.Engine.CellPathTests:
 
     /* The cells as text, "x,y" separated by a space. */
     METHOD PRIVATE CHARACTER Cells():
-        DEFINE VARIABLE i   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE out AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER out.
         DO i = 0 TO mPath:Count - 1:
             out = out + (IF out = "" THEN "" ELSE " ") + SUBSTITUTE("&1,&2", mPath:X(i), mPath:Y(i)).
         END.
@@ -26,7 +26,7 @@ CLASS ProGriddle.Engine.CellPathTests:
     END METHOD.
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN n = mPath:Plan(?, 0, 1, 1).
@@ -80,9 +80,9 @@ CLASS ProGriddle.Engine.CellPathTests:
 
     @Test.
     METHOD PUBLIC VOID ASlopeStepsAlongTheLongerSideSoNoCellIsSkipped():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE px AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER px.
+        VAR INTEGER py.
         Assert:Equals(10, mPath:Plan(0, 0, 10, 3)).
         px = 0.
         py = 0.

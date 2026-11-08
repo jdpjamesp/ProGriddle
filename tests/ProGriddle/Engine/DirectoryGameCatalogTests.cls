@@ -5,7 +5,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
-    DEFINE PRIVATE VARIABLE mFolder AS CHARACTER NO-UNDO.
+    VAR PRIVATE CHARACTER mFolder.
 
     @Setup.
     METHOD PUBLIC VOID MakeFolder():
@@ -21,7 +21,7 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     /* Writes a run file whose header comment has the given lines. */
     METHOD PRIVATE VOID WriteRunFile(INPUT pcName AS CHARACTER, INPUT pcHeaderLines AS CHARACTER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         OUTPUT TO VALUE(mFolder + "/" + pcName).
         PUT UNFORMATTED "/* A composition root." SKIP.
         DO i = 1 TO NUM-ENTRIES(pcHeaderLines, "~n"):
@@ -43,7 +43,7 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test.
     METHOD PUBLIC VOID TheTitleAndBlurbComeFromTheArcadeLine():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        VAR DirectoryGameCatalog c.
         WriteRunFile("run-tetris.p", "Arcade: Tetris | Falling blocks. Seven bag pieces.").
         c = NEW DirectoryGameCatalog(mFolder).
         Assert:Equals(1, c:Count).
@@ -54,7 +54,7 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test.
     METHOD PUBLIC VOID WithoutTheLineTheTitleComesFromTheFileName():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        VAR DirectoryGameCatalog c.
         WriteRunFile("run-battleships.p", "No tag here.").
         c = NEW DirectoryGameCatalog(mFolder).
         Assert:Equals("Battleships", c:TitleAt(1)).
@@ -63,7 +63,7 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test.
     METHOD PUBLIC VOID ATitleWithNoBarHasNoBlurb():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        VAR DirectoryGameCatalog c.
         WriteRunFile("run-snake.p", "Arcade: Snake Pit").
         c = NEW DirectoryGameCatalog(mFolder).
         Assert:Equals("Snake Pit", c:TitleAt(1)).
@@ -72,7 +72,7 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test.
     METHOD PUBLIC VOID AHiddenFileIsLeftOut():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        VAR DirectoryGameCatalog c.
         WriteRunFile("run-arcade.p", "Arcade: hidden").
         WriteRunFile("run-life.p", "Arcade: Life | Cells.").
         c = NEW DirectoryGameCatalog(mFolder).
@@ -82,7 +82,7 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test.
     METHOD PUBLIC VOID OnlyRunFilesCount():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        VAR DirectoryGameCatalog c.
         WriteRunFile("run-life.p", "Arcade: Life | Cells.").
         WriteRunFile("helper.p", "Arcade: Not a game | Ignored.").
         WriteRunFile("run-notes.txt", "Arcade: Not a game | Ignored.").
@@ -93,7 +93,7 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test.
     METHOD PUBLIC VOID TheGamesAreListedByTitleIgnoringCase():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        VAR DirectoryGameCatalog c.
         WriteRunFile("run-z.p", "Arcade: zebra | Last.").
         WriteRunFile("run-m.p", "Arcade: Mouse | Middle.").
         WriteRunFile("run-a.p", "Arcade: aardvark | First.").
@@ -114,7 +114,7 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test.
     METHOD PUBLIC VOID AFolderNameWithABackslashAndATrailingSlashWorks():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        VAR DirectoryGameCatalog c.
         WriteRunFile("run-life.p", "Arcade: Life | Cells.").
         c = NEW DirectoryGameCatalog("build~\test-catalog/").
         Assert:Equals(1, c:Count).
@@ -123,9 +123,9 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test.
     METHOD PUBLIC VOID TheRealRunFolderHasEveryGameButNotTheArcade():
-        DEFINE VARIABLE c      AS DirectoryGameCatalog NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE titles AS CHARACTER NO-UNDO.
+        VAR DirectoryGameCatalog c.
+        VAR INTEGER i.
+        VAR CHARACTER titles.
         c = NEW DirectoryGameCatalog("run").
         DO i = 1 TO c:Count:
             titles = titles + "," + c:TitleAt(i).
@@ -140,20 +140,18 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID APlaceOffTheListThrows():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
-        c = NEW DirectoryGameCatalog(mFolder).
+        VAR DirectoryGameCatalog c = NEW DirectoryGameCatalog(mFolder).
         c:TitleAt(1).
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID TheConstructorNeedsAFolder():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
-        c = NEW DirectoryGameCatalog("").
+        VAR DirectoryGameCatalog c = NEW DirectoryGameCatalog("").
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID ATitleBlurbAndColourAreReadFromTheThreePartsOfTheLine():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        VAR DirectoryGameCatalog c.
         WriteRunFile("run-tetris.p", "Arcade: Tetris | Falling blocks. | Purple").
         c = NEW DirectoryGameCatalog(mFolder).
         Assert:Equals("Tetris", c:TitleAt(1)).
@@ -163,7 +161,7 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test.
     METHOD PUBLIC VOID WithoutAThirdPartThereIsNoColour():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        VAR DirectoryGameCatalog c.
         WriteRunFile("run-a.p", "Arcade: Alpha | The first.").
         WriteRunFile("run-b.p", "Arcade: Beta").
         WriteRunFile("run-c.p", "No tag here.").
@@ -175,7 +173,7 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test.
     METHOD PUBLIC VOID AColourWithAnEmptyBlurbIsStillRead():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        VAR DirectoryGameCatalog c.
         WriteRunFile("run-a.p", "Arcade: Alpha | | teal").
         c = NEW DirectoryGameCatalog(mFolder).
         Assert:Equals("Alpha", c:TitleAt(1)).
@@ -185,8 +183,8 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test.
     METHOD PUBLIC VOID TheFourGamesAskForTheColoursOfTheArtwork():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR DirectoryGameCatalog c.
+        VAR INTEGER i.
         c = NEW DirectoryGameCatalog("run").
         DO i = 1 TO c:Count:
             IF c:TitleAt(i) = "Battleships" THEN Assert:Equals("red", c:AccentAt(i)).
@@ -198,7 +196,7 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test.
     METHOD PUBLIC VOID TheCategoryComesFromItsOwnLine():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        VAR DirectoryGameCatalog c.
         WriteRunFile("run-a.p", "Arcade: Alpha | The first. | teal~nCategory: Puzzle").
         c = NEW DirectoryGameCatalog(mFolder).
         Assert:Equals("Alpha", c:TitleAt(1)).
@@ -208,7 +206,7 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test.
     METHOD PUBLIC VOID TheCategoryLineMayComeBeforeTheArcadeLine():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        VAR DirectoryGameCatalog c.
         WriteRunFile("run-a.p", "Category:   Strategy  ~nArcade: Alpha | The first.").
         c = NEW DirectoryGameCatalog(mFolder).
         Assert:Equals("Alpha", c:TitleAt(1)).
@@ -218,7 +216,7 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test.
     METHOD PUBLIC VOID WithoutACategoryLineTheCategoryIsEmpty():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
+        VAR DirectoryGameCatalog c.
         WriteRunFile("run-a.p", "Arcade: Alpha | The first.").
         WriteRunFile("run-b.p", "No tag here.").
         c = NEW DirectoryGameCatalog(mFolder).
@@ -228,8 +226,8 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test.
     METHOD PUBLIC VOID EveryRealGameHasACategory():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR DirectoryGameCatalog c.
+        VAR INTEGER i.
         c = NEW DirectoryGameCatalog("run").
         DO i = 1 TO c:Count:
             Assert:IsTrue(c:CategoryAt(i) <> "").
@@ -238,15 +236,13 @@ CLASS ProGriddle.Engine.DirectoryGameCatalogTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID CategoryAtAPlaceOffTheListThrows():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
-        c = NEW DirectoryGameCatalog(mFolder).
+        VAR DirectoryGameCatalog c = NEW DirectoryGameCatalog(mFolder).
         c:CategoryAt(1).
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID AccentAtAPlaceOffTheListThrows():
-        DEFINE VARIABLE c AS DirectoryGameCatalog NO-UNDO.
-        c = NEW DirectoryGameCatalog(mFolder).
+        VAR DirectoryGameCatalog c = NEW DirectoryGameCatalog(mFolder).
         c:AccentAt(1).
     END METHOD.
 

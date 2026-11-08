@@ -11,8 +11,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.Rogue.Disguises FINAL:
 
     /* potions 0 to 13, scrolls 14 to 27, wands 28 to 41, rings 42 to 55 */
-    DEFINE PRIVATE VARIABLE mName  AS CHARACTER NO-UNDO EXTENT 56.
-    DEFINE PRIVATE VARIABLE mKnown AS LOGICAL   NO-UNDO EXTENT 56.
+    VAR PRIVATE CHARACTER[56] mName.
+    VAR PRIVATE LOGICAL[56] mKnown.
 
     /* Gives every kind a new name and forgets everything learnt. Throws GridException for no random source. */
     CONSTRUCTOR PUBLIC Disguises(INPUT poRandom AS IRandom):
@@ -21,7 +21,7 @@ CLASS ProGriddle.Games.Rogue.Disguises FINAL:
 
     /* Starts again for a new game: new names, nothing known. */
     METHOD PUBLIC VOID Shuffle(INPUT poRandom AS IRandom):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF NOT VALID-OBJECT(poRandom) THEN UNDO, THROW NEW GridException("Disguises need a random source").
         DO i = 1 TO 56:
             mKnown[i] = FALSE.
@@ -51,8 +51,8 @@ CLASS ProGriddle.Games.Rogue.Disguises FINAL:
 
     /* How many kinds of every sort the hero knows. */
     METHOD PUBLIC INTEGER KnownCount():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
         DO i = 1 TO 56:
             IF mKnown[i] THEN n = n + 1.
         END.
@@ -68,7 +68,7 @@ CLASS ProGriddle.Games.Rogue.Disguises FINAL:
     END METHOD.
 
     METHOD PRIVATE INTEGER SlotOf(INPUT poType AS ItemType, INPUT piKind AS INTEGER):
-        DEFINE VARIABLE base AS INTEGER NO-UNDO.
+        VAR INTEGER base.
         IF NOT VALID-OBJECT(poType) THEN UNDO, THROW NEW GridException("There is no sort of item to look up").
         CASE poType:
             WHEN ItemType:Potion THEN base = 0.
@@ -83,10 +83,10 @@ CLASS ProGriddle.Games.Rogue.Disguises FINAL:
 
     /* Deals 14 different names from a list into the 14 slots from piBase. */
     METHOD PRIVATE VOID Deal(INPUT poRandom AS IRandom, INPUT pcPool AS CHARACTER, INPUT piBase AS INTEGER):
-        DEFINE VARIABLE pool AS CHARACTER NO-UNDO EXTENT 30.
-        DEFINE VARIABLE i    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE n    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE p    AS INTEGER   NO-UNDO.
+        VAR CHARACTER[30] pool.
+        VAR INTEGER i.
+        VAR INTEGER n.
+        VAR INTEGER p.
         n = NUM-ENTRIES(pcPool).
         DO i = 1 TO n:
             pool[i] = ENTRY(i, pcPool).
@@ -101,14 +101,14 @@ CLASS ProGriddle.Games.Rogue.Disguises FINAL:
 
     /* A title of one to three words, each of one to three syllables, that no other scroll has. */
     METHOD PRIVATE CHARACTER MakeTitle(INPUT poRandom AS IRandom, INPUT piSlot AS INTEGER):
-        DEFINE VARIABLE syllables AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE heading   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE words     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE w         AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE s         AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j         AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE again     AS LOGICAL   NO-UNDO.
-        DEFINE VARIABLE tries     AS INTEGER   NO-UNDO.
+        VAR CHARACTER syllables.
+        VAR CHARACTER heading.
+        VAR INTEGER words.
+        VAR INTEGER w.
+        VAR INTEGER s.
+        VAR INTEGER j.
+        VAR LOGICAL again.
+        VAR INTEGER tries.
         syllables = "a,ab,ag,aks,ala,an,app,arg,arze,ash,bek,bie,bit,bjor,blu,bot,bu,byt,comp,con,cos,cre,dalf,dan,den,do,e,eep,el,eng,er,ere,erk,esh,evs,fa,fid,fri,fu,gan,gar,glen,gop,gre,ha,hyd,i,ing,ip,ish,it,ite,iv,jo,kho,kli,klis,la,lech,mar,me,mi,mic,mik,mon,mung,mur,nej,nelg,nep,ner,nes,nih,nin,o,od,ood,org,orn,ox,oxy,pay,ple,plu,po,pot,prok,re,rea,rhov,ri,ro,rog,rok,rol,sa,san,sat,sef,seh,shu,ski,sna,sne,snik,so,sol,sri,sta,sun,taf,tem,ther,ti,tox,trol,tue,turs,u,ulk,um,un,uni,ur,val,viv,vly,vom,wah,wed,werg,wex,whon,wun,xo,y,yot,yu,zant,zeb,zim,zok,zon,zum".
         REPEAT:
             tries = tries + 1.

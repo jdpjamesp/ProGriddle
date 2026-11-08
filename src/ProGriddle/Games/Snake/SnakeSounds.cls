@@ -30,8 +30,8 @@ CLASS ProGriddle.Games.Snake.SnakeSounds FINAL:
 
     /* Makes the sound of every cue into a bank, under the cue's number. */
     METHOD PUBLIC STATIC VOID Fill(INPUT poBank AS SoundBank):
-        DEFINE VARIABLE i   AS INTEGER  NO-UNDO.
-        DEFINE VARIABLE cue AS SnakeCue NO-UNDO.
+        VAR INTEGER i.
+        VAR SnakeCue cue.
         DO i = INTEGER(SnakeCue:Eat) TO INTEGER(SnakeCue:Win):
             cue = SnakeCue:GetEnum(i).
             poBank:Define(i, Recipe(cue), VolumeOf(cue)).

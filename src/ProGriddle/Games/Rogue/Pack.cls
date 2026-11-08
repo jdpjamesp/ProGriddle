@@ -10,7 +10,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.Pack FINAL:
 
-    DEFINE PRIVATE VARIABLE mSlot AS Item NO-UNDO EXTENT 23.
+    VAR PRIVATE Item[23] mSlot.
 
     /* The slot of the wielded weapon, the worn armour and the two rings, or -1. */
     DEFINE PUBLIC PROPERTY WieldedSlot AS INTEGER NO-UNDO INITIAL -1
@@ -32,8 +32,8 @@ CLASS ProGriddle.Games.Rogue.Pack FINAL:
     /* How many slots are in use. */
     DEFINE PUBLIC PROPERTY Count AS INTEGER NO-UNDO
         GET():
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
-            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            VAR INTEGER i.
+            VAR INTEGER n.
             DO i = 1 TO RogueRules:PackSize():
                 IF VALID-OBJECT(mSlot[i]) THEN n = n + 1.
             END.
@@ -48,7 +48,7 @@ CLASS ProGriddle.Games.Rogue.Pack FINAL:
 
     /* The slot of a letter, or -1 for anything that is not a letter a to w. */
     METHOD PUBLIC INTEGER SlotOf(INPUT pcLetter AS CHARACTER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         IF pcLetter = ? OR LENGTH(pcLetter) <> 1 THEN RETURN -1.
         n = ASC(pcLetter) - ASC("a").
         IF n < 0 OR n >= RogueRules:PackSize() THEN RETURN -1.
@@ -69,7 +69,7 @@ CLASS ProGriddle.Games.Rogue.Pack FINAL:
 
     /* The first empty slot, or -1 when the pack is full. */
     METHOD PUBLIC INTEGER FreeSlot():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO RogueRules:PackSize():
             IF NOT VALID-OBJECT(mSlot[i]) THEN RETURN i - 1.
         END.
@@ -84,7 +84,7 @@ CLASS ProGriddle.Games.Rogue.Pack FINAL:
     /* Puts an item in the pack and gives the slot it went to, joining a stack it matches (the count is added and poItem is not kept).
        Returns -1 and takes nothing when the pack is full. Gold is refused with a GridException: it belongs in the purse. */
     METHOD PUBLIC INTEGER Add(INPUT poItem AS Item):
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         IF NOT VALID-OBJECT(poItem) THEN UNDO, THROW NEW GridException("There is no item to put in the pack").
         IF poItem:Category = ItemType:Gold THEN UNDO, THROW NEW GridException("Gold goes in the purse, not the pack").
         slot = StackFor(poItem).
@@ -102,7 +102,7 @@ CLASS ProGriddle.Games.Rogue.Pack FINAL:
        is emptied stops being the wielded weapon, the worn armour or a ring. Throws GridException for an empty slot or a count that is
        not 1 up to what the slot holds. */
     METHOD PUBLIC Item Take(INPUT piSlot AS INTEGER, INPUT piCount AS INTEGER):
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
+        VAR Item oItem.
         IF NOT Holds(piSlot) THEN UNDO, THROW NEW GridException("Nothing is in slot " + STRING(piSlot)).
         oItem = mSlot[piSlot + 1].
         IF piCount = ? OR piCount < 1 OR piCount > oItem:Count THEN UNDO, THROW NEW GridException("Cannot take " + STRING(piCount) + " of " + STRING(oItem:Count)).
@@ -143,8 +143,8 @@ CLASS ProGriddle.Games.Rogue.Pack FINAL:
 
     /* True when a worn ring is of the kind. */
     METHOD PUBLIC LOGICAL WearingRing(INPUT poKind AS RingKind):
-        DEFINE VARIABLE oLeft  AS Item NO-UNDO.
-        DEFINE VARIABLE oRight AS Item NO-UNDO.
+        VAR Item oLeft.
+        VAR Item oRight.
         oLeft = LeftRing().
         oRight = RightRing().
         RETURN (VALID-OBJECT(oLeft) AND oLeft:Kind = INTEGER(poKind)) OR (VALID-OBJECT(oRight) AND oRight:Kind = INTEGER(poKind)).
@@ -152,9 +152,9 @@ CLASS ProGriddle.Games.Rogue.Pack FINAL:
 
     /* The sum of the bonuses of the worn rings of a kind (a ring of protection of +2 and one of +1 give 3). */
     METHOD PUBLIC INTEGER RingBonus(INPUT poKind AS RingKind):
-        DEFINE VARIABLE oLeft  AS Item    NO-UNDO.
-        DEFINE VARIABLE oRight AS Item    NO-UNDO.
-        DEFINE VARIABLE total  AS INTEGER NO-UNDO.
+        VAR Item oLeft.
+        VAR Item oRight.
+        VAR INTEGER total.
         oLeft = LeftRing().
         oRight = RightRing().
         IF VALID-OBJECT(oLeft) AND oLeft:Kind = INTEGER(poKind) THEN total = total + oLeft:Bonus.
@@ -164,8 +164,8 @@ CLASS ProGriddle.Games.Rogue.Pack FINAL:
 
     /* What everything in the pack adds to the score. */
     METHOD PUBLIC INTEGER Worth():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER t.
         DO i = 1 TO RogueRules:PackSize():
             IF VALID-OBJECT(mSlot[i]) THEN t = t + mSlot[i]:Worth().
         END.
@@ -174,7 +174,7 @@ CLASS ProGriddle.Games.Rogue.Pack FINAL:
 
     /* True when the pack holds the amulet. */
     METHOD PUBLIC LOGICAL HasAmulet():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO RogueRules:PackSize():
             IF VALID-OBJECT(mSlot[i]) AND mSlot[i]:Category = ItemType:Amulet THEN RETURN TRUE.
         END.
@@ -183,7 +183,7 @@ CLASS ProGriddle.Games.Rogue.Pack FINAL:
 
     /* The slot of a stack the item can join, or -1. */
     METHOD PRIVATE INTEGER StackFor(INPUT poItem AS Item):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF NOT VALID-OBJECT(poItem) THEN RETURN -1.
         DO i = 1 TO RogueRules:PackSize():
             IF VALID-OBJECT(mSlot[i]) AND mSlot[i]:StacksWith(poItem) THEN RETURN i - 1.

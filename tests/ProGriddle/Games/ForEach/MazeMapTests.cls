@@ -12,7 +12,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.MazeMapTests:
 
-    DEFINE PRIVATE VARIABLE mMaze AS MazeMap NO-UNDO.
+    VAR PRIVATE MazeMap mMaze.
 
     @Setup.
     METHOD PUBLIC VOID BuildMaze():
@@ -22,8 +22,8 @@ CLASS ProGriddle.Games.ForEach.MazeMapTests:
     END METHOD.
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE other AS MazeMap NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
+        VAR MazeMap other.
+        VAR INTEGER n.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN other = NEW MazeMap("").
@@ -152,8 +152,7 @@ CLASS ProGriddle.Games.ForEach.MazeMapTests:
 
     @Test.
     METHOD PUBLIC VOID CanEnterAlsoWrapsAColumnOffTheEdge():
-        DEFINE VARIABLE tunnel AS MazeMap NO-UNDO.
-        tunnel = NEW MazeMap(ForEachKit:TunnelCorridor()).
+        VAR MazeMap tunnel = NEW MazeMap(ForEachKit:TunnelCorridor()).
         Assert:IsTrue(tunnel:CanEnter(-1, 1, FALSE)).
         Assert:IsTrue(tunnel:CanEnter(20, 1, FALSE)).
         Assert:IsFalse(mMaze:CanEnter(-1, 3, FALSE)).
@@ -198,7 +197,7 @@ CLASS ProGriddle.Games.ForEach.MazeMapTests:
 
     @Test.
     METHOD PUBLIC VOID TheItemSpotIsOptionalAndFoundTheSameWay():
-        DEFINE VARIABLE item AS MazeMap NO-UNDO.
+        VAR MazeMap item.
         Assert:IsFalse(mMaze:HasItemSpot).
         Assert:IsTrue(ThrowsGridException(12)).
         item = NEW MazeMap(ForEachKit:ItemCorridor()).

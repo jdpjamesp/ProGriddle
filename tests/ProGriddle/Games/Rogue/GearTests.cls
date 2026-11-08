@@ -8,7 +8,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.GearTests:
 
-    DEFINE PRIVATE VARIABLE mWorld AS RogueWorld NO-UNDO.
+    VAR PRIVATE RogueWorld mWorld.
 
     @Setup.
     METHOD PUBLIC VOID BuildScene():
@@ -38,8 +38,8 @@ CLASS ProGriddle.Games.Rogue.GearTests:
 
     @Test.
     METHOD PUBLIC VOID APackLineShowsRingsOnTheHands():
-        DEFINE VARIABLE a AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b AS INTEGER NO-UNDO.
+        VAR INTEGER a.
+        VAR INTEGER b.
         a = Carry(ItemType:Ring, INTEGER(RingKind:Stealth)).
         b = Carry(ItemType:Ring, INTEGER(RingKind:Searching)).
         Gear:PutOn(mWorld, a).
@@ -51,7 +51,7 @@ CLASS ProGriddle.Games.Rogue.GearTests:
 
     @Test.
     METHOD PUBLIC VOID AWeaponCanBeWieldedInPlaceOfTheOne():
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         slot = Carry(ItemType:Weapon, INTEGER(WeaponKind:Spear)).
         Assert:IsTrue(Gear:Wield(mWorld, slot)).
         Assert:Equals(slot, mWorld:Pack:WieldedSlot).
@@ -67,7 +67,7 @@ CLASS ProGriddle.Games.Rogue.GearTests:
 
     @Test.
     METHOD PUBLIC VOID ACursedWeaponInHandCannotBeChanged():
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         mWorld:Pack:At(2):Cursed = TRUE.
         slot = Carry(ItemType:Weapon, INTEGER(WeaponKind:Spear)).
         Assert:IsFalse(Gear:Wield(mWorld, slot)).
@@ -77,7 +77,7 @@ CLASS ProGriddle.Games.Rogue.GearTests:
 
     @Test.
     METHOD PUBLIC VOID OnlyWeaponsCanBeWieldedArmourWornAndRingsPutOn():
-        DEFINE VARIABLE potion AS INTEGER NO-UNDO.
+        VAR INTEGER potion.
         potion = Carry(ItemType:Potion, 0).
         Assert:IsFalse(Gear:Wield(mWorld, potion)).
         Assert:IsFalse(Gear:Wear(mWorld, potion)).
@@ -89,7 +89,7 @@ CLASS ProGriddle.Games.Rogue.GearTests:
 
     @Test.
     METHOD PUBLIC VOID ArmourCannotBeWornOverArmourButCanAfterItIsTakenOff():
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         slot = Carry(ItemType:Armour, INTEGER(ArmourKind:PlateMail)).
         Assert:IsFalse(Gear:Wear(mWorld, slot)).
         Assert:IsTrue(INDEX(mWorld:Messages:Line(200), "already wearing") > 0).
@@ -112,9 +112,9 @@ CLASS ProGriddle.Games.Rogue.GearTests:
 
     @Test.
     METHOD PUBLIC VOID RingsGoOnTheLeftHandFirstThenTheRightAndNoMore():
-        DEFINE VARIABLE a AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER a.
+        VAR INTEGER b.
+        VAR INTEGER c.
         a = Carry(ItemType:Ring, INTEGER(RingKind:Stealth)).
         b = Carry(ItemType:Ring, INTEGER(RingKind:Searching)).
         c = Carry(ItemType:Ring, INTEGER(RingKind:Regeneration)).
@@ -128,8 +128,8 @@ CLASS ProGriddle.Games.Rogue.GearTests:
 
     @Test.
     METHOD PUBLIC VOID RingsWithAnObviousEffectAreLearntWhenWornAndTheOthersAreNot():
-        DEFINE VARIABLE a AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b AS INTEGER NO-UNDO.
+        VAR INTEGER a.
+        VAR INTEGER b.
         a = Carry(ItemType:Ring, INTEGER(RingKind:Protection)).
         b = Carry(ItemType:Ring, INTEGER(RingKind:Stealth)).
         Gear:PutOn(mWorld, a).
@@ -141,8 +141,8 @@ CLASS ProGriddle.Games.Rogue.GearTests:
 
     @Test.
     METHOD PUBLIC VOID ARingComesOffUnlessItIsCursed():
-        DEFINE VARIABLE a AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b AS INTEGER NO-UNDO.
+        VAR INTEGER a.
+        VAR INTEGER b.
         a = Carry(ItemType:Ring, INTEGER(RingKind:Stealth)).
         b = Carry(ItemType:Ring, INTEGER(RingKind:Searching)).
         Gear:PutOn(mWorld, a).
@@ -158,7 +158,7 @@ CLASS ProGriddle.Games.Rogue.GearTests:
 
     @Test.
     METHOD PUBLIC VOID DroppingPutsOneOfAStackOnTheFloor():
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         mWorld:Pack:Add(Items:Make(ItemType:Potion, 2)).
         slot = mWorld:Pack:Add(Items:Make(ItemType:Potion, 2)).
         Assert:Equals(2, mWorld:Pack:At(slot):Count).
@@ -196,7 +196,7 @@ CLASS ProGriddle.Games.Rogue.GearTests:
 
     @Test.
     METHOD PUBLIC VOID WalkingOntoGoldPutsItInThePurse():
-        DEFINE VARIABLE oGold AS Item NO-UNDO.
+        VAR Item oGold.
         oGold = Items:Make(ItemType:Gold, 0).
         oGold:Count = 25.
         mWorld:DropOnFloor(oGold, 6, 6).
@@ -226,7 +226,7 @@ CLASS ProGriddle.Games.Rogue.GearTests:
 
     @Test.
     METHOD PUBLIC VOID AFullPackLeavesTheThingWhereItLies():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 18:
             mWorld:Pack:Add(Items:Make(ItemType:Armour, 0)).
         END.

@@ -9,9 +9,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.BlastBuddies.TurnPlan FINAL:
 
-    DEFINE PRIVATE VARIABLE mTeams AS Team    NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mCount AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLast  AS INTEGER NO-UNDO.
+    VAR PRIVATE Team[4] mTeams.
+    VAR PRIVATE INTEGER mCount.
+    VAR PRIVATE INTEGER mLast.
 
     /* Adds a team to the end of the order. */
     METHOD PUBLIC VOID Add(INPUT poTeam AS Team):
@@ -34,8 +34,8 @@ CLASS ProGriddle.Games.BlastBuddies.TurnPlan FINAL:
 
     /* How many teams still have a living buddy. */
     METHOD PUBLIC INTEGER TeamsAlive():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
         DO i = 1 TO mCount:
             IF mTeams[i]:AliveCount() > 0 THEN n = n + 1.
         END.
@@ -44,9 +44,9 @@ CLASS ProGriddle.Games.BlastBuddies.TurnPlan FINAL:
 
     /* The buddy whose turn is next, from the next team that has one alive. Unknown when nobody is alive. */
     METHOD PUBLIC Buddy NextBuddy():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b AS Buddy   NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER k.
+        VAR Buddy b.
         DO i = 1 TO mCount:
             k = ((mLast + i - 1) MODULO mCount) + 1.
             b = mTeams[k]:NextBuddy().

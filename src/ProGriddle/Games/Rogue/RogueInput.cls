@@ -15,11 +15,11 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.RogueInput FINAL IMPLEMENTS IGameInput, IModifierKeys:
 
-    DEFINE PRIVATE VARIABLE mGame     AS RogueGame   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS ISettings   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScores   AS RogueScores NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNotice   AS CHARACTER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRecorded AS LOGICAL     NO-UNDO.
+    VAR PRIVATE RogueGame mGame.
+    VAR PRIVATE ISettings mSettings.
+    VAR PRIVATE RogueScores mScores.
+    VAR PRIVATE CHARACTER mNotice.
+    VAR PRIVATE LOGICAL mRecorded.
 
     /* True while Shift is held (the window says so before each key). */
     DEFINE PUBLIC PROPERTY ShiftDown AS LOGICAL NO-UNDO
@@ -86,7 +86,7 @@ CLASS ProGriddle.Games.Rogue.RogueInput FINAL IMPLEMENTS IGameInput, IModifierKe
     END CONSTRUCTOR.
 
     METHOD PUBLIC CHARACTER TakeNotice():
-        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        VAR CHARACTER notice.
         notice = mNotice.
         mNotice = "".
         RETURN notice.
@@ -94,7 +94,7 @@ CLASS ProGriddle.Games.Rogue.RogueInput FINAL IMPLEMENTS IGameInput, IModifierKe
 
     /* A key went down: the game gets its token. Gives true when the key meant something to the game. */
     METHOD PUBLIC LOGICAL HandleKey(INPUT pcKey AS CHARACTER):
-        DEFINE VARIABLE token AS CHARACTER NO-UNDO.
+        VAR CHARACTER token.
         token = RogueKeys:Token(pcKey, ShiftDown, ViKeys, mGame:Mode = RogueMode:PickItem OR mGame:Mode = RogueMode:Confirm).
         IF token = "" THEN RETURN FALSE.
         mGame:Command(token).
@@ -131,7 +131,7 @@ CLASS ProGriddle.Games.Rogue.RogueInput FINAL IMPLEMENTS IGameInput, IModifierKe
 
     /* The status line: the level and the numbers of the hero, and what is wrong. */
     METHOD PUBLIC STATIC CHARACTER Summary(INPUT poGame AS RogueGame):
-        DEFINE VARIABLE w AS RogueWorld NO-UNDO.
+        VAR RogueWorld w.
         w = poGame:World.
         RETURN SUBSTITUTE("Level &1  Gold &2  Hp &3(&4)  Str &5(&6)  Arm &7  Exp &8/&9",
                           w:Depth, w:Hero:Gold, w:Hero:Hp, w:Hero:MaxHp, Fighting:EffectiveStrength(w), w:Hero:MaxStrength, Fighting:ArmourClass(w),

@@ -27,7 +27,7 @@ CLASS ProGriddle.Engine.ScriptedCueSource IMPLEMENTS ICueSource, ILoopSource:
         PRIVATE SET.
 
     METHOD PUBLIC CHARACTER Poll(INPUT poGame AS IGame):
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        VAR CHARACTER result.
         PollCount = PollCount + 1.
         LastGame = poGame.
         result = NextCues.

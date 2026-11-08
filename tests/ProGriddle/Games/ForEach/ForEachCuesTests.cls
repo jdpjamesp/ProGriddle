@@ -13,8 +13,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.ForEachCuesTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS ForEachGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCues AS ForEachCues NO-UNDO.
+    VAR PRIVATE ForEachGame mGame.
+    VAR PRIVATE ForEachCues mCues.
 
     @Setup.
     METHOD PUBLIC VOID BuildCues():
@@ -46,7 +46,7 @@ CLASS ProGriddle.Games.ForEach.ForEachCuesTests:
     END METHOD.
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE c AS CHARACTER NO-UNDO.
+        VAR CHARACTER c.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN c = mCues:Poll(?).
@@ -99,7 +99,7 @@ CLASS ProGriddle.Games.ForEach.ForEachCuesTests:
 
     @Test.
     METHOD PUBLIC VOID ACommitSoundsACrunchToo():
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
+        VAR CHARACTER cues.
         mGame:Dispose().
         mGame = ForEachKit:GameOn(ForEachKit:DataCorridor()).
         mCues:Poll(mGame).

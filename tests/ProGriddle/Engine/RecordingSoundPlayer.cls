@@ -62,7 +62,7 @@ CLASS ProGriddle.Engine.RecordingSoundPlayer IMPLEMENTS ISoundPlayer:
     END METHOD.
 
     METHOD PUBLIC VOID StopLoop(INPUT piCue AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         i = LOOKUP(STRING(piCue), Looping).
         IF i > 0 THEN ENTRY(i, Looping) = "".
         IF i > 0 THEN Looping = TRIM(REPLACE(REPLACE(Looping, ",,", ","), ",,", ","), ",").

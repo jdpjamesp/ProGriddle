@@ -10,8 +10,7 @@ CLASS ProGriddle.Engine.SoundPlayerTests:
 
     @Test.
     METHOD PUBLIC VOID TheSilentPlayerPlaysNothingAndSaysItIsNotWorking():
-        DEFINE VARIABLE oPlayer AS ISoundPlayer NO-UNDO.
-        oPlayer = NEW NullSoundPlayer().
+        VAR ISoundPlayer oPlayer = NEW NullSoundPlayer().
         oPlayer:Play(1).
         Assert:IsFalse(oPlayer:Working).
         oPlayer:Dispose().
@@ -20,8 +19,7 @@ CLASS ProGriddle.Engine.SoundPlayerTests:
 
     @Test.
     METHOD PUBLIC VOID AnyPlayerRemembersItsMuteAndItsVolumeAndStartsLoud():
-        DEFINE VARIABLE oPlayer AS ISoundPlayer NO-UNDO.
-        oPlayer = NEW NullSoundPlayer().
+        VAR ISoundPlayer oPlayer = NEW NullSoundPlayer().
         Assert:IsFalse(oPlayer:Muted).
         Assert:Equals(100, oPlayer:Volume).
         oPlayer:Muted = TRUE.
@@ -37,8 +35,8 @@ CLASS ProGriddle.Engine.SoundPlayerTests:
 
     @Test.
     METHOD PUBLIC VOID AVolumeOutsideZeroToOneHundredThrowsGridExceptionWhateverThePlayer():
-        DEFINE VARIABLE oPlayer AS ISoundPlayer NO-UNDO.
-        DEFINE VARIABLE thrown  AS INTEGER      NO-UNDO.
+        VAR ISoundPlayer oPlayer.
+        VAR INTEGER thrown.
         oPlayer = NEW NullSoundPlayer().
         DO ON ERROR UNDO, THROW:
             oPlayer:Volume = 101.
@@ -65,8 +63,7 @@ CLASS ProGriddle.Engine.SoundPlayerTests:
 
     @Test.
     METHOD PUBLIC VOID TheRecordingPlayerListsTheCuesInOrderAndSkipsThemWhileMuted():
-        DEFINE VARIABLE oPlayer AS RecordingSoundPlayer NO-UNDO.
-        oPlayer = NEW RecordingSoundPlayer().
+        VAR RecordingSoundPlayer oPlayer = NEW RecordingSoundPlayer().
         Assert:Equals("", oPlayer:Played).
         oPlayer:Play(3).
         oPlayer:Play(1).
@@ -83,8 +80,7 @@ CLASS ProGriddle.Engine.SoundPlayerTests:
 
     @Test.
     METHOD PUBLIC VOID TheSilentPlayerTakesLoopsAndDoesNothing():
-        DEFINE VARIABLE oPlayer AS ISoundPlayer NO-UNDO.
-        oPlayer = NEW NullSoundPlayer().
+        VAR ISoundPlayer oPlayer = NEW NullSoundPlayer().
         oPlayer:StartLoop(2).
         oPlayer:StopLoop(2).
         oPlayer:StopLoop(9).
@@ -92,8 +88,7 @@ CLASS ProGriddle.Engine.SoundPlayerTests:
 
     @Test.
     METHOD PUBLIC VOID TheRecordingPlayerKeepsLoopsOncePerCueUntilStoppedOrMuted():
-        DEFINE VARIABLE oPlayer AS RecordingSoundPlayer NO-UNDO.
-        oPlayer = NEW RecordingSoundPlayer().
+        VAR RecordingSoundPlayer oPlayer = NEW RecordingSoundPlayer().
         oPlayer:StartLoop(4).
         oPlayer:StartLoop(4).
         oPlayer:StartLoop(5).
@@ -115,8 +110,7 @@ CLASS ProGriddle.Engine.SoundPlayerTests:
 
     @Test.
     METHOD PUBLIC VOID TheRecordingPlayerNotesThatItWasDisposedAndWorks():
-        DEFINE VARIABLE oPlayer AS RecordingSoundPlayer NO-UNDO.
-        oPlayer = NEW RecordingSoundPlayer().
+        VAR RecordingSoundPlayer oPlayer = NEW RecordingSoundPlayer().
         Assert:IsTrue(oPlayer:Working).
         Assert:IsFalse(oPlayer:Disposed).
         oPlayer:Working = FALSE.

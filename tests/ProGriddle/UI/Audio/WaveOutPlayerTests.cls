@@ -10,8 +10,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.UI.Audio.WaveOutPlayerTests:
 
-    DEFINE PRIVATE VARIABLE mBank   AS SoundBank     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlayer AS WaveOutPlayer NO-UNDO.
+    VAR PRIVATE SoundBank mBank.
+    VAR PRIVATE WaveOutPlayer mPlayer.
 
     @Setup.
     METHOD PUBLIC VOID BuildPlayer():
@@ -35,7 +35,7 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayerTests:
 
     /* Waits for piMs milliseconds, which is a busy loop: the test has no timer to wait on. */
     METHOD PRIVATE VOID PauseFor(INPUT piMs AS INTEGER):
-        DEFINE VARIABLE start AS INTEGER NO-UNDO.
+        VAR INTEGER start.
         start = ETIME.
         DO WHILE ETIME - start < piMs:
         END.
@@ -43,7 +43,7 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayerTests:
 
     /* Waits up to two seconds for every sound to finish and says whether they did. */
     METHOD PRIVATE LOGICAL WaitUntilQuiet():
-        DEFINE VARIABLE start AS INTEGER NO-UNDO.
+        VAR INTEGER start.
         start = ETIME.
         DO WHILE ETIME - start < 2000:
             IF mPlayer:BusyVoices() = 0 THEN RETURN TRUE.
@@ -53,7 +53,7 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayerTests:
 
     @Test.
     METHOD PUBLIC VOID APlayerNeedsABank():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW WaveOutPlayer(?).
             CATCH e1 AS GridException:
@@ -71,7 +71,7 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayerTests:
 
     @Test.
     METHOD PUBLIC VOID TheVolumeIsKeptAndOutsideZeroToOneHundredThrowsGridException():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         mPlayer:Volume = 60.
         Assert:Equals(60, mPlayer:Volume).
         DO ON ERROR UNDO, THROW:
@@ -113,7 +113,7 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayerTests:
 
     @Test.
     METHOD PUBLIC VOID SoundsOverlapOnSeparateVoicesAndAreDroppedWhenEveryVoiceIsBusy():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF NOT mPlayer:Working THEN RETURN.
         DO i = 1 TO mPlayer:Voices + 1:
             mPlayer:Play(2).

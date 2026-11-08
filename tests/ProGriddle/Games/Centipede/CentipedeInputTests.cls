@@ -10,9 +10,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Centipede.CentipedeInputTests:
 
-    DEFINE PRIVATE VARIABLE mGame     AS CentipedeGame  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS MemorySettings NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInput    AS CentipedeInput NO-UNDO.
+    VAR PRIVATE CentipedeGame mGame.
+    VAR PRIVATE MemorySettings mSettings.
+    VAR PRIVATE CentipedeInput mInput.
 
     @Setup.
     METHOD PUBLIC VOID BuildInput():
@@ -131,8 +131,8 @@ CLASS ProGriddle.Games.Centipede.CentipedeInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheSpeedAndTheBestScoreAreReadFromTheSettings():
-        DEFINE VARIABLE oGame  AS CentipedeGame  NO-UNDO.
-        DEFINE VARIABLE oInput AS CentipedeInput NO-UNDO.
+        VAR CentipedeGame oGame.
+        VAR CentipedeInput oInput.
         mSettings:SetInteger("centipede.speed", 90).
         mSettings:SetInteger("centipede.hiscore", 4321).
         oGame = CentipedeFactory:Create(NEW ScriptedRandom("1")).
@@ -162,7 +162,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheGameOverStatusSaysSo():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mGame:StartGame().
         DO i = 1 TO 3:
             mGame:ClearCentipede().
@@ -208,7 +208,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeInputTests:
 
     @Test.
     METHOD PUBLIC VOID SoundIsOfferedOnlyWithAWorkingPlayerAndSwitchesItAndRemembersIt():
-        DEFINE VARIABLE oPlayer AS RecordingSoundPlayer NO-UNDO.
+        VAR RecordingSoundPlayer oPlayer.
         Assert:Equals("", mInput:CommandNames).
         oPlayer = NEW RecordingSoundPlayer().
         mInput = NEW CentipedeInput(mGame, mSettings, oPlayer).
@@ -223,7 +223,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeInputTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownCommandIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mInput:Perform("Nonsense").
             CATCH e1 AS GridException:
@@ -235,8 +235,8 @@ CLASS ProGriddle.Games.Centipede.CentipedeInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheInputNeedsAGameSettingsAndASoundPlayer():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oOther AS CentipedeInput NO-UNDO.
+        VAR INTEGER thrown.
+        VAR CentipedeInput oOther.
         DO ON ERROR UNDO, THROW:
             oOther = NEW CentipedeInput(?, mSettings).
             CATCH e1 AS GridException:

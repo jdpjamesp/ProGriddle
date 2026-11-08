@@ -9,9 +9,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.TextStampCacheTests:
 
-    DEFINE PRIVATE VARIABLE mCache  AS TextStampCache NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGrid   AS Grid           NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas AS PixelCanvas    NO-UNDO.
+    VAR PRIVATE TextStampCache mCache.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE PixelCanvas mCanvas.
 
     @Setup.
     METHOD PUBLIC VOID BuildCache():
@@ -33,9 +33,9 @@ CLASS ProGriddle.Engine.TextStampCacheTests:
 
     @Test.
     METHOD PUBLIC VOID TheSameTextAndLookGivesTheSameStampAndAnotherLookAnotherOne():
-        DEFINE VARIABLE a AS TextStamp NO-UNDO.
-        DEFINE VARIABLE b AS TextStamp NO-UNDO.
-        DEFINE VARIABLE c AS TextStamp NO-UNDO.
+        VAR TextStamp a.
+        VAR TextStamp b.
+        VAR TextStamp c.
         a = mCache:Get("HI", 1, 100, 100, -1).
         b = mCache:Get("HI", 1, 100, 100, -1).
         c = mCache:Get("HI", 2, 100, 100, -1).
@@ -48,8 +48,8 @@ CLASS ProGriddle.Engine.TextStampCacheTests:
 
     @Test.
     METHOD PUBLIC VOID WhenFullTheOldestStampIsFreedAndTheNewestIsKept():
-        DEFINE VARIABLE first1 AS TextStamp NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER   NO-UNDO.
+        VAR TextStamp first1.
+        VAR INTEGER thrown.
         first1 = mCache:Get("A", 1, 1, 1, -1).
         mCache:Get("B", 1, 1, 1, -1).
         mCache:Get("C", 1, 1, 1, -1).
@@ -71,8 +71,8 @@ CLASS ProGriddle.Engine.TextStampCacheTests:
 
     @Test.
     METHOD PUBLIC VOID ACacheNeedsAtLeastOneSlotAndDisposeFreesEverythingAndCanBeRepeated():
-        DEFINE VARIABLE a      AS TextStamp NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER   NO-UNDO.
+        VAR TextStamp a.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW TextStampCache(0).
             CATCH e1 AS GridException:

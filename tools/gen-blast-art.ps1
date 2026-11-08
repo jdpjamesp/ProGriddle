@@ -111,7 +111,7 @@ $sb = New-Object System.Text.StringBuilder
 [void]$sb.AppendLine('CLASS ProGriddle.Games.BlastBuddies.BuddiesArt FINAL:')
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('    /* every sprite name, in the order of the design */')
-[void]$sb.AppendLine('    DEFINE PRIVATE STATIC VARIABLE sNames AS CHARACTER NO-UNDO INITIAL "' + (($sprites | ForEach-Object { $_.Name }) -join ',') + '".')
+[void]$sb.AppendLine('    VAR PRIVATE STATIC CHARACTER sNames = "' + (($sprites | ForEach-Object { $_.Name }) -join ',') + '".')
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('    /* How many sprites there are. */')
 [void]$sb.AppendLine('    METHOD PUBLIC STATIC INTEGER Count():')
@@ -190,7 +190,7 @@ $sb = New-Object System.Text.StringBuilder
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('CLASS ProGriddle.Games.BlastBuddies.BuddiesLook FINAL:')
 [void]$sb.AppendLine('')
-[void]$sb.AppendLine('    DEFINE PRIVATE STATIC VARIABLE sColour AS INTEGER NO-UNDO EXTENT ' + $tints.Count + '.')
+[void]$sb.AppendLine('    VAR PRIVATE STATIC INTEGER[' + $tints.Count + '] sColour.')
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('    CONSTRUCTOR STATIC BuddiesLook():')
 $n = 0
@@ -246,7 +246,7 @@ $sb = New-Object System.Text.StringBuilder
 [void]$sb.AppendLine('CLASS ProGriddle.Games.BlastBuddies.TerrainThemes FINAL:')
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('    /* the colour of key k (1 to ' + $themeRows.Count + ') of theme t (0 to 2) is at (t * ' + $themeRows.Count + ') + k */')
-[void]$sb.AppendLine('    DEFINE PRIVATE STATIC VARIABLE sColour AS INTEGER NO-UNDO EXTENT ' + (3 * $themeRows.Count) + '.')
+[void]$sb.AppendLine('    VAR PRIVATE STATIC INTEGER[' + (3 * $themeRows.Count) + '] sColour.')
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('    CONSTRUCTOR STATIC TerrainThemes():')
 $n = 0

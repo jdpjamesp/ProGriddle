@@ -28,7 +28,7 @@ CLASS ProGriddle.Games.Xevious.XeviousMotionTests:
 
     @Test.
     METHOD PUBLIC VOID TheWaveNeverLeavesItsAmplitude():
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        VAR INTEGER t.
         DO t = 0 TO 400:
             Assert:IsTrue(XeviousMotion:Wave(t, 92, 30) >= -30).
             Assert:IsTrue(XeviousMotion:Wave(t, 92, 30) <= 30).

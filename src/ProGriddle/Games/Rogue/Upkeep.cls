@@ -23,14 +23,14 @@ CLASS ProGriddle.Games.Rogue.Upkeep FINAL:
 
     /* The number of turns between one hit point coming back and the next, for an experience level. */
     METHOD PUBLIC STATIC INTEGER HealEvery(INPUT piRank AS INTEGER, INPUT plRegeneration AS LOGICAL):
-        DEFINE VARIABLE period AS INTEGER NO-UNDO.
+        VAR INTEGER period.
         period = (IF piRank < 8 THEN 22 - 2 * piRank ELSE 3).
         RETURN (IF plRegeneration THEN MAXIMUM(1, INTEGER(TRUNCATE(period / 2, 0))) ELSE period).
     END METHOD.
 
     /* One turn goes by. */
     METHOD PUBLIC STATIC VOID Tick(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE stage AS INTEGER NO-UNDO.
+        VAR INTEGER stage.
         /* the stomach */
         IF NOT (poWorld:Pack:WearingRing(RingKind:SlowDigestion) AND poWorld:Turns MODULO 2 = 0) THEN poWorld:Hero:Nutrition = poWorld:Hero:Nutrition - 1.
         IF poWorld:Pack:WearingRing(RingKind:Regeneration) AND poWorld:Turns MODULO 3 = 0 THEN poWorld:Hero:Nutrition = poWorld:Hero:Nutrition - 1.

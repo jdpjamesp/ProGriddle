@@ -14,19 +14,19 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.SparkField FINAL:
 
-    DEFINE PRIVATE VARIABLE mSlots  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mX      AS DECIMAL NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mY      AS DECIMAL NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mVX     AS DECIMAL NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mVY     AS DECIMAL NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mGravity AS DECIMAL NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mDrag   AS DECIMAL NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mBorn   AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mLife   AS INTEGER NO-UNDO EXTENT.
+    VAR PRIVATE INTEGER mSlots.
+    VAR PRIVATE DECIMAL[] mX.
+    VAR PRIVATE DECIMAL[] mY.
+    VAR PRIVATE DECIMAL[] mVX.
+    VAR PRIVATE DECIMAL[] mVY.
+    VAR PRIVATE DECIMAL[] mGravity.
+    VAR PRIVATE DECIMAL[] mDrag.
+    VAR PRIVATE INTEGER[] mBorn.
+    VAR PRIVATE INTEGER[] mLife.
     /* four colours a spark, one after another: slot * 4 + stage + 1 */
-    DEFINE PRIVATE VARIABLE mColour AS INTEGER NO-UNDO EXTENT.
+    VAR PRIVATE INTEGER[] mColour.
     /* the time the spark last needed (its death), and whether the slot holds one */
-    DEFINE PRIVATE VARIABLE mUsed   AS LOGICAL NO-UNDO EXTENT.
+    VAR PRIVATE LOGICAL[] mUsed.
 
     /* Throws GridException for a field of no slots. */
     CONSTRUCTOR PUBLIC SparkField(INPUT piSlots AS INTEGER):
@@ -56,7 +56,7 @@ CLASS ProGriddle.Engine.SparkField FINAL:
        Throws GridException for a drag outside that, or a life under 1. */
     METHOD PUBLIC LOGICAL AddDragged(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT pdVX AS DECIMAL, INPUT pdVY AS DECIMAL, INPUT pdGravity AS DECIMAL, INPUT pdDrag AS DECIMAL,
                                      INPUT piBornMs AS INTEGER, INPUT piLife AS INTEGER, INPUT piC1 AS INTEGER, INPUT piC2 AS INTEGER, INPUT piC3 AS INTEGER, INPUT piC4 AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF piLife = ? OR piLife < 1 THEN UNDO, THROW NEW GridException("A spark lives 1 frame or more, not " + STRING(piLife)).
         IF pdDrag = ? OR pdDrag <= 0 OR pdDrag > 1 THEN UNDO, THROW NEW GridException("A spark keeps more than 0 and up to 1 of its speed a frame, not " + STRING(pdDrag)).
         DO i = 1 TO mSlots:
@@ -81,7 +81,7 @@ CLASS ProGriddle.Engine.SparkField FINAL:
 
     /* Every spark gone. */
     METHOD PUBLIC VOID Clear():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO mSlots:
             mUsed[i] = FALSE.
         END.
@@ -90,9 +90,9 @@ CLASS ProGriddle.Engine.SparkField FINAL:
     /* How many sparks are alive at a time (born, and not yet at the end of their life). A spark that is over is let go; one
        that has not been born yet is kept but not counted. */
     METHOD PUBLIC INTEGER CountAt(INPUT piNowMs AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
-        DEFINE VARIABLE f AS DECIMAL NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
+        VAR DECIMAL f.
         DO i = 1 TO mSlots:
             IF NOT mUsed[i] THEN NEXT.
             f = (piNowMs - mBorn[i]) * 0.06.
@@ -105,12 +105,12 @@ CLASS ProGriddle.Engine.SparkField FINAL:
     /* Puts every spark that is alive at a time on a canvas that is in a batch, as one pixel in its colour of the moment. Pixels off
        the canvas are skipped. A spark that is over is let go, and one that has not been born yet is not drawn. */
     METHOD PUBLIC VOID Draw(INPUT poCanvas AS PixelCanvas, INPUT piNowMs AS INTEGER):
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE f      AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE px     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE stage  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE reach  AS DECIMAL NO-UNDO.
+        VAR INTEGER i.
+        VAR DECIMAL f.
+        VAR INTEGER px.
+        VAR INTEGER py.
+        VAR INTEGER stage.
+        VAR DECIMAL reach.
         DO i = 1 TO mSlots:
             IF NOT mUsed[i] THEN NEXT.
             f = (piNowMs - mBorn[i]) * 0.06.

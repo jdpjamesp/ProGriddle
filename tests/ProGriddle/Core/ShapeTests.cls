@@ -7,7 +7,7 @@ CLASS ProGriddle.Core.ShapeTests:
 
     @Test.
     METHOD PUBLIC VOID ParseBuildsExpectedCells():
-        DEFINE VARIABLE s AS Shape NO-UNDO.
+        VAR Shape s.
         s = Shape:Parse("XX/.X").
         Assert:Equals(3, s:Size).
         Assert:Equals(2, s:Width).
@@ -27,10 +27,9 @@ CLASS ProGriddle.Core.ShapeTests:
 
     @Test.
     METHOD PUBLIC VOID ConstructorNormalisesToOrigin():
-        DEFINE VARIABLE xs AS INTEGER NO-UNDO EXTENT 2 INITIAL [5, 6].
-        DEFINE VARIABLE ys AS INTEGER NO-UNDO EXTENT 2 INITIAL [-3, -3].
-        DEFINE VARIABLE s  AS Shape   NO-UNDO.
-        s = NEW Shape(xs, ys).
+        VAR INTEGER[2] xs = [5, 6].
+        VAR INTEGER[2] ys = [-3, -3].
+        VAR Shape s = NEW Shape(xs, ys).
         Assert:Equals("XX", s:ToString()).
         Assert:IsTrue(s:Contains(0, 0)).
         Assert:IsTrue(s:Contains(1, 0)).
@@ -38,10 +37,9 @@ CLASS ProGriddle.Core.ShapeTests:
 
     @Test.
     METHOD PUBLIC VOID ConstructorCopiesItsInput():
-        DEFINE VARIABLE xs AS INTEGER NO-UNDO EXTENT 2 INITIAL [0, 1].
-        DEFINE VARIABLE ys AS INTEGER NO-UNDO EXTENT 2 INITIAL [0, 0].
-        DEFINE VARIABLE s  AS Shape   NO-UNDO.
-        s = NEW Shape(xs, ys).
+        VAR INTEGER[2] xs = [0, 1].
+        VAR INTEGER[2] ys = [0, 0].
+        VAR Shape s = NEW Shape(xs, ys).
         xs[2] = 9.
         ys[1] = 9.
         Assert:Equals("XX", s:ToString()).
@@ -49,7 +47,7 @@ CLASS ProGriddle.Core.ShapeTests:
 
     @Test.
     METHOD PUBLIC VOID OffsetsAreReadableByIndex():
-        DEFINE VARIABLE s AS Shape NO-UNDO.
+        VAR Shape s.
         s = Shape:Parse("X./XX").
         Assert:Equals(0, s:OffsetX(1)).
         Assert:Equals(0, s:OffsetY(1)).
@@ -77,7 +75,7 @@ CLASS ProGriddle.Core.ShapeTests:
 
     @Test.
     METHOD PUBLIC VOID RotateDoesNotChangeTheOriginal():
-        DEFINE VARIABLE s AS Shape NO-UNDO.
+        VAR Shape s.
         s = Shape:Parse("XX/.X").
         s:Rotate().
         Assert:Equals("XX/.X", s:ToString()).
@@ -85,9 +83,9 @@ CLASS ProGriddle.Core.ShapeTests:
 
     @Test.
     METHOD PUBLIC VOID FourRotationsReturnTheOriginal():
-        DEFINE VARIABLE names AS CHARACTER NO-UNDO EXTENT 4 INITIAL ["XX/.X", "XXXX", "X./X./XX", ".X./XXX"].
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE s     AS Shape   NO-UNDO.
+        VAR CHARACTER[4] names = ["XX/.X", "XXXX", "X./X./XX", ".X./XXX"].
+        VAR INTEGER i.
+        VAR Shape s.
         DO i = 1 TO 4:
             s = Shape:Parse(names[i]).
             Assert:IsTrue(s:Rotate():Rotate():Rotate():Rotate():Equals(s)).
@@ -96,7 +94,7 @@ CLASS ProGriddle.Core.ShapeTests:
 
     @Test.
     METHOD PUBLIC VOID RotateSwapsWidthAndHeight():
-        DEFINE VARIABLE r AS Shape NO-UNDO.
+        VAR Shape r.
         r = Shape:Parse("XXXX"):Rotate().
         Assert:Equals(1, r:Width).
         Assert:Equals(4, r:Height).
@@ -110,16 +108,16 @@ CLASS ProGriddle.Core.ShapeTests:
 
     @Test.
     METHOD PUBLIC VOID EqualsIgnoresCellOrder():
-        DEFINE VARIABLE xa AS INTEGER NO-UNDO EXTENT 2 INITIAL [0, 1].
-        DEFINE VARIABLE ya AS INTEGER NO-UNDO EXTENT 2 INITIAL [0, 0].
-        DEFINE VARIABLE xb AS INTEGER NO-UNDO EXTENT 2 INITIAL [1, 0].
-        DEFINE VARIABLE yb AS INTEGER NO-UNDO EXTENT 2 INITIAL [0, 0].
+        VAR INTEGER[2] xa = [0, 1].
+        VAR INTEGER[2] ya = [0, 0].
+        VAR INTEGER[2] xb = [1, 0].
+        VAR INTEGER[2] yb = [0, 0].
         Assert:IsTrue(NEW Shape(xa, ya):Equals(NEW Shape(xb, yb))).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID EqualsIsFalseForDifferentShapesNullAndOtherTypes():
-        DEFINE VARIABLE o AS Progress.Lang.Object NO-UNDO.
+        VAR Progress.Lang.Object o.
         Assert:IsFalse(Shape:Parse("XX"):Equals(Shape:Parse("X/X"))).
         Assert:IsFalse(Shape:Parse("XX"):Equals(Shape:Parse("XXX"))).
         Assert:IsFalse(Shape:Parse("XX"):Equals(o)).
@@ -133,22 +131,22 @@ CLASS ProGriddle.Core.ShapeTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ConstructorThrowsOnDuplicateCells():
-        DEFINE VARIABLE xs AS INTEGER NO-UNDO EXTENT 2 INITIAL [1, 1].
-        DEFINE VARIABLE ys AS INTEGER NO-UNDO EXTENT 2 INITIAL [2, 2].
+        VAR INTEGER[2] xs = [1, 1].
+        VAR INTEGER[2] ys = [2, 2].
         NEW Shape(xs, ys).
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ConstructorThrowsOnMismatchedLengths():
-        DEFINE VARIABLE xs AS INTEGER NO-UNDO EXTENT 2 INITIAL [0, 1].
-        DEFINE VARIABLE ys AS INTEGER NO-UNDO EXTENT 3 INITIAL [0, 0, 0].
+        VAR INTEGER[2] xs = [0, 1].
+        VAR INTEGER[3] ys = [0, 0, 0].
         NEW Shape(xs, ys).
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ConstructorThrowsOnEmptyArrays():
-        DEFINE VARIABLE xs AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE ys AS INTEGER NO-UNDO EXTENT.
+        VAR INTEGER[] xs.
+        VAR INTEGER[] ys.
         NEW Shape(xs, ys).
     END METHOD.
 

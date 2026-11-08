@@ -8,7 +8,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.SoundBankTests:
 
-    DEFINE PRIVATE VARIABLE mBank AS SoundBank NO-UNDO.
+    VAR PRIVATE SoundBank mBank.
 
     @Setup.
     METHOD PUBLIC VOID BuildBank():
@@ -62,7 +62,7 @@ CLASS ProGriddle.Engine.SoundBankTests:
 
     @Test.
     METHOD PUBLIC VOID ABadCueNumberAnUnknownCueOrABadRecipeThrowsGridException():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mBank:Define(0, "440:100", 80).
             CATCH e1 AS GridException:

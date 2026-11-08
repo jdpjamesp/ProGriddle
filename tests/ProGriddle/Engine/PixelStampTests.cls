@@ -8,8 +8,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.PixelStampTests:
 
-    DEFINE PRIVATE VARIABLE mGrid   AS Grid        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas AS PixelCanvas NO-UNDO.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE PixelCanvas mCanvas.
 
     @Setup.
     METHOD PUBLIC VOID BuildCanvas():
@@ -28,7 +28,7 @@ CLASS ProGriddle.Engine.PixelStampTests:
     END METHOD.
 
     METHOD PRIVATE PixelStamp Stamp():
-        DEFINE VARIABLE colours AS INTEGER NO-UNDO EXTENT 6.
+        VAR INTEGER[6] colours.
         /* 3 wide, 2 high: red, nothing, blue / nothing, green, white */
         colours[1] = 10. colours[2] = -1. colours[3] = 20.
         colours[4] = -1. colours[5] = 30. colours[6] = 40.
@@ -37,7 +37,7 @@ CLASS ProGriddle.Engine.PixelStampTests:
 
     @Test.
     METHOD PUBLIC VOID AStampKnowsItsSizeItsCountAndEachPixel():
-        DEFINE VARIABLE s AS PixelStamp NO-UNDO.
+        VAR PixelStamp s.
         s = Stamp().
         Assert:Equals(3, s:Width).
         Assert:Equals(2, s:Height).
@@ -50,7 +50,7 @@ CLASS ProGriddle.Engine.PixelStampTests:
 
     @Test.
     METHOD PUBLIC VOID DrawToCopiesTheColouredPixelsAndLeavesTheRestAlone():
-        DEFINE VARIABLE s AS PixelStamp NO-UNDO.
+        VAR PixelStamp s.
         s = Stamp().
         s:DrawTo(mCanvas, 5, 4).
         Assert:Equals(10, mCanvas:ColourAt(5, 4)).
@@ -64,7 +64,7 @@ CLASS ProGriddle.Engine.PixelStampTests:
 
     @Test.
     METHOD PUBLIC VOID DrawToWorksInABatchAndClipsAtTheEdges():
-        DEFINE VARIABLE s AS PixelStamp NO-UNDO.
+        VAR PixelStamp s.
         s = Stamp().
         mCanvas:BeginBatch().
         s:DrawTo(mCanvas, 0, 0).
@@ -79,8 +79,8 @@ CLASS ProGriddle.Engine.PixelStampTests:
 
     @Test.
     METHOD PUBLIC VOID ADisposedStampCannotBeDrawnAndDisposeCanBeRepeated():
-        DEFINE VARIABLE s      AS PixelStamp NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER    NO-UNDO.
+        VAR PixelStamp s.
+        VAR INTEGER thrown.
         s = Stamp().
         s:Dispose().
         s:Dispose().
@@ -95,8 +95,8 @@ CLASS ProGriddle.Engine.PixelStampTests:
 
     @Test.
     METHOD PUBLIC VOID AStampRefusesASizeThatDoesNotMatchItsColours():
-        DEFINE VARIABLE colours AS INTEGER NO-UNDO EXTENT 3.
-        DEFINE VARIABLE thrown  AS INTEGER NO-UNDO.
+        VAR INTEGER[3] colours.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW PixelStamp(2, 2, colours).
             CATCH e1 AS GridException:
@@ -114,7 +114,7 @@ CLASS ProGriddle.Engine.PixelStampTests:
 
     @Test.
     METHOD PUBLIC VOID DrawBackToPutsTheStampIntoTheBackgroundWhereItStaysAfterARestore():
-        DEFINE VARIABLE s AS PixelStamp NO-UNDO.
+        VAR PixelStamp s.
         s = Stamp().
         s:DrawBackTo(mCanvas, 4, 3).
         Assert:Equals(100, mCanvas:ColourAt(4, 3)).
@@ -127,7 +127,7 @@ CLASS ProGriddle.Engine.PixelStampTests:
 
     @Test.
     METHOD PUBLIC VOID TintToMovesTheCellsUnderTheStampTowardsAColourAndLeavesTheRest():
-        DEFINE VARIABLE s AS PixelStamp NO-UNDO.
+        VAR PixelStamp s.
         s = Stamp().
         mCanvas:FillRect(0, 0, 20, 12, 0, 0xC8C8C8).
         s:TintTo(mCanvas, 2, 2, 0x000000, 50).

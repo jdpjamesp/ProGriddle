@@ -65,113 +65,113 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     &SCOPED-DEFINE PARTICLES 64
     &SCOPED-DEFINE STARS 48
 
-    DEFINE PRIVATE VARIABLE mRandom      AS IRandom         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas      AS PixelCanvas  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRack        AS InvaderRack     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFirst       AS LOGICAL         NO-UNDO INITIAL TRUE.
-    DEFINE PRIVATE VARIABLE mAcc         AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFrames      AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTimer       AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mArmed       AS LOGICAL         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInvaded     AS LOGICAL         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mExtraGiven  AS LOGICAL         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNotice      AS CHARACTER       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mMove        AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFire        AS LOGICAL         NO-UNDO.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE PixelCanvas mCanvas.
+    VAR PRIVATE InvaderRack mRack.
+    VAR PRIVATE LOGICAL mFirst = TRUE.
+    VAR PRIVATE INTEGER mAcc.
+    VAR PRIVATE INTEGER mFrames.
+    VAR PRIVATE INTEGER mTimer.
+    VAR PRIVATE LOGICAL mArmed.
+    VAR PRIVATE LOGICAL mInvaded.
+    VAR PRIVATE LOGICAL mExtraGiven.
+    VAR PRIVATE CHARACTER mNotice.
+    VAR PRIVATE INTEGER mMove.
+    VAR PRIVATE LOGICAL mFire.
 
     /* the cannon, its shot and the pose each invader was last drawn in */
-    DEFINE PRIVATE VARIABLE mPX          AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShotOn      AS LOGICAL         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShotX       AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShotY       AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShots       AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDrawnPose   AS INTEGER         NO-UNDO EXTENT 55.
-    DEFINE PRIVATE VARIABLE mDrawn       AS LOGICAL         NO-UNDO EXTENT 55.
+    VAR PRIVATE INTEGER mPX.
+    VAR PRIVATE LOGICAL mShotOn.
+    VAR PRIVATE INTEGER mShotX.
+    VAR PRIVATE INTEGER mShotY.
+    VAR PRIVATE INTEGER mShots.
+    VAR PRIVATE INTEGER[55] mDrawnPose.
+    VAR PRIVATE LOGICAL[55] mDrawn.
     /* the cannon's explosion on show, an Image, or unknown for none */
-    DEFINE PRIVATE VARIABLE mBlast       AS Image           NO-UNDO.
+    VAR PRIVATE Image mBlast.
     /* the muzzle flash (frames left, and its column), the shimmer on shield cells, the flash of the ground where a
        bomb landed, the colour the whole ground line has now, the gold pulse of the score and the rising score pop-up */
-    DEFINE PRIVATE VARIABLE mMuzzle      AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mMuzzleX     AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShmOn       AS LOGICAL         NO-UNDO EXTENT 128.
-    DEFINE PRIVATE VARIABLE mShmX        AS INTEGER         NO-UNDO EXTENT 128.
-    DEFINE PRIVATE VARIABLE mShmY        AS INTEGER         NO-UNDO EXTENT 128.
-    DEFINE PRIVATE VARIABLE mShmUntil    AS INTEGER         NO-UNDO EXTENT 128.
-    DEFINE PRIVATE VARIABLE mShmNext     AS INTEGER         NO-UNDO INITIAL 1.
-    DEFINE PRIVATE VARIABLE mGfTimer     AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGfFrom      AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGfTo        AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGroundCol   AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPulse       AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHudGold     AS LOGICAL         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPopY        AS INTEGER         NO-UNDO.
+    VAR PRIVATE INTEGER mMuzzle.
+    VAR PRIVATE INTEGER mMuzzleX.
+    VAR PRIVATE LOGICAL[128] mShmOn.
+    VAR PRIVATE INTEGER[128] mShmX.
+    VAR PRIVATE INTEGER[128] mShmY.
+    VAR PRIVATE INTEGER[128] mShmUntil.
+    VAR PRIVATE INTEGER mShmNext = 1.
+    VAR PRIVATE INTEGER mGfTimer.
+    VAR PRIVATE INTEGER mGfFrom.
+    VAR PRIVATE INTEGER mGfTo.
+    VAR PRIVATE INTEGER mGroundCol.
+    VAR PRIVATE INTEGER mPulse.
+    VAR PRIVATE LOGICAL mHudGold.
+    VAR PRIVATE INTEGER mPopY.
     /* frames left of the blink after the cannon comes back: it swaps with its outline every 6 frames */
-    DEFINE PRIVATE VARIABLE mGhost       AS INTEGER         NO-UNDO.
+    VAR PRIVATE INTEGER mGhost.
     /* what the idle title screen has on show: 0 nothing, 1 the walking octopus, 2 the saucer, and where */
-    DEFINE PRIVATE VARIABLE mIdleKind    AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mIdleX       AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mIdlePic     AS INTEGER         NO-UNDO.
+    VAR PRIVATE INTEGER mIdleKind.
+    VAR PRIVATE INTEGER mIdleX.
+    VAR PRIVATE INTEGER mIdlePic.
 
     /* the three bombs, by type: 0 rolling, 1 plunger, 2 squiggly */
-    DEFINE PRIVATE VARIABLE mBombOn      AS LOGICAL         NO-UNDO EXTENT 3.
-    DEFINE PRIVATE VARIABLE mBombX       AS INTEGER         NO-UNDO EXTENT 3.
-    DEFINE PRIVATE VARIABLE mBombY       AS INTEGER         NO-UNDO EXTENT 3.
-    DEFINE PRIVATE VARIABLE mBombAge     AS INTEGER         NO-UNDO EXTENT 3.
-    DEFINE PRIVATE VARIABLE mReload      AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNextBomb    AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTable       AS INTEGER         NO-UNDO EXTENT 3.
+    VAR PRIVATE LOGICAL[3] mBombOn.
+    VAR PRIVATE INTEGER[3] mBombX.
+    VAR PRIVATE INTEGER[3] mBombY.
+    VAR PRIVATE INTEGER[3] mBombAge.
+    VAR PRIVATE INTEGER mReload.
+    VAR PRIVATE INTEGER mNextBomb.
+    VAR PRIVATE INTEGER[3] mTable.
 
     /* the saucer and the score that pops up where it was hit */
-    DEFINE PRIVATE VARIABLE mSaucerOn    AS LOGICAL         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSaucerX     AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSaucerDir   AS INTEGER         NO-UNDO INITIAL 1.
-    DEFINE PRIVATE VARIABLE mSaucerTimer AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPopOn       AS LOGICAL         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPopText     AS CHARACTER       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPopX        AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPopTimer    AS INTEGER         NO-UNDO.
+    VAR PRIVATE LOGICAL mSaucerOn.
+    VAR PRIVATE INTEGER mSaucerX.
+    VAR PRIVATE INTEGER mSaucerDir = 1.
+    VAR PRIVATE INTEGER mSaucerTimer.
+    VAR PRIVATE LOGICAL mPopOn.
+    VAR PRIVATE CHARACTER mPopText.
+    VAR PRIVATE INTEGER mPopX.
+    VAR PRIVATE INTEGER mPopTimer.
 
     /* explosions: a picture that is shown for a number of frames, and then another one for a number more */
-    DEFINE PRIVATE VARIABLE mFxOn        AS LOGICAL         NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mFxX         AS INTEGER         NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mFxY         AS INTEGER         NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mFxArt       AS Image           NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mFxTimer     AS INTEGER         NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mFxNextArt   AS Image           NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mFxNextTimer AS INTEGER         NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mFxColour    AS INTEGER         NO-UNDO EXTENT 16.
-    DEFINE PRIVATE VARIABLE mFxAccent    AS INTEGER         NO-UNDO EXTENT 16.
+    VAR PRIVATE LOGICAL[16] mFxOn.
+    VAR PRIVATE INTEGER[16] mFxX.
+    VAR PRIVATE INTEGER[16] mFxY.
+    VAR PRIVATE Image[16] mFxArt.
+    VAR PRIVATE INTEGER[16] mFxTimer.
+    VAR PRIVATE Image[16] mFxNextArt.
+    VAR PRIVATE INTEGER[16] mFxNextTimer.
+    VAR PRIVATE INTEGER[16] mFxColour.
+    VAR PRIVATE INTEGER[16] mFxAccent.
 
     /* sparks: positions and speeds in sixteenths of a cell */
-    DEFINE PRIVATE VARIABLE mPtOn        AS LOGICAL         NO-UNDO EXTENT 64.
-    DEFINE PRIVATE VARIABLE mPtX         AS INTEGER         NO-UNDO EXTENT 64.
-    DEFINE PRIVATE VARIABLE mPtY         AS INTEGER         NO-UNDO EXTENT 64.
-    DEFINE PRIVATE VARIABLE mPtVx        AS INTEGER         NO-UNDO EXTENT 64.
-    DEFINE PRIVATE VARIABLE mPtVy        AS INTEGER         NO-UNDO EXTENT 64.
-    DEFINE PRIVATE VARIABLE mPtLife      AS INTEGER         NO-UNDO EXTENT 64.
-    DEFINE PRIVATE VARIABLE mPtSpan      AS INTEGER         NO-UNDO EXTENT 64.
-    DEFINE PRIVATE VARIABLE mPtColour    AS INTEGER         NO-UNDO EXTENT 64.
-    DEFINE PRIVATE VARIABLE mPtDrawn     AS INTEGER         NO-UNDO EXTENT 64.
-    DEFINE PRIVATE VARIABLE mPtDrawnAt   AS INTEGER         NO-UNDO EXTENT 64.
+    VAR PRIVATE LOGICAL[64] mPtOn.
+    VAR PRIVATE INTEGER[64] mPtX.
+    VAR PRIVATE INTEGER[64] mPtY.
+    VAR PRIVATE INTEGER[64] mPtVx.
+    VAR PRIVATE INTEGER[64] mPtVy.
+    VAR PRIVATE INTEGER[64] mPtLife.
+    VAR PRIVATE INTEGER[64] mPtSpan.
+    VAR PRIVATE INTEGER[64] mPtColour.
+    VAR PRIVATE INTEGER[64] mPtDrawn.
+    VAR PRIVATE INTEGER[64] mPtDrawnAt.
 
     /* the stars: where, how often they step down a cell, and the colour */
-    DEFINE PRIVATE VARIABLE mStX         AS INTEGER         NO-UNDO EXTENT 48.
-    DEFINE PRIVATE VARIABLE mStY         AS INTEGER         NO-UNDO EXTENT 48.
-    DEFINE PRIVATE VARIABLE mStPeriod    AS INTEGER         NO-UNDO EXTENT 48.
-    DEFINE PRIVATE VARIABLE mStColour    AS INTEGER         NO-UNDO EXTENT 48.
-    DEFINE PRIVATE VARIABLE mStShown     AS INTEGER         NO-UNDO EXTENT 48.
-    DEFINE PRIVATE VARIABLE mSky         AS INTEGER         NO-UNDO EXTENT 256.
-    DEFINE PRIVATE VARIABLE mShieldTone  AS INTEGER         NO-UNDO EXTENT 16.
+    VAR PRIVATE INTEGER[48] mStX.
+    VAR PRIVATE INTEGER[48] mStY.
+    VAR PRIVATE INTEGER[48] mStPeriod.
+    VAR PRIVATE INTEGER[48] mStColour.
+    VAR PRIVATE INTEGER[48] mStShown.
+    VAR PRIVATE INTEGER[256] mSky.
+    VAR PRIVATE INTEGER[16] mShieldTone.
 
     /* what is drawn in the score panel now, so only what changed is written again */
-    DEFINE PRIVATE VARIABLE mHudScore    AS INTEGER         NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mHudHi       AS INTEGER         NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mHudLives    AS INTEGER         NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mHudWave     AS INTEGER         NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mPromptOn    AS LOGICAL         NO-UNDO.
+    VAR PRIVATE INTEGER mHudScore = -1.
+    VAR PRIVATE INTEGER mHudHi = -1.
+    VAR PRIVATE INTEGER mHudLives = -1.
+    VAR PRIVATE INTEGER mHudWave = -1.
+    VAR PRIVATE LOGICAL mPromptOn.
     /* the best score when this game began, to tell whether it has been beaten */
-    DEFINE PRIVATE VARIABLE mHiAtStart   AS INTEGER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNewHi       AS LOGICAL         NO-UNDO.
+    VAR PRIVATE INTEGER mHiAtStart.
+    VAR PRIVATE LOGICAL mNewHi.
 
     DEFINE PUBLIC PROPERTY Paused AS LOGICAL NO-UNDO
         GET.
@@ -291,7 +291,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* The grid must be 224 x 256 on an ArrayStore with the layers view, kind and back. */
     CONSTRUCTOR PUBLIC SpaceInvadersGame(INPUT poGrid AS Grid, INPUT poRandom AS IRandom):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         SUPER("Space Invaders", poGrid).
         IF poGrid:Width <> {&WIDTH} OR poGrid:Height <> {&HEIGHT} THEN
             UNDO, THROW NEW GridException("A Space Invaders grid is " + STRING({&WIDTH}) + " x " + STRING({&HEIGHT})).
@@ -324,7 +324,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     /* Moves time on by piElapsedMs milliseconds and makes the frames that are due at the speed, up to 4. Returns true when a
        frame was made. Does nothing while Paused. */
     METHOD PUBLIC LOGICAL Tick(INPUT piElapsedMs AS INTEGER):
-        DEFINE VARIABLE made AS INTEGER NO-UNDO.
+        VAR INTEGER made.
         IF Paused OR piElapsedMs <= 0 THEN RETURN FALSE.
         mAcc = mAcc + INTEGER(ROUND(MINIMUM(piElapsedMs, {&MOST-MS}) * 0.6 * SpeedPercent, 0)).
         DO WHILE mAcc >= 1000 AND made < {&MOST-FRAMES}:
@@ -429,7 +429,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* What the game has to say, once: an extra life, a new wave. */
     METHOD PUBLIC CHARACTER TakeNotice():
-        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        VAR CHARACTER notice.
         notice = mNotice.
         mNotice = "".
         RETURN notice.
@@ -464,11 +464,11 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
        the heading types itself from 110, the four table rows come in from 150 every 18 frames, and PRESS SPACE
        blinks from 222. After that the table sprites change pose twice a second. */
     METHOD PRIVATE VOID TitleStep():
-        DEFINE VARIABLE t    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rw   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c0   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c1   AS INTEGER NO-UNDO.
+        VAR INTEGER t.
+        VAR INTEGER k.
+        VAR INTEGER rw.
+        VAR INTEGER c0.
+        VAR INTEGER c1.
         t = mTimer.
         IF t >= 20 AND t < 20 + 13 * 5 + 3 THEN DO:
             k = t - 20.
@@ -500,10 +500,10 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
        frames, then the saucer crosses the top once, then 10 seconds of quiet, and round again. piFrame counts from the
        start of the first walk. */
     METHOD PRIVATE VOID IdleWalk(INPUT piFrame AS INTEGER):
-        DEFINE VARIABLE u    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE kind AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pic  AS INTEGER NO-UNDO.
+        VAR INTEGER u.
+        VAR INTEGER kind.
+        VAR INTEGER x.
+        VAR INTEGER pic.
         u = piFrame MODULO (944 + 240 + 600).
         IF u < 944 THEN DO:
             kind = 1.
@@ -532,9 +532,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* One letter of SPACE INVADERS (0 to 12), with its shadow. */
     METHOD PRIVATE VOID PopTitleLetter(INPUT piIndex AS INTEGER, INPUT plWhite AS LOGICAL):
-        DEFINE VARIABLE ch AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE x  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y  AS INTEGER   NO-UNDO.
+        VAR CHARACTER ch.
+        VAR INTEGER x.
+        VAR INTEGER y.
         IF piIndex < 5 THEN DO:
             ch = SUBSTRING("SPACE", piIndex + 1, 1).
             x = 68 + piIndex * 18.
@@ -552,8 +552,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* Columns piFrom to piTo (0 to 140) of the light bar under the title: pink to violet to cyan, with a shadow. */
     METHOD PRIVATE VOID SweepLightBar(INPUT piFrom AS INTEGER, INPUT piTo AS INTEGER):
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
-        DEFINE VARIABLE v AS INTEGER NO-UNDO.
+        VAR INTEGER c.
+        VAR INTEGER v.
         DO c = piFrom TO piTo:
             IF c <= 70 THEN v = ColourMath:Mix(InvadersLook:Colour(Palette:TitleTop), InvadersLook:Colour(Palette:TitleBottom), c, 70).
             ELSE v = ColourMath:Mix(InvadersLook:Colour(Palette:TitleBottom), InvadersLook:Colour(Palette:LightBarEnd), c - 70, 70).
@@ -565,12 +565,12 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     /* A row of the points table (0 the saucer, 1 the squid, 2 the crab, 3 the octopus): its picture in pose piPose
        and, once the picture has had its moment all in light, the equals sign, the points and the words. */
     METHOD PRIVATE VOID DrawTableRow(INPUT piRow AS INTEGER, INPUT piPose AS INTEGER, INPUT plWhite AS LOGICAL):
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c1     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c2     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c3     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sprite AS Sprite  NO-UNDO.
+        VAR INTEGER y.
+        VAR INTEGER x.
+        VAR INTEGER c1.
+        VAR INTEGER c2.
+        VAR INTEGER c3.
+        VAR Sprite sprite.
         y = 124 + piRow * 14.
         CASE piRow:
             WHEN 0 THEN DO:
@@ -624,8 +624,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
        frames), the invaders are built one a frame from frame 10, bottom row first, each flashing light for 3 frames,
        WAVE n and a blinking GET READY stay on the screen, and the cannon blinks. Then play begins. */
     METHOD PRIVATE VOID FrameStarting():
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        VAR INTEGER t.
+        VAR INTEGER k.
         t = mTimer.
         DO k = 0 TO 3:
             IF t >= 4 * k AND t < 4 * k + 16 THEN DrawShieldRow(k, 15 - (t - 4 * k)).
@@ -647,7 +647,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* WAVE n in big shaded letters, centred, with an edge so it reads over the rack. */
     METHOD PRIVATE VOID DrawWaveBanner():
-        DEFINE VARIABLE banner AS CHARACTER NO-UNDO.
+        VAR CHARACTER banner.
         banner = "WAVE " + STRING(Wave).
         mCanvas:DrawOverlay(banner, INTEGER(TRUNCATE(({&WIDTH} - PixelCanvas:ScaledWidth(banner, 2)) / 2, 0)), 150,
                             InvadersLook:Colour(Palette:TitleTop), InvadersLook:Colour(Palette:TitleBottom), 2, InvadersLook:Colour(Palette:TextOutline)).
@@ -672,8 +672,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     /* The cannon is blowing up: a white flash, then two pictures that take turns, then the rubble, and then a new
        cannon or the end. */
     METHOD PRIVATE VOID FrameDying():
-        DEFINE VARIABLE art AS Image NO-UNDO.
-        DEFINE VARIABLE t   AS INTEGER NO-UNDO.
+        VAR Image art.
+        VAR INTEGER t.
         IF mTimer < 2 THEN DO:
             mTimer = mTimer + 1.
             RETURN.
@@ -706,9 +706,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     /* The wave is cleared: a pause while the last explosion plays out, then WAVE CLEARED pops in letter by letter, the
        ground line flashes white and a bright piece of it sweeps across, and NEXT WAVE n appears. */
     METHOD PRIVATE VOID FrameCleared():
-        DEFINE VARIABLE t    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pos  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE nextText AS CHARACTER NO-UNDO.
+        VAR INTEGER t.
+        VAR INTEGER pos.
+        VAR CHARACTER nextText.
         mTimer = mTimer + 1.
         t = mTimer.
         IF t >= 20 AND (t - 20) MODULO 2 = 0 AND (t - 20) / 2 < 12 THEN
@@ -737,7 +737,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     END METHOD.
 
     METHOD PRIVATE VOID FrameGameOver():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        VAR INTEGER k.
         mTimer = mTimer + 1.
         /* the letters pop in, one every 3 frames */
         IF mTimer MODULO 3 = 0 AND mTimer / 3 <= 9 THEN DO:
@@ -767,9 +767,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* Puts the picture back to the empty sky with the ground line, its glow and the stars. */
     METHOD PRIVATE VOID ResetPicture():
-        DEFINE VARIABLE sky AS INTEGER NO-UNDO EXTENT 256.
-        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
+        VAR INTEGER[256] sky.
+        VAR INTEGER y.
+        VAR INTEGER i.
         DO y = 0 TO {&HEIGHT} - 1:
             IF y < {&GROUND-Y} - 3 THEN sky[y + 1] = ColourMath:Mix(InvadersLook:Colour(Palette:SkyTop), InvadersLook:Colour(Palette:SkyBottom), y, {&GROUND-Y} - 1).
             ELSE IF y = {&GROUND-Y} - 3 THEN sky[y + 1] = InvadersLook:Colour(Palette:Glow3).
@@ -814,7 +814,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* Builds the shields, deals out the invaders and starts drawing them in. */
     METHOD PRIVATE VOID BeginWave():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         EraseShot().
         DO i = 0 TO 2:
             EraseBomb(i).
@@ -843,7 +843,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* The last invader is dead: nothing in the air can hurt the cannon any more, and a pause begins. */
     METHOD PRIVATE VOID EndWave():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         EraseShot().
         DO i = 0 TO 2:
             EraseBomb(i).
@@ -880,14 +880,14 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* While the rack is down within 8 cells of the shields the ground line pulses red twice a second. */
     METHOD PRIVATE VOID DangerPulse():
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER c.
         c = (IF mRack:Bottom() >= 176 AND INTEGER(TRUNCATE(mFrames / 15, 0)) MODULO 2 = 1 THEN InvadersLook:Colour(Palette:OverTop) ELSE InvadersLook:Colour(Palette:GroundLine)).
         IF c <> mGroundCol THEN PaintGround(c).
     END METHOD.
 
     /* Columns piFrom to piTo of the ground line in one colour (the part off the board is ignored). */
     METHOD PRIVATE VOID PaintGroundPart(INPUT piFrom AS INTEGER, INPUT piTo AS INTEGER, INPUT piColour AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         DO x = MAXIMUM(0, piFrom) TO MINIMUM({&WIDTH} - 1, piTo):
             mCanvas:SetBack(x, {&GROUND-Y}, piColour).
             mCanvas:ShowBack(x, {&GROUND-Y}).
@@ -896,7 +896,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* The whole ground line in one colour (it shows once nothing is on the row), for a flash. */
     METHOD PRIVATE VOID PaintGround(INPUT piColour AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         mGroundCol = piColour.
         DO x = 0 TO {&WIDTH} - 1:
             mCanvas:SetBack(x, {&GROUND-Y}, piColour).
@@ -906,7 +906,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* The cannon has been hit: whatever is in the air goes, and the explosion starts. */
     METHOD PRIVATE VOID KillCannon():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         EraseShot().
         DO i = 0 TO 2:
             EraseBomb(i).
@@ -923,7 +923,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     /* ================================ the cannon and its shot ================================ */
 
     METHOD PRIVATE VOID MoveCannon():
-        DEFINE VARIABLE target AS INTEGER NO-UNDO.
+        VAR INTEGER target.
         IF mMove = 0 THEN RETURN.
         target = MINIMUM({&PLAYER-MAX}, MAXIMUM({&PLAYER-MIN}, mPX + mMove)).
         IF target = mPX THEN RETURN.
@@ -975,8 +975,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* The shot goes up 4 cells, one at a time, and stops at the first thing it meets. */
     METHOD PRIVATE VOID UpdateShot():
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE kind AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER kind.
         IF NOT mShotOn THEN RETURN.
         EraseShot().
         mShotOn = TRUE.
@@ -1015,11 +1015,11 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     END METHOD.
 
     METHOD PRIVATE VOID HitAlien(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE kind  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ax    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ay    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE body  AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER kind.
+        VAR INTEGER ax.
+        VAR INTEGER ay.
+        VAR INTEGER body.
         i = mRack:At(piX, piY).
         IF i < 0 THEN RETURN.
         kind = InvaderRack:KindOf(i).
@@ -1035,7 +1035,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     END METHOD.
 
     METHOD PRIVATE VOID HitBomb(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE b AS INTEGER NO-UNDO.
+        VAR INTEGER b.
         DO b = 0 TO 2:
             IF mBombOn[b + 1] AND piX >= mBombX[b + 1] AND piX < mBombX[b + 1] + 3 AND piY >= mBombY[b + 1] AND piY < mBombY[b + 1] + 7 THEN DO:
                 SpawnSparks(piX, piY, InvadersLook:Colour(Palette:Bomb), 6).
@@ -1046,8 +1046,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     END METHOD.
 
     METHOD PRIVATE VOID HitSaucer():
-        DEFINE VARIABLE points AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sx     AS INTEGER NO-UNDO.
+        VAR INTEGER points.
+        VAR INTEGER sx.
         points = SaucerPointsFor(mShots).
         sx = mSaucerX.
         EraseSaucer().
@@ -1069,7 +1069,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* Moves the next invader along, and decides whether the invasion has landed. */
     METHOD PRIVATE VOID StepRack():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         i = mRack:Step().
         IF i < 0 THEN RETURN.
         EraseAlienAt(i, mRack:OldX, mRack:OldY).
@@ -1089,8 +1089,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* An invader that walks into a shield eats the part it overlaps. */
     METHOD PRIVATE VOID EatShields(INPUT piIndex AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         IF mRack:Y(piIndex) + InvaderRack:SpriteHeight() <= {&SHIELD-Y} OR mRack:Y(piIndex) >= {&SHIELD-Y} + 16 THEN RETURN.
         DO y = mRack:Y(piIndex) TO mRack:Y(piIndex) + InvaderRack:SpriteHeight() - 1:
             DO x = mRack:X(piIndex) TO mRack:X(piIndex) + mRack:WidthOf(piIndex) - 1:
@@ -1103,14 +1103,14 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* Every bomb falls: 2 cells every fourth frame and 1 on the others, 1.25 cells a frame. */
     METHOD PRIVATE VOID UpdateBombs():
-        DEFINE VARIABLE b      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE falls  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE kind   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sprite AS Sprite  NO-UNDO.
-        DEFINE VARIABLE hit    AS INTEGER NO-UNDO.
+        VAR INTEGER b.
+        VAR INTEGER i.
+        VAR INTEGER falls.
+        VAR INTEGER kind.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR Sprite sprite.
+        VAR INTEGER hit.
         DO b = 0 TO 2:
             IF NOT mBombOn[b + 1] THEN NEXT.
             sprite = InvadersArt:Bomb(b, INTEGER(TRUNCATE(mBombAge[b + 1] / 2, 0))).
@@ -1161,10 +1161,10 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* When the reload time is up and a type of bomb is free, one is dropped from under an invader. */
     METHOD PRIVATE VOID MaybeDropBomb():
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE chosen AS INTEGER NO-UNDO INITIAL -1.
-        DEFINE VARIABLE shooter AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER b.
+        VAR INTEGER chosen = -1.
+        VAR INTEGER shooter.
         IF mReload > 0 THEN mReload = mReload - 1.
         IF mReload > 0 THEN RETURN.
         /* the arcade's reload: wait until every bomb in the air has come a fair way down */
@@ -1189,11 +1189,11 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     /* The invader that drops a bomb of a type: the rolling bomb comes from above the cannon, the others from the
        columns of the arcade's pattern. Where a column is empty the next one is tried. -1 when no invader is left. */
     METHOD PRIVATE INTEGER ShooterFor(INPUT piType AS INTEGER):
-        DEFINE VARIABLE cols   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE n      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE d      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE target AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE found  AS INTEGER   NO-UNDO.
+        VAR CHARACTER cols.
+        VAR INTEGER n.
+        VAR INTEGER d.
+        VAR INTEGER target.
+        VAR INTEGER found.
         IF piType = 0 THEN DO:
             target = MINIMUM(InvaderRack:Columns() - 1, MAXIMUM(0, INTEGER(TRUNCATE((mPX + 6 - InvaderRack:FirstSlotX()) / InvaderRack:Pitch(), 0)))).
             DO d = 0 TO InvaderRack:Columns() - 1:
@@ -1316,7 +1316,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* The saucer: its lights chase every 8 frames, and its body pulses through four reds. */
     METHOD PRIVATE VOID DrawSaucer():
-        DEFINE VARIABLE step AS INTEGER NO-UNDO.
+        VAR INTEGER step.
         step = INTEGER(TRUNCATE(mFrames / 8, 0)).
         mCanvas:Draw(InvadersArt:Picture(IF step MODULO 2 = 0 THEN Image:Saucer ELSE Image:Saucer1), mSaucerX, {&SAUCER-Y}, INTEGER(CellKind:Saucer),
                      InvadersLook:Colour(IF step MODULO 4 = 1 THEN Palette:SaucerPulse1 ELSE IF step MODULO 4 = 3 THEN Palette:SaucerPulse2 ELSE Palette:Saucer),
@@ -1331,9 +1331,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     /* Draws an invader where the rack has it, in the pose the rack is in, in its row's colours of this wave. In light
        (plLight) it is all its pale tone: while it is being built, and the last one left flickers so. */
     METHOD PRIVATE VOID DrawAlien(INPUT piIndex AS INTEGER, INPUT plLight AS LOGICAL):
-        DEFINE VARIABLE kind AS INTEGER NO-UNDO.
-        DEFINE VARIABLE row  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lit  AS LOGICAL NO-UNDO.
+        VAR INTEGER kind.
+        VAR INTEGER row.
+        VAR LOGICAL lit.
         kind = InvaderRack:KindOf(piIndex).
         row = InvaderRack:RowOf(piIndex).
         lit = plLight OR (mRack:AliveCount = 1 AND INTEGER(TRUNCATE(mFrames / 6, 0)) MODULO 2 = 1).
@@ -1360,8 +1360,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* One row (0 at the top, 15 at the foot) of a shield, each row a little darker than the one above. */
     METHOD PRIVATE VOID DrawShieldRow(INPUT piShield AS INTEGER, INPUT piRow AS INTEGER):
-        DEFINE VARIABLE sprite AS Sprite  NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        VAR Sprite sprite.
+        VAR INTEGER i.
         sprite = InvadersArt:Picture(Image:Shield).
         DO i = 0 TO sprite:Count - 1:
             IF sprite:CellY(i) = piRow THEN
@@ -1373,13 +1373,13 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
        mark of a bomb. Only shield cells are taken, a spark flies from each of a few of them, and the shield
        around the bite shimmers for a moment. */
     METHOD PRIVATE VOID Erode(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piKind AS INTEGER):
-        DEFINE VARIABLE chip  AS Sprite  NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE eaten AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sumX  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sumY  AS INTEGER NO-UNDO.
+        VAR Sprite chip.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER eaten.
+        VAR INTEGER sumX.
+        VAR INTEGER sumY.
         chip = InvadersArt:Chip(piKind, mRandom:NextInt(3)).
         DO i = 0 TO chip:Count - 1:
             x = piX + chip:CellX(i).
@@ -1397,8 +1397,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* The shield cells within 2 cells of a point take the flash colour for 3 frames. */
     METHOD PRIVATE VOID Shimmer(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE dx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
         DO dy = -2 TO 2:
             DO dx = -2 TO 2:
                 IF mCanvas:KindAt(piX + dx, piY + dy) = INTEGER(CellKind:Shield) THEN DO:
@@ -1419,7 +1419,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     END METHOD.
 
     METHOD PRIVATE VOID UpdateShimmer():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 128:
             IF mShmOn[i] AND mFrames >= mShmUntil[i] THEN DO:
                 RestoreShieldCell(mShmX[i], mShmY[i]).
@@ -1435,7 +1435,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     METHOD PRIVATE VOID AddFx(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT poArt AS Image, INPUT piFrames AS INTEGER,
                               INPUT poNextArt AS Image, INPUT piNextFrames AS INTEGER,
                               INPUT piColour AS INTEGER, INPUT piAccent AS INTEGER, INPUT plAlreadyDrawn AS LOGICAL):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&FX-SLOTS}:
             IF NOT mFxOn[i] THEN DO:
                 mFxOn[i] = TRUE.
@@ -1456,8 +1456,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* Counts down every effect: explosions change picture and go, the saucer's score fades, sparks fly. */
     METHOD PRIVATE VOID UpdateEffects():
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rise AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER rise.
         DO i = 1 TO {&FX-SLOTS}:
             IF NOT mFxOn[i] THEN NEXT.
             mFxTimer[i] = mFxTimer[i] - 1.
@@ -1497,14 +1497,14 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* A few sparks flying out from a point, in a colour. */
     METHOD PRIVATE VOID SpawnSparks(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piColour AS INTEGER, INPUT piCount AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO n = 1 TO piCount:
             SpawnSpark(piX, piY, piColour).
         END.
     END METHOD.
 
     METHOD PRIVATE VOID SpawnSpark(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piColour AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&PARTICLES}:
             IF NOT mPtOn[i] THEN DO:
                 mPtOn[i] = TRUE.
@@ -1523,10 +1523,10 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* Each spark moves on, falls a little faster each frame, dims, and goes out when its life is spent. */
     METHOD PRIVATE VOID UpdateSparks():
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c   AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER c.
         DO i = 1 TO {&PARTICLES}:
             IF NOT mPtOn[i] THEN NEXT.
             /* take it off where it was drawn, if it is still there */
@@ -1560,7 +1560,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* Takes every explosion, spark and pop-up off, for a new screen. The picture has been wiped already. */
     METHOD PRIVATE VOID ClearEffects():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO {&FX-SLOTS}:
             mFxOn[i] = FALSE.
         END.
@@ -1588,8 +1588,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* The stars drift down, the far ones slowly, and come back at the top. */
     METHOD PRIVATE VOID UpdateStars():
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE showing AS LOGICAL NO-UNDO.
+        VAR INTEGER i.
+        VAR LOGICAL showing.
         DO i = 1 TO {&STARS}:
             IF mFrames MODULO mStPeriod[i] <> 0 THEN NEXT.
             /* a star is only taken off where it is showing, and only put on where the plain sky is showing: text and pictures win */
@@ -1623,7 +1623,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
 
     /* Writes the numbers that have changed since they were last written. */
     METHOD PRIVATE VOID RefreshHud():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF Score <> mHudScore OR (mPulse > 0) <> mHudGold THEN DO:
             mCanvas:ClearRect(8, 16, 29, 7).
             mCanvas:DrawText(STRING(Score, "99999"), 8, 16, InvadersLook:Colour(IF mPulse > 0 THEN Palette:TextGold ELSE Palette:Text)).
@@ -1654,7 +1654,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGame FINAL INHERITS AbstractGa
     /* The prompt that blinks on the title and game over screens, in gold: 36 frames on and 24 off, counted from
        piElapsed frames since it began. */
     METHOD PRIVATE VOID BlinkPrompt(INPUT piY AS INTEGER, INPUT piElapsed AS INTEGER):
-        DEFINE VARIABLE wanted AS LOGICAL NO-UNDO.
+        VAR LOGICAL wanted.
         wanted = (piElapsed MODULO 60 < 36).
         IF wanted = mPromptOn AND piElapsed > 0 THEN RETURN.
         mPromptOn = wanted.

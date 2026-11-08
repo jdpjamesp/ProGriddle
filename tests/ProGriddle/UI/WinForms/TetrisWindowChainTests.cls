@@ -12,9 +12,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.UI.WinForms.TetrisWindowChainTests:
 
-    DEFINE PRIVATE VARIABLE mGame    AS TetrisGame    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mView    AS GridView      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPainter AS TetrisPainter NO-UNDO.
+    VAR PRIVATE TetrisGame mGame.
+    VAR PRIVATE GridView mView.
+    VAR PRIVATE TetrisPainter mPainter.
 
     @Setup.
     METHOD PUBLIC VOID BuildChain():
@@ -45,9 +45,9 @@ CLASS ProGriddle.UI.WinForms.TetrisWindowChainTests:
 
     @Test.
     METHOD PUBLIC VOID EveryPixelOfTheViewIsTheColourThePainterDrew():
-        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bad AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER bad.
         mGame:LoadLocked("T........./IIIIIII.II").
         mPainter:Render(mGame:Grid, mGame).
         DO y = 0 TO 319:

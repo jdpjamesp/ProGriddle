@@ -11,9 +11,9 @@ CLASS ProGriddle.Games.Tetris.TetrisArtTests:
 
     /* The number of pixels of a character in a tile. */
     METHOD PRIVATE INTEGER CountOf(INPUT poTile AS Tile, INPUT pcChar AS CHARACTER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         DO y = 0 TO poTile:Height - 1:
             DO x = 0 TO poTile:Width - 1:
                 IF poTile:PixelAt(x, y) = pcChar THEN n = n + 1.
@@ -24,9 +24,9 @@ CLASS ProGriddle.Games.Tetris.TetrisArtTests:
 
     /* The two tiles differ in this many pixels. */
     METHOD PRIVATE INTEGER Differences(INPUT poA AS Tile, INPUT poB AS Tile):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         DO y = 0 TO poA:Height - 1:
             DO x = 0 TO poA:Width - 1:
                 IF poA:PixelAt(x, y) <> poB:PixelAt(x, y) THEN n = n + 1.
@@ -37,9 +37,9 @@ CLASS ProGriddle.Games.Tetris.TetrisArtTests:
 
     @Test.
     METHOD PUBLIC VOID EveryBlockIsSixteenBySixteenAndUsesOnlyTheFiveTones():
-        DEFINE VARIABLE p AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER p.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO p = 1 TO 7:
             Assert:Equals(16, TetrisArt:Block(p):Width).
             Assert:Equals(16, TetrisArt:Block(p):Height).
@@ -54,8 +54,8 @@ CLASS ProGriddle.Games.Tetris.TetrisArtTests:
 
     @Test.
     METHOD PUBLIC VOID EachPieceHasAMarkOfItsOwnThatNoOtherPieceSharesAndTheBlankHasNone():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
         DO i = 1 TO 7:
             /* a mark is at least a dozen pixels that differ from the blank block, so it reads at 2x */
             Assert:IsTrue(Differences(TetrisArt:Block(i), TetrisArt:BlockBlank()) >= 12, "piece " + STRING(i)).
@@ -67,7 +67,7 @@ CLASS ProGriddle.Games.Tetris.TetrisArtTests:
 
     @Test.
     METHOD PUBLIC VOID TheBlockIsBevelledWithAnEdgeAllRoundAndAGlint():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 0 TO 15:
             Assert:Equals("5", TetrisArt:BlockBlank():PixelAt(i, 0)).
             Assert:Equals("5", TetrisArt:BlockBlank():PixelAt(i, 15)).
@@ -105,7 +105,7 @@ CLASS ProGriddle.Games.Tetris.TetrisArtTests:
 
     @Test.
     METHOD PUBLIC VOID APieceOrBlockThatDoesNotExistIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             TetrisArt:Block(0).
             CATCH e1 AS GridException:

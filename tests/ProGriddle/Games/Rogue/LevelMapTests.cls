@@ -8,8 +8,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.LevelMapTests:
 
-    DEFINE PRIVATE VARIABLE mGrid AS Grid     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mMap  AS LevelMap NO-UNDO.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE LevelMap mMap.
 
     @Setup.
     METHOD PUBLIC VOID BuildMap():
@@ -90,7 +90,7 @@ CLASS ProGriddle.Games.Rogue.LevelMapTests:
 
     @Test.
     METHOD PUBLIC VOID OnlyFloorDoorPassageAndStairsCanBeWalkedOn():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 0 TO 12:
             mMap:SetTerrain(i, 0, Terrain:GetEnum(i)).
         END.
@@ -162,9 +162,8 @@ CLASS ProGriddle.Games.Rogue.LevelMapTests:
 
     @Test.
     METHOD PUBLIC VOID AGridOfTheWrongSizeOrNoGridIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oSmall AS Grid    NO-UNDO.
-        oSmall = NEW Grid(NEW ArrayStore(10, 10, LevelMap:Layers())).
+        VAR INTEGER thrown.
+        VAR Grid oSmall = NEW Grid(NEW ArrayStore(10, 10, LevelMap:Layers())).
         DO ON ERROR UNDO, THROW:
             NEW LevelMap(oSmall).
             CATCH e1 AS GridException:

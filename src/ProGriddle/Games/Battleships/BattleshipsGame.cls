@@ -35,36 +35,36 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame IMPLEMENTS ITurnBasedGame:
 
 
-    DEFINE PRIVATE VARIABLE mRandom     AS IRandom                NO-UNDO.
-    DEFINE PRIVATE VARIABLE mOpponent   AS IBattleshipsOpponent   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBW         AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBH         AS INTEGER NO-UNDO.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE IBattleshipsOpponent mOpponent.
+    VAR PRIVATE INTEGER mBW.
+    VAR PRIVATE INTEGER mBH.
     /* the fleet, longest first, with a horizontal and a vertical shape for each ship */
-    DEFINE PRIVATE VARIABLE mFleet      AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mShapeH     AS Shape   NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mShapeV     AS Shape   NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mOwnPlaced  AS LOGICAL NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mOwnHits    AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mEnemyHits  AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mOwnSunk    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mEnemySunk  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHorizontal AS LOGICAL NO-UNDO INITIAL TRUE.
-    DEFINE PRIVATE VARIABLE mStarted    AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLastOwn    AS INTEGER NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mLastSunkLength AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlayerEvent   AS CHARACTER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mComputerEvent AS CHARACTER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLShip      AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLShot      AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLMark      AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLView      AS INTEGER NO-UNDO.
+    VAR PRIVATE INTEGER[] mFleet.
+    VAR PRIVATE Shape[] mShapeH.
+    VAR PRIVATE Shape[] mShapeV.
+    VAR PRIVATE LOGICAL[] mOwnPlaced.
+    VAR PRIVATE INTEGER[] mOwnHits.
+    VAR PRIVATE INTEGER[] mEnemyHits.
+    VAR PRIVATE INTEGER mOwnSunk.
+    VAR PRIVATE INTEGER mEnemySunk.
+    VAR PRIVATE LOGICAL mHorizontal = TRUE.
+    VAR PRIVATE LOGICAL mStarted.
+    VAR PRIVATE INTEGER mLastOwn = -1.
+    VAR PRIVATE INTEGER mLastSunkLength.
+    VAR PRIVATE CHARACTER mPlayerEvent.
+    VAR PRIVATE CHARACTER mComputerEvent.
+    VAR PRIVATE INTEGER mLShip.
+    VAR PRIVATE INTEGER mLShot.
+    VAR PRIVATE INTEGER mLMark.
+    VAR PRIVATE INTEGER mLView.
     /* ships found in a board text by LoadBoards: where each starts, how long, and which way */
-    DEFINE PRIVATE VARIABLE mRunCount   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRunX       AS INTEGER NO-UNDO EXTENT 100.
-    DEFINE PRIVATE VARIABLE mRunY       AS INTEGER NO-UNDO EXTENT 100.
-    DEFINE PRIVATE VARIABLE mRunLen     AS INTEGER NO-UNDO EXTENT 100.
-    DEFINE PRIVATE VARIABLE mRunHoriz   AS LOGICAL NO-UNDO EXTENT 100.
-    DEFINE PRIVATE VARIABLE mRunId      AS INTEGER NO-UNDO EXTENT.
+    VAR PRIVATE INTEGER mRunCount.
+    VAR PRIVATE INTEGER[100] mRunX.
+    VAR PRIVATE INTEGER[100] mRunY.
+    VAR PRIVATE INTEGER[100] mRunLen.
+    VAR PRIVATE LOGICAL[100] mRunHoriz.
+    VAR PRIVATE INTEGER[] mRunId.
 
     DEFINE PUBLIC PROPERTY Turn AS INTEGER NO-UNDO
         GET():
@@ -117,8 +117,8 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
     /* How many of the player's ships are still to be placed. */
     DEFINE PUBLIC PROPERTY ShipsToPlace AS INTEGER NO-UNDO
         GET():
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
-            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            VAR INTEGER i.
+            VAR INTEGER n.
             DO i = 1 TO EXTENT(mFleet):
                 IF NOT mOwnPlaced[i] THEN n = n + 1.
             END.
@@ -134,7 +134,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
     /* The length of the next ship to place, or 0 when the fleet is complete. */
     DEFINE PUBLIC PROPERTY CurrentShipLength AS INTEGER NO-UNDO
         GET():
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
+            VAR INTEGER i.
             i = NextUnplaced().
             RETURN (IF i = 0 THEN 0 ELSE mFleet[i]).
         END GET.
@@ -202,7 +202,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
        under 3 x 3 or over 30 x 30, or a fleet that is not a list of lengths from 2 up that
        would fill more than two fifths of the board. */
     METHOD PUBLIC VOID Configure(INPUT piBoardWidth AS INTEGER, INPUT piBoardHeight AS INTEGER, INPUT pcFleet AS CHARACTER):
-        DEFINE VARIABLE previous AS Grid NO-UNDO.
+        VAR Grid previous.
         ValidateFleet(piBoardWidth, piBoardHeight, pcFleet).
         IF piBoardWidth <> mBW OR piBoardHeight <> mBH THEN DO:
             previous = Grid.
@@ -221,12 +221,12 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
        same size and hold the same ships, each a straight line of at least two cells, none
        touching. The first text is the player's board and the second the computer's. */
     METHOD PUBLIC VOID LoadBoards(INPUT pcOwn AS CHARACTER, INPUT pcEnemy AS CHARACTER):
-        DEFINE VARIABLE cols      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE rowCount  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE enemyCols AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE enemyRows AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE enemyFleet  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i         AS INTEGER   NO-UNDO.
+        VAR INTEGER cols.
+        VAR INTEGER rowCount.
+        VAR INTEGER enemyCols.
+        VAR INTEGER enemyRows.
+        VAR CHARACTER enemyFleet.
+        VAR INTEGER i.
         FindRuns(pcEnemy, OUTPUT enemyCols, OUTPUT enemyRows).
         enemyFleet = FleetOfRuns().
         FindRuns(pcOwn, OUTPUT cols, OUTPUT rowCount).
@@ -256,10 +256,10 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
        corner, when the fleet is already complete, or when shooting has started. Throws
        GridException for a cell off the board. */
     METHOD PUBLIC LOGICAL PlaceShip(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE shape AS Shape   NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR Shape shape.
         CheckBoardCell(piX, piY).
         IF IsOver OR mStarted THEN RETURN FALSE.
         i = NextUnplaced().
@@ -277,9 +277,9 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
        false when there is no ship there or shooting has started. Throws GridException for a
        cell off the board. */
     METHOD PUBLIC LOGICAL RemoveShip(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE id AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y  AS INTEGER NO-UNDO.
+        VAR INTEGER id.
+        VAR INTEGER x.
+        VAR INTEGER y.
         CheckBoardCell(piX, piY).
         IF IsOver OR mStarted THEN RETURN FALSE.
         id = Grid:Store:GetCell(mLShip, OwnLeft + piX, piY).
@@ -318,7 +318,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
        over, the cell has been fired at already, or you have marked it as water. Throws
        GridException for a cell off the board. */
     METHOD PUBLIC LOGICAL Fire(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE outcome AS INTEGER NO-UNDO.
+        VAR INTEGER outcome.
         CheckBoardCell(piX, piY).
         IF IsOver OR NOT FleetReady THEN RETURN FALSE.
         IF Grid:Store:GetCell(mLShot, piX, piY) <> 0 OR Grid:Store:GetCell(mLMark, piX, piY) <> 0 THEN RETURN FALSE.
@@ -347,7 +347,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
        that has been fired at, or once the game is over. A marked cell cannot be fired at. Returns
        true when it changed something. Throws GridException for a cell off the board. */
     METHOD PUBLIC LOGICAL ToggleWater(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE marked AS INTEGER NO-UNDO.
+        VAR INTEGER marked.
         CheckBoardCell(piX, piY).
         IF IsOver OR Grid:Store:GetCell(mLShot, piX, piY) <> 0 THEN RETURN FALSE.
         marked = 1 - Grid:Store:GetCell(mLMark, piX, piY).
@@ -361,13 +361,13 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
        eight cells round every cell of it (ships may not touch). Cells already fired at or marked
        are left alone. Returns how many cells it marked. */
     METHOD PUBLIC INTEGER MarkObviousWater():
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE id     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sunk   AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE newMarks  AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER id.
+        VAR LOGICAL sunk.
+        VAR INTEGER newMarks.
         IF IsOver THEN RETURN 0.
         DO y = 0 TO mBH - 1:
             DO x = 0 TO mBW - 1:
@@ -436,8 +436,8 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
     /* ---- lifetime ---- */
 
     METHOD PROTECTED OVERRIDE VOID OnInitialise():
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER y.
+        VAR INTEGER i.
         mStarted = FALSE.
         mHorizontal = TRUE.
         mOwnSunk = 0.
@@ -482,7 +482,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
 
     /* Number of the first ship of the fleet that is not on the player's board, 0 when all are. */
     METHOD PRIVATE INTEGER NextUnplaced():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO EXTENT(mFleet):
             IF NOT mOwnPlaced[i] THEN RETURN i.
         END.
@@ -493,8 +493,8 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
        board at piOffset: any ship cell inside the box or in the ring of cells round it. */
     METHOD PRIVATE LOGICAL TouchesShip(INPUT piOffset AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER,
                                        INPUT piW AS INTEGER, INPUT piH AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO y = MAXIMUM(0, piY - 1) TO MINIMUM(mBH - 1, piY + piH):
             DO x = MAXIMUM(0, piX - 1) TO MINIMUM(mBW - 1, piX + piW):
                 IF Grid:Store:GetCell(mLShip, piOffset + x, y) <> 0 THEN RETURN TRUE.
@@ -507,7 +507,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
        the player's own board are drawn as ship when plShow is true. */
     METHOD PRIVATE VOID PutShip(INPUT piOffset AS INTEGER, INPUT piShip AS INTEGER, INPUT poShape AS Shape,
                                 INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT plShow AS LOGICAL):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Grid:Store:Stamp(mLShip, poShape, piOffset + piX, piY, piShip).
         IF plShow THEN DO i = 1 TO poShape:Size:
             Grid:Store:SetCell(mLView, piOffset + piX + poShape:OffsetX(i), piY + poShape:OffsetY(i), INTEGER(ViewCode:OwnShip)).
@@ -517,8 +517,8 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
     /* Takes every ship off the board at piOffset. The player's own board goes back to open water
        and its ships are unplaced. */
     METHOD PRIVATE VOID ClearRegion(INPUT piOffset AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO y = 0 TO mBH - 1:
             DO x = 0 TO mBW - 1:
                 Grid:Store:SetCell(mLShip, piOffset + x, y, 0).
@@ -534,14 +534,14 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
        with no two touching. Starts again if a ship finds no room, which is rare because every
        fleet takes under two fifths of its board. */
     METHOD PRIVATE VOID PlaceFleetAtRandom(INPUT piOffset AS INTEGER, INPUT plShow AS LOGICAL):
-        DEFINE VARIABLE attempt AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tries   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE shape   AS Shape   NO-UNDO.
-        DEFINE VARIABLE placed  AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE allOk   AS LOGICAL NO-UNDO.
+        VAR INTEGER attempt.
+        VAR INTEGER i.
+        VAR INTEGER tries.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR Shape shape.
+        VAR LOGICAL placed.
+        VAR LOGICAL allOk.
         DO attempt = 1 TO 200:
             ClearRegion(piOffset).
             allOk = TRUE.
@@ -574,11 +574,11 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
        1 for a hit and 2 when it sinks a ship, updating the shot layer, the hit counts and the
        view. A sunk ship is drawn as sunk all over, and its length is left in mLastSunkLength. */
     METHOD PRIVATE INTEGER Resolve(INPUT plEnemy AS LOGICAL, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE colBase AS INTEGER NO-UNDO.
-        DEFINE VARIABLE id     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hits   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
+        VAR INTEGER colBase.
+        VAR INTEGER id.
+        VAR INTEGER hits.
+        VAR INTEGER x.
+        VAR INTEGER y.
         colBase = (IF plEnemy THEN 0 ELSE OwnLeft).
         id = Grid:Store:GetCell(mLShip, colBase + piX, piY).
         IF id = 0 THEN DO:
@@ -613,9 +613,9 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
 
     /* The computer takes its shot at the player's board. */
     METHOD PRIVATE VOID ComputerShot():
-        DEFINE VARIABLE cx      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE outcome AS INTEGER NO-UNDO.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR INTEGER outcome.
         mOpponent:NextShot(OUTPUT cx, OUTPUT cy).
         IF cx < 0 OR cx >= mBW OR cy < 0 OR cy >= mBH THEN
             UNDO, THROW NEW GridException(SUBSTITUTE("The opponent fired off the board at (&1,&2)", cx, cy)).
@@ -633,9 +633,9 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
 
     /* The cell the computer fired at last turn stops being highlighted. */
     METHOD PRIVATE VOID FadeLastShot():
-        DEFINE VARIABLE gx   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE gy   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE code AS INTEGER NO-UNDO.
+        VAR INTEGER gx.
+        VAR INTEGER gy.
+        VAR INTEGER code.
         IF mLastOwn < 0 THEN RETURN.
         gx = mLastOwn MODULO Grid:Width.
         gy = INTEGER(TRUNCATE(mLastOwn / Grid:Width, 0)).
@@ -647,8 +647,8 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
 
     /* After a loss, shows where the computer's ships that were never hit were. */
     METHOD PRIVATE VOID RevealEnemyFleet():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO y = 0 TO mBH - 1:
             DO x = 0 TO mBW - 1:
                 IF Grid:Store:GetCell(mLShip, x, y) <> 0 AND Grid:Store:GetCell(mLShot, x, y) = 0 THEN
@@ -663,13 +663,13 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
        GridException for rows of different length, a ship of one cell, a ship that is not a
        straight line, or two ships that touch. */
     METHOD PRIVATE VOID FindRuns(INPUT pcRows AS CHARACTER, OUTPUT piCols AS INTEGER, OUTPUT piRows AS INTEGER):
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE shipLen   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE horiz AS LOGICAL NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER shipLen.
+        VAR INTEGER k.
+        VAR LOGICAL horiz.
         IF pcRows = ? OR pcRows = "" THEN UNDO, THROW NEW GridException("A board needs at least one row").
         piRows = NUM-ENTRIES(pcRows, "/").
         piCols = LENGTH(ENTRY(1, pcRows, "/")).
@@ -723,12 +723,12 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
 
     /* Puts the runs longest first, keeping the order they were found in among equals. */
     METHOD PRIVATE VOID SortRuns():
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tx  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ty  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tl  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE th  AS LOGICAL NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER tx.
+        VAR INTEGER ty.
+        VAR INTEGER tl.
+        VAR LOGICAL th.
         DO i = 2 TO mRunCount:
             tx = mRunX[i].
             ty = mRunY[i].
@@ -751,8 +751,8 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
 
     /* The fleet the runs make, longest first, as a comma separated list. */
     METHOD PRIVATE CHARACTER FleetOfRuns():
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER result.
         DO i = 1 TO mRunCount:
             result = result + (IF i > 1 THEN "," ELSE "") + STRING(mRunLen[i]).
         END.
@@ -761,7 +761,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
 
     /* Puts the runs on the board at piOffset as ships 1 to n in order. */
     METHOD PRIVATE VOID StampRuns(INPUT piOffset AS INTEGER, INPUT plShow AS LOGICAL):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO mRunCount:
             PutShip(piOffset, i, (IF mRunHoriz[i] THEN mShapeH[i] ELSE mShapeV[i]), mRunX[i], mRunY[i], plShow).
         END.
@@ -770,9 +770,9 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
     /* ---- private: the fleet and the grid ---- */
 
     METHOD PRIVATE VOID ValidateFleet(INPUT piBoardWidth AS INTEGER, INPUT piBoardHeight AS INTEGER, INPUT pcFleet AS CHARACTER):
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE shipLen   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE total AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER shipLen.
+        VAR INTEGER total.
         IF piBoardWidth = ? OR piBoardHeight = ? OR piBoardWidth < 3 OR piBoardHeight < 3 OR piBoardWidth > 30 OR piBoardHeight > 30 THEN
             UNDO, THROW NEW GridException("A board is from 3 x 3 to 30 x 30 cells").
         IF pcFleet = ? OR pcFleet = "" THEN UNDO, THROW NEW GridException("A fleet needs at least one ship").
@@ -790,10 +790,10 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
 
     /* Stores a validated fleet, longest first, and builds the two shapes of each ship. */
     METHOD PRIVATE VOID SetFleet(INPUT pcFleet AS CHARACTER):
-        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE shipLen AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER shipLen.
         n = NUM-ENTRIES(pcFleet).
         EXTENT(mFleet) = n.
         EXTENT(mShapeH) = n.
@@ -830,8 +830,8 @@ CLASS ProGriddle.Games.Battleships.BattleshipsGame FINAL INHERITS AbstractGame I
     END METHOD.
 
     METHOD PRIVATE VOID CheckGrid(INPUT poGrid AS Grid):
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE layers AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER layers.
         layers = BattleshipsFactory:Layers().
         IF poGrid:Store:LayerCount <> NUM-ENTRIES(layers) THEN
             UNDO, THROW NEW GridException("A Battleships grid has the layers " + layers).

@@ -21,7 +21,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.JsonFileSettings FINAL INHERITS AbstractSettings:
 
-    DEFINE PRIVATE VARIABLE mPath AS CHARACTER NO-UNDO.
+    VAR PRIVATE CHARACTER mPath.
 
     /* The file this object reads and writes. */
     DEFINE PUBLIC PROPERTY Path AS CHARACTER NO-UNDO
@@ -44,17 +44,17 @@ CLASS ProGriddle.Engine.JsonFileSettings FINAL INHERITS AbstractSettings:
 
     /* %APPDATA%\ProGriddle\settings.json, or the temp directory when there is no APPDATA. */
     METHOD PUBLIC STATIC CHARACTER DefaultPath():
-        DEFINE VARIABLE base AS CHARACTER NO-UNDO.
+        VAR CHARACTER base.
         base = OS-GETENV("APPDATA").
         IF base = ? OR base = "" THEN base = SESSION:TEMP-DIRECTORY.
         RETURN RIGHT-TRIM(base, "~\/") + "~\ProGriddle~\settings.json".
     END METHOD.
 
     METHOD PUBLIC OVERRIDE VOID Save():
-        DEFINE VARIABLE root   AS JsonObject NO-UNDO.
-        DEFINE VARIABLE dir    AS CHARACTER  NO-UNDO.
-        DEFINE VARIABLE tmp    AS CHARACTER  NO-UNDO.
-        DEFINE VARIABLE cut    AS INTEGER    NO-UNDO.
+        VAR JsonObject root.
+        VAR CHARACTER dir.
+        VAR CHARACTER tmp.
+        VAR INTEGER cut.
 
         cut = MAXIMUM(R-INDEX(mPath, "~\"), R-INDEX(mPath, "/")).
         IF cut > 1 THEN DO:
@@ -85,11 +85,11 @@ CLASS ProGriddle.Engine.JsonFileSettings FINAL INHERITS AbstractSettings:
        with this object's own changes put on top. A file that is missing or unusable is left out,
        and then the values held here are written as they are. */
     METHOD PRIVATE VOID MergeWithFile():
-        DEFINE VARIABLE onDisk  AS JsonObject NO-UNDO.
-        DEFINE VARIABLE loadState AS CHARACTER  NO-UNDO.
-        DEFINE VARIABLE changed AS CHARACTER  NO-UNDO.
-        DEFINE VARIABLE keyName AS CHARACTER  NO-UNDO.
-        DEFINE VARIABLE i       AS INTEGER    NO-UNDO.
+        VAR JsonObject onDisk.
+        VAR CHARACTER loadState.
+        VAR CHARACTER changed.
+        VAR CHARACTER keyName.
+        VAR INTEGER i.
         onDisk = ReadValues(OUTPUT loadState).
         IF NOT VALID-OBJECT(onDisk) THEN RETURN.
         changed = ChangedKeys().
@@ -111,8 +111,8 @@ CLASS ProGriddle.Engine.JsonFileSettings FINAL INHERITS AbstractSettings:
     END METHOD.
 
     METHOD PRIVATE VOID Load():
-        DEFINE VARIABLE loaded AS JsonObject NO-UNDO.
-        DEFINE VARIABLE loadState AS CHARACTER  NO-UNDO.
+        VAR JsonObject loaded.
+        VAR CHARACTER loadState.
         loaded = ReadValues(OUTPUT loadState).
         LoadStatus = loadState.
         IF VALID-OBJECT(loaded) THEN mValues = loaded.
@@ -121,9 +121,9 @@ CLASS ProGriddle.Engine.JsonFileSettings FINAL INHERITS AbstractSettings:
     /* The "values" object in the file, with the load status as an output: "new" for no file,
        "loaded", "corrupt" or "unsupported". The object is unknown for all but "loaded". */
     METHOD PRIVATE JsonObject ReadValues(OUTPUT pcStatus AS CHARACTER):
-        DEFINE VARIABLE parser AS ObjectModelParser NO-UNDO.
-        DEFINE VARIABLE parsed AS JsonConstruct     NO-UNDO.
-        DEFINE VARIABLE root   AS JsonObject        NO-UNDO.
+        VAR ObjectModelParser parser.
+        VAR JsonConstruct parsed.
+        VAR JsonObject root.
 
         pcStatus = "new".
         IF SEARCH(mPath) = ? THEN RETURN ?.

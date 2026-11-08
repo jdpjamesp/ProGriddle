@@ -14,9 +14,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Engine.PixelStamp FINAL:
 
     /* three whole numbers a cell: across, down, and the colour */
-    DEFINE PRIVATE VARIABLE mCells  AS MEMPTR  NO-UNDO.
+    VAR PRIVATE MEMPTR mCells.
     /* the colour of every pixel, row by row, -1 for none, kept to answer ColourAt */
-    DEFINE PRIVATE VARIABLE mColour AS INTEGER NO-UNDO EXTENT.
+    VAR PRIVATE INTEGER[] mColour.
 
     DEFINE PUBLIC PROPERTY Width AS INTEGER NO-UNDO
         GET.
@@ -33,8 +33,8 @@ CLASS ProGriddle.Engine.PixelStamp FINAL:
 
     /* Throws GridException for a size under 1, or a list of colours that is not width times height long. */
     CONSTRUCTOR PUBLIC PixelStamp(INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER, INPUT piColours AS INTEGER EXTENT):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE o AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER o.
         IF piWidth = ? OR piWidth < 1 OR piHeight = ? OR piHeight < 1 THEN
             UNDO, THROW NEW GridException(SUBSTITUTE("A pixel stamp is 1 x 1 or more, not &1 x &2", piWidth, piHeight)).
         IF EXTENT(piColours) <> piWidth * piHeight THEN

@@ -28,20 +28,20 @@ USING ProGriddle.Games.Centipede.*.
 USING ProGriddle.UI.Audio.*.
 USING ProGriddle.UI.WinForms.*.
 
-DEFINE VARIABLE cSettingsFile AS CHARACTER          NO-UNDO INITIAL "default".
-DEFINE VARIABLE iAutoClose    AS INTEGER            NO-UNDO.
-DEFINE VARIABLE iSeed         AS INT64              NO-UNDO.
-DEFINE VARIABLE dScale        AS DECIMAL            NO-UNDO.
-DEFINE VARIABLE oSettings     AS ISettings          NO-UNDO.
-DEFINE VARIABLE oGame         AS CentipedeGame      NO-UNDO.
-DEFINE VARIABLE oView         AS GridView           NO-UNDO.
-DEFINE VARIABLE oPainter      AS CentipedePainter   NO-UNDO.
-DEFINE VARIABLE oClock        AS WinFormsClock      NO-UNDO.
-DEFINE VARIABLE oController   AS RealTimeController NO-UNDO.
-DEFINE VARIABLE oWindow       AS GameWindow         NO-UNDO.
-DEFINE VARIABLE oBank         AS SoundBank          NO-UNDO.
-DEFINE VARIABLE oPlayer       AS WaveOutPlayer      NO-UNDO.
-DEFINE VARIABLE oSound        AS SoundRenderer      NO-UNDO.
+VAR CHARACTER cSettingsFile = "default".
+VAR INTEGER iAutoClose.
+VAR INT64 iSeed.
+VAR DECIMAL dScale.
+VAR ISettings oSettings.
+VAR CentipedeGame oGame.
+VAR GridView oView.
+VAR CentipedePainter oPainter.
+VAR WinFormsClock oClock.
+VAR RealTimeController oController.
+VAR GameWindow oWindow.
+VAR SoundBank oBank.
+VAR WaveOutPlayer oPlayer.
+VAR SoundRenderer oSound.
 
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 2 THEN cSettingsFile = ENTRY(2, SESSION:PARAMETER).
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 3 THEN iAutoClose = INTEGER(ENTRY(3, SESSION:PARAMETER)).

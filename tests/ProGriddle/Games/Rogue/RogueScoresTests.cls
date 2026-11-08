@@ -9,8 +9,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.RogueScoresTests:
 
-    DEFINE PRIVATE VARIABLE mSettings AS ISettings NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScores   AS RogueScores NO-UNDO.
+    VAR PRIVATE ISettings mSettings.
+    VAR PRIVATE RogueScores mScores.
 
     @Setup.
     METHOD PUBLIC VOID BuildScores():
@@ -47,7 +47,7 @@ CLASS ProGriddle.Games.Rogue.RogueScoresTests:
 
     @Test.
     METHOD PUBLIC VOID OnlyTheTenBestAreKept():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 12:
             mScores:Add(i * 100, i, "x", FALSE).
         END.
@@ -63,7 +63,7 @@ CLASS ProGriddle.Games.Rogue.RogueScoresTests:
 
     @Test.
     METHOD PUBLIC VOID TheListIsKeptInTheSettingsAndReadBack():
-        DEFINE VARIABLE oAgain AS RogueScores NO-UNDO.
+        VAR RogueScores oAgain.
         mScores:Add(700, 6, "a troll", FALSE).
         mScores:Add(900, 1, "the Amulet", TRUE).
         oAgain = NEW RogueScores(mSettings).
@@ -76,7 +76,7 @@ CLASS ProGriddle.Games.Rogue.RogueScoresTests:
 
     @Test.
     METHOD PUBLIC VOID ADamagedEntryIsLeftOut():
-        DEFINE VARIABLE oList AS RogueScores NO-UNDO.
+        VAR RogueScores oList.
         mSettings:SetString("rogue.scores", "100|2|a bat|0;nonsense;x|2|y|0;300|4|an orc|0").
         oList = NEW RogueScores(mSettings).
         Assert:Equals(2, oList:Count).
@@ -110,7 +110,7 @@ CLASS ProGriddle.Games.Rogue.RogueScoresTests:
 
     @Test.
     METHOD PUBLIC VOID APlaceOffTheListAndNoSettingsAreRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mScores:ScoreAt(1).
             CATCH e1 AS GridException:

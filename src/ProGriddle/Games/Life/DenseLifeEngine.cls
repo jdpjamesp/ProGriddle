@@ -15,21 +15,21 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Life.DenseLifeEngine FINAL IMPLEMENTS ILifeEngine:
 
-    DEFINE PRIVATE VARIABLE mGrid    AS Grid       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mStore   AS ArrayStore NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCur     AS MEMPTR     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNext    AS MEMPTR     NO-UNDO.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE ArrayStore mStore.
+    VAR PRIVATE MEMPTR mCur.
+    VAR PRIVATE MEMPTR mNext.
     /* Next state by (state, neighbour count): entry (count + 1) for a dead cell and
        (offsets + 1 + count + 1) for a live one. */
-    DEFINE PRIVATE VARIABLE mTable   AS INTEGER    NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mDelta   AS INTEGER    NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mNbr     AS INTEGER    NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mOffsets AS INTEGER    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mReach   AS INTEGER    NO-UNDO.
+    VAR PRIVATE INTEGER[] mTable.
+    VAR PRIVATE INTEGER[] mDelta.
+    VAR PRIVATE INTEGER[] mNbr.
+    VAR PRIVATE INTEGER mOffsets.
+    VAR PRIVATE INTEGER mReach.
 
     CONSTRUCTOR PUBLIC DenseLifeEngine(INPUT poGrid AS Grid, INPUT poRules AS LifeRules):
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE nbh AS INeighbourhood NO-UNDO.
+        VAR INTEGER i.
+        VAR INeighbourhood nbh.
 
         IF NOT VALID-OBJECT(poGrid) THEN UNDO, THROW NEW GridException("The engine needs a grid").
         IF NOT VALID-OBJECT(poRules) THEN UNDO, THROW NEW GridException("The engine needs rules").
@@ -66,26 +66,26 @@ CLASS ProGriddle.Games.Life.DenseLifeEngine FINAL IMPLEMENTS ILifeEngine:
     END DESTRUCTOR.
 
     METHOD PUBLIC VOID Step():
-        DEFINE VARIABLE w    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE m    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE idx  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cnt  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE xEnd AS INTEGER NO-UNDO.
-        DEFINE VARIABLE yEnd AS INTEGER NO-UNDO.
-        DEFINE VARIABLE live AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d1   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d2   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d3   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d4   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d5   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d6   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d7   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d8   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE inRow AS LOGICAL NO-UNDO.
+        VAR INTEGER w.
+        VAR INTEGER h.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER k.
+        VAR INTEGER m.
+        VAR INTEGER idx.
+        VAR INTEGER cnt.
+        VAR INTEGER xEnd.
+        VAR INTEGER yEnd.
+        VAR INTEGER live.
+        VAR INTEGER d1.
+        VAR INTEGER d2.
+        VAR INTEGER d3.
+        VAR INTEGER d4.
+        VAR INTEGER d5.
+        VAR INTEGER d6.
+        VAR INTEGER d7.
+        VAR INTEGER d8.
+        VAR LOGICAL inRow.
 
         w = mGrid:Width.
         h = mGrid:Height.

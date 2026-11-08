@@ -12,11 +12,11 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID EveryCueHasARecipeThatMakesSoundNotSilence():
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE oSynth AS ToneSynth NO-UNDO.
-        DEFINE VARIABLE mData  AS MEMPTR    NO-UNDO.
-        DEFINE VARIABLE loud   AS INTEGER   NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR ToneSynth oSynth.
+        VAR MEMPTR mData.
+        VAR INTEGER loud.
         oSynth = NEW ToneSynth().
         DO i = INTEGER(AsteroidsCue:Fire) TO INTEGER(AsteroidsCue:SaucerSmallHum):
             oSynth:Make(AsteroidsSounds:Recipe(AsteroidsCue:GetEnum(i)), 100, OUTPUT mData).
@@ -34,7 +34,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID TheThrustAndTheTwoHumsAreLoopsAndNoOtherSoundIs():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = INTEGER(AsteroidsCue:Fire) TO INTEGER(AsteroidsCue:SaucerSmallHum):
             IF i >= INTEGER(AsteroidsCue:ThrustLoop) THEN Assert:Equals("@", SUBSTRING(AsteroidsSounds:Recipe(AsteroidsCue:GetEnum(i)), 1, 1)).
             ELSE Assert:IsFalse(SUBSTRING(AsteroidsSounds:Recipe(AsteroidsCue:GetEnum(i)), 1, 1) = "@").
@@ -43,12 +43,12 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID ALargeRockBoomsLowerThanASmallOne():
-        DEFINE VARIABLE oSynth AS ToneSynth NO-UNDO.
-        DEFINE VARIABLE mLarge AS MEMPTR    NO-UNDO.
-        DEFINE VARIABLE mSmall AS MEMPTR    NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE large  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE small  AS INTEGER   NO-UNDO.
+        VAR ToneSynth oSynth.
+        VAR MEMPTR mLarge.
+        VAR MEMPTR mSmall.
+        VAR INTEGER i.
+        VAR INTEGER large.
+        VAR INTEGER small.
         oSynth = NEW ToneSynth().
         oSynth:Make(AsteroidsSounds:Recipe(AsteroidsCue:RockLarge), 100, OUTPUT mLarge).
         oSynth:Make(AsteroidsSounds:Recipe(AsteroidsCue:RockSmall), 100, OUTPUT mSmall).
@@ -69,7 +69,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID EveryCueHasAVolumeFromOneToOneHundred():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = INTEGER(AsteroidsCue:Fire) TO INTEGER(AsteroidsCue:SaucerSmallHum):
             Assert:IsTrue(AsteroidsSounds:VolumeOf(AsteroidsCue:GetEnum(i)) >= 1).
             Assert:IsTrue(AsteroidsSounds:VolumeOf(AsteroidsCue:GetEnum(i)) <= 100).
@@ -78,10 +78,10 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID FillMakesAllTwelveCuesInABankInUnderHalfASecond():
-        DEFINE VARIABLE oBank AS SoundBank NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE start AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE took  AS INTEGER   NO-UNDO.
+        VAR SoundBank oBank.
+        VAR INTEGER i.
+        VAR INTEGER start.
+        VAR INTEGER took.
         oBank = NEW SoundBank().
         start = ETIME.
         AsteroidsSounds:Fill(oBank).
@@ -99,7 +99,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownCueThrowsGridException():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             AsteroidsSounds:Recipe(?).
             CATCH e1 AS GridException:

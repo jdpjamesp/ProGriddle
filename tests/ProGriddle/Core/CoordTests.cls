@@ -7,16 +7,15 @@ CLASS ProGriddle.Core.CoordTests:
 
     @Test.
     METHOD PUBLIC VOID ConstructorStoresXAndY():
-        DEFINE VARIABLE c AS Coord NO-UNDO.
-        c = NEW Coord(3, 7).
+        VAR Coord c = NEW Coord(3, 7).
         Assert:Equals(3, c:X).
         Assert:Equals(7, c:Y).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID PlusReturnsNewMovedCoordAndLeavesOriginalUnchanged():
-        DEFINE VARIABLE c AS Coord NO-UNDO.
-        DEFINE VARIABLE m AS Coord NO-UNDO.
+        VAR Coord c.
+        VAR Coord m.
         c = NEW Coord(3, 7).
         m = c:Plus(-1, 2).
         Assert:Equals(2, m:X).
@@ -34,7 +33,7 @@ CLASS ProGriddle.Core.CoordTests:
 
     @Test.
     METHOD PUBLIC VOID EqualsIsFalseForNullAndOtherTypes():
-        DEFINE VARIABLE o AS Progress.Lang.Object NO-UNDO.
+        VAR Progress.Lang.Object o.
         Assert:IsFalse(NEW Coord(1, 2):Equals(o)).
         Assert:IsFalse(NEW Coord(1, 2):Equals(NEW Progress.Lang.Object())).
     END METHOD.

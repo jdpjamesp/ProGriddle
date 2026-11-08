@@ -8,9 +8,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Life.LifeInputTests:
 
-    DEFINE PRIVATE VARIABLE mGame  AS LifeGame  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInput AS IGameInput NO-UNDO.
-    DEFINE PRIVATE VARIABLE mOptions AS IGameOptions NO-UNDO.
+    VAR PRIVATE LifeGame mGame.
+    VAR PRIVATE IGameInput mInput.
+    VAR PRIVATE IGameOptions mOptions.
 
     @Setup.
     METHOD PUBLIC VOID BuildGame():
@@ -37,7 +37,7 @@ CLASS ProGriddle.Games.Life.LifeInputTests:
 
     @Test.
     METHOD PUBLIC VOID StatusTextSaysWrappedForATorus():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         DO ON ERROR UNDO, THROW:
             g = LifeFactory:Create(6, 6, TRUE, LifeRules:HighLife(), 0.5).
             Assert:Equals("Generation 0   Alive 0   Rules B36/S23   6 x 6 wrapped", NEW LifeInput(g, NEW SeededRandom(1)):StatusText).
@@ -71,7 +71,7 @@ CLASS ProGriddle.Games.Life.LifeInputTests:
 
     @Test.
     METHOD PUBLIC VOID AFailedChoiceKeepsThePreviousOne():
-        DEFINE VARIABLE caught AS LOGICAL NO-UNDO.
+        VAR LOGICAL caught.
         mInput:Choice = "Toad".
         DO ON ERROR UNDO, THROW:
             mInput:Choice = "nope".
@@ -118,7 +118,7 @@ CLASS ProGriddle.Games.Life.LifeInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheLifeInputIsADragInputForTheWindow():
-        DEFINE VARIABLE drag AS IDragInput NO-UNDO.
+        VAR IDragInput drag.
         Assert:IsTrue(TYPE-OF(mInput, IDragInput)).
         drag = CAST(mInput, IDragInput).
         drag:DragAction(1, 1).
@@ -208,8 +208,8 @@ CLASS ProGriddle.Games.Life.LifeInputTests:
 
     @Test.
     METHOD PUBLIC VOID RandomWithTheSameSeedGivesTheSameBoard():
-        DEFINE VARIABLE a AS LifeGame NO-UNDO.
-        DEFINE VARIABLE b AS LifeGame NO-UNDO.
+        VAR LifeGame a.
+        VAR LifeGame b.
         DO ON ERROR UNDO, THROW:
             a = LifeFactory:Create(12, 8, FALSE, LifeRules:Conway(), 0.5).
             b = LifeFactory:Create(12, 8, FALSE, LifeRules:Conway(), 0.5).
@@ -234,7 +234,7 @@ CLASS ProGriddle.Games.Life.LifeInputTests:
 
     @Test.
     METHOD PUBLIC VOID AfterRandomResetReturnsToTheRandomBoard():
-        DEFINE VARIABLE random AS CHARACTER NO-UNDO.
+        VAR CHARACTER random.
         mInput:Perform("Random").
         random = LifeTestKit:Board(mGame).
         mGame:Step().
@@ -252,13 +252,13 @@ CLASS ProGriddle.Games.Life.LifeInputTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ItNeedsAGame():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
+        VAR LifeGame g.
         NEW LifeInput(g, NEW SeededRandom(1)).
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ItNeedsARandomSource():
-        DEFINE VARIABLE r AS IRandom NO-UNDO.
+        VAR IRandom r.
         NEW LifeInput(mGame, r).
     END METHOD.
 
@@ -281,8 +281,8 @@ CLASS ProGriddle.Games.Life.LifeInputTests:
 
     @Test.
     METHOD PUBLIC VOID ARuleSetThatIsNoPresetIsOfferedToo():
-        DEFINE VARIABLE g AS LifeGame NO-UNDO.
-        DEFINE VARIABLE o AS IGameOptions NO-UNDO.
+        VAR LifeGame g.
+        VAR IGameOptions o.
         DO ON ERROR UNDO, THROW:
             g = LifeFactory:Create(10, 10, FALSE, NEW LifeRules("B1/S1"), 0.5).
             o = CAST(NEW LifeInput(g, NEW SeededRandom(1)), IGameOptions).

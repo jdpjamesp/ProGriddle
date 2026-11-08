@@ -17,18 +17,18 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
 
-    DEFINE PRIVATE VARIABLE mMap    AS LevelMap NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRandom AS IRandom  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDepth  AS INTEGER  NO-UNDO.
+    VAR PRIVATE LevelMap mMap.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE INTEGER mDepth.
     /* the wall extents of each room (all four the same cell for a passage square), whether it is a room, and whether it is lit */
-    DEFINE PRIVATE VARIABLE mLeft   AS INTEGER  NO-UNDO EXTENT 9.
-    DEFINE PRIVATE VARIABLE mTop    AS INTEGER  NO-UNDO EXTENT 9.
-    DEFINE PRIVATE VARIABLE mRight  AS INTEGER  NO-UNDO EXTENT 9.
-    DEFINE PRIVATE VARIABLE mBottom AS INTEGER  NO-UNDO EXTENT 9.
-    DEFINE PRIVATE VARIABLE mReal   AS LOGICAL  NO-UNDO EXTENT 9.
-    DEFINE PRIVATE VARIABLE mLit    AS LOGICAL  NO-UNDO EXTENT 9.
+    VAR PRIVATE INTEGER[9] mLeft.
+    VAR PRIVATE INTEGER[9] mTop.
+    VAR PRIVATE INTEGER[9] mRight.
+    VAR PRIVATE INTEGER[9] mBottom.
+    VAR PRIVATE LOGICAL[9] mReal.
+    VAR PRIVATE LOGICAL[9] mLit.
     /* which pairs of cells have a corridor between them: cell * 9 + other */
-    DEFINE PRIVATE VARIABLE mLinked AS LOGICAL  NO-UNDO EXTENT 81.
+    VAR PRIVATE LOGICAL[81] mLinked.
 
     DEFINE PUBLIC PROPERTY StartX AS INTEGER NO-UNDO
         GET.
@@ -49,8 +49,8 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
     /* How many of the nine cells hold a room. */
     DEFINE PUBLIC PROPERTY RealRooms AS INTEGER NO-UNDO
         GET():
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
-            DEFINE VARIABLE n AS INTEGER NO-UNDO.
+            VAR INTEGER i.
+            VAR INTEGER n.
             DO i = 1 TO 9:
                 IF mReal[i] THEN n = n + 1.
             END.
@@ -112,9 +112,9 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
 
     /* A room (not a passage square) picked at random: its number 0 to 8. */
     METHOD PUBLIC INTEGER PickRoom():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
+        VAR INTEGER k.
         k = mRandom:NextInt(RealRooms).
         DO i = 1 TO 9:
             IF mReal[i] THEN DO:
@@ -128,9 +128,9 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
     /* A floor cell inside a room, chosen at random, with no stairs on it (a few random tries, then the first floor cell of the room).
        Throws GridException for a cell that holds no room. */
     METHOD PUBLIC VOID FloorCellIn(INPUT piRoom AS INTEGER, OUTPUT piX AS INTEGER, OUTPUT piY AS INTEGER):
-        DEFINE VARIABLE tries AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
+        VAR INTEGER tries.
+        VAR INTEGER x.
+        VAR INTEGER y.
         CheckRoom(piRoom).
         IF NOT mReal[piRoom + 1] THEN UNDO, THROW NEW GridException("Cell " + STRING(piRoom) + " has no room, only a passage square").
         DO tries = 1 TO 20:
@@ -151,7 +151,7 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
     /* Forgets the rooms of the level that was built: for a level that is then cleared and made by hand, so nothing asks about rooms that
        are no longer there. */
     METHOD PUBLIC VOID Forget():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 9:
             mReal[i] = FALSE.
             mLit[i] = FALSE.
@@ -162,7 +162,7 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
     END METHOD.
     /* Builds a whole level for a depth on the map: the map is emptied first. */
     METHOD PUBLIC VOID Build(INPUT piDepth AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF piDepth = ? OR piDepth < 1 THEN UNDO, THROW NEW GridException("A level has a depth of 1 or more, not " + STRING(piDepth)).
         mDepth = piDepth.
         mMap:ClearAll().
@@ -178,12 +178,12 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
     /* ===================================== rooms ===================================== */
 
     METHOD PRIVATE VOID MakeRooms():
-        DEFINE VARIABLE gone    AS LOGICAL NO-UNDO EXTENT 9.
-        DEFINE VARIABLE order   AS INTEGER NO-UNDO EXTENT 9.
-        DEFINE VARIABLE howMany AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE swap    AS INTEGER NO-UNDO.
+        VAR LOGICAL[9] gone.
+        VAR INTEGER[9] order.
+        VAR INTEGER howMany.
+        VAR INTEGER c.
+        VAR INTEGER j.
+        VAR INTEGER swap.
         DO c = 1 TO 9:
             order[c] = c.
         END.
@@ -215,8 +215,8 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
     END METHOD.
 
     METHOD PRIVATE VOID MakePassageSquare(INPUT piCell AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         x = CellLeft(piCell) + 3 + mRandom:NextInt(CellWidth(piCell) - 6).
         y = CellTop(piCell) + 1 + mRandom:NextInt(5).
         mMap:SetTerrain(x, y, Terrain:Passage).
@@ -231,12 +231,12 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
     /* A room whose floor is 4 to 18 across and 2 or 3 down, with a wall round it, kept one square in from the edge of its cell on the left,
        the right and the top and bottom so that corridors can pass between rooms. */
     METHOD PRIVATE VOID MakeRoom(INPUT piCell AS INTEGER):
-        DEFINE VARIABLE iw      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ih      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x0      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y0      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y       AS INTEGER NO-UNDO.
+        VAR INTEGER iw.
+        VAR INTEGER ih.
+        VAR INTEGER x0.
+        VAR INTEGER y0.
+        VAR INTEGER x.
+        VAR INTEGER y.
         iw = 4 + mRandom:NextInt(15).
         ih = 2 + mRandom:NextInt(2).
         x0 = CellLeft(piCell) + 1 + mRandom:NextInt(CellWidth(piCell) - 2 - (iw + 2) + 1).
@@ -265,15 +265,15 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
 
     /* Joins every cell to the board by a random spanning tree, then adds some extra corridors. */
     METHOD PRIVATE VOID JoinRooms():
-        DEFINE VARIABLE visited AS LOGICAL NO-UNDO EXTENT 9.
-        DEFINE VARIABLE pairA   AS INTEGER NO-UNDO EXTENT 36.
-        DEFINE VARIABLE pairB   AS INTEGER NO-UNDO EXTENT 36.
-        DEFINE VARIABLE joined  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE a       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pairs   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pick    AS INTEGER NO-UNDO.
+        VAR LOGICAL[9] visited.
+        VAR INTEGER[36] pairA.
+        VAR INTEGER[36] pairB.
+        VAR INTEGER joined.
+        VAR INTEGER a.
+        VAR INTEGER b.
+        VAR INTEGER k.
+        VAR INTEGER pairs.
+        VAR INTEGER pick.
         visited[mRandom:NextInt(9) + 1] = TRUE.
         joined = 1.
         DO WHILE joined < 9:
@@ -314,13 +314,13 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
 
     /* Digs the corridor between two neighbouring cells, in either order. */
     METHOD PRIVATE VOID Connect(INPUT piA AS INTEGER, INPUT piB AS INTEGER):
-        DEFINE VARIABLE lowCell AS INTEGER NO-UNDO.
-        DEFINE VARIABLE highCell AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ex     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ey     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE mid    AS INTEGER NO-UNDO.
+        VAR INTEGER lowCell.
+        VAR INTEGER highCell.
+        VAR INTEGER sx.
+        VAR INTEGER sy.
+        VAR INTEGER ex.
+        VAR INTEGER ey.
+        VAR INTEGER mid.
         lowCell = MINIMUM(piA, piB).
         highCell = MAXIMUM(piA, piB).
         mLinked[lowCell * 9 + highCell + 1] = TRUE.
@@ -348,8 +348,8 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
     /* Makes the door on the wall of a room that faces a direction (0 left, 1 right, 2 up, 3 down) and gives the square just outside it,
        where the corridor starts. A passage square has no wall: the square itself is where the corridor starts. */
     METHOD PRIVATE VOID DoorOn(INPUT piCell AS INTEGER, INPUT piDirection AS INTEGER, OUTPUT piX AS INTEGER, OUTPUT piY AS INTEGER):
-        DEFINE VARIABLE dx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
         IF NOT mReal[piCell + 1] THEN DO:
             piX = mLeft[piCell + 1].
             piY = mTop[piCell + 1].
@@ -394,14 +394,14 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
     END METHOD.
 
     METHOD PRIVATE VOID DigAcross(INPUT piX0 AS INTEGER, INPUT piX1 AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         DO x = MINIMUM(piX0, piX1) TO MAXIMUM(piX0, piX1):
             Dig(x, piY).
         END.
     END METHOD.
 
     METHOD PRIVATE VOID DigDown(INPUT piX AS INTEGER, INPUT piY0 AS INTEGER, INPUT piY1 AS INTEGER):
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER y.
         DO y = MINIMUM(piY0, piY1) TO MAXIMUM(piY0, piY1):
             Dig(piX, y).
         END.
@@ -415,11 +415,11 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
     /* ============================ stairs, start and traps ============================ */
 
     METHOD PRIVATE VOID PlaceStairsAndStart():
-        DEFINE VARIABLE stairsRoom AS INTEGER NO-UNDO.
-        DEFINE VARIABLE startRoom  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k          AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n          AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i          AS INTEGER NO-UNDO.
+        VAR INTEGER stairsRoom.
+        VAR INTEGER startRoom.
+        VAR INTEGER k.
+        VAR INTEGER n.
+        VAR INTEGER i.
         stairsRoom = PickRoom().
         FloorCellIn(stairsRoom, OUTPUT StairsX, OUTPUT StairsY).
         mMap:SetTerrain(StairsX, StairsY, Terrain:Stairs).
@@ -438,10 +438,10 @@ CLASS ProGriddle.Games.Rogue.Dungeon FINAL:
     END METHOD.
     /* From 1 to 10 hidden traps on floor squares, more the deeper the level. */
     METHOD PRIVATE VOID LayTraps():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
         n = MINIMUM(10, mRandom:NextInt(INTEGER(TRUNCATE(mDepth / 4, 0)) + 1) + 1).
         TrapCount = 0.
         DO i = 1 TO n:

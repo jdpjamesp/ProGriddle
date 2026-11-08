@@ -7,7 +7,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Battleships.HuntTargetOpponentTests:
 
-    DEFINE PRIVATE VARIABLE mOpponent AS HuntTargetOpponent NO-UNDO.
+    VAR PRIVATE HuntTargetOpponent mOpponent.
 
     @Setup.
     METHOD PUBLIC VOID BuildOpponent():
@@ -30,12 +30,12 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponentTests:
 
     @Test.
     METHOD PUBLIC VOID ItNeverFiresAtTheSameCellTwiceAndUsesEveryCellInTheEnd():
-        DEFINE VARIABLE o     AS HuntTargetOpponent NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE seen  AS LOGICAL NO-UNDO EXTENT 36.
-        DEFINE VARIABLE twice AS INTEGER NO-UNDO.
+        VAR HuntTargetOpponent o.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR LOGICAL[36] seen.
+        VAR INTEGER twice.
         DO ON ERROR UNDO, THROW:
             o = NEW HuntTargetOpponent(NEW SeededRandom(9)).
             o:Reset(6, 6).
@@ -54,10 +54,10 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponentTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID WhenEveryCellHasBeenFiredAtItThrows():
-        DEFINE VARIABLE o AS HuntTargetOpponent NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR HuntTargetOpponent o.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO ON ERROR UNDO, THROW:
             o = NEW HuntTargetOpponent(NEW SeededRandom(9)).
             o:Reset(3, 3).
@@ -73,11 +73,11 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponentTests:
 
     @Test.
     METHOD PUBLIC VOID ShotsAreOnAChessboardPatternWhileHunting():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE parity AS INTEGER NO-UNDO.
-        DEFINE VARIABLE offPattern    AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER parity.
+        VAR INTEGER offPattern.
         mOpponent:NextShot(OUTPUT x, OUTPUT y).
         parity = (x + y) MODULO 2.
         mOpponent:Observe(x, y, FALSE, FALSE).
@@ -91,8 +91,8 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponentTests:
 
     @Test.
     METHOD PUBLIC VOID AfterALoneHitItFiresNextToIt():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         mOpponent:Observe(5, 5, TRUE, FALSE).
         mOpponent:NextShot(OUTPUT x, OUTPUT y).
         Assert:IsTrue(Adjacent(x, y, 5, 5)).
@@ -100,10 +100,10 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponentTests:
 
     @Test.
     METHOD PUBLIC VOID AfterTwoHitsInARowItOnlyExtendsTheLine():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bad AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER bad.
         mOpponent:Observe(4, 5, TRUE, FALSE).
         mOpponent:Observe(5, 5, TRUE, FALSE).
         /* the line runs along row 5, so the only sensible cells are (3,5) and (6,5) */
@@ -117,8 +117,8 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponentTests:
 
     @Test.
     METHOD PUBLIC VOID AfterTwoHitsInAColumnItOnlyExtendsTheColumn():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         mOpponent:Observe(2, 3, TRUE, FALSE).
         mOpponent:Observe(2, 4, TRUE, FALSE).
         mOpponent:NextShot(OUTPUT x, OUTPUT y).
@@ -127,8 +127,8 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponentTests:
 
     @Test.
     METHOD PUBLIC VOID ALineBlockedAtOneEndContinuesAtTheOther():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         mOpponent:Observe(0, 0, TRUE, FALSE).
         mOpponent:Observe(1, 0, TRUE, FALSE).
         /* (0,0) is at the edge, so the only way on is (2,0) */
@@ -138,10 +138,10 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponentTests:
 
     @Test.
     METHOD PUBLIC VOID AMissNextToAHitIsNotFiredAtAgain():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE repeats AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER repeats.
         mOpponent:Observe(5, 5, TRUE, FALSE).
         mOpponent:Observe(4, 5, FALSE, FALSE).
         mOpponent:Observe(6, 5, FALSE, FALSE).
@@ -157,8 +157,8 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponentTests:
 
     @Test.
     METHOD PUBLIC VOID ASunkShipAndTheWaterAllRoundItAreKnown():
-        DEFINE VARIABLE dx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
         mOpponent:Observe(4, 4, TRUE, FALSE).
         mOpponent:Observe(5, 4, TRUE, FALSE).
         mOpponent:Observe(6, 4, TRUE, TRUE).
@@ -187,10 +187,10 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponentTests:
 
     @Test.
     METHOD PUBLIC VOID AfterSinkingItGoesBackToHuntingAndNeverFiresAtTheWater():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE inside AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER inside.
         mOpponent:Observe(4, 4, TRUE, FALSE).
         mOpponent:Observe(5, 4, TRUE, TRUE).
         DO i = 1 TO 40:
@@ -203,8 +203,8 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponentTests:
 
     @Test.
     METHOD PUBLIC VOID ASecondShipNextDoorIsStillTargetedAfterTheFirstIsSunk():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         /* the first ship, sunk; then a hit on another ship two cells away */
         mOpponent:Observe(1, 1, TRUE, FALSE).
         mOpponent:Observe(2, 1, TRUE, TRUE).
@@ -217,14 +217,14 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponentTests:
 
     @Test.
     METHOD PUBLIC VOID TheSameSeedPlaysTheSameShots():
-        DEFINE VARIABLE a  AS HuntTargetOpponent NO-UNDO.
-        DEFINE VARIABLE b  AS HuntTargetOpponent NO-UNDO.
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ax AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ay AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE by2 AS INTEGER NO-UNDO.
-        DEFINE VARIABLE differ AS INTEGER NO-UNDO.
+        VAR HuntTargetOpponent a.
+        VAR HuntTargetOpponent b.
+        VAR INTEGER i.
+        VAR INTEGER ax.
+        VAR INTEGER ay.
+        VAR INTEGER bx.
+        VAR INTEGER by2.
+        VAR INTEGER differ.
         DO ON ERROR UNDO, THROW:
             a = NEW HuntTargetOpponent(NEW SeededRandom(21)).
             b = NEW HuntTargetOpponent(NEW SeededRandom(21)).
@@ -266,9 +266,9 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponentTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ShootingBeforeAResetThrows():
-        DEFINE VARIABLE o AS HuntTargetOpponent NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR HuntTargetOpponent o.
+        VAR INTEGER x.
+        VAR INTEGER y.
         o = NEW HuntTargetOpponent(NEW SeededRandom(1)).
         o:NextShot(OUTPUT x, OUTPUT y).
     END METHOD.
@@ -280,8 +280,7 @@ CLASS ProGriddle.Games.Battleships.HuntTargetOpponentTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID AnOpponentNeedsARandomSource():
-        DEFINE VARIABLE o AS HuntTargetOpponent NO-UNDO.
-        o = NEW HuntTargetOpponent(?).
+        VAR HuntTargetOpponent o = NEW HuntTargetOpponent(?).
     END METHOD.
 
 END CLASS.

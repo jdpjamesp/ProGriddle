@@ -13,10 +13,10 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.UI.WinForms.WinFormsClock FINAL IMPLEMENTS IClock:
 
-    DEFINE PRIVATE VARIABLE mTimer    AS Timer   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDisposed AS LOGICAL NO-UNDO.
+    VAR PRIVATE Timer mTimer.
+    VAR PRIVATE LOGICAL mDisposed.
     /* Ticks:Now at the previous tick, so a tick can report the time that really passed */
-    DEFINE PRIVATE VARIABLE mLast     AS INT64   NO-UNDO.
+    VAR PRIVATE INT64 mLast.
 
     DEFINE PUBLIC PROPERTY Interval AS INTEGER NO-UNDO
         GET():
@@ -68,8 +68,8 @@ CLASS ProGriddle.UI.WinForms.WinFormsClock FINAL IMPLEMENTS IClock:
     END METHOD.
 
     METHOD PRIVATE VOID OnTimerTick(INPUT poSender AS System.Object, INPUT poArgs AS System.EventArgs):
-        DEFINE VARIABLE tickNow AS INT64   NO-UNDO.
-        DEFINE VARIABLE elapsed AS INTEGER NO-UNDO.
+        VAR INT64 tickNow.
+        VAR INTEGER elapsed.
         tickNow = Ticks:Now().
         /* a window being dragged can hold the timer up for a long time: report at most four intervals,
            and at least one millisecond */

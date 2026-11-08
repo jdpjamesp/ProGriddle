@@ -7,9 +7,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.TurnControllerTests:
 
-    DEFINE PRIVATE VARIABLE mGame       AS CountingTurnGame  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRenderer   AS RecordingRenderer NO-UNDO.
-    DEFINE PRIVATE VARIABLE mController AS TurnController    NO-UNDO.
+    VAR PRIVATE CountingTurnGame mGame.
+    VAR PRIVATE RecordingRenderer mRenderer.
+    VAR PRIVATE TurnController mController.
 
     @Setup.
     METHOD PUBLIC VOID BuildController():
@@ -66,7 +66,7 @@ CLASS ProGriddle.Engine.TurnControllerTests:
 
     @Test.
     METHOD PUBLIC VOID ExecuteOfASteppingCommandThrows():
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             mController:Execute(GameCommand:Start).
             CATCH e AS GridException:
@@ -84,7 +84,7 @@ CLASS ProGriddle.Engine.TurnControllerTests:
 
     @Test.
     METHOD PUBLIC VOID SetSpeedLevelThrows():
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             mController:SetSpeedLevel(3).
             CATCH e AS GridException:
@@ -96,8 +96,8 @@ CLASS ProGriddle.Engine.TurnControllerTests:
 
     @Test.
     METHOD PUBLIC VOID ConstructorRejectsMissingParts():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tc     AS TurnController NO-UNDO.
+        VAR INTEGER thrown.
+        VAR TurnController tc.
         DO ON ERROR UNDO, THROW:
             tc = NEW TurnController(?, mRenderer).
             CATCH e1 AS GridException:

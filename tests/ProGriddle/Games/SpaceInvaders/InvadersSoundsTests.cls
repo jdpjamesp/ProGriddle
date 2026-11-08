@@ -12,11 +12,11 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID EveryCueHasARecipeThatMakesSoundNotSilence():
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE oSynth AS ToneSynth NO-UNDO.
-        DEFINE VARIABLE mData  AS MEMPTR    NO-UNDO.
-        DEFINE VARIABLE loud   AS INTEGER   NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR ToneSynth oSynth.
+        VAR MEMPTR mData.
+        VAR INTEGER loud.
         oSynth = NEW ToneSynth().
         DO i = INTEGER(InvadersCue:Shoot) TO INTEGER(InvadersCue:SaucerHum):
             oSynth:Make(InvadersSounds:Recipe(InvadersCue:GetEnum(i)), 100, OUTPUT mData).
@@ -34,7 +34,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID TheHumIsALoopAndNoOtherSoundIs():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:Equals("@", SUBSTRING(InvadersSounds:Recipe(InvadersCue:SaucerHum), 1, 1)).
         DO i = INTEGER(InvadersCue:Shoot) TO INTEGER(InvadersCue:WaveCleared):
             Assert:IsFalse(SUBSTRING(InvadersSounds:Recipe(InvadersCue:GetEnum(i)), 1, 1) = "@").
@@ -43,12 +43,12 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID TheFourMarchNotesGetLowerOneAfterAnother():
-        DEFINE VARIABLE oSynth AS ToneSynth NO-UNDO.
-        DEFINE VARIABLE mData  AS MEMPTR    NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE edges  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE prior   AS INTEGER   NO-UNDO INITIAL 1000.
+        VAR ToneSynth oSynth.
+        VAR MEMPTR mData.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER edges.
+        VAR INTEGER prior = 1000.
         oSynth = NEW ToneSynth().
         /* the number of rising edges in the sound is the number of cycles: a lower note has fewer */
         DO i = INTEGER(InvadersCue:March1) TO INTEGER(InvadersCue:March4):
@@ -68,7 +68,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID EveryCueHasAVolumeFromOneToOneHundred():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = INTEGER(InvadersCue:Shoot) TO INTEGER(InvadersCue:SaucerHum):
             Assert:IsTrue(InvadersSounds:VolumeOf(InvadersCue:GetEnum(i)) >= 1).
             Assert:IsTrue(InvadersSounds:VolumeOf(InvadersCue:GetEnum(i)) <= 100).
@@ -77,10 +77,10 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID FillMakesAllElevenCuesInABankInUnderHalfASecond():
-        DEFINE VARIABLE oBank AS SoundBank NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE start AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE took  AS INTEGER   NO-UNDO.
+        VAR SoundBank oBank.
+        VAR INTEGER i.
+        VAR INTEGER start.
+        VAR INTEGER took.
         oBank = NEW SoundBank().
         start = ETIME.
         InvadersSounds:Fill(oBank).
@@ -98,7 +98,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownCueThrowsGridException():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             InvadersSounds:Recipe(?).
             CATCH e1 AS GridException:

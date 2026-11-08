@@ -21,17 +21,17 @@ USING ProGriddle.Engine.*.
 USING ProGriddle.Games.2048.*.
 USING ProGriddle.UI.WinForms.*.
 
-DEFINE VARIABLE cSettingsFile AS CHARACTER       NO-UNDO INITIAL "default".
-DEFINE VARIABLE iAutoClose    AS INTEGER         NO-UNDO.
-DEFINE VARIABLE iSeed         AS INT64           NO-UNDO.
-DEFINE VARIABLE oSettings     AS ISettings       NO-UNDO.
-DEFINE VARIABLE oGame         AS TilesGame       NO-UNDO.
-DEFINE VARIABLE oView         AS GridView        NO-UNDO.
-DEFINE VARIABLE oClock        AS WinFormsClock   NO-UNDO.
-DEFINE VARIABLE oController   AS TurnController  NO-UNDO.
-DEFINE VARIABLE oWindow       AS GameWindow      NO-UNDO.
-DEFINE VARIABLE iWidth        AS INTEGER         NO-UNDO.
-DEFINE VARIABLE iHeight       AS INTEGER         NO-UNDO.
+VAR CHARACTER cSettingsFile = "default".
+VAR INTEGER iAutoClose.
+VAR INT64 iSeed.
+VAR ISettings oSettings.
+VAR TilesGame oGame.
+VAR GridView oView.
+VAR WinFormsClock oClock.
+VAR TurnController oController.
+VAR GameWindow oWindow.
+VAR INTEGER iWidth.
+VAR INTEGER iHeight.
 
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 2 THEN cSettingsFile = ENTRY(2, SESSION:PARAMETER).
 IF NUM-ENTRIES(SESSION:PARAMETER) >= 3 THEN iAutoClose = INTEGER(ENTRY(3, SESSION:PARAMETER)).

@@ -28,9 +28,8 @@ CLASS ProGriddle.Games.Rogue.WeightedPickTests:
 
     @Test.
     METHOD PUBLIC VOID ATingWithNoChanceIsNeverPicked():
-        DEFINE VARIABLE i       AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE oRandom AS SeededRandom NO-UNDO.
-        oRandom = NEW SeededRandom(11).
+        VAR INTEGER i.
+        VAR SeededRandom oRandom = NEW SeededRandom(11).
         DO i = 1 TO 300:
             Assert:IsTrue(WeightedPick:Choose("5,0,5", oRandom) <> 1).
         END.
@@ -38,7 +37,7 @@ CLASS ProGriddle.Games.Rogue.WeightedPickTests:
 
     @Test.
     METHOD PUBLIC VOID BadListsAndNoSourceAreRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             WeightedPick:Total("").
             CATCH e1 AS GridException:

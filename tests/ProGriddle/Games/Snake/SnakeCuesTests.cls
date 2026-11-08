@@ -10,8 +10,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Snake.SnakeCuesTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS SnakeGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCues AS SnakeCues NO-UNDO.
+    VAR PRIVATE SnakeGame mGame.
+    VAR PRIVATE SnakeCues mCues.
 
     /* On an 8 x 8 board a new game has the snake in row 4, the tail at x 2 and the head at x 4, facing right. */
     @Setup.
@@ -52,9 +52,9 @@ CLASS ProGriddle.Games.Snake.SnakeCuesTests:
 
     @Test.
     METHOD PUBLIC VOID RunningIntoTheWallGivesOneCrashCue():
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cues   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE crashes AS INTEGER  NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER cues.
+        VAR INTEGER crashes.
         mGame:SetFood(0, 0).
         DO i = 1 TO 10:
             mGame:Tick(mGame:StepMs).
@@ -69,9 +69,9 @@ CLASS ProGriddle.Games.Snake.SnakeCuesTests:
 
     @Test.
     METHOD PUBLIC VOID FillingTheBoardGivesAWinAndTheLastBiteIsLeftToTheGroup():
-        DEFINE VARIABLE body AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER   NO-UNDO.
+        VAR CHARACTER body.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO y = 0 TO 7:
             DO x = 0 TO 7:
                 IF y = 7 AND x > 6 THEN NEXT.
@@ -117,9 +117,8 @@ CLASS ProGriddle.Games.Snake.SnakeCuesTests:
 
     @Test.
     METHOD PUBLIC VOID AGameThatIsNotSnakeThrowsGridException():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oOther AS CountingGame NO-UNDO.
-        oOther = NEW CountingGame(NEW Grid(NEW ArrayStore(2, 2, "state")), 0).
+        VAR INTEGER thrown.
+        VAR CountingGame oOther = NEW CountingGame(NEW Grid(NEW ArrayStore(2, 2, "state")), 0).
         DO ON ERROR UNDO, THROW:
             mCues:Poll(oOther).
             CATCH e1 AS GridException:
@@ -132,8 +131,8 @@ CLASS ProGriddle.Games.Snake.SnakeCuesTests:
     /* End to end: the cues of a real game, through the renderer, reach the player. */
     @Test.
     METHOD PUBLIC VOID TheSoundRendererPlaysTheBiteOfARealGame():
-        DEFINE VARIABLE oPlayer   AS RecordingSoundPlayer NO-UNDO.
-        DEFINE VARIABLE oRenderer AS SoundRenderer        NO-UNDO.
+        VAR RecordingSoundPlayer oPlayer.
+        VAR SoundRenderer oRenderer.
         oPlayer = NEW RecordingSoundPlayer().
         oRenderer = NEW SoundRenderer(NEW RecordingRenderer(), mCues, oPlayer).
         mGame:SetFood(5, 4).

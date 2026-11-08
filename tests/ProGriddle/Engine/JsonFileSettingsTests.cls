@@ -9,7 +9,7 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     /* A path inside the test folder, with any old file removed. */
     METHOD PRIVATE CHARACTER FreshPath(INPUT pcName AS CHARACTER):
-        DEFINE VARIABLE path AS CHARACTER NO-UNDO.
+        VAR CHARACTER path.
         OS-CREATE-DIR VALUE("build/test-settings").
         path = "build/test-settings/" + pcName.
         IF SEARCH(path) <> ? THEN OS-DELETE VALUE(path).
@@ -24,24 +24,23 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
     END METHOD.
 
     METHOD PRIVATE CHARACTER ReadFile(INPUT pcPath AS CHARACTER):
-        DEFINE VARIABLE content AS LONGCHAR NO-UNDO.
+        VAR LONGCHAR content.
         COPY-LOB FROM FILE pcPath TO content.
         RETURN STRING(content).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID AMissingFileGivesAnEmptyNewSettingsObject():
-        DEFINE VARIABLE s AS JsonFileSettings NO-UNDO.
-        s = NEW JsonFileSettings(FreshPath("missing.json")).
+        VAR JsonFileSettings s = NEW JsonFileSettings(FreshPath("missing.json")).
         Assert:Equals("new", s:LoadStatus).
         Assert:Equals(5, s:GetInteger("life.speed", 5)).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID ValuesComeBackAfterSavingAndLoadingAgain():
-        DEFINE VARIABLE path AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE a    AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE b    AS JsonFileSettings NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings a.
+        VAR JsonFileSettings b.
         path = FreshPath("roundtrip.json").
         a = NEW JsonFileSettings(path).
         a:SetString("life.pattern", "Glider").
@@ -61,10 +60,10 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID SettingsNotTouchedInASessionSurviveIt():
-        DEFINE VARIABLE path AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE a    AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE b    AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE c    AS JsonFileSettings NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings a.
+        VAR JsonFileSettings b.
+        VAR JsonFileSettings c.
         path = FreshPath("keep.json").
         a = NEW JsonFileSettings(path).
         a:SetInteger("life.speed", 4).
@@ -80,9 +79,9 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID TheFileCarriesASchemaVersionAndAValuesObject():
-        DEFINE VARIABLE path AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE s    AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE body AS CHARACTER NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings s.
+        VAR CHARACTER body.
         path = FreshPath("shape.json").
         s = NEW JsonFileSettings(path).
         s:SetInteger("life.speed", 4).
@@ -95,8 +94,8 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID SaveLeavesNoTemporaryFileBehind():
-        DEFINE VARIABLE path AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE s    AS JsonFileSettings NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings s.
         path = FreshPath("tidy.json").
         s = NEW JsonFileSettings(path).
         s:SetInteger("life.speed", 4).
@@ -107,8 +106,8 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID SaveCreatesTheFolderWhenItIsMissing():
-        DEFINE VARIABLE path AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE s    AS JsonFileSettings NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings s.
         OS-CREATE-DIR VALUE("build/test-settings").
         path = "build/test-settings/made-by-save/settings.json".
         IF SEARCH(path) <> ? THEN OS-DELETE VALUE(path).
@@ -121,8 +120,8 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID AGarbageFileIsCorruptAndIgnoredThenOverwrittenBySave():
-        DEFINE VARIABLE path AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE s    AS JsonFileSettings NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings s.
         path = FreshPath("garbage.json").
         WriteFile(path, "this is not json ~{~{~{").
         s = NEW JsonFileSettings(path).
@@ -136,7 +135,7 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID AnEmptyFileIsCorrupt():
-        DEFINE VARIABLE path AS CHARACTER NO-UNDO.
+        VAR CHARACTER path.
         path = FreshPath("empty.json").
         WriteFile(path, "").
         Assert:Equals("corrupt", NEW JsonFileSettings(path):LoadStatus).
@@ -144,7 +143,7 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID JsonThatIsNotAnObjectIsCorrupt():
-        DEFINE VARIABLE path AS CHARACTER NO-UNDO.
+        VAR CHARACTER path.
         path = FreshPath("array.json").
         WriteFile(path, "[1, 2, 3]").
         Assert:Equals("corrupt", NEW JsonFileSettings(path):LoadStatus).
@@ -152,7 +151,7 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID AnObjectWithoutASchemaVersionIsCorrupt():
-        DEFINE VARIABLE path AS CHARACTER NO-UNDO.
+        VAR CHARACTER path.
         path = FreshPath("noversion.json").
         WriteFile(path, '~{"values": ~{"life.speed": 4~}~}').
         Assert:Equals("corrupt", NEW JsonFileSettings(path):LoadStatus).
@@ -160,7 +159,7 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID AValuesEntryThatIsNotAnObjectIsCorrupt():
-        DEFINE VARIABLE path AS CHARACTER NO-UNDO.
+        VAR CHARACTER path.
         path = FreshPath("badvalues.json").
         WriteFile(path, '~{"schemaVersion": 1, "values": 5~}').
         Assert:Equals("corrupt", NEW JsonFileSettings(path):LoadStatus).
@@ -168,8 +167,8 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID ANewerSchemaVersionIsUnsupportedAndIgnored():
-        DEFINE VARIABLE path AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE s    AS JsonFileSettings NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings s.
         path = FreshPath("future.json").
         WriteFile(path, '~{"schemaVersion": 2, "values": ~{"life.speed": 4~}~}').
         s = NEW JsonFileSettings(path).
@@ -179,8 +178,8 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID AHandWrittenValidFileLoads():
-        DEFINE VARIABLE path AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE s    AS JsonFileSettings NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings s.
         path = FreshPath("handwritten.json").
         WriteFile(path, '~{"schemaVersion": 1, "values": ~{"life.speed": 3, "life.wrap": true, "life.pattern": "Blinker"~}~}').
         s = NEW JsonFileSettings(path).
@@ -209,10 +208,10 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID ASaveKeepsWhatAnotherProgramSavedInTheMeantime():
-        DEFINE VARIABLE path   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE tetris AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE life   AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE again  AS JsonFileSettings NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings tetris.
+        VAR JsonFileSettings life.
+        VAR JsonFileSettings again.
         path = FreshPath("shared.json").
         /* both windows open and read the file, as two games started from the Cookoff do */
         tetris = NEW JsonFileSettings(path).
@@ -228,9 +227,9 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID TheProgramThatSavesLastSeesTheOthersChangesAfterwards():
-        DEFINE VARIABLE path AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE a    AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE b    AS JsonFileSettings NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings a.
+        VAR JsonFileSettings b.
         path = FreshPath("seen.json").
         a = NEW JsonFileSettings(path).
         b = NEW JsonFileSettings(path).
@@ -244,10 +243,10 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID WhenBothSetTheSameKeyTheLaterSaveWins():
-        DEFINE VARIABLE path  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE a     AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE b     AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE again AS JsonFileSettings NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings a.
+        VAR JsonFileSettings b.
+        VAR JsonFileSettings again.
         path = FreshPath("same-key.json").
         a = NEW JsonFileSettings(path).
         b = NEW JsonFileSettings(path).
@@ -261,11 +260,11 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID ValuesThisProgramLoadedButDidNotChangeAreNotWrittenOverNewerOnes():
-        DEFINE VARIABLE path  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE earlier AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE a     AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE b     AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE again AS JsonFileSettings NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings earlier.
+        VAR JsonFileSettings a.
+        VAR JsonFileSettings b.
+        VAR JsonFileSettings again.
         path = FreshPath("untouched.json").
         earlier = NEW JsonFileSettings(path).
         earlier:SetInteger("tetris.best", 100).
@@ -284,10 +283,10 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID AllFourTypesSurviveTheMerge():
-        DEFINE VARIABLE path  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE a     AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE b     AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE again AS JsonFileSettings NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings a.
+        VAR JsonFileSettings b.
+        VAR JsonFileSettings again.
         path = FreshPath("types.json").
         a = NEW JsonFileSettings(path).
         b = NEW JsonFileSettings(path).
@@ -308,9 +307,9 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID ASettingChangedTypeIsReplacedInTheMerge():
-        DEFINE VARIABLE path  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE a     AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE again AS JsonFileSettings NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings a.
+        VAR JsonFileSettings again.
         path = FreshPath("retype.json").
         a = NEW JsonFileSettings(path).
         a:SetString("k.value", "text").
@@ -323,10 +322,10 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID IfTheFileWasDeletedMeanwhileEverythingThisProgramHoldsIsWrittenAgain():
-        DEFINE VARIABLE path  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE a     AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE b     AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE again AS JsonFileSettings NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings a.
+        VAR JsonFileSettings b.
+        VAR JsonFileSettings again.
         path = FreshPath("deleted.json").
         a = NEW JsonFileSettings(path).
         a:SetInteger("life.speed", 4).
@@ -342,9 +341,9 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID IfTheFileWasCorruptedMeanwhileTheSaveWritesAGoodOne():
-        DEFINE VARIABLE path  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE a     AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE again AS JsonFileSettings NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings a.
+        VAR JsonFileSettings again.
         path = FreshPath("corrupted-later.json").
         a = NEW JsonFileSettings(path).
         a:SetInteger("life.speed", 4).
@@ -360,9 +359,9 @@ CLASS ProGriddle.Engine.JsonFileSettingsTests:
 
     @Test.
     METHOD PUBLIC VOID SavingTwiceInARowLeavesTheSameFile():
-        DEFINE VARIABLE path  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE a     AS JsonFileSettings NO-UNDO.
-        DEFINE VARIABLE earlier AS CHARACTER NO-UNDO.
+        VAR CHARACTER path.
+        VAR JsonFileSettings a.
+        VAR CHARACTER earlier.
         path = FreshPath("twice.json").
         a = NEW JsonFileSettings(path).
         a:SetInteger("life.speed", 4).

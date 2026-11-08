@@ -9,7 +9,7 @@ CLASS ProGriddle.UI.WinForms.InfoDialogTests:
 
     @Test.
     METHOD PUBLIC VOID TheTitleAndTheTextAreShown():
-        DEFINE VARIABLE d AS InfoDialog NO-UNDO.
+        VAR InfoDialog d.
         DO ON ERROR UNDO, THROW:
             d = NEW InfoDialog("Scores", "one" + CHR(10) + "two").
             Assert:Equals("Scores", d:Text).
@@ -22,7 +22,7 @@ CLASS ProGriddle.UI.WinForms.InfoDialogTests:
 
     @Test.
     METHOD PUBLIC VOID EnterAndEscapeBothCloseItThroughTheOkButton():
-        DEFINE VARIABLE d AS InfoDialog NO-UNDO.
+        VAR InfoDialog d.
         DO ON ERROR UNDO, THROW:
             d = NEW InfoDialog("Scores", "text").
             Assert:IsTrue(VALID-OBJECT(d:AcceptButton)).
@@ -36,7 +36,7 @@ CLASS ProGriddle.UI.WinForms.InfoDialogTests:
 
     @Test.
     METHOD PUBLIC VOID EmptyTextIsAllowed():
-        DEFINE VARIABLE d AS InfoDialog NO-UNDO.
+        VAR InfoDialog d.
         DO ON ERROR UNDO, THROW:
             d = NEW InfoDialog("Scores", "").
             Assert:Equals("", d:Body).
@@ -48,14 +48,12 @@ CLASS ProGriddle.UI.WinForms.InfoDialogTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ADialogNeedsATitle():
-        DEFINE VARIABLE d AS InfoDialog NO-UNDO.
-        d = NEW InfoDialog("", "text").
+        VAR InfoDialog d = NEW InfoDialog("", "text").
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ADialogNeedsSomeText():
-        DEFINE VARIABLE d AS InfoDialog NO-UNDO.
-        d = NEW InfoDialog("Scores", ?).
+        VAR InfoDialog d = NEW InfoDialog("Scores", ?).
     END METHOD.
 
 END CLASS.

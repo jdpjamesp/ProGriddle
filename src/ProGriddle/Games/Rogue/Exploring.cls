@@ -11,11 +11,11 @@ CLASS ProGriddle.Games.Rogue.Exploring FINAL:
 
     /* Searches round the hero once. Gives how many things were found (each is said to the hero). */
     METHOD PUBLIC STATIC INTEGER Search(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE dx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE found AS INTEGER NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER found.
         DO dy = -1 TO 1:
             DO dx = -1 TO 1:
                 x = poWorld:Hero:X + dx.

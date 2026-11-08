@@ -10,9 +10,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
 
-    DEFINE PRIVATE VARIABLE mGrid   AS Grid        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas AS PixelCanvas NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPool   AS DebrisPool  NO-UNDO.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE PixelCanvas mCanvas.
+    VAR PRIVATE DebrisPool mPool.
 
     @Setup.
     METHOD PUBLIC VOID BuildPool():
@@ -40,7 +40,7 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
     END METHOD.
 
     METHOD PRIVATE VOID Steps(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO n = 1 TO piCount:
             mPool:Step().
         END.
@@ -99,7 +99,7 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
 
     @Test.
     METHOD PUBLIC VOID AFullPoolRefusesMoreAndAFreedSlotIsUsedAgain():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 48:
             Assert:IsTrue(Cell(i, 10, 0, 0, 5 + i)).
         END.
@@ -147,7 +147,7 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
 
     @Test.
     METHOD PUBLIC VOID AChipIsALineAboutItsMiddleAlongItsAngle():
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER c.
         c = AsteroidsLook:RampColour(Ramp:Ember, 0).
         /* heading 16 points right: half a length of 5 cells each way along the row */
         mPool:AddChip(100 * 4096, 100 * 4096, 0, 0, 1000, 20, 16 * 16, 0, 5 * 4096, Ramp:Ember).
@@ -161,7 +161,7 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
 
     @Test.
     METHOD PUBLIC VOID AChipTurnsBySpinEveryStep():
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER c.
         c = AsteroidsLook:RampColour(Ramp:Ember, 0).
         /* a heading a step: sixteen steps take it from pointing right to pointing down, so the row becomes a column */
         mPool:AddChip(100 * 4096, 100 * 4096, 0, 0, 1000, 60, 16 * 16, 16, 5 * 4096, Ramp:Ember).
@@ -191,7 +191,7 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
 
     @Test.
     METHOD PUBLIC VOID ThePiecesStartWhereTheShipsLinesWereAndAreDrawnInTheShipDebrisColour():
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER c.
         c = AsteroidsLook:RampColour(Ramp:ShipDebris, 0).
         mPool:ShipBreakup(160 * 4096, 120 * 4096, 0, 0, 0).
         Draw().
@@ -203,7 +203,7 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
 
     @Test.
     METHOD PUBLIC VOID ThePiecesAreTurnedWithTheShip():
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
+        VAR INTEGER c.
         c = AsteroidsLook:RampColour(Ramp:ShipDebris, 0).
         /* heading 16: the nose points right, so it is 6 cells to the right of the middle */
         mPool:ShipBreakup(160 * 4096, 120 * 4096, 0, 0, 16).
@@ -214,9 +214,9 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
 
     @Test.
     METHOD PUBLIC VOID ThePiecesFlyAwayFromTheMiddleOfTheShip():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE before AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE after  AS DECIMAL NO-UNDO.
+        VAR INTEGER i.
+        VAR DECIMAL before.
+        VAR DECIMAL after.
         mPool:ShipBreakup(160 * 4096, 120 * 4096, 0, 0, 0).
         DO i = 0 TO 4:
             before = SQRT(DECIMAL((mPool:X(i) - 160) * (mPool:X(i) - 160) + (mPool:Y(i) - 120) * (mPool:Y(i) - 120))).
@@ -231,10 +231,10 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
 
     @Test.
     METHOD PUBLIC VOID ThePiecesTakeHalfTheShipsSpeedWithThem():
-        DEFINE VARIABLE still  AS DebrisPool NO-UNDO.
-        DEFINE VARIABLE moving AS DebrisPool NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE gain   AS INTEGER    NO-UNDO.
+        VAR DebrisPool still.
+        VAR DebrisPool moving.
+        VAR INTEGER i.
+        VAR INTEGER gain.
         still = NEW DebrisPool(NEW SeededRandom(3), 320, 240).
         moving = NEW DebrisPool(NEW SeededRandom(3), 320, 240).
         still:ShipBreakup(100 * 4096, 120 * 4096, 0, 0, 0).
@@ -303,8 +303,8 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
 
     @Test.
     METHOD PUBLIC VOID ASmallRocksEightCellsLeaveInAnEvenRingAtThreeQuartersOfACellAStep():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d AS DECIMAL NO-UNDO.
+        VAR INTEGER i.
+        VAR DECIMAL d.
         mPool:RockBurst(3, 160 * 4096, 120 * 4096, 0, 0).
         Steps(4).
         DO i = 0 TO 7:
@@ -316,8 +316,8 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
 
     @Test.
     METHOD PUBLIC VOID ALargeRocksChipsStartOnItsOutlineAndTheCellsAreInTheRockDebrisRamp():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d AS DECIMAL NO-UNDO.
+        VAR INTEGER i.
+        VAR DECIMAL d.
         mPool:RockBurst(1, 160 * 4096, 120 * 4096, 0, 0).
         Assert:Equals(AsteroidsLook:RampColour(Ramp:RockDebris, 0), mPool:ColourOf(0)).
         /* slots 0 to 9 are the cells, 10 to 12 the chips, each on a vertex of the rock */
@@ -331,7 +331,7 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
 
     @Test.
     METHOD PUBLIC VOID TheMuzzleSparkIsThreeCellsFromTheNoseWithinTwentyDegreesOfTheHeadingForSixSteps():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mPool:Muzzle(160 * 4096, 114 * 4096, 0).
         Assert:Equals(3, mPool:Count).
         Assert:Equals(3, mPool:CountOf(Ramp:Muzzle)).
@@ -398,7 +398,7 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
 
     @Test.
     METHOD PUBLIC VOID ARingRefusesNoCellsAndNegativeRadius():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mPool:Ring(0, 0, 0, 3, 4096, 10, Ramp:Spark).
             CATCH e1 AS GridException:
@@ -451,8 +451,8 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
 
     @Test.
     METHOD PUBLIC VOID TheLinesFlyOutwardAndTheRingStartsTwoCellsOutFromStraightUp():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d AS DECIMAL NO-UNDO.
+        VAR INTEGER i.
+        VAR DECIMAL d.
         mPool:SaucerBurst(TRUE, 160 * 4096, 100 * 4096, 0, 0).
         Assert:Equals(160, mPool:X(10)).
         Assert:Equals(98, mPool:Y(10)).
@@ -467,10 +467,10 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
 
     @Test.
     METHOD PUBLIC VOID TheLinesTakeHalfTheSaucersSpeedWithThem():
-        DEFINE VARIABLE still  AS DebrisPool NO-UNDO.
-        DEFINE VARIABLE moving AS DebrisPool NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE gain   AS INTEGER    NO-UNDO.
+        VAR DebrisPool still.
+        VAR DebrisPool moving.
+        VAR INTEGER i.
+        VAR INTEGER gain.
         still = NEW DebrisPool(NEW SeededRandom(5), 320, 240).
         moving = NEW DebrisPool(NEW SeededRandom(5), 320, 240).
         still:SaucerBurst(TRUE, 100 * 4096, 100 * 4096, 0, 0).
@@ -488,7 +488,7 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
 
     @Test.
     METHOD PUBLIC VOID ARockBurstRefusesASizeThatIsNotOneTwoOrThree():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mPool:RockBurst(0, 0, 0, 0, 0).
             CATCH e1 AS GridException:
@@ -506,7 +506,7 @@ CLASS ProGriddle.Games.Asteroids.DebrisPoolTests:
 
     @Test.
     METHOD PUBLIC VOID AnAddRefusesNonsense():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mPool:AddCell(0, 0, 0, 0, 1000, 0, Ramp:RockDebris).
             CATCH e1 AS GridException:

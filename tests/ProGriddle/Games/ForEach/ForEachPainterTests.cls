@@ -12,9 +12,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.ForEachPainterTests:
 
-    DEFINE PRIVATE VARIABLE mGame    AS ForEachGame              NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSpy     AS ForEachRecordingRenderer NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPainter AS ForEachPainter           NO-UNDO.
+    VAR PRIVATE ForEachGame mGame.
+    VAR PRIVATE ForEachRecordingRenderer mSpy.
+    VAR PRIVATE ForEachPainter mPainter.
 
     @TearDown.
     METHOD PUBLIC VOID ReleaseAll():
@@ -37,9 +37,9 @@ CLASS ProGriddle.Games.ForEach.ForEachPainterTests:
 
     /* How many pixels of a rectangle of the canvas are this colour. */
     METHOD PRIVATE INTEGER Count(INPUT piColour AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         DO y = piY TO piY + piH - 1:
             DO x = piX TO piX + piW - 1:
                 IF Look(x, y) = piColour THEN n = n + 1.
@@ -55,8 +55,8 @@ CLASS ProGriddle.Games.ForEach.ForEachPainterTests:
 
     /* How many pixels of a rectangle are in any of the five tones of a colour row: how much of a character in that row is there. */
     METHOD PRIVATE INTEGER Tones(INPUT poRow AS ForEachRow, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER):
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER k.
+        VAR INTEGER n.
         DO k = 1 TO 5:
             n = n + Count(ForEachLook:Tone(poRow, k), piX, piY, piW, piH).
         END.
@@ -68,7 +68,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainterTests:
     END METHOD.
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE other AS ForEachPainter NO-UNDO.
+        VAR ForEachPainter other.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN other = NEW ForEachPainter(?, mGame).
@@ -168,8 +168,8 @@ CLASS ProGriddle.Games.ForEach.ForEachPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheCommitTokensBlink():
-        DEFINE VARIABLE lit AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dim AS INTEGER NO-UNDO.
+        VAR INTEGER lit.
+        VAR INTEGER dim.
         Build("").
         ForEachKit:Play(mGame).
         mPainter:Render(mGame:Grid, mGame).
@@ -220,8 +220,8 @@ CLASS ProGriddle.Games.ForEach.ForEachPainterTests:
 
     @Test.
     METHOD PUBLIC VOID APhantomsEyesLookTheWayItGoesAndItsMarkIsDrawnOverThem():
-        DEFINE VARIABLE left  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE right AS INTEGER NO-UNDO.
+        VAR INTEGER left.
+        VAR INTEGER right.
         Build("").
         ForEachKit:Play(mGame).
         mGame:PlacePhantom(PhantomKind:Brian, 80, 92, MazeDir:Left, PhantomMode:Scatter).
@@ -284,7 +284,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheDebugOverlayMarksTheTargetOfEachPhantomInItsColourWhenSwitchedOn():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         Build("").
         ForEachKit:Play(mGame).
         mGame:SwitchWave().
@@ -311,8 +311,8 @@ CLASS ProGriddle.Games.ForEach.ForEachPainterTests:
 
     @Test.
     METHOD PUBLIC VOID OneUPBlinksWhileAGameIsOn():
-        DEFINE VARIABLE lit AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
+        VAR LOGICAL lit.
+        VAR INTEGER n.
         Build("").
         ForEachKit:Play(mGame).
         mPainter:Render(mGame:Grid, mGame).
@@ -352,7 +352,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainterTests:
 
     @Test.
     METHOD PUBLIC VOID PausedShowsItsWordOverTheMazeAndNothingElseChanges():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         Build("").
         ForEachKit:Play(mGame).
         mGame:Paused = TRUE.
@@ -390,7 +390,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheTitleGoesOnToThePointsAndTheChase():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         Build("").
         ForEachKit:Frames(mGame, 400).
         mPainter:Render(mGame:Grid, mGame).
@@ -405,7 +405,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheCrashPlaysThroughItsFramesAndEndsWithThePop():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         Build("").
         ForEachKit:Play(mGame).
         mGame:PlacePhantom(PhantomKind:Mary, mGame:DibbyX, mGame:DibbyY, MazeDir:Left, PhantomMode:Chase).
@@ -440,8 +440,8 @@ CLASS ProGriddle.Games.ForEach.ForEachPainterTests:
 
     @Test.
     METHOD PUBLIC VOID EachOfTheThreeCartoonsDrawsWithoutHarmFromStartToEnd():
-        DEFINE VARIABLE act AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
+        VAR INTEGER act.
+        VAR INTEGER n.
         DO act = 1 TO 3:
             Build(ForEachKit:FewBits()).
             ForEachKit:Play(mGame).

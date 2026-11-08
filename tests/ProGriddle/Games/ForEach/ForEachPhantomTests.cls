@@ -12,7 +12,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.ForEachPhantomTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS ForEachGame NO-UNDO.
+    VAR PRIVATE ForEachGame mGame.
 
     @TearDown.
     METHOD PUBLIC VOID ReleaseGame():
@@ -92,7 +92,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPhantomTests:
 
     @Test.
     METHOD PUBLIC VOID OnLevelOneAPhantomRunsAtSevenTenthsOfFullSpeedAndSoSlowerThanDibby():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         LanePhantom(PhantomKind:Mary, 100, PhantomMode:Scatter).
         x = mGame:PhantomX(PhantomKind:Mary).
         ForEachKit:Frames(mGame, 60).
@@ -103,7 +103,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPhantomTests:
 
     @Test.
     METHOD PUBLIC VOID InTheTunnelAPhantomRunsAtFortyPercent():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         PlayOn(ForEachKit:SlowCorridor()).
         mGame:PlaceDibby(100, 12, MazeDir:Right).
         mGame:PlacePhantom(PhantomKind:Mary, 20, 12, MazeDir:Right, PhantomMode:Scatter).
@@ -115,7 +115,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPhantomTests:
 
     @Test.
     METHOD PUBLIC VOID ARolledBackPhantomRunsAtHalfSpeed():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         LanePhantom(PhantomKind:Mary, 100, PhantomMode:Scatter).
         mGame:Rollback().
         x = mGame:PhantomX(PhantomKind:Mary).
@@ -126,7 +126,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPhantomTests:
 
     @Test.
     METHOD PUBLIC VOID PhantomsReturningRunFasterThanAnythingElse():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         LanePhantom(PhantomKind:Mary, 20, PhantomMode:Returning).
         x = mGame:PhantomX(PhantomKind:Mary).
         ForEachKit:Frames(mGame, 30).
@@ -176,7 +176,7 @@ CLASS ProGriddle.Games.ForEach.ForEachPhantomTests:
 
     @Test.
     METHOD PUBLIC VOID TheLastWaveIsAChaseThatNeverEnds():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         LanePhantom(PhantomKind:Mary, 100, PhantomMode:Scatter).
         DO n = 1 TO 7:
             mGame:SwitchWave().
@@ -364,8 +364,8 @@ CLASS ProGriddle.Games.ForEach.ForEachPhantomTests:
 
     @Test.
     METHOD PUBLIC VOID AWoundUpMaryRunsFasterThanTheOthers():
-        DEFINE VARIABLE maryX AS INTEGER NO-UNDO.
-        DEFINE VARIABLE richX  AS INTEGER NO-UNDO.
+        VAR INTEGER maryX.
+        VAR INTEGER richX.
         PlayOn(ForEachKit:TwoLanes()).
         mGame:PlacePhantom(PhantomKind:Mary, 20, 12, MazeDir:Right, PhantomMode:Scatter).
         mGame:PlacePhantom(PhantomKind:Rich, 20, 12, MazeDir:Right, PhantomMode:Scatter).

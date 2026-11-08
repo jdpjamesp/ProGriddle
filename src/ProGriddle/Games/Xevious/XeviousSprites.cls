@@ -16,12 +16,12 @@ CLASS ProGriddle.Games.Xevious.XeviousSprites FINAL:
     &SCOPED-DEFINE TILES 64
     &SCOPED-DEFINE TILE-BYTES 1024
 
-    DEFINE PRIVATE VARIABLE mStamps   AS PixelStamp EXTENT 400 NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTiles    AS MEMPTR     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTileMade AS LOGICAL    NO-UNDO EXTENT {&TILES}.
-    DEFINE PRIVATE VARIABLE mDry      AS LOGICAL    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mMood     AS INTEGER    NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mDisposed AS LOGICAL    NO-UNDO.
+    VAR PRIVATE PixelStamp[400] mStamps.
+    VAR PRIVATE MEMPTR mTiles.
+    VAR PRIVATE LOGICAL[{&TILES}] mTileMade.
+    VAR PRIVATE LOGICAL mDry.
+    VAR PRIVATE INTEGER mMood = -1.
+    VAR PRIVATE LOGICAL mDisposed.
 
     /* True for the dry family of ground, and the mood (0 to 4) the tiles are made for now, -1 for none yet. */
     DEFINE PUBLIC PROPERTY Dry AS LOGICAL NO-UNDO
@@ -39,7 +39,7 @@ CLASS ProGriddle.Games.Xevious.XeviousSprites FINAL:
     DEFINE PUBLIC PROPERTY Veil AS INTEGER NO-UNDO INITIAL 0
         GET.
         SET(INPUT piPercent AS INTEGER):
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
+            VAR INTEGER i.
             IF piPercent = ? OR piPercent < 0 OR piPercent > 100 THEN UNDO, THROW NEW GridException("A veil is 0 to 100 percent, not " + STRING(piPercent)).
             IF piPercent = Veil THEN RETURN.
             Veil = piPercent.
@@ -58,7 +58,7 @@ CLASS ProGriddle.Games.Xevious.XeviousSprites FINAL:
 
     /* Frees the stamps and the tile colours. Safe to call more than once. */
     METHOD PUBLIC VOID Dispose():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF mDisposed THEN RETURN.
         mDisposed = TRUE.
         DO i = 1 TO EXTENT(mStamps):
@@ -74,17 +74,17 @@ CLASS ProGriddle.Games.Xevious.XeviousSprites FINAL:
 
     /* The stamp of a sprite turned piTurns quarter turns clockwise (0 to 3). Throws GridException for any other number. */
     METHOD PUBLIC PixelStamp Turned(INPUT poPicture AS XeviousPicture, INPUT piTurns AS INTEGER):
-        DEFINE VARIABLE slot    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE w       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sx      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sy      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE nw      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE nh      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rows    AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE colours AS INTEGER NO-UNDO EXTENT.
+        VAR INTEGER slot.
+        VAR INTEGER w.
+        VAR INTEGER h.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER sx.
+        VAR INTEGER sy.
+        VAR INTEGER nw.
+        VAR INTEGER nh.
+        VAR CHARACTER rows.
+        VAR INTEGER[] colours.
         IF piTurns = ? OR piTurns < 0 OR piTurns > 3 THEN UNDO, THROW NEW GridException("A sprite is turned 0 to 3 quarter turns, not " + STRING(piTurns)).
         slot = INTEGER(poPicture) * 4 + piTurns + 1.
         IF VALID-OBJECT(mStamps[slot]) THEN RETURN mStamps[slot].
@@ -113,7 +113,7 @@ CLASS ProGriddle.Games.Xevious.XeviousSprites FINAL:
     /* Makes the ground tiles for an area: its family and its mood tint. The tiles are made again, as they are asked for, whenever
        this changes. Throws GridException for an area under 1. */
     METHOD PUBLIC VOID ForArea(INPUT piArea AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF piArea = ? OR piArea < 1 THEN UNDO, THROW NEW GridException("An area is 1 or more, not " + STRING(piArea)).
         IF XeviousAreas:IsDry(piArea) = mDry AND XeviousAreas:Mood(piArea) = mMood THEN RETURN.
         mDry = XeviousAreas:IsDry(piArea).
@@ -126,7 +126,7 @@ CLASS ProGriddle.Games.Xevious.XeviousSprites FINAL:
     /* Copies the 16 colours of one line (0 to 15) of a tile of the area's ground, 64 bytes, into a block of memory at piAt (a byte
        position counted from 1). The tile is made the first time it is asked for. */
     METHOD PUBLIC VOID TileLine(INPUT poTile AS XeviousTilePicture, INPUT piLine AS INTEGER, INPUT pmTo AS MEMPTR, INPUT piAt AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         n = INTEGER(poTile).
         IF mMood < 0 THEN UNDO, THROW NEW GridException("The tiles are made for an area: call ForArea first").
         IF piLine = ? OR piLine < 0 OR piLine > 15 THEN UNDO, THROW NEW GridException("A tile line is 0 to 15, not " + STRING(piLine)).
@@ -136,7 +136,7 @@ CLASS ProGriddle.Games.Xevious.XeviousSprites FINAL:
 
     /* The colour of one pixel of a tile of the area's ground, as drawn. */
     METHOD PUBLIC INTEGER TilePixel(INPUT poTile AS XeviousTilePicture, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         n = INTEGER(poTile).
         IF mMood < 0 THEN UNDO, THROW NEW GridException("The tiles are made for an area: call ForArea first").
         IF piX = ? OR piX < 0 OR piX > 15 OR piY = ? OR piY < 0 OR piY > 15 THEN UNDO, THROW NEW GridException("A tile pixel is 0 to 15 across and down").
@@ -146,16 +146,16 @@ CLASS ProGriddle.Games.Xevious.XeviousSprites FINAL:
 
     /* The colours of a tile, with the mood of the area mixed in once. */
     METHOD PRIVATE VOID MakeTile(INPUT poTile AS XeviousTilePicture):
-        DEFINE VARIABLE n       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE x       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE rows    AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE ch      AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE c       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE pct     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE tint    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE lastIn  AS CHARACTER NO-UNDO INITIAL ?.
-        DEFINE VARIABLE lastOut AS INTEGER   NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR CHARACTER rows.
+        VAR CHARACTER ch.
+        VAR INTEGER c.
+        VAR INTEGER pct.
+        VAR INTEGER tint.
+        VAR CHARACTER lastIn = ?.
+        VAR INTEGER lastOut.
         n = INTEGER(poTile).
         rows = XeviousTileArt:Rows(poTile).
         pct = XeviousAreas:MoodPercent(mMood).

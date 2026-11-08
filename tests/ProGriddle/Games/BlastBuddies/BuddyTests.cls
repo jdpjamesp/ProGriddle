@@ -11,8 +11,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyTests:
 
     @Test.
     METHOD PUBLIC VOID ANewBuddyStandsStillWithFullHealthAndItsNameAndTeam():
-        DEFINE VARIABLE b AS Buddy NO-UNDO.
-        b = NEW Buddy("BOLT", 2, 100, 150).
+        VAR Buddy b = NEW Buddy("BOLT", 2, 100, 150).
         Assert:Equals("BOLT", b:BuddyName).
         Assert:Equals(2, b:Team).
         Assert:Equals(100, b:Health).
@@ -34,8 +33,8 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyTests:
 
     @Test.
     METHOD PUBLIC VOID ABuddyNeedsANameAndATeamFromOneToFour():
-        DEFINE VARIABLE b       AS Buddy   NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR Buddy b.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             b = NEW Buddy("", 1, 0, 0).
             CATCH e AS GridException:
@@ -63,8 +62,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyTests:
 
     @Test.
     METHOD PUBLIC VOID TheWholePixelIsRoundedDownEvenBelowZero():
-        DEFINE VARIABLE b AS Buddy NO-UNDO.
-        b = NEW Buddy("LOU", 1, 10, 10).
+        VAR Buddy b = NEW Buddy("LOU", 1, 10, 10).
         b:X256 = 255.
         Assert:Equals(0, b:X()).
         b:X256 = 256.
@@ -81,8 +79,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyTests:
 
     @Test.
     METHOD PUBLIC VOID PlaceAtPutsItStandingStill():
-        DEFINE VARIABLE b AS Buddy NO-UNDO.
-        b = NEW Buddy("LOU", 1, 10, 10).
+        VAR Buddy b = NEW Buddy("LOU", 1, 10, 10).
         b:VX = 50.
         b:VY = 60.
         b:State = BuddyState:Airborne.
@@ -101,8 +98,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyTests:
 
     @Test.
     METHOD PUBLIC VOID HurtTakesHealthDownToZeroAndReturnsWhatItTook():
-        DEFINE VARIABLE b AS Buddy NO-UNDO.
-        b = NEW Buddy("LOU", 1, 10, 10).
+        VAR Buddy b = NEW Buddy("LOU", 1, 10, 10).
         Assert:Equals(30, b:Hurt(30)).
         Assert:Equals(70, b:Health).
         Assert:Equals(70, b:Hurt(500)).
@@ -113,8 +109,8 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyTests:
 
     @Test.
     METHOD PUBLIC VOID HurtRefusesNegativeDamage():
-        DEFINE VARIABLE b       AS Buddy   NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR Buddy b.
+        VAR LOGICAL lThrown.
         b = NEW Buddy("LOU", 1, 10, 10).
         DO ON ERROR UNDO, LEAVE:
             b:Hurt(-1).
@@ -127,8 +123,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyTests:
 
     @Test.
     METHOD PUBLIC VOID ADrownedBuddyIsDeadWhateverItsHealth():
-        DEFINE VARIABLE b AS Buddy NO-UNDO.
-        b = NEW Buddy("LOU", 1, 10, 10).
+        VAR Buddy b = NEW Buddy("LOU", 1, 10, 10).
         b:State = BuddyState:Drowned.
         Assert:IsTrue(b:IsDead()).
     END METHOD.

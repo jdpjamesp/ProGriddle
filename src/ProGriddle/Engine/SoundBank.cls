@@ -9,9 +9,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.SoundBank FINAL:
 
-    DEFINE PRIVATE VARIABLE mSynth AS ToneSynth NO-UNDO.
-    DEFINE PRIVATE VARIABLE mData  AS MEMPTR    NO-UNDO EXTENT 64.
-    DEFINE PRIVATE VARIABLE mHeld  AS LOGICAL   NO-UNDO EXTENT 64.
+    VAR PRIVATE ToneSynth mSynth.
+    VAR PRIVATE MEMPTR[64] mData.
+    VAR PRIVATE LOGICAL[64] mHeld.
 
     /* How many sounds the bank holds. */
     DEFINE PUBLIC PROPERTY Count AS INTEGER NO-UNDO
@@ -30,7 +30,7 @@ CLASS ProGriddle.Engine.SoundBank FINAL:
        the one that was there. Throws GridException for a cue outside 1 to 64 or a recipe or volume ToneSynth refuses (the old
        sound is kept then). */
     METHOD PUBLIC VOID Define(INPUT piCue AS INTEGER, INPUT pcRecipe AS CHARACTER, INPUT piVolume AS INTEGER):
-        DEFINE VARIABLE mNew AS MEMPTR NO-UNDO.
+        VAR MEMPTR mNew.
         IF piCue = ? OR piCue < 1 OR piCue > 64 THEN UNDO, THROW NEW GridException("A cue number is 1 to 64, not " + STRING(piCue)).
         mSynth:Make(pcRecipe, piVolume, OUTPUT mNew).
         IF mHeld[piCue] THEN SET-SIZE(mData[piCue]) = 0.
@@ -64,7 +64,7 @@ CLASS ProGriddle.Engine.SoundBank FINAL:
 
     /* Frees every sound. Safe to call more than once, and the bank can be filled again. */
     METHOD PUBLIC VOID Dispose():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 64:
             IF mHeld[i] THEN SET-SIZE(mData[i]) = 0.
             mHeld[i] = FALSE.

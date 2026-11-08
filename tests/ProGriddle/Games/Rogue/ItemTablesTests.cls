@@ -10,7 +10,7 @@ CLASS ProGriddle.Games.Rogue.ItemTablesTests:
 
     @Test.
     METHOD PUBLIC VOID TheNineWeaponsHaveDamageAChanceAndAWorth():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:Equals(9, Weapons:Count()).
         Assert:Equals(100, WeightedPick:Total(Weapons:Chances())).
         DO i = 0 TO 8:
@@ -40,7 +40,7 @@ CLASS ProGriddle.Games.Rogue.ItemTablesTests:
 
     @Test.
     METHOD PUBLIC VOID TheEightSuitsOfArmourGetBetterTheHeavierTheyAre():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:Equals(8, Armours:Count()).
         Assert:Equals(100, WeightedPick:Total(Armours:Chances())).
         Assert:Equals(8, Armours:ArmourClass(ArmourKind:Leather)).
@@ -71,7 +71,7 @@ CLASS ProGriddle.Games.Rogue.ItemTablesTests:
 
     @Test.
     METHOD PUBLIC VOID TheEightTrapsHaveNamesAndChances():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:Equals(8, Traps:Count()).
         Assert:Equals(100, WeightedPick:Total(Traps:Chances())).
         DO i = 0 TO 7:
@@ -85,7 +85,7 @@ CLASS ProGriddle.Games.Rogue.ItemTablesTests:
 
     @Test.
     METHOD PUBLIC VOID EveryMonsterIsALetterAToZWithFightingNumbers():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:Equals(26, Bestiary:Count()).
         DO i = 0 TO 25:
             Assert:Equals(CHR(65 + i), Bestiary:Letter(MonsterKind:GetEnum(i))).
@@ -125,7 +125,7 @@ CLASS ProGriddle.Games.Rogue.ItemTablesTests:
 
     @Test.
     METHOD PUBLIC VOID TheDepthOrderHoldsEveryLetterOnce():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:Equals(26, LENGTH(Bestiary:DepthOrder())).
         DO i = 0 TO 25:
             Assert:IsTrue(INDEX(Bestiary:DepthOrder(), CHR(65 + i)) > 0).
@@ -144,9 +144,9 @@ CLASS ProGriddle.Games.Rogue.ItemTablesTests:
 
     @Test.
     METHOD PUBLIC VOID TheRollMovesTheMonsterAndTheEndsAreBrought():
-        DEFINE VARIABLE i       AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE oRandom AS SeededRandom NO-UNDO.
-        DEFINE VARIABLE thrown  AS INTEGER      NO-UNDO.
+        VAR INTEGER i.
+        VAR SeededRandom oRandom.
+        VAR INTEGER thrown.
         oRandom = NEW SeededRandom(5).
         /* the lowest roll on depth 1 and the highest on 26 never leave the list */
         Assert:Equals(MonsterKind:Kestrel, Bestiary:ForDepth(1, NEW ScriptedRandom("0,0"))).

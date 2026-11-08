@@ -7,7 +7,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.FixedPick FINAL IMPLEMENTS IRandom:
 
-    DEFINE PRIVATE VARIABLE mValue AS INTEGER NO-UNDO.
+    VAR PRIVATE INTEGER mValue.
 
     CONSTRUCTOR PUBLIC FixedPick(INPUT piValue AS INTEGER):
         mValue = piValue.

@@ -9,9 +9,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Asteroids.TitleTraceTests:
 
-    DEFINE PRIVATE VARIABLE mGrid   AS Grid        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas AS PixelCanvas NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTrace  AS TitleTrace  NO-UNDO.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE PixelCanvas mCanvas.
+    VAR PRIVATE TitleTrace mTrace.
 
     @Setup.
     METHOD PUBLIC VOID BuildTrace():
@@ -40,9 +40,9 @@ CLASS ProGriddle.Games.Asteroids.TitleTraceTests:
 
     /* How many cells of a colour there are in a rectangle of the picture. */
     METHOD PRIVATE INTEGER CellsOf(INPUT piColour AS INTEGER, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         DO y = piY TO piY + piH - 1:
             DO x = piX TO piX + piW - 1:
                 IF mCanvas:ColourAt(x, y) = piColour THEN n = n + 1.
@@ -87,8 +87,8 @@ CLASS ProGriddle.Games.Asteroids.TitleTraceTests:
 
     @Test.
     METHOD PUBLIC VOID WhenItIsDoneAllNineLettersStandInTheCoreColourWithTheirGlowAndNoHead():
-        DEFINE VARIABLE xs AS CHARACTER NO-UNDO INITIAL "40,68,96,124,152,180,208,232,260".
-        DEFINE VARIABLE i  AS INTEGER   NO-UNDO.
+        VAR CHARACTER xs = "40,68,96,124,152,180,208,232,260".
+        VAR INTEGER i.
         DrawAt(110).
         DO i = 1 TO 9:
             Assert:IsTrue(CellsOf(AsteroidsLook:Colour(Palette:TitleCore), INTEGER(ENTRY(i, xs)), 58, 21, 29) > 15, SUBSTITUTE("letter &1", i)).

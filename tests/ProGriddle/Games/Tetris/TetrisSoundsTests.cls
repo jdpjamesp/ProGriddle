@@ -11,11 +11,11 @@ CLASS ProGriddle.Games.Tetris.TetrisSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID EveryCueHasARecipeThatMakesSoundNotSilence():
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE oSynth AS ToneSynth NO-UNDO.
-        DEFINE VARIABLE mData  AS MEMPTR    NO-UNDO.
-        DEFINE VARIABLE loud   AS INTEGER   NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR ToneSynth oSynth.
+        VAR MEMPTR mData.
+        VAR INTEGER loud.
         oSynth = NEW ToneSynth().
         DO i = INTEGER(TetrisCue:Lock) TO INTEGER(TetrisCue:Danger):
             oSynth:Make(TetrisSounds:Recipe(TetrisCue:GetEnum(i)), 100, OUTPUT mData).
@@ -33,7 +33,7 @@ CLASS ProGriddle.Games.Tetris.TetrisSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID EveryCueHasAVolumeFromOneToOneHundred():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = INTEGER(TetrisCue:Lock) TO INTEGER(TetrisCue:Danger):
             Assert:IsTrue(TetrisSounds:VolumeOf(TetrisCue:GetEnum(i)) >= 1).
             Assert:IsTrue(TetrisSounds:VolumeOf(TetrisCue:GetEnum(i)) <= 100).
@@ -42,10 +42,10 @@ CLASS ProGriddle.Games.Tetris.TetrisSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID FillMakesAllSixCuesInABankInUnderHalfASecond():
-        DEFINE VARIABLE oBank  AS SoundBank NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE start  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE took   AS INTEGER   NO-UNDO.
+        VAR SoundBank oBank.
+        VAR INTEGER i.
+        VAR INTEGER start.
+        VAR INTEGER took.
         oBank = NEW SoundBank().
         start = ETIME.
         TetrisSounds:Fill(oBank).
@@ -63,7 +63,7 @@ CLASS ProGriddle.Games.Tetris.TetrisSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownCueThrowsGridException():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             TetrisSounds:Recipe(?).
             CATCH e1 AS GridException:

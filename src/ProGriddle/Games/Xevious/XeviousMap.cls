@@ -23,14 +23,14 @@ CLASS ProGriddle.Games.Xevious.XeviousMap FINAL:
     /* The targets and land lines of the stage last asked about, worked out once (a stage is the same every time round, so these are
        kept by the stage's place in the 16): the kind (-1 for none) and the column of the target of each row, and the land line
        design (-1 for none) of each band of 12 rows. The map is asked about every tile of every row that scrolls in. */
-    DEFINE PRIVATE STATIC VARIABLE sStage AS INTEGER NO-UNDO INITIAL 0.
-    DEFINE PRIVATE STATIC VARIABLE sKind  AS INTEGER NO-UNDO EXTENT 120.
-    DEFINE PRIVATE STATIC VARIABLE sCol   AS INTEGER NO-UNDO EXTENT 120.
-    DEFINE PRIVATE STATIC VARIABLE sLine  AS INTEGER NO-UNDO EXTENT 12.
+    VAR PRIVATE STATIC INTEGER sStage = 0.
+    VAR PRIVATE STATIC INTEGER[120] sKind.
+    VAR PRIVATE STATIC INTEGER[120] sCol.
+    VAR PRIVATE STATIC INTEGER[12] sLine.
 
     /* A number from 0 to 32767 made from three numbers, always the same for the same three. */
     METHOD PUBLIC STATIC INTEGER Hash(INPUT piA AS INTEGER, INPUT piB AS INTEGER, INPUT piC AS INTEGER):
-        DEFINE VARIABLE h AS INT64 NO-UNDO.
+        VAR INT64 h.
         h = piA * 73856093 + piB * 19349663 + piC * 83492791 + 12345.
         h = h MODULO 2147483648.
         h = (h * 1103515245 + 12345) MODULO 2147483648.
@@ -69,8 +69,8 @@ CLASS ProGriddle.Games.Xevious.XeviousMap FINAL:
 
     /* Works out the targets and the land lines of a stage, unless they are already known. */
     METHOD PRIVATE STATIC VOID Prepare(INPUT piStage AS INTEGER):
-        DEFINE VARIABLE row  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE kind AS XeviousGround NO-UNDO.
+        VAR INTEGER row.
+        VAR XeviousGround kind.
         IF XeviousRules:StageOf(piStage) = sStage THEN RETURN.
         DO row = 0 TO XeviousRules:StageRows() - 1:
             kind = ComputeKind(piStage, row).
@@ -84,11 +84,11 @@ CLASS ProGriddle.Games.Xevious.XeviousMap FINAL:
     END METHOD.
 
     METHOD PRIVATE STATIC XeviousGround ComputeKind(INPUT piStage AS INTEGER, INPUT piRow AS INTEGER):
-        DEFINE VARIABLE i     AS INTEGER       NO-UNDO.
-        DEFINE VARIABLE total AS INTEGER       NO-UNDO.
-        DEFINE VARIABLE pick  AS INTEGER       NO-UNDO.
-        DEFINE VARIABLE kind  AS XeviousGround NO-UNDO.
-        DEFINE VARIABLE stage AS INTEGER       NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER total.
+        VAR INTEGER pick.
+        VAR XeviousGround kind.
+        VAR INTEGER stage.
         IF piRow < 4 OR piRow >= XeviousRules:StageRows() - 12 THEN RETURN ?.
         DO i = 0 TO 2:
             IF piRow = SolRow(piStage, i) THEN RETURN XeviousGround:Sol.
@@ -120,8 +120,8 @@ CLASS ProGriddle.Games.Xevious.XeviousMap FINAL:
     END METHOD.
 
     METHOD PRIVATE STATIC INTEGER ComputeCol(INPUT piStage AS INTEGER, INPUT piRow AS INTEGER):
-        DEFINE VARIABLE c AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER c.
+        VAR INTEGER n.
         c = Hash(XeviousRules:StageOf(piStage), piRow, 3) MODULO XeviousRules:Cols().
         DO n = 1 TO XeviousRules:Cols():
             IF NOT IsPath(piStage, c - 1, piRow) AND NOT IsPath(piStage, c, piRow) AND NOT IsPath(piStage, c + 1, piRow) THEN RETURN c.
@@ -132,7 +132,7 @@ CLASS ProGriddle.Games.Xevious.XeviousMap FINAL:
 
     /* True when a visible ground target stands on a pad in this tile. */
     METHOD PUBLIC STATIC LOGICAL IsPad(INPUT piStage AS INTEGER, INPUT piCol AS INTEGER, INPUT piRow AS INTEGER):
-        DEFINE VARIABLE kind AS XeviousGround NO-UNDO.
+        VAR XeviousGround kind.
         kind = KindAt(piStage, piRow).
         IF NOT VALID-OBJECT(kind) THEN RETURN FALSE.
         IF XeviousRules:IsHidden(kind) THEN RETURN FALSE.
@@ -182,9 +182,9 @@ CLASS ProGriddle.Games.Xevious.XeviousMap FINAL:
     /* The tile of the river or the road at a place (the picture's name without its kind, built by the caller), or unknown when the
        tile is neither. */
     METHOD PRIVATE STATIC XeviousTilePicture PathPicture(INPUT piStage AS INTEGER, INPUT piCol AS INTEGER, INPUT piRow AS INTEGER):
-        DEFINE VARIABLE a     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rc    AS INTEGER NO-UNDO.
+        VAR INTEGER a.
+        VAR INTEGER b.
+        VAR INTEGER rc.
         IF IsCrossing(piStage, piRow) AND piCol <= RoadCol(piStage, piRow) THEN DO:
             IF piCol = RoadCol(piStage, piRow) THEN RETURN XeviousTilePicture:RoadTW.
             IF RiverOn(piStage) AND piCol = RiverCol(piStage, piRow) THEN RETURN XeviousTilePicture:BridgeEw.
@@ -245,9 +245,9 @@ CLASS ProGriddle.Games.Xevious.XeviousMap FINAL:
 
     /* The design of the land line of band piBand (0 up), worked out from the map. */
     METHOD PRIVATE STATIC INTEGER ComputeLine(INPUT piStage AS INTEGER, INPUT piBand AS INTEGER):
-        DEFINE VARIABLE band AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c0   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r0   AS INTEGER NO-UNDO.
+        VAR INTEGER band.
+        VAR INTEGER c0.
+        VAR INTEGER r0.
         band = piBand.
         IF band < 1 OR band >= 9 THEN RETURN -1.
         IF Hash(XeviousRules:StageOf(piStage), band, 11) MODULO 100 >= LinesPercent(piStage) THEN RETURN -1.
@@ -270,11 +270,11 @@ CLASS ProGriddle.Games.Xevious.XeviousMap FINAL:
 
     /* The quarter of a land line in this tile, or unknown. Row r0 of the line is its lower half (the south tiles), r0 + 1 its upper. */
     METHOD PRIVATE STATIC XeviousTilePicture LinePicture(INPUT piStage AS INTEGER, INPUT piCol AS INTEGER, INPUT piRow AS INTEGER):
-        DEFINE VARIABLE design AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE c0     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE r0     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE band   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE name   AS CHARACTER NO-UNDO.
+        VAR INTEGER design.
+        VAR INTEGER c0.
+        VAR INTEGER r0.
+        VAR INTEGER band.
+        VAR CHARACTER name.
         design = LineDesign(piStage, piRow).
         IF design < 0 THEN RETURN ?.
         band = XeviousMotion:Div(piRow, 12).
@@ -290,8 +290,8 @@ CLASS ProGriddle.Games.Xevious.XeviousMap FINAL:
     /* True when the corner of the map at column piCx (0 to 14) and row piCy is forest: the corner of the tiles (piCx - 1, piCy - 1),
        (piCx, piCy - 1), (piCx - 1, piCy) and (piCx, piCy). Forest lies in patches, and never touches a path, a pad or a land line. */
     METHOD PUBLIC STATIC LOGICAL IsForestCorner(INPUT piStage AS INTEGER, INPUT piCx AS INTEGER, INPUT piCy AS INTEGER):
-        DEFINE VARIABLE dx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
         IF piCx < 1 OR piCx >= XeviousRules:Cols() OR piCy < 1 OR piCy >= XeviousRules:StageRows() - 8 THEN RETURN FALSE.
         IF Hash(XeviousRules:StageOf(piStage), XeviousMotion:Div(piCy, 3), XeviousMotion:Div(piCx, 3)) MODULO 100 >= ForestPercent(piStage) THEN RETURN FALSE.
         DO dy = -1 TO 0:
@@ -318,13 +318,13 @@ CLASS ProGriddle.Games.Xevious.XeviousMap FINAL:
     /* The tile of the design that lies in a column of a row of a stage. A path comes first, then a land line, then the pad of a
        ground target, then forest (chosen by its four corners) and last open ground in one of three variants. */
     METHOD PUBLIC STATIC XeviousTilePicture PictureAt(INPUT piStage AS INTEGER, INPUT piCol AS INTEGER, INPUT piRow AS INTEGER):
-        DEFINE VARIABLE pic    AS XeviousTilePicture NO-UNDO.
-        DEFINE VARIABLE name   AS CHARACTER          NO-UNDO.
-        DEFINE VARIABLE nw     AS LOGICAL            NO-UNDO.
-        DEFINE VARIABLE ne     AS LOGICAL            NO-UNDO.
-        DEFINE VARIABLE sw     AS LOGICAL            NO-UNDO.
-        DEFINE VARIABLE se     AS LOGICAL            NO-UNDO.
-        DEFINE VARIABLE corners AS CHARACTER         NO-UNDO.
+        VAR XeviousTilePicture pic.
+        VAR CHARACTER name.
+        VAR LOGICAL nw.
+        VAR LOGICAL ne.
+        VAR LOGICAL sw.
+        VAR LOGICAL se.
+        VAR CHARACTER corners.
         IF piCol < 0 OR piCol >= XeviousRules:Cols() OR piRow < 0 THEN UNDO, THROW NEW GridException(SUBSTITUTE("There is no tile at column &1, row &2", piCol, piRow)).
         pic = PathPicture(piStage, piCol, piRow).
         IF VALID-OBJECT(pic) THEN RETURN pic.

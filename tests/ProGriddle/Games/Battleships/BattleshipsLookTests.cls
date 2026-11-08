@@ -16,7 +16,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsLookTests:
 
     @Test.
     METHOD PUBLIC VOID EveryColourIsSixHexDigits():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 14:
             Assert:Equals(6, LENGTH(ENTRY(i, BattleshipsLook:Palette()))).
             Assert:Equals(6, LENGTH(ENTRY(i, BattleshipsLook:GlyphColors()))).
@@ -25,9 +25,9 @@ CLASS ProGriddle.Games.Battleships.BattleshipsLookTests:
 
     @Test.
     METHOD PUBLIC VOID EveryTextSymbolIsDifferent():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j AS INTEGER NO-UNDO.
-        DEFINE VARIABLE same AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER same.
         DO i = 1 TO 14:
             DO j = i + 1 TO 14:
                 IF SUBSTRING(BattleshipsLook:TextSymbols(), i, 1) = SUBSTRING(BattleshipsLook:TextSymbols(), j, 1) THEN same = same + 1.

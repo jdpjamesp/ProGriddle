@@ -29,31 +29,31 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
     /* the canvas row of the top of the band (the player zone) and the rows the stars drift in */
     &SCOPED-DEFINE BAND-TOP 208
 
-    DEFINE PRIVATE VARIABLE mInner     AS IGridRenderer  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGame      AS CentipedeGame  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGrid      AS Grid           NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBaseGrid  AS Grid           NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas    AS PixelCanvas    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBase      AS PixelCanvas    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mText      AS TextStampCache NO-UNDO.
+    VAR PRIVATE IGridRenderer mInner.
+    VAR PRIVATE CentipedeGame mGame.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE Grid mBaseGrid.
+    VAR PRIVATE PixelCanvas mCanvas.
+    VAR PRIVATE PixelCanvas mBase.
+    VAR PRIVATE TextStampCache mText.
     /* the colour of each character of a sprite string, by character code plus one (letters and digits only are used) */
-    DEFINE PRIVATE VARIABLE mPal       AS INTEGER        NO-UNDO EXTENT 128.
+    VAR PRIVATE INTEGER[128] mPal.
     /* the character codes of the three family places in a sprite */
-    DEFINE PRIVATE VARIABLE mCodeLight AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCodeBody  AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCodeDeep  AS INTEGER        NO-UNDO.
+    VAR PRIVATE INTEGER mCodeLight.
+    VAR PRIVATE INTEGER mCodeBody.
+    VAR PRIVATE INTEGER mCodeDeep.
     /* the version of the field, and the wave, that are baked into the background, -1 for none yet */
-    DEFINE PRIVATE VARIABLE mBakedVersion AS INTEGER     NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mBakedWave    AS INTEGER     NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mDisposed  AS LOGICAL        NO-UNDO.
+    VAR PRIVATE INTEGER mBakedVersion = -1.
+    VAR PRIVATE INTEGER mBakedWave = -1.
+    VAR PRIVATE LOGICAL mDisposed.
 
     /* The places of the far layer (stars), the near layer (fireflies) and the front layer (grass), from the design. */
-    DEFINE PRIVATE VARIABLE mStarX     AS INTEGER        NO-UNDO EXTENT 18 INITIAL [13, 47, 88, 121, 160, 203, 229, 30, 72, 140, 186, 11, 101, 215, 58, 176, 124, 34].
-    DEFINE PRIVATE VARIABLE mStarY     AS INTEGER        NO-UNDO EXTENT 18 INITIAL [22, 61, 30, 102, 47, 77, 140, 128, 170, 160, 118, 190, 75, 24, 101, 184, 196, 58].
-    DEFINE PRIVATE VARIABLE mFlyX      AS INTEGER        NO-UNDO EXTENT 5 INITIAL [40, 190, 120, 70, 210].
-    DEFINE PRIVATE VARIABLE mFlyY      AS INTEGER        NO-UNDO EXTENT 5 INITIAL [70, 52, 140, 180, 160].
-    DEFINE PRIVATE VARIABLE mFlyP      AS DECIMAL        NO-UNDO EXTENT 5 INITIAL [0.0, 1.7, 3.1, 4.4, 2.2].
-    DEFINE PRIVATE VARIABLE mGrassX    AS INTEGER        NO-UNDO EXTENT 32 INITIAL [3, 9, 14, 22, 31, 37, 44, 53, 60, 66, 75, 83, 90, 98, 106, 113, 121, 128, 137, 144, 151, 160, 167, 175, 182, 190, 199, 206, 213, 221, 228, 236].
+    VAR PRIVATE INTEGER[18] mStarX = [13, 47, 88, 121, 160, 203, 229, 30, 72, 140, 186, 11, 101, 215, 58, 176, 124, 34].
+    VAR PRIVATE INTEGER[18] mStarY = [22, 61, 30, 102, 47, 77, 140, 128, 170, 160, 118, 190, 75, 24, 101, 184, 196, 58].
+    VAR PRIVATE INTEGER[5] mFlyX = [40, 190, 120, 70, 210].
+    VAR PRIVATE INTEGER[5] mFlyY = [70, 52, 140, 180, 160].
+    VAR PRIVATE DECIMAL[5] mFlyP = [0.0, 1.7, 3.1, 4.4, 2.2].
+    VAR PRIVATE INTEGER[32] mGrassX = [3, 9, 14, 22, 31, 37, 44, 53, 60, 66, 75, 83, 90, 98, 106, 113, 121, 128, 137, 144, 151, 160, 167, 175, 182, 190, 199, 206, 213, 221, 228, 236].
 
     /* The canvas the picture is drawn on, and the grid it is on (what the window's renderer is given). */
     DEFINE PUBLIC PROPERTY Canvas AS PixelCanvas NO-UNDO
@@ -74,8 +74,8 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
 
     /* Throws GridException for no renderer or no game. */
     CONSTRUCTOR PUBLIC CentipedePainter(INPUT poInner AS IGridRenderer, INPUT poGame AS CentipedeGame):
-        DEFINE VARIABLE i    AS INTEGER     NO-UNDO.
-        DEFINE VARIABLE tint AS CentipedeTint NO-UNDO.
+        VAR INTEGER i.
+        VAR CentipedeTint tint.
         IF NOT VALID-OBJECT(poInner) THEN UNDO, THROW NEW GridException("A Centipede painter needs a renderer to hand the picture to").
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("A Centipede painter needs a game").
         mInner = poInner.
@@ -151,12 +151,12 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
        turned left to right. piOver, when it is not -1, draws every cell of the sprite in that one colour. */
     METHOD PRIVATE VOID Blit(INPUT poSprite AS CentipedeSprite, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT plMirror AS LOGICAL,
                              INPUT piLight AS INTEGER, INPUT piBody AS INTEGER, INPUT piDeep AS INTEGER, INPUT piOver AS INTEGER):
-        DEFINE VARIABLE cells AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE w     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE h     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cx    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cy    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE ch    AS CHARACTER NO-UNDO.
+        VAR CHARACTER cells.
+        VAR INTEGER w.
+        VAR INTEGER h.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR CHARACTER ch.
         cells = CentipedeArt:Cells(poSprite).
         w = CentipedeArt:Width(poSprite).
         h = CentipedeArt:Height(poSprite).
@@ -188,17 +188,17 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
        sprite, over what is already there (the background). */
     METHOD PRIVATE VOID Glow(INPUT poSprite AS CentipedeSprite, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT plMirror AS LOGICAL,
                              INPUT piColour AS INTEGER, INPUT piPercent AS INTEGER):
-        DEFINE VARIABLE cells AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE w     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE h     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cx    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cy    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE dx    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE dy    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE nx    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE ny    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE lit   AS LOGICAL   NO-UNDO.
-        DEFINE VARIABLE px    AS INTEGER   NO-UNDO.
+        VAR CHARACTER cells.
+        VAR INTEGER w.
+        VAR INTEGER h.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER nx.
+        VAR INTEGER ny.
+        VAR LOGICAL lit.
+        VAR INTEGER px.
         cells = CentipedeArt:Cells(poSprite).
         w = CentipedeArt:Width(poSprite).
         h = CentipedeArt:Height(poSprite).
@@ -273,12 +273,12 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
     /* The plain background, made once on the base canvas: the strip, the night with a dotted rule under each row, and the quieter
        band of the player zone with its top line. */
     METHOD PRIVATE VOID BuildBase():
-        DEFINE VARIABLE rows    AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE x       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tileRow AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rule    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE bandRule AS INTEGER NO-UNDO.
+        VAR INTEGER[] rows.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER tileRow.
+        VAR INTEGER rule.
+        VAR INTEGER bandRule.
         EXTENT(rows) = {&HEIGHT}.
         DO y = 0 TO {&HEIGHT} - 1:
             IF y < {&STRIP} - 1 THEN rows[y + 1] = CentipedeLook:Colour(CentipedeTint:Strip).
@@ -305,10 +305,10 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
 
     /* Draws every bulb into the background of the picture, so a frame brings them back with one block copy. */
     METHOD PRIVATE VOID BakeField():
-        DEFINE VARIABLE cx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hp     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE family AS INTEGER NO-UNDO.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
+        VAR INTEGER hp.
+        VAR INTEGER family.
         mBakedVersion = mGame:FieldVersion.
         mBakedWave = ShownWave().
         family = CentipedeLook:BulbFamily(mBakedWave).
@@ -332,7 +332,7 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
 
     /* The sine of an angle in radians (ABL has none), by a parabola that is never more than 0.06 out, which is plenty for a firefly. */
     METHOD PRIVATE DECIMAL Sine(INPUT pdAngle AS DECIMAL):
-        DEFINE VARIABLE x AS DECIMAL NO-UNDO.
+        VAR DECIMAL x.
         x = pdAngle - 6.2831853 * TRUNCATE(pdAngle / 6.2831853, 0).
         IF x > 3.1415927 THEN x = x - 6.2831853.
         IF x < -3.1415927 THEN x = x + 6.2831853.
@@ -342,15 +342,15 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
     /* The three layers that give the flat bed some depth: slow stars, fireflies, and grass at the foot of the band. They go over the
        background only, so they never cover anything that matters. */
     METHOD PRIVATE VOID DrawDepth():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t      AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE blade  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE night  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lean   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tall   AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER k.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR DECIMAL t.
+        VAR INTEGER blade.
+        VAR INTEGER night.
+        VAR INTEGER lean.
+        VAR INTEGER tall.
         night = CentipedeLook:Colour(CentipedeTint:Night).
         DO i = 1 TO 18:
             y = {&STRIP} + (mStarY[i] - {&STRIP} + INTEGER(TRUNCATE(mGame:Frames / 64, 0))) MODULO ({&BAND-TOP} - {&STRIP} - 2).
@@ -377,7 +377,7 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
 
     /* The strip: the score, the best score, the moon of the night, the wave and a Wick for each spare life. */
     METHOD PRIVATE VOID DrawHud():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Words(STRING(mGame:Score), 1, CentipedeTint:Points, CentipedeTint:Points, 4, 4, FALSE, FALSE).
         Words("HI", 1, CentipedeTint:TextDim, CentipedeTint:TextDim, 82, 4, FALSE, FALSE).
         Words(STRING(mGame:HiScore), 1, CentipedeTint:Text, CentipedeTint:Text, 96, 4, FALSE, FALSE).
@@ -392,9 +392,9 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
 
     /* The Wick, its spark and its muzzle flash, or the Wick breaking up. */
     METHOD PRIVATE VOID DrawPlayer():
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sprite AS CentipedeSprite NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR CentipedeSprite sprite.
         x = mGame:PlayerX.
         y = {&STRIP} + mGame:PlayerY.
         IF mGame:Phase = GamePhase:Dying THEN DO:
@@ -413,7 +413,7 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
 
     /* The Wick breaking up: six pictures of ten frames each, centred on its middle, then nothing while the field is mended. */
     METHOD PRIVATE VOID DrawBreakUp(INPUT piCx AS INTEGER, INPUT piCy AS INTEGER, INPUT piAge AS INTEGER):
-        DEFINE VARIABLE sprite AS CentipedeSprite NO-UNDO.
+        VAR CentipedeSprite sprite.
         IF piAge >= 60 THEN RETURN.
         CASE INTEGER(TRUNCATE(piAge / 10, 0)):
             WHEN 0 THEN sprite = CentipedeSprite:WickBreak1.
@@ -428,7 +428,7 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
 
     /* The Gloam: a bead for each segment, a head where the game says so. */
     METHOD PRIVATE VOID DrawSegments():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 0 TO mGame:SegmentCount - 1:
             DrawGloamPart(mGame:SegmentX(i), {&STRIP} + mGame:SegmentY(i), mGame:SegmentIsHead(i), mGame:SegmentDirection(i) < 0,
                           mGame:SegmentDiving(i), i, mGame:Frames, CentipedeLook:CrawlerFamily(mGame:Wave)).
@@ -439,11 +439,11 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
        diving flickers in the colours of blight every four frames, and a head that dives is drawn looking down. */
     METHOD PRIVATE VOID DrawGloamPart(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT plHead AS LOGICAL, INPUT plLeft AS LOGICAL,
                                       INPUT plDiving AS LOGICAL, INPUT piIndex AS INTEGER, INPUT piFrames AS INTEGER, INPUT piFamily AS INTEGER):
-        DEFINE VARIABLE walk  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE light AS INTEGER NO-UNDO.
-        DEFINE VARIABLE body  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE deep  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sprite AS CentipedeSprite NO-UNDO.
+        VAR INTEGER walk.
+        VAR INTEGER light.
+        VAR INTEGER body.
+        VAR INTEGER deep.
+        VAR CentipedeSprite sprite.
         walk = INTEGER(TRUNCATE((piFrames + 2 * piIndex) / 4, 0)) MODULO 4 + 1.
         light = CentipedeLook:FamilyColour(piFamily, 1).
         body = CentipedeLook:FamilyColour(piFamily, 2).
@@ -467,8 +467,8 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
 
     /* The Sower (the flea): a seed beetle falling head first. After the first hit its shell is pale and it flickers white. */
     METHOD PRIVATE VOID DrawSower():
-        DEFINE VARIABLE sprite AS CentipedeSprite NO-UNDO.
-        DEFINE VARIABLE wings  AS LOGICAL NO-UNDO.
+        VAR CentipedeSprite sprite.
+        VAR LOGICAL wings.
         wings = INTEGER(TRUNCATE(mGame:Frames / 3, 0)) MODULO 2 = 0.
         IF mGame:FleaHp = 1 THEN DO:
             sprite = (IF wings THEN CentipedeSprite:SowerHurt1 ELSE CentipedeSprite:SowerHurt2).
@@ -480,7 +480,7 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
 
     /* The Skitterjack (the spider): legs that reach and pull by turns, and a crouch just before it bounces at the top or bottom of its path. */
     METHOD PRIVATE VOID DrawSkitterjack():
-        DEFINE VARIABLE walk AS INTEGER NO-UNDO.
+        VAR INTEGER walk.
         walk = INTEGER(TRUNCATE(mGame:Frames / 4, 0)) MODULO 4 + 1.
         IF mGame:SpiderY <= 162 OR mGame:SpiderY >= 230 THEN walk = 3.
         CASE walk:
@@ -493,14 +493,14 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
 
     /* The Moonsnail (the scorpion): a pale shell that rides forward on a stretching foot, turned the way it is going. */
     METHOD PRIVATE VOID DrawMoonsnail():
-        DEFINE VARIABLE sprite AS CentipedeSprite NO-UNDO.
+        VAR CentipedeSprite sprite.
         sprite = (IF INTEGER(TRUNCATE(mGame:Frames / 8, 0)) MODULO 2 = 0 THEN CentipedeSprite:Moonsnail1 ELSE CentipedeSprite:Moonsnail2).
         Blit(sprite, mGame:ScorpionX, {&STRIP} + mGame:ScorpionY, mGame:ScorpionDirection < 0, 0, 0, 0, -1).
     END METHOD.
 
     /* The points of the last thing shot, for half a second where it was, rising a cell every eight frames. */
     METHOD PRIVATE VOID DrawBonus():
-        DEFINE VARIABLE age AS INTEGER NO-UNDO.
+        VAR INTEGER age.
         IF mGame:LastBonusFrame < 0 THEN RETURN.
         age = mGame:Frames - mGame:LastBonusFrame.
         IF age >= 30 THEN RETURN.
@@ -512,8 +512,8 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
 
     /* A soft dark banner over the field from row piY for piHeight rows: 60 percent ink, fading over its first and last three rows. */
     METHOD PRIVATE VOID Banner(INPUT piY AS INTEGER, INPUT piHeight AS INTEGER):
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ink AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER ink.
         ink = CentipedeLook:Colour(CentipedeTint:Ink).
         DO i = 0 TO piHeight - 1:
             mCanvas:DimRect(0, piY + i, {&WIDTH}, 1, MINIMUM(60, 15 * (MINIMUM(i, piHeight - 1 - i) + 1)), ink).
@@ -522,10 +522,10 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
 
     /* The title: the name in big letters, the Gloam crossing under it on a new night each time, who is who, and what to press. */
     METHOD PRIVATE VOID DrawTitle():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE family AS INTEGER NO-UNDO.
-        DEFINE VARIABLE night  AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER family.
+        VAR INTEGER night.
         night = ShownWave().
         family = CentipedeLook:CrawlerFamily(night).
         Words("CENTIPEDE", 3, CentipedeTint:MoonTop, CentipedeTint:MoonLow, -1, 30, TRUE, TRUE).
@@ -542,8 +542,8 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
 
     /* The roll call: each creature with its name and what it is worth. */
     METHOD PRIVATE VOID DrawRollCall(INPUT piNight AS INTEGER):
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO INITIAL 120.
-        DEFINE VARIABLE family AS INTEGER NO-UNDO.
+        VAR INTEGER y = 120.
+        VAR INTEGER family.
         family = CentipedeLook:CrawlerFamily(piNight).
         StampFamily(CentipedeSprite:Head1, 60, y, FALSE, family).
         RollLine("GLOAMHEAD", "100", y).
@@ -579,7 +579,7 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
 
     /* A plate with a one cell edge, centred across, whose middle is on row piMiddle. */
     METHOD PRIVATE VOID Plate(INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER, INPUT piTop AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         x = INTEGER(TRUNCATE(({&WIDTH} - piWidth) / 2, 0)).
         mCanvas:FillRect(x, piTop, piWidth, piHeight, 0, CentipedeLook:Colour(CentipedeTint:StripRule)).
         mCanvas:FillRect(x + 1, piTop + 1, piWidth - 2, piHeight - 2, 0, CentipedeLook:Colour(CentipedeTint:Plate)).
@@ -607,8 +607,8 @@ CLASS ProGriddle.Games.Centipede.CentipedePainter FINAL IMPLEMENTS IGridRenderer
        poTop at the top of the letters to poBottom, with a dark edge when plEdge is set and the letters are big enough to have one. */
     METHOD PRIVATE VOID Words(INPUT pcText AS CHARACTER, INPUT piScale AS INTEGER, INPUT poTop AS CentipedeTint, INPUT poBottom AS CentipedeTint,
                               INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT plCentre AS LOGICAL, INPUT plEdge AS LOGICAL):
-        DEFINE VARIABLE stamp AS TextStamp NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER   NO-UNDO.
+        VAR TextStamp stamp.
+        VAR INTEGER x.
         stamp = mText:Get(pcText, piScale, CentipedeLook:Colour(poTop), CentipedeLook:Colour(poBottom),
                           (IF plEdge THEN CentipedeLook:Colour(CentipedeTint:Ink) ELSE -1)).
         x = (IF plCentre THEN INTEGER(TRUNCATE(({&WIDTH} - stamp:Width) / 2, 0)) ELSE piX).

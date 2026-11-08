@@ -10,11 +10,11 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Core.AbstractCellStore ABSTRACT IMPLEMENTS ICellStore:
 
-    DEFINE PROTECTED VARIABLE mWidth      AS INTEGER   NO-UNDO.
-    DEFINE PROTECTED VARIABLE mHeight     AS INTEGER   NO-UNDO.
-    DEFINE PROTECTED VARIABLE mCells      AS INTEGER   NO-UNDO.
-    DEFINE PROTECTED VARIABLE mLayerCount AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE   VARIABLE mLayerNames AS CHARACTER NO-UNDO EXTENT.
+    VAR PROTECTED INTEGER mWidth.
+    VAR PROTECTED INTEGER mHeight.
+    VAR PROTECTED INTEGER mCells.
+    VAR PROTECTED INTEGER mLayerCount.
+    VAR PRIVATE CHARACTER[] mLayerNames.
 
     DEFINE PUBLIC PROPERTY Width AS INTEGER NO-UNDO
         GET():
@@ -35,11 +35,11 @@ CLASS ProGriddle.Core.AbstractCellStore ABSTRACT IMPLEMENTS ICellStore:
        names: letters, digits and underscores, starting with a letter, unique ignoring case.
        The names "x" and "y" are reserved because TableStore uses them for coordinates. */
     CONSTRUCTOR PROTECTED AbstractCellStore(INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER, INPUT pcLayers AS CHARACTER):
-        DEFINE VARIABLE i    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE c    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE name AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE ch   AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER c.
+        VAR CHARACTER name.
+        VAR CHARACTER ch.
 
         IF piWidth < 1 OR piHeight < 1 THEN
             UNDO, THROW NEW GridException(SUBSTITUTE("Grid size must be at least 1 x 1, not &1 x &2", piWidth, piHeight)).
@@ -75,7 +75,7 @@ CLASS ProGriddle.Core.AbstractCellStore ABSTRACT IMPLEMENTS ICellStore:
     END CONSTRUCTOR.
 
     METHOD PUBLIC INTEGER LayerIndex(INPUT pcName AS CHARACTER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO mLayerCount:
             IF mLayerNames[i] = pcName THEN RETURN i.
         END.
@@ -100,8 +100,8 @@ CLASS ProGriddle.Core.AbstractCellStore ABSTRACT IMPLEMENTS ICellStore:
     METHOD PUBLIC ABSTRACT VOID Dispose().
 
     METHOD PUBLIC LOGICAL IsEmpty():
-        DEFINE VARIABLE l AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER l.
+        VAR INTEGER i.
         DO l = 1 TO mLayerCount:
             DO i = 0 TO mCells - 1:
                 IF GetCellAt(l, i) <> 0 THEN RETURN FALSE.
@@ -111,7 +111,7 @@ CLASS ProGriddle.Core.AbstractCellStore ABSTRACT IMPLEMENTS ICellStore:
     END METHOD.
 
     METHOD PUBLIC VOID FillLayer(INPUT piLayer AS INTEGER, INPUT piValue AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         ValidateLayer(piLayer).
         DO i = 0 TO mCells - 1:
             SetCellAt(piLayer, i, piValue).
@@ -119,8 +119,8 @@ CLASS ProGriddle.Core.AbstractCellStore ABSTRACT IMPLEMENTS ICellStore:
     END METHOD.
 
     METHOD PUBLIC INTEGER CountOf(INPUT piLayer AS INTEGER, INPUT piValue AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
         ValidateLayer(piLayer).
         DO i = 0 TO mCells - 1:
             IF GetCellAt(piLayer, i) = piValue THEN n = n + 1.
@@ -129,8 +129,8 @@ CLASS ProGriddle.Core.AbstractCellStore ABSTRACT IMPLEMENTS ICellStore:
     END METHOD.
 
     METHOD PUBLIC VOID CopyFrom(INPUT poSource AS ICellStore):
-        DEFINE VARIABLE l AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER l.
+        VAR INTEGER i.
         CheckCompatible(poSource).
         DO l = 1 TO mLayerCount:
             DO i = 0 TO mCells - 1:
@@ -140,9 +140,9 @@ CLASS ProGriddle.Core.AbstractCellStore ABSTRACT IMPLEMENTS ICellStore:
     END METHOD.
 
     METHOD PUBLIC LOGICAL CanPlace(INPUT piLayer AS INTEGER, INPUT poShape AS Shape, INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE gx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE gy AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER gx.
+        VAR INTEGER gy.
         ValidateLayer(piLayer).
         ValidateShape(poShape).
         DO i = 1 TO poShape:Size:
@@ -155,9 +155,9 @@ CLASS ProGriddle.Core.AbstractCellStore ABSTRACT IMPLEMENTS ICellStore:
     END METHOD.
 
     METHOD PUBLIC VOID Stamp(INPUT piLayer AS INTEGER, INPUT poShape AS Shape, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piValue AS INTEGER):
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE gx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE gy AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER gx.
+        VAR INTEGER gy.
         ValidateLayer(piLayer).
         ValidateShape(poShape).
         DO i = 1 TO poShape:Size:
@@ -176,7 +176,7 @@ CLASS ProGriddle.Core.AbstractCellStore ABSTRACT IMPLEMENTS ICellStore:
     END METHOD.
 
     METHOD PUBLIC LOGICAL IsRowFull(INPUT piLayer AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         ValidateLayer(piLayer).
         ValidateRow(piY).
         DO x = 0 TO mWidth - 1:
@@ -186,7 +186,7 @@ CLASS ProGriddle.Core.AbstractCellStore ABSTRACT IMPLEMENTS ICellStore:
     END METHOD.
 
     METHOD PUBLIC VOID ClearRow(INPUT piLayer AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         ValidateLayer(piLayer).
         ValidateRow(piY).
         DO x = 0 TO mWidth - 1:
@@ -195,8 +195,8 @@ CLASS ProGriddle.Core.AbstractCellStore ABSTRACT IMPLEMENTS ICellStore:
     END METHOD.
 
     METHOD PUBLIC VOID ShiftRowsDown(INPUT piLayer AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE r AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER r.
+        VAR INTEGER x.
         ValidateLayer(piLayer).
         ValidateRow(piY).
         DO r = piY TO 1 BY -1:
@@ -209,7 +209,7 @@ CLASS ProGriddle.Core.AbstractCellStore ABSTRACT IMPLEMENTS ICellStore:
 
     /* Throws GridException unless the source has the same size and layer names. */
     METHOD PROTECTED VOID CheckCompatible(INPUT poSource AS ICellStore):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF NOT VALID-OBJECT(poSource) THEN
             UNDO, THROW NEW GridException("Source store is not valid").
         IF poSource:Width <> mWidth OR poSource:Height <> mHeight THEN
@@ -225,8 +225,8 @@ CLASS ProGriddle.Core.AbstractCellStore ABSTRACT IMPLEMENTS ICellStore:
 
     /* The comma separated layer names, for building a store of the same shape. */
     METHOD PROTECTED CHARACTER LayerList():
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER result.
         DO i = 1 TO mLayerCount:
             result = result + (IF i > 1 THEN "," ELSE "") + mLayerNames[i].
         END.

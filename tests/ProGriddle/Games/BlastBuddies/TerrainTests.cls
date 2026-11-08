@@ -9,7 +9,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
 
-    DEFINE PRIVATE VARIABLE mT AS Terrain NO-UNDO.
+    VAR PRIVATE Terrain mT.
 
     @Setup.
     METHOD PUBLIC VOID Setup():
@@ -37,8 +37,8 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
 
     @Test.
     METHOD PUBLIC VOID AMapNeedsATheme():
-        DEFINE VARIABLE t       AS Terrain NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR Terrain t.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             t = NEW Terrain(?).
             CATCH e AS GridException:
@@ -73,7 +73,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
 
     @Test.
     METHOD PUBLIC VOID SetSolidOutsideTheMapIsRefused():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             mT:SetSolid(384, 0, TRUE).
             CATCH e AS GridException:
@@ -110,7 +110,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
 
     @Test.
     METHOD PUBLIC VOID AScorchStepOutsideZeroToThreeIsRefused():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             mT:SetScorch(1, 1, 4).
             CATCH e AS GridException:
@@ -146,7 +146,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
 
     @Test.
     METHOD PUBLIC VOID RockYIsTheBedrockLineWithASlowWave():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         Assert:Equals(200, mT:RockY(0)).
         DO x = 0 TO 383:
             Assert:IsTrue(mT:RockY(x) >= 197 AND mT:RockY(x) <= 203, "column " + STRING(x)).
@@ -183,7 +183,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
 
     @Test.
     METHOD PUBLIC VOID BelowTheGrassIsSoilThenDeepThenRock():
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER y.
         mT:FillRect(100, 60, 200, 239, TRUE).
         DO y = 64 TO 73:
             Assert:IsTrue(mT:ShadeAt(150, y) = (IF mT:Speckled(150, y) THEN Look(ThemeKey:SoilSpeck) ELSE Look(ThemeKey:Soil)), "row " + STRING(y)).
@@ -238,8 +238,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
 
     @Test.
     METHOD PUBLIC VOID EveryThemeUsesItsOwnTable():
-        DEFINE VARIABLE c AS Terrain NO-UNDO.
-        c = NEW Terrain(Theme:Candy).
+        VAR Terrain c = NEW Terrain(Theme:Candy).
         c:FillRect(100, 60, 200, 239, TRUE).
         Assert:Equals(TerrainThemes:Colour(Theme:Candy, ThemeKey:Top1), c:ShadeAt(150, 60)).
         Assert:Equals(TerrainThemes:Colour(Theme:Candy, ThemeKey:Top3), c:ShadeAt(150, 62)).
@@ -248,9 +247,9 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
 
     @Test.
     METHOD PUBLIC VOID CarveTurnsTheDiscToAirAndCountsWhatItRemoved():
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE want AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER want.
         mT:FillRect(0, 50, 383, 239, TRUE).
         DO y = -20 TO 20:
             DO x = -20 TO 20:
@@ -310,7 +309,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
 
     @Test.
     METHOD PUBLIC VOID ACarveWithNoRadiusIsRefused():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             mT:Carve(10, 10, 0).
             CATCH e AS GridException:
@@ -363,7 +362,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
 
     @Test.
     METHOD PUBLIC VOID TheScorchGlowsInTheBlastRampAndCoolsInThreeStepsOverSixHundredMilliseconds():
-        DEFINE VARIABLE blast AS CHARACTER NO-UNDO.
+        VAR CHARACTER blast.
         blast = BuddiesLook:ToneRow("Blast").
         Assert:Equals(ColourMath:FromHex(ENTRY(3, blast)), mT:ScorchColour(1, 0)).
         Assert:Equals(ColourMath:FromHex(ENTRY(4, blast)), mT:ScorchColour(2, 199)).
@@ -381,7 +380,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
 
     @Test.
     METHOD PUBLIC VOID AScorchColourNeedsAStepFromOneToThree():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             mT:ScorchColour(0, 0).
             CATCH e AS GridException:
@@ -393,11 +392,11 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
 
     @Test.
     METHOD PUBLIC VOID ABlastOfRadiusThirtyAndItsReshadeTakesWellUnderFiftyMilliseconds():
-        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ms  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sum AS INT64   NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER c.
+        VAR INTEGER ms.
+        VAR INT64 sum.
         mT:FillRect(0, 100, 383, 239, TRUE).
         ETIME(TRUE).
         mT:Carve(200, 110, 30).
@@ -415,7 +414,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
 
     @Test.
     METHOD PUBLIC VOID ASpeckOfOnePixelInTheSkyNearABlastCrumblesAndKeepsItsColour():
-        DEFINE VARIABLE colour AS INTEGER NO-UNDO.
+        VAR INTEGER colour.
         mT:SetSolid(200, 100, TRUE).
         colour = mT:ShadeAt(200, 100).
         Assert:Equals(1, mT:Crumble(200, 100, 20)).
@@ -505,7 +504,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
 
     @Test.
     METHOD PUBLIC VOID CrumbsAreOnlyThereForTheLastCrumble():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         mT:SetSolid(100, 100, TRUE).
         mT:Crumble(100, 100, 20).
         mT:Crumble(100, 100, 20).
@@ -536,7 +535,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
 
     @Test.
     METHOD PUBLIC VOID ACrumbleWithNoRadiusIsRefused():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             mT:Crumble(10, 10, 0).
             CATCH e AS GridException:
@@ -548,7 +547,7 @@ CLASS ProGriddle.Games.BlastBuddies.TerrainTests:
 
     @Test.
     METHOD PUBLIC VOID ACrumbleOnTheMapEdgeIsClippedAndTheTimeOfABigOneIsShort():
-        DEFINE VARIABLE ms AS INTEGER NO-UNDO.
+        VAR INTEGER ms.
         mT:FillRect(0, 100, 383, 239, TRUE).
         mT:Carve(200, 110, 30).
         ETIME(TRUE).

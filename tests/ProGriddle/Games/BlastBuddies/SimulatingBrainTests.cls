@@ -9,8 +9,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.BlastBuddies.SimulatingBrainTests:
 
-    DEFINE PRIVATE VARIABLE mGame  AS BlastBuddiesGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBrain AS SimulatingBrain  NO-UNDO.
+    VAR PRIVATE BlastBuddiesGame mGame.
+    VAR PRIVATE SimulatingBrain mBrain.
 
     @TearDown.
     METHOD PUBLIC VOID TearDown():
@@ -18,7 +18,7 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrainTests:
     END METHOD.
 
     METHOD PRIVATE VOID Frames(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO piCount:
             mGame:Advance().
         END.
@@ -48,7 +48,7 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrainTests:
 
     /* runs until the computer has fired, or a number of frames; returns whether it did */
     METHOD PRIVATE LOGICAL RunUntilFired(INPUT piMax AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO WHILE n < piMax AND mGame:ShotsFired = 0:
             mGame:Advance().
             n = n + 1.
@@ -58,12 +58,12 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrainTests:
 
     @Test.
     METHOD PUBLIC VOID TheSimulatorFliesAShotTheWayTheGameDoes():
-        DEFINE VARIABLE sim AS ShotSimulator NO-UNDO.
-        DEFINE VARIABLE hx  AS INTEGER       NO-UNDO.
-        DEFINE VARIABLE hy  AS INTEGER       NO-UNDO.
-        DEFINE VARIABLE hit AS LOGICAL       NO-UNDO.
-        DEFINE VARIABLE x0  AS INTEGER       NO-UNDO.
-        DEFINE VARIABLE y0  AS INTEGER       NO-UNDO.
+        VAR ShotSimulator sim.
+        VAR INTEGER hx.
+        VAR INTEGER hy.
+        VAR LOGICAL hit.
+        VAR INTEGER x0.
+        VAR INTEGER y0.
         mGame = BlastBuddiesFactory:Create(NEW SeededRandom(5), NEW BuddySetup(2, 3, 1, Theme:Meadow)).
         mGame:Land:FillRect(0, 0, 383, 239, FALSE).
         mGame:Land:FillRect(0, 150, 383, 239, TRUE).
@@ -88,11 +88,11 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrainTests:
 
     @Test.
     METHOD PUBLIC VOID TheSimulatorLosesAShotInTheWaterOrOffTheSidesAndNeedsATerrain():
-        DEFINE VARIABLE sim     AS ShotSimulator NO-UNDO.
-        DEFINE VARIABLE t       AS Terrain       NO-UNDO.
-        DEFINE VARIABLE hx      AS INTEGER       NO-UNDO.
-        DEFINE VARIABLE hy      AS INTEGER       NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL       NO-UNDO.
+        VAR ShotSimulator sim.
+        VAR Terrain t.
+        VAR INTEGER hx.
+        VAR INTEGER hy.
+        VAR LOGICAL lThrown.
         sim = NEW ShotSimulator().
         t = NEW Terrain(Theme:Meadow).
         Assert:IsFalse(sim:Fly(t, 100 * 256, 100 * 256, 0, 0, 0, OUTPUT hx, OUTPUT hy)).
@@ -144,9 +144,9 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrainTests:
 
     @Test.
     METHOD PUBLIC VOID AThinkingBrainShowsItsBubbleForAtLeastASecondAndNeverDoesMoreThanItsSlice():
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
-        DEFINE VARIABLE most   AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER before.
+        VAR INTEGER most.
         Stage(BuddySkill:Hard, 5).
         n = 0.
         DO WHILE mBrain:Thinking OR n = 0:
@@ -164,9 +164,9 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrainTests:
 
     @Test.
     METHOD PUBLIC VOID TheSameSeedMakesTheSameDecision():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE e AS INTEGER NO-UNDO.
-        DEFINE VARIABLE p AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER e.
+        VAR INTEGER p.
         Stage(BuddySkill:Easy, 11).
         RunUntilFired(2000).
         x = mBrain:GoalX.
@@ -194,9 +194,9 @@ CLASS ProGriddle.Games.BlastBuddies.SimulatingBrainTests:
 
     @Test.
     METHOD PUBLIC VOID TheBrainAndTheSetupNeedTheirPartsAndTheFaceCommandChecksItsDirection():
-        DEFINE VARIABLE b       AS SimulatingBrain NO-UNDO.
-        DEFINE VARIABLE s       AS BuddySetup      NO-UNDO.
-        DEFINE VARIABLE lThrown AS LOGICAL         NO-UNDO.
+        VAR SimulatingBrain b.
+        VAR BuddySetup s.
+        VAR LOGICAL lThrown.
         DO ON ERROR UNDO, LEAVE:
             b = NEW SimulatingBrain(?, BuddySkill:Easy).
             CATCH e AS GridException:

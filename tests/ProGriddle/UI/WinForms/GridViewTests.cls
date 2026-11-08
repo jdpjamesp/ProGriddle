@@ -9,7 +9,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.UI.WinForms.GridViewTests:
 
-    DEFINE PRIVATE VARIABLE mView AS GridView NO-UNDO.
+    VAR PRIVATE GridView mView.
 
     @Setup.
     METHOD PUBLIC VOID BuildView():
@@ -28,7 +28,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     /* A grid on the given kind of store (1 array, 2 sparse, 3 table) with a few cells set. */
     METHOD PRIVATE Grid NewGrid(INPUT piKind AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER):
-        DEFINE VARIABLE store AS ICellStore NO-UNDO.
+        VAR ICellStore store.
         CASE piKind:
             WHEN 1 THEN store = NEW ArrayStore(piW, piH, "state").
             WHEN 2 THEN store = NEW SparseStore(piW, piH, "state").
@@ -41,9 +41,9 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID EveryStoreKindFillsTheSamePixels():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE g AS Grid NO-UNDO.
-        DEFINE VARIABLE v AS GridView NO-UNDO.
+        VAR INTEGER k.
+        VAR Grid g.
+        VAR GridView v.
         DO k = 1 TO 3 ON ERROR UNDO, THROW:
             g = NewGrid(k, 4, 3).
             g:Store:SetCell(1, 1, 0, 1).
@@ -69,14 +69,14 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID ARandomBoardGivesIdenticalPixelsOnEveryStoreKind():
-        DEFINE VARIABLE k      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE g      AS Grid NO-UNDO.
-        DEFINE VARIABLE v      AS GridView NO-UNDO.
-        DEFINE VARIABLE r      AS SeededRandom NO-UNDO.
-        DEFINE VARIABLE sums   AS INT64 NO-UNDO EXTENT 3.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
+        VAR INTEGER k.
+        VAR INTEGER i.
+        VAR Grid g.
+        VAR GridView v.
+        VAR SeededRandom r.
+        VAR INT64[3] sums.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO k = 1 TO 3:
             DO ON ERROR UNDO, THROW:
                 g = NewGrid(k, 17, 11).
@@ -105,7 +105,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID ValuesOutsideThePaletteAreMagenta():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 3, 1).
             g:Store:SetCell(1, 0, 0, 7).
@@ -122,8 +122,8 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID ShowingALayerOfAMultiLayerStoreUsesThatLayer():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        VAR Grid g.
+        VAR INTEGER k.
         DO k = 1 TO 3 ON ERROR UNDO, THROW:
             DO ON ERROR UNDO, THROW:
                 IF k = 1 THEN g = NEW Grid(NEW ArrayStore(2, 2, "mine,flag")).
@@ -146,8 +146,8 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID ShowingAgainPicksUpChangesAndClearsOldCells():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR INTEGER k.
+        VAR Grid g.
         DO k = 1 TO 3 ON ERROR UNDO, THROW:
             DO ON ERROR UNDO, THROW:
                 g = NewGrid(k, 3, 3).
@@ -168,8 +168,8 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID ANewPaletteTakesEffectOnTheNextShowForEveryStoreKind():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR INTEGER k.
+        VAR Grid g.
         DO k = 1 TO 3 ON ERROR UNDO, THROW:
             DO ON ERROR UNDO, THROW:
                 g = NewGrid(k, 3, 3).
@@ -189,8 +189,8 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID ChangingTheGridSizeRebuildsTheView():
-        DEFINE VARIABLE a AS Grid NO-UNDO.
-        DEFINE VARIABLE b AS Grid NO-UNDO.
+        VAR Grid a.
+        VAR Grid b.
         DO ON ERROR UNDO, THROW:
             a = NewGrid(1, 3, 3).
             b = NewGrid(1, 6, 2).
@@ -210,7 +210,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID PixelAtThrowsOutsideTheView():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 3, 3).
             mView:Show(g, "state").
@@ -223,7 +223,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ShowThrowsForAnUnknownLayer():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 3, 3).
             mView:Show(g, "nope").
@@ -235,14 +235,14 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ShowThrowsWithoutAGrid():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         mView:Show(g, "state").
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID ABigSparseBoardFillsQuicklyWhateverItsSize():
-        DEFINE VARIABLE g  AS Grid NO-UNDO.
-        DEFINE VARIABLE ms AS INTEGER NO-UNDO.
+        VAR Grid g.
+        VAR INTEGER ms.
         DO ON ERROR UNDO, THROW:
             g = NEW Grid(NEW SparseStore(1000, 1000, "state")).
             g:Store:SetCell(1, 999, 999, 1).
@@ -260,7 +260,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID TheDenseFillOfAHundredByAHundredBoardIsFast():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 100, 100).
             g:Store:FillLayer(1, 1).
@@ -292,7 +292,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID PaletteDigitsMayBeLowerCaseAndSpaced():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 2, 1).
             g:Store:SetCell(1, 1, 0, 1).
@@ -310,7 +310,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID CellSizeIsTheLargestWholeNumberThatFits():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 10, 10).
             mView:Show(g, "state").
@@ -328,9 +328,9 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID FitToWindowScalesByAnyAmountAndKeepsTheShapeAndTheClicksRight():
-        DEFINE VARIABLE g  AS Grid NO-UNDO.
-        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
+        VAR Grid g.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 10, 10).
             mView:Show(g, "state").
@@ -366,9 +366,9 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID HitTestConvertsPixelsToCellsAndRejectsTheMargin():
-        DEFINE VARIABLE g  AS Grid NO-UNDO.
-        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
+        VAR Grid g.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 10, 10).
             mView:Show(g, "state").
@@ -400,7 +400,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID TheBoardIsCentredInBothDirections():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 10, 10).
             mView:Show(g, "state").
@@ -427,9 +427,9 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID PaintingDrawsTheBoardInTheCentreAndTheBackgroundAroundIt():
-        DEFINE VARIABLE g   AS Grid   NO-UNDO.
-        DEFINE VARIABLE bmp AS Bitmap NO-UNDO.
-        DEFINE VARIABLE c   AS Color  NO-UNDO.
+        VAR Grid g.
+        VAR Bitmap bmp.
+        VAR Color c.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 2, 2).
             g:Store:SetCell(1, 0, 0, 1).
@@ -456,8 +456,8 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID HitTestBeforeTheFirstShowFindsNothing():
-        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
         Assert:IsFalse(mView:HitTest(5, 5, OUTPUT cx, OUTPUT cy)).
         Assert:Equals(-1, cx).
     END METHOD.
@@ -468,9 +468,9 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
     METHOD PUBLIC VOID PaintingScalesEachCellUpWithoutBlurring():
         /* a 4 x 4 board drawn at 10 pixels a cell: cell (1,0) is alive, so the block of
            pixels from x 10 to 19 and y 0 to 9 is that colour and its neighbours are not */
-        DEFINE VARIABLE g   AS Grid   NO-UNDO.
-        DEFINE VARIABLE bmp AS Bitmap NO-UNDO.
-        DEFINE VARIABLE c   AS Color  NO-UNDO.
+        VAR Grid g.
+        VAR Bitmap bmp.
+        VAR Color c.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 4, 4).
             g:Store:SetCell(1, 1, 0, 1).
@@ -499,9 +499,9 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID PaintingCountsAndTimesItself():
-        DEFINE VARIABLE g   AS Grid   NO-UNDO.
-        DEFINE VARIABLE bmp AS Bitmap NO-UNDO.
-        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
+        VAR Grid g.
+        VAR Bitmap bmp.
+        VAR INTEGER n.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 4, 4).
             mView:ClientSize = NEW Size(40, 40).
@@ -521,8 +521,8 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
     @Test.
     METHOD PUBLIC VOID AHundredByAHundredBoardPaintsInWellUnderTheOldFillRectangleTime():
         /* Phase 0 measured about 95 ms to paint 100 x 100 cell by cell */
-        DEFINE VARIABLE g   AS Grid   NO-UNDO.
-        DEFINE VARIABLE bmp AS Bitmap NO-UNDO.
+        VAR Grid g.
+        VAR Bitmap bmp.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 100, 100).
             g:Store:FillLayer(1, 1).
@@ -543,7 +543,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID NoGlyphsMeansAnEmptyGlyphForEveryCell():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 3, 3).
             g:Store:SetCell(1, 1, 1, 1).
@@ -557,9 +557,9 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID EveryStoreKindGivesTheSameGlyphs():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE g AS Grid NO-UNDO.
-        DEFINE VARIABLE v AS GridView NO-UNDO.
+        VAR INTEGER k.
+        VAR Grid g.
+        VAR GridView v.
         DO k = 1 TO 3 ON ERROR UNDO, THROW:
             g = NewGrid(k, 4, 3).
             g:Store:SetCell(1, 1, 0, 1).
@@ -584,7 +584,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID AGlyphEntryCanBeACodePoint():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 2, 1).
             g:Store:SetCell(1, 1, 0, 1).
@@ -599,7 +599,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID AValueBeyondTheGlyphListHasNoGlyph():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 2, 1).
             g:Store:SetCell(1, 1, 0, 2).
@@ -614,7 +614,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID GlyphsFollowTheBoardAsItChanges():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(3, 2, 1).
             mView:SetGlyphs(",A", "FFFFFF,00FF00").
@@ -634,7 +634,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID GlyphAtOffTheBoardThrows():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 2, 2).
             mView:Show(g, "state").
@@ -668,12 +668,12 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
     @Test.
     METHOD PUBLIC VOID ACodePointOutsideLatin1IsDrawnAsThatCharacterNotAQuestionMark():
         /* U+2588 is a full block, so a cell shows far more glyph pixels than a question mark would */
-        DEFINE VARIABLE g     AS Grid   NO-UNDO.
-        DEFINE VARIABLE bmp   AS Bitmap NO-UNDO.
-        DEFINE VARIABLE c     AS Color  NO-UNDO.
-        DEFINE VARIABLE px    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE green AS INTEGER NO-UNDO.
+        VAR Grid g.
+        VAR Bitmap bmp.
+        VAR Color c.
+        VAR INTEGER px.
+        VAR INTEGER py.
+        VAR INTEGER green.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 1, 1).
             g:Store:SetCell(1, 0, 0, 1).
@@ -706,13 +706,13 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
     @Test.
     METHOD PUBLIC VOID PaintingDrawsTheGlyphOnlyInCellsWhoseValueHasOne():
         /* two 20 pixel cells: value 0 is black with no glyph, value 1 is orange with a green X */
-        DEFINE VARIABLE g     AS Grid   NO-UNDO.
-        DEFINE VARIABLE bmp   AS Bitmap NO-UNDO.
-        DEFINE VARIABLE c     AS Color  NO-UNDO.
-        DEFINE VARIABLE px    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE green AS INTEGER NO-UNDO.
-        DEFINE VARIABLE stray AS INTEGER NO-UNDO.
+        VAR Grid g.
+        VAR Bitmap bmp.
+        VAR Color c.
+        VAR INTEGER px.
+        VAR INTEGER py.
+        VAR INTEGER green.
+        VAR INTEGER stray.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 2, 1).
             g:Store:SetCell(1, 1, 0, 1).
@@ -748,9 +748,9 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID WithDirectColourEveryStoreKindUsesTheCellValueAsTheColour():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE g AS Grid NO-UNDO.
-        DEFINE VARIABLE v AS GridView NO-UNDO.
+        VAR INTEGER k.
+        VAR Grid g.
+        VAR GridView v.
         DO k = 1 TO 3 ON ERROR UNDO, THROW:
             g = NewGrid(k, 4, 3).
             g:Store:SetCell(1, 1, 0, 16744448).
@@ -779,8 +779,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID DirectColourShowsTheLayerYouAskFor():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
-        g = NEW Grid(NEW ArrayStore(3, 2, "back,front")).
+        VAR Grid g = NEW Grid(NEW ArrayStore(3, 2, "back,front")).
         DO ON ERROR UNDO, THROW:
             g:Store:SetCell(1, 0, 0, 11).
             g:Store:SetCell(2, 0, 0, 22).
@@ -801,7 +800,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID SwitchingDirectColourOffGoesBackToThePalette():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         g = NewGrid(1, 2, 1).
         DO ON ERROR UNDO, THROW:
             g:Store:SetCell(1, 0, 0, 1).
@@ -819,8 +818,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID ADirectColourBoardOfSpaceInvadersSizeFillsFast():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
-        g = NEW Grid(NEW ArrayStore(224, 256, "view,kind,back")).
+        VAR Grid g = NEW Grid(NEW ArrayStore(224, 256, "view,kind,back")).
         DO ON ERROR UNDO, THROW:
             g:Store:FillLayer(1, 2236962).
             mView:DirectColor = TRUE.
@@ -898,13 +896,13 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID ANoticeIsPaintedInTheMiddleOfTheControl():
-        DEFINE VARIABLE g     AS Grid   NO-UNDO.
-        DEFINE VARIABLE bmp   AS Bitmap NO-UNDO.
-        DEFINE VARIABLE c     AS Color  NO-UNDO.
-        DEFINE VARIABLE px    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE white AS INTEGER NO-UNDO.
-        DEFINE VARIABLE edge  AS INTEGER NO-UNDO.
+        VAR Grid g.
+        VAR Bitmap bmp.
+        VAR Color c.
+        VAR INTEGER px.
+        VAR INTEGER py.
+        VAR INTEGER white.
+        VAR INTEGER edge.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 2, 2).
             mView:ShowGridLines = FALSE.
@@ -933,12 +931,12 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID WithNoNoticeNothingIsDrawnOverTheBoard():
-        DEFINE VARIABLE g     AS Grid   NO-UNDO.
-        DEFINE VARIABLE bmp   AS Bitmap NO-UNDO.
-        DEFINE VARIABLE c     AS Color  NO-UNDO.
-        DEFINE VARIABLE px    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE white AS INTEGER NO-UNDO.
+        VAR Grid g.
+        VAR Bitmap bmp.
+        VAR Color c.
+        VAR INTEGER px.
+        VAR INTEGER py.
+        VAR INTEGER white.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 2, 2).
             mView:ShowGridLines = FALSE.
@@ -983,13 +981,13 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test.
     METHOD PUBLIC VOID ABannerIsPaintedInTheMiddleAndAfterItIsClearedItIsGone():
-        DEFINE VARIABLE g      AS Grid   NO-UNDO.
-        DEFINE VARIABLE bmp    AS Bitmap NO-UNDO.
-        DEFINE VARIABLE c      AS Color  NO-UNDO.
-        DEFINE VARIABLE px     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE py     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE shown  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE gone   AS INTEGER NO-UNDO.
+        VAR Grid g.
+        VAR Bitmap bmp.
+        VAR Color c.
+        VAR INTEGER px.
+        VAR INTEGER py.
+        VAR INTEGER shown.
+        VAR INTEGER gone.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 2, 2).
             mView:ShowGridLines = FALSE.
@@ -1032,7 +1030,7 @@ CLASS ProGriddle.UI.WinForms.GridViewTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID ShowAfterReleaseResourcesThrows():
-        DEFINE VARIABLE g AS Grid NO-UNDO.
+        VAR Grid g.
         DO ON ERROR UNDO, THROW:
             g = NewGrid(1, 3, 3).
             mView:Show(g, "state").

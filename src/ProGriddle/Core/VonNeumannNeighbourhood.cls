@@ -10,12 +10,12 @@ CLASS ProGriddle.Core.VonNeumannNeighbourhood FINAL INHERITS CustomNeighbourhood
     END CONSTRUCTOR.
 
     METHOD PRIVATE STATIC INTEGER EXTENT 4 NeighbourXs():
-        DEFINE VARIABLE xs AS INTEGER NO-UNDO EXTENT 4 INITIAL [0, -1, 1, 0].
+        VAR INTEGER[4] xs = [0, -1, 1, 0].
         RETURN xs.
     END METHOD.
 
     METHOD PRIVATE STATIC INTEGER EXTENT 4 NeighbourYs():
-        DEFINE VARIABLE ys AS INTEGER NO-UNDO EXTENT 4 INITIAL [-1, 0, 0, 1].
+        VAR INTEGER[4] ys = [-1, 0, 0, 1].
         RETURN ys.
     END METHOD.
 

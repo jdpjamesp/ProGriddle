@@ -25,18 +25,18 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput, IGameOptions:
 
-    DEFINE PRIVATE VARIABLE mGame     AS SnakeGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS ISettings NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlayer   AS ISoundPlayer NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBest    AS INTEGER   NO-UNDO.
+    VAR PRIVATE SnakeGame mGame.
+    VAR PRIVATE ISettings mSettings.
+    VAR PRIVATE ISoundPlayer mPlayer.
+    VAR PRIVATE INTEGER mBest.
     /* the game that has just ended has been counted for the best score, and it was a new best */
-    DEFINE PRIVATE VARIABLE mRecorded AS LOGICAL   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNewBest  AS LOGICAL   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNotice   AS CHARACTER NO-UNDO.
+    VAR PRIVATE LOGICAL mRecorded.
+    VAR PRIVATE LOGICAL mNewBest.
+    VAR PRIVATE CHARACTER mNotice.
 
     DEFINE PUBLIC PROPERTY StatusText AS CHARACTER NO-UNDO
         GET():
-            DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+            VAR CHARACTER result.
             NoteEnd().
             IF mGame:IsOver THEN DO:
                 result = SUBSTITUTE("&1   Score &2   Length &3   Best &4", (IF mGame:HasWon THEN "You win" ELSE "Game over"),
@@ -112,7 +112,7 @@ CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput, IGameOption
 
     /* What the last change of board size said, once. */
     METHOD PUBLIC CHARACTER TakeNotice():
-        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        VAR CHARACTER notice.
         notice = mNotice.
         mNotice = "".
         RETURN notice.
@@ -164,7 +164,7 @@ CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput, IGameOption
 
     /* The usual sizes, and the game's own as well when it is not one of them (the settings can ask for any). */
     METHOD PUBLIC CHARACTER OptionNames(INPUT piOption AS INTEGER):
-        DEFINE VARIABLE names AS CHARACTER NO-UNDO.
+        VAR CHARACTER names.
         CheckOption(piOption).
         names = SnakeSizes:Names().
         IF LOOKUP(OptionValue(1), names) = 0 THEN names = names + "," + OptionValue(1).
@@ -180,8 +180,8 @@ CLASS ProGriddle.Games.Snake.SnakeInput FINAL IMPLEMENTS IGameInput, IGameOption
     /* A size such as "30 x 20": starts a new game on a board of that size. Throws GridException for
        anything else. Choosing the size the board is already gives no new game. */
     METHOD PUBLIC VOID SetOption(INPUT piOption AS INTEGER, INPUT pcValue AS CHARACTER):
-        DEFINE VARIABLE w AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h AS INTEGER NO-UNDO.
+        VAR INTEGER w.
+        VAR INTEGER h.
         CheckOption(piOption).
         IF pcValue = ? THEN UNDO, THROW NEW GridException("An option cannot be set to the unknown value").
         w = SnakeSizes:WidthOf(pcValue).

@@ -4,6 +4,9 @@
    format, which FreeFormat releases before the player deletes the procedure. Every voice is one waveOut handle for 8 bit mono
    sound; two buffers on one handle queue, so the player keeps a pool of voices to mix sounds. */
 
+VAR MEMPTR mFormat.
+VAR INTEGER mRate.
+
 PROCEDURE waveOutOpen EXTERNAL "winmm.dll":
     DEFINE INPUT PARAMETER phwo AS MEMPTR.
     DEFINE INPUT PARAMETER uDeviceID AS INT64.
@@ -51,16 +54,13 @@ PROCEDURE waveOutSetVolume EXTERNAL "winmm.dll":
     DEFINE RETURN PARAMETER rc AS LONG.
 END PROCEDURE.
 
-DEFINE VARIABLE mFormat AS MEMPTR  NO-UNDO.
-DEFINE VARIABLE mRate   AS INTEGER NO-UNDO.
-
 /* Opens a voice for 8 bit mono sound at piRate Hz on the default device. pRc 0 is good and pHandle is 0 otherwise. */
 PROCEDURE OpenVoice:
     DEFINE INPUT  PARAMETER piRate   AS INTEGER NO-UNDO.
     DEFINE OUTPUT PARAMETER pHandle  AS INT64   NO-UNDO.
     DEFINE OUTPUT PARAMETER pRc      AS INTEGER NO-UNDO.
-    DEFINE VARIABLE mHandle AS MEMPTR  NO-UNDO.
-    DEFINE VARIABLE rc      AS INTEGER NO-UNDO.
+    VAR MEMPTR mHandle.
+    VAR INTEGER rc.
     IF mRate <> piRate THEN DO:
         /* a WAVEFORMATEX: format 1 (PCM), 1 channel, the rate, bytes a second, 1 byte a block, 8 bits, no extra */
         SET-SIZE(mFormat) = 0.
@@ -89,7 +89,7 @@ PROCEDURE PrepareHeader:
     DEFINE INPUT  PARAMETER pHandle AS INT64  NO-UNDO.
     DEFINE INPUT  PARAMETER pmHdr   AS MEMPTR NO-UNDO.
     DEFINE OUTPUT PARAMETER pRc     AS INTEGER NO-UNDO.
-    DEFINE VARIABLE rc AS INTEGER NO-UNDO.
+    VAR INTEGER rc.
     RUN waveOutPrepareHeader(pHandle, pmHdr, 48, OUTPUT rc).
     pRc = rc.
 END PROCEDURE.
@@ -99,7 +99,7 @@ PROCEDURE WriteHeader:
     DEFINE INPUT  PARAMETER pHandle AS INT64  NO-UNDO.
     DEFINE INPUT  PARAMETER pmHdr   AS MEMPTR NO-UNDO.
     DEFINE OUTPUT PARAMETER pRc     AS INTEGER NO-UNDO.
-    DEFINE VARIABLE rc AS INTEGER NO-UNDO.
+    VAR INTEGER rc.
     RUN waveOutWrite(pHandle, pmHdr, 48, OUTPUT rc).
     pRc = rc.
 END PROCEDURE.
@@ -108,21 +108,21 @@ END PROCEDURE.
 PROCEDURE UnprepareHeader:
     DEFINE INPUT PARAMETER pHandle AS INT64  NO-UNDO.
     DEFINE INPUT PARAMETER pmHdr   AS MEMPTR NO-UNDO.
-    DEFINE VARIABLE rc AS INTEGER NO-UNDO.
+    VAR INTEGER rc.
     RUN waveOutUnprepareHeader(pHandle, pmHdr, 48, OUTPUT rc).
 END PROCEDURE.
 
 /* Stops what the voice is playing, which marks every buffer on it done. */
 PROCEDURE ResetVoice:
     DEFINE INPUT PARAMETER pHandle AS INT64 NO-UNDO.
-    DEFINE VARIABLE rc AS INTEGER NO-UNDO.
+    VAR INTEGER rc.
     RUN waveOutReset(pHandle, OUTPUT rc).
 END PROCEDURE.
 
 /* Closes a voice. Its headers must be unprepared first. */
 PROCEDURE CloseVoice:
     DEFINE INPUT PARAMETER pHandle AS INT64 NO-UNDO.
-    DEFINE VARIABLE rc AS INTEGER NO-UNDO.
+    VAR INTEGER rc.
     RUN waveOutClose(pHandle, OUTPUT rc).
 END PROCEDURE.
 
@@ -130,8 +130,8 @@ END PROCEDURE.
 PROCEDURE SetVoiceVolume:
     DEFINE INPUT PARAMETER pHandle  AS INT64   NO-UNDO.
     DEFINE INPUT PARAMETER piPercent AS INTEGER NO-UNDO.
-    DEFINE VARIABLE level AS INT64   NO-UNDO.
-    DEFINE VARIABLE rc    AS INTEGER NO-UNDO.
+    VAR INT64 level.
+    VAR INTEGER rc.
     /* the low 16 bits are the left channel and the high 16 the right, each 0 to 65535 */
     level = TRUNCATE(piPercent * 65535 / 100, 0).
     RUN waveOutSetVolume(pHandle, level + level * 65536, OUTPUT rc).

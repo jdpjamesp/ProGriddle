@@ -20,8 +20,8 @@ CLASS ProGriddle.UI.WinForms.ProcessGameLauncher FINAL IMPLEMENTS IGameLauncher:
 
     /* The folder the games' temp files go to, created when it does not exist yet. */
     METHOD PUBLIC CHARACTER TempDirectory():
-        DEFINE VARIABLE base AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE dir  AS CHARACTER NO-UNDO.
+        VAR CHARACTER base.
+        VAR CHARACTER dir.
         base = OS-GETENV("TEMP").
         IF base = ? OR base = "" THEN base = "C:\temp".
         dir = RIGHT-TRIM(base, "\") + "\ProGriddle".
@@ -38,8 +38,8 @@ CLASS ProGriddle.UI.WinForms.ProcessGameLauncher FINAL IMPLEMENTS IGameLauncher:
     END METHOD.
 
     METHOD PUBLIC VOID Launch(INPUT pcProgram AS CHARACTER):
-        DEFINE VARIABLE info    AS ProcessStartInfo NO-UNDO.
-        DEFINE VARIABLE started AS Process          NO-UNDO.
+        VAR ProcessStartInfo info.
+        VAR Process started.
         IF pcProgram = ? OR pcProgram = "" THEN UNDO, THROW NEW GridException("There is no program to launch").
         IF IsRunning(pcProgram) THEN RETURN.
         DO ON ERROR UNDO, THROW:
@@ -60,7 +60,7 @@ CLASS ProGriddle.UI.WinForms.ProcessGameLauncher FINAL IMPLEMENTS IGameLauncher:
     END METHOD.
 
     METHOD PUBLIC LOGICAL IsRunning(INPUT pcProgram AS CHARACTER):
-        DEFINE VARIABLE found AS Process NO-UNDO.
+        VAR Process found.
         FIND ttStarted WHERE ttStarted.runFile = pcProgram NO-ERROR.
         IF NOT AVAILABLE ttStarted THEN RETURN FALSE.
         DO ON ERROR UNDO, THROW:

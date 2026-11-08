@@ -11,7 +11,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.ForEachMazeTests:
 
-    DEFINE PRIVATE VARIABLE mMaze AS MazeMap NO-UNDO.
+    VAR PRIVATE MazeMap mMaze.
 
     @Setup.
     METHOD PUBLIC VOID BuildMaze():
@@ -20,9 +20,9 @@ CLASS ProGriddle.Games.ForEach.ForEachMazeTests:
 
     /* How many tiles of the maze are of this kind. */
     METHOD PRIVATE INTEGER CountOf(INPUT poKind AS TileKind):
-        DEFINE VARIABLE cc AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rr AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n  AS INTEGER NO-UNDO.
+        VAR INTEGER cc.
+        VAR INTEGER rr.
+        VAR INTEGER n.
         DO rr = 0 TO mMaze:Rows - 1:
             DO cc = 0 TO mMaze:Cols - 1:
                 IF mMaze:KindAt(cc, rr) = poKind THEN n = n + 1.
@@ -54,8 +54,8 @@ CLASS ProGriddle.Games.ForEach.ForEachMazeTests:
 
     @Test.
     METHOD PUBLIC VOID TheLeftHalfIsTheMirrorImageOfTheRightHalf():
-        DEFINE VARIABLE cc AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rr AS INTEGER NO-UNDO.
+        VAR INTEGER cc.
+        VAR INTEGER rr.
         DO rr = 0 TO 30:
             DO cc = 0 TO 13:
                 Assert:Equals(mMaze:KindAt(cc, rr), mMaze:KindAt(27 - cc, rr)).
@@ -65,7 +65,7 @@ CLASS ProGriddle.Games.ForEach.ForEachMazeTests:
 
     @Test.
     METHOD PUBLIC VOID TheTopAndBottomRowsAreWall():
-        DEFINE VARIABLE cc AS INTEGER NO-UNDO.
+        VAR INTEGER cc.
         DO cc = 0 TO 27:
             Assert:Equals(TileKind:Wall, mMaze:KindAt(cc, 0)).
             Assert:Equals(TileKind:Wall, mMaze:KindAt(cc, 30)).
@@ -74,7 +74,7 @@ CLASS ProGriddle.Games.ForEach.ForEachMazeTests:
 
     @Test.
     METHOD PUBLIC VOID TheSidesAreWallExceptWhereTheTunnelLeavesOnRow14():
-        DEFINE VARIABLE rr AS INTEGER NO-UNDO.
+        VAR INTEGER rr.
         DO rr = 0 TO 30:
             IF rr = 14 THEN DO:
                 Assert:IsTrue(mMaze:KindAt(0, rr) <> TileKind:Wall).
@@ -89,8 +89,8 @@ CLASS ProGriddle.Games.ForEach.ForEachMazeTests:
 
     @Test.
     METHOD PUBLIC VOID TheTunnelIsSlowForFiveTilesAtEachEndOfRow14AndNowhereElse():
-        DEFINE VARIABLE cc AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rr AS INTEGER NO-UNDO.
+        VAR INTEGER cc.
+        VAR INTEGER rr.
         DO rr = 0 TO 30:
             DO cc = 0 TO 27:
                 IF rr = 14 AND (cc <= 4 OR cc >= 23) THEN
@@ -121,9 +121,9 @@ CLASS ProGriddle.Games.ForEach.ForEachMazeTests:
 
     @Test.
     METHOD PUBLIC VOID TwelveTilesStopAPhantomTurningUpSixAboveTheLobbyAndSixAboveDibbysStart():
-        DEFINE VARIABLE cc AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rr AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n  AS INTEGER NO-UNDO.
+        VAR INTEGER cc.
+        VAR INTEGER rr.
+        VAR INTEGER n.
         DO rr = 0 TO 30:
             DO cc = 0 TO 27:
                 IF mMaze:NoUpAt(cc, rr) THEN n = n + 1.
@@ -155,17 +155,17 @@ CLASS ProGriddle.Games.ForEach.ForEachMazeTests:
 
     @Test.
     METHOD PUBLIC VOID EveryBitAndCommitCanBeReachedFromWhereDibbyStarts():
-        DEFINE VARIABLE seen  AS LOGICAL NO-UNDO EXTENT 868.
-        DEFINE VARIABLE queue AS INTEGER NO-UNDO EXTENT 868.
-        DEFINE VARIABLE qIn   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE qOut  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cc    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rr    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE nc    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE nr    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dir   AS MazeDir NO-UNDO.
-        DEFINE VARIABLE missed AS INTEGER NO-UNDO.
+        VAR LOGICAL[868] seen.
+        VAR INTEGER[868] queue.
+        VAR INTEGER qIn.
+        VAR INTEGER qOut.
+        VAR INTEGER cc.
+        VAR INTEGER rr.
+        VAR INTEGER nc.
+        VAR INTEGER nr.
+        VAR INTEGER d.
+        VAR MazeDir dir.
+        VAR INTEGER missed.
         qIn = 1.
         qOut = 1.
         cc = INTEGER(TRUNCATE(mMaze:DibbyStartX / 8, 0)).

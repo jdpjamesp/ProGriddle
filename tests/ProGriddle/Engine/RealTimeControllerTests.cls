@@ -8,10 +8,10 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.RealTimeControllerTests:
 
-    DEFINE PRIVATE VARIABLE mGame       AS CountingRealTimeGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRenderer   AS RecordingRenderer    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mClock      AS FakeClock            NO-UNDO.
-    DEFINE PRIVATE VARIABLE mController AS RealTimeController   NO-UNDO.
+    VAR PRIVATE CountingRealTimeGame mGame.
+    VAR PRIVATE RecordingRenderer mRenderer.
+    VAR PRIVATE FakeClock mClock.
+    VAR PRIVATE RealTimeController mController.
 
     /* A game that is over after 2500 ms of running, on a clock that ticks every 100 ms. */
     @Setup.
@@ -133,11 +133,11 @@ CLASS ProGriddle.Engine.RealTimeControllerTests:
 
     @Test.
     METHOD PUBLIC VOID AGameThatIsOverButStillAnimatingKeepsTheClockRunningAndBeingRedrawnUntilItStops():
-        DEFINE VARIABLE game       AS AnimatedRealTimeGame NO-UNDO.
-        DEFINE VARIABLE renderer   AS RecordingRenderer    NO-UNDO.
-        DEFINE VARIABLE clock      AS FakeClock            NO-UNDO.
-        DEFINE VARIABLE controller AS RealTimeController   NO-UNDO.
-        DEFINE VARIABLE before     AS INTEGER              NO-UNDO.
+        VAR AnimatedRealTimeGame game.
+        VAR RecordingRenderer renderer.
+        VAR FakeClock clock.
+        VAR RealTimeController controller.
+        VAR INTEGER before.
         DO ON ERROR UNDO, THROW:
             /* over at 500 ms, animating for 300 ms more */
             game = NEW AnimatedRealTimeGame(NEW Grid(NEW ArrayStore(3, 3, "s")), 500, 300).
@@ -191,7 +191,7 @@ CLASS ProGriddle.Engine.RealTimeControllerTests:
 
     @Test.
     METHOD PUBLIC VOID SteppingAndSpeedAreNotSupported():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mController:Execute(GameCommand:StepOnce).
             CATCH e1 AS GridException:
@@ -226,8 +226,8 @@ CLASS ProGriddle.Engine.RealTimeControllerTests:
 
     @Test.
     METHOD PUBLIC VOID TheConstructorRejectsMissingParts():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rc     AS RealTimeController NO-UNDO.
+        VAR INTEGER thrown.
+        VAR RealTimeController rc.
         DO ON ERROR UNDO, THROW:
             rc = NEW RealTimeController(?, mRenderer, mClock).
             CATCH e1 AS GridException:

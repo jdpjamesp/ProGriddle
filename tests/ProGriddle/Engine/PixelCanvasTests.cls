@@ -15,9 +15,9 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
     &SCOPED-DEFINE KIND-SHOT 6
     &SCOPED-DEFINE KIND-FX 7
 
-    DEFINE PRIVATE VARIABLE mGrid   AS Grid           NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas AS PixelCanvas NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSprite AS Sprite         NO-UNDO.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE PixelCanvas mCanvas.
+    VAR PRIVATE Sprite mSprite.
 
     @Setup.
     METHOD PUBLIC VOID BuildCanvas():
@@ -51,7 +51,7 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID TheCanvasRefusesAGridThatIsNotRight():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW PixelCanvas(NEW Grid(NEW ArrayStore(4, 4, "view,kind"))).
             CATCH e1 AS GridException:
@@ -188,8 +188,8 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID ClearRectEmptiesARectangleAndClipsItToTheBoard():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO y = 0 TO 9:
             DO x = 0 TO 11:
                 mCanvas:Plot(x, y, {&KIND-SHIELD}, 5).
@@ -245,7 +245,7 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID ShiftViewIsRefusedInABatch():
-        DEFINE VARIABLE lThrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL lThrown.
         mCanvas:BeginBatch().
         DO ON ERROR UNDO, LEAVE:
             mCanvas:ShiftView(0, 0, 4, 4, 1, 0).
@@ -300,11 +300,11 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID LoadBackCopiesTheBackgroundOfAnotherCanvasOfTheSameSize():
-        DEFINE VARIABLE grid2   AS Grid        NO-UNDO.
-        DEFINE VARIABLE other   AS PixelCanvas NO-UNDO.
-        DEFINE VARIABLE thrown  AS INTEGER     NO-UNDO.
-        DEFINE VARIABLE small1  AS Grid        NO-UNDO.
-        DEFINE VARIABLE canvas3 AS PixelCanvas NO-UNDO.
+        VAR Grid grid2.
+        VAR PixelCanvas other.
+        VAR INTEGER thrown.
+        VAR Grid small1.
+        VAR PixelCanvas canvas3.
         DO ON ERROR UNDO, THROW:
             grid2 = NEW Grid(NEW ArrayStore(12, 10, "view,kind,back")).
             other = NEW PixelCanvas(grid2).
@@ -347,8 +347,8 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID SetBackRowsGivesEachRowItsOwnColourAndRestoreShowsThem():
-        DEFINE VARIABLE colours AS INTEGER NO-UNDO EXTENT 10.
-        DEFINE VARIABLE y       AS INTEGER NO-UNDO.
+        VAR INTEGER[10] colours.
+        VAR INTEGER y.
         DO y = 1 TO 10:
             colours[y] = y * 10.
         END.
@@ -362,8 +362,8 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID SetBackRowsNeedsOneColourForEachRow():
-        DEFINE VARIABLE colours AS INTEGER NO-UNDO EXTENT 4.
-        DEFINE VARIABLE thrown  AS LOGICAL NO-UNDO.
+        VAR INTEGER[4] colours.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             mCanvas:SetBackRows(colours).
             CATCH e AS GridException:
@@ -388,7 +388,7 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID RestoreCanBeCalledAgainAndAgain():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 5:
             mCanvas:Draw(mSprite, 1, 1, {&KIND-ALIEN}, 11, 22, 33).
             mCanvas:Restore().
@@ -461,9 +461,8 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID BigTextMakesEachFontCellABlock():
-        DEFINE VARIABLE canvas AS PixelCanvas NO-UNDO.
-        DEFINE VARIABLE grid   AS Grid           NO-UNDO.
-        grid = NEW Grid(NEW ArrayStore(40, 30, "view,kind,back")).
+        VAR PixelCanvas canvas.
+        VAR Grid grid = NEW Grid(NEW ArrayStore(40, 30, "view,kind,back")).
         canvas = NEW PixelCanvas(grid).
         DO ON ERROR UNDO, THROW:
             canvas:DrawTextScaled("I", 1, 1, 4000, 4000, 2).
@@ -486,9 +485,8 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID BigTextShadesFromTheTopColourToTheBottomColour():
-        DEFINE VARIABLE canvas AS PixelCanvas NO-UNDO.
-        DEFINE VARIABLE grid   AS Grid           NO-UNDO.
-        grid = NEW Grid(NEW ArrayStore(20, 20, "view,kind,back")).
+        VAR PixelCanvas canvas.
+        VAR Grid grid = NEW Grid(NEW ArrayStore(20, 20, "view,kind,back")).
         canvas = NEW PixelCanvas(grid).
         DO ON ERROR UNDO, THROW:
             /* the colours mix part by part (red, green, blue), so halfway from black to 60, 120, 180 is 30, 60, 90 */
@@ -533,10 +531,10 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID OverlayTextWritesOnEmptyCellsWithAnEdgeAroundTheLetters():
-        DEFINE VARIABLE lit  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE edge AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
+        VAR INTEGER lit.
+        VAR INTEGER edge.
+        VAR INTEGER x.
+        VAR INTEGER y.
         mCanvas:DrawOverlay("I", 3, 1, 4000, 4000, 1, 7000).
         DO y = 0 TO 9:
             DO x = 0 TO 11:
@@ -561,9 +559,9 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID WithNoEdgeOnlyTheLettersAreWritten():
-        DEFINE VARIABLE edge AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
+        VAR INTEGER edge.
+        VAR INTEGER x.
+        VAR INTEGER y.
         mCanvas:DrawOverlay("I", 3, 1, 4000, 4000, 1, -1).
         DO y = 0 TO 9:
             DO x = 0 TO 11:
@@ -590,7 +588,7 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID AHorizontalLineColoursEveryCellFromEndToEnd():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         mCanvas:DrawLine(1, 2, 6, 2, {&KIND-FX}, 777).
         DO x = 1 TO 6:
             Assert:Equals(777, mCanvas:ColourAt(x, 2)).
@@ -603,7 +601,7 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID ADiagonalLineStepsOneCellAcrossAndOneDown():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mCanvas:DrawLine(2, 1, 6, 5, {&KIND-FX}, 777).
         DO i = 0 TO 4:
             Assert:Equals(777, mCanvas:ColourAt(2 + i, 1 + i)).
@@ -626,9 +624,9 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID AShallowLineHasOneCellInEveryColumnAndASteepOneOneInEveryRow():
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE found AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER found.
         mCanvas:DrawLine(0, 0, 10, 3, {&KIND-FX}, 777).
         DO x = 0 TO 10:
             found = 0.
@@ -657,7 +655,7 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID ALineThatRunsOffTheBoardIsClippedWithoutAnError():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER x.
         mCanvas:DrawLine(-5, 3, 30, 3, {&KIND-FX}, 777).
         DO x = 0 TO 11:
             Assert:Equals(777, mCanvas:ColourAt(x, 3)).
@@ -679,7 +677,7 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
     /* ---- batches of lines ---- */
 
     METHOD PRIVATE LOGICAL Refused(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN mCanvas:BeginBatch().
@@ -729,10 +727,10 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID ABatchGivesTheSameCellsAsLinesOutsideOne():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE alike AS LOGICAL NO-UNDO INITIAL TRUE.
-        DEFINE VARIABLE viaStore AS INTEGER NO-UNDO EXTENT 120.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR LOGICAL alike = TRUE.
+        VAR INTEGER[120] viaStore.
         mCanvas:DrawLine(0, 0, 11, 9, {&KIND-FX}, 777).
         mCanvas:DrawLine(11, 0, 0, 7, {&KIND-BOMB}, 888).
         DO y = 0 TO 9:
@@ -780,7 +778,7 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID ABatchCanBeRunAgainAndAgain():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 5:
             mCanvas:Restore().
             mCanvas:BeginBatch().
@@ -812,8 +810,8 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID PutCellsColoursAListOfCellsFromAPlaceAndSkipsWhatIsOffTheBoard():
-        DEFINE VARIABLE cells  AS MEMPTR NO-UNDO.
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR MEMPTR cells.
+        VAR LOGICAL thrown.
         SET-SIZE(cells) = 36.
         PUT-LONG(cells, 1) = 0.
         PUT-LONG(cells, 5) = 0.
@@ -852,9 +850,9 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID FillRectFillsARectangleWithAColourAndAKindAndClipsAtTheEdges():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE alike AS LOGICAL NO-UNDO INITIAL TRUE.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR LOGICAL alike = TRUE.
         mCanvas:FillRect(2, 3, 4, 2, {&KIND-FX}, 777).
         Assert:Equals(8, mCanvas:CountKind({&KIND-FX})).
         Assert:Equals(777, mCanvas:ColourAt(2, 3)).
@@ -920,7 +918,7 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID ScrollBackDownRefusesARangeOffTheBoardAndFewerThanOneRow():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mCanvas:ScrollBackDown(5, 10, 1).
             CATCH e1 AS GridException:
@@ -938,8 +936,8 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID PutBackRowWritesAWholeRowOfTheBackground():
-        DEFINE VARIABLE m AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR MEMPTR m.
+        VAR INTEGER i.
         DO ON ERROR UNDO, THROW:
             SET-SIZE(m) = 12 * 4.
             DO i = 0 TO 11:
@@ -958,8 +956,8 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID PutBackRowRefusesARowOffTheBoard():
-        DEFINE VARIABLE m      AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR MEMPTR m.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             SET-SIZE(m) = 12 * 4.
             DO ON ERROR UNDO, THROW:
@@ -977,8 +975,8 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID PutBackRowRefusesTooFewColours():
-        DEFINE VARIABLE m      AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR MEMPTR m.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             SET-SIZE(m) = 8.
             DO ON ERROR UNDO, THROW:
@@ -996,7 +994,7 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID PutBackCellsWritesTheBackgroundAndSkipsCellsOffTheBoard():
-        DEFINE VARIABLE m AS MEMPTR NO-UNDO.
+        VAR MEMPTR m.
         DO ON ERROR UNDO, THROW:
             SET-SIZE(m) = 24.
             PUT-LONG(m, 1) = 0.
@@ -1017,7 +1015,7 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID TintCellsMixesTheCellsShowingTowardsAColour():
-        DEFINE VARIABLE m AS MEMPTR NO-UNDO.
+        VAR MEMPTR m.
         DO ON ERROR UNDO, THROW:
             mCanvas:FillRect(0, 0, 12, 10, 0, 0xC8C8C8).
             SET-SIZE(m) = 24.
@@ -1043,8 +1041,8 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID TintCellsRefusesAPercentOutsideZeroToOneHundred():
-        DEFINE VARIABLE m      AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR MEMPTR m.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             SET-SIZE(m) = 12.
             DO ON ERROR UNDO, THROW:
@@ -1062,8 +1060,8 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID PutBackRowsWritesAWholeBlockOfRowsOfTheBackgroundAtOnce():
-        DEFINE VARIABLE m AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR MEMPTR m.
+        VAR INTEGER i.
         DO ON ERROR UNDO, THROW:
             SET-SIZE(m) = 12 * 4 * 3.
             DO i = 0 TO 35:
@@ -1084,8 +1082,8 @@ CLASS ProGriddle.Engine.PixelCanvasTests:
 
     @Test.
     METHOD PUBLIC VOID PutBackRowsRefusesPartRowsAndRowsOffTheBoard():
-        DEFINE VARIABLE m      AS MEMPTR  NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR MEMPTR m.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             SET-SIZE(m) = 50.
             DO ON ERROR UNDO, THROW:

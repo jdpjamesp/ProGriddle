@@ -8,8 +8,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
-    DEFINE PRIVATE VARIABLE mWorld AS RogueWorld   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTurns AS MonsterTurns NO-UNDO.
+    VAR PRIVATE RogueWorld mWorld.
+    VAR PRIVATE MonsterTurns mTurns.
 
     /* A world whose random source says one number for ever; a lit room with floor (5, 5) to (24, 8), and the hero at (6, 6) */
     METHOD PRIVATE VOID Build(INPUT pcScript AS CHARACTER):
@@ -29,7 +29,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
     END METHOD.
 
     METHOD PRIVATE Monster Spawn(INPUT poKind AS MonsterKind, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT plAwake AS LOGICAL):
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
+        VAR Monster oMonster.
         oMonster = mWorld:AddMonster(poKind, piX, piY).
         oMonster:Awake = plAwake.
         oMonster:Hp = 20.
@@ -39,7 +39,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID ASleepingMonsterStaysAsleepWhenTheRollIsHigh():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR Monster oOrc.
         Build("3").
         oOrc = Spawn(MonsterKind:Nymph, 9, 6, FALSE).
         mTurns:Take(mWorld).
@@ -49,7 +49,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID ASleepingMonsterInTheHerosRoomWakesOnALowRoll():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR Monster oOrc.
         Build("0").
         oOrc = Spawn(MonsterKind:Nymph, 20, 7, FALSE).
         mTurns:Take(mWorld).
@@ -58,7 +58,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID ASleepingMonsterFarFromTheHeroInAnotherRoomDoesNotWake():
-        DEFINE VARIABLE oOrc AS Monster NO-UNDO.
+        VAR Monster oOrc.
         Build("0").
         mWorld:Cave:SetTerrain(40, 15, Terrain:Floor).
         mWorld:Cave:SetRoom(40, 15, 2).
@@ -69,8 +69,8 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID ARingOfStealthMakesSleepersWakeLessOften():
-        DEFINE VARIABLE oNymph AS Monster NO-UNDO.
-        DEFINE VARIABLE oRing  AS Item    NO-UNDO.
+        VAR Monster oNymph.
+        VAR Item oRing.
         /* a roll of 6: wakes when the chance is 1 in 4 only if the roll is 0 modulo 4; with stealth the limit is 12, so 6 does not either */
         Build("4").
         oNymph = Spawn(MonsterKind:Nymph, 20, 7, FALSE).
@@ -87,8 +87,8 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID ARingOfAggravationWakesEverythingAtOnce():
-        DEFINE VARIABLE oNymph AS Monster NO-UNDO.
-        DEFINE VARIABLE oRing  AS Item    NO-UNDO.
+        VAR Monster oNymph.
+        VAR Item oRing.
         Build("3").
         oRing = Items:Make(ItemType:Ring, INTEGER(RingKind:Aggravation)).
         mWorld:Pack:LeftRingSlot = mWorld:Pack:Add(oRing).
@@ -99,7 +99,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID AnAwakeMonsterNextToTheHeroHitsThem():
-        DEFINE VARIABLE oHob AS Monster NO-UNDO.
+        VAR Monster oHob.
         Build("19").
         oHob = Spawn(MonsterKind:Hobgoblin, 7, 6, TRUE).
         mTurns:Take(mWorld).
@@ -109,7 +109,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID AnAwakeMonsterFarAwayStepsTowardsTheHero():
-        DEFINE VARIABLE oHob AS Monster NO-UNDO.
+        VAR Monster oHob.
         Build("19").
         oHob = Spawn(MonsterKind:Hobgoblin, 14, 6, TRUE).
         mTurns:Take(mWorld).
@@ -119,8 +119,8 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterKeepsComingUntilItIsNextToTheHero():
-        DEFINE VARIABLE oHob AS Monster NO-UNDO.
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
+        VAR Monster oHob.
+        VAR INTEGER i.
         Build("19").
         mWorld:Hero:Hp = 99.
         mWorld:Hero:MaxHp = 99.
@@ -136,8 +136,8 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterThatCannotReachTheHeroWandersOrStaysButNeverWalksThroughWalls():
-        DEFINE VARIABLE oHob AS Monster NO-UNDO.
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
+        VAR Monster oHob.
+        VAR INTEGER i.
         Build("19").
         mWorld:Cave:SetTerrain(40, 15, Terrain:Floor).
         mWorld:Cave:SetTerrain(41, 15, Terrain:Floor).
@@ -150,7 +150,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID AVenusFlytrapNeverMovesButHitsWhenTheHeroIsNext():
-        DEFINE VARIABLE oPlant AS Monster NO-UNDO.
+        VAR Monster oPlant.
         Build("19").
         oPlant = Spawn(MonsterKind:VenusFlytrap, 14, 6, TRUE).
         mTurns:Take(mWorld).
@@ -162,7 +162,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID AHeldMonsterMissesItsTurnAndASlowedOneEveryOther():
-        DEFINE VARIABLE oHob AS Monster NO-UNDO.
+        VAR Monster oHob.
         Build("19").
         oHob = Spawn(MonsterKind:Hobgoblin, 14, 6, TRUE).
         oHob:Held = 2.
@@ -184,7 +184,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID AHastedMonsterMovesTwice():
-        DEFINE VARIABLE oHob AS Monster NO-UNDO.
+        VAR Monster oHob.
         Build("19").
         oHob = Spawn(MonsterKind:Hobgoblin, 14, 6, TRUE).
         oHob:Hasted = 3.
@@ -195,7 +195,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID ABatFlutterAboutInsteadOfComingStraight():
-        DEFINE VARIABLE oBat AS Monster NO-UNDO.
+        VAR Monster oBat.
         Build("0").
         oBat = Spawn(MonsterKind:Bat, 14, 6, TRUE).
         mTurns:Take(mWorld).
@@ -206,7 +206,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID AConfusedMonsterStumblesAndThenRecovers():
-        DEFINE VARIABLE oHob AS Monster NO-UNDO.
+        VAR Monster oHob.
         Build("0").
         oHob = Spawn(MonsterKind:Hobgoblin, 14, 6, TRUE).
         oHob:Confused = 2.
@@ -218,7 +218,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID ATrollHealsAsItGoes():
-        DEFINE VARIABLE oTroll AS Monster NO-UNDO.
+        VAR Monster oTroll.
         Build("19").
         oTroll = Spawn(MonsterKind:Troll, 20, 8, FALSE).
         oTroll:Hp = 5.
@@ -232,7 +232,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID ADragonBreathesFireDownAClearLine():
-        DEFINE VARIABLE oDragon AS Monster NO-UNDO.
+        VAR Monster oDragon.
         Build("0").
         mWorld:Hero:Hp = 99.
         mWorld:Hero:MaxHp = 99.
@@ -245,7 +245,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID ADragonDoesNotBreatheOffTheLineOrTooFarOrWhenCancelled():
-        DEFINE VARIABLE oDragon AS Monster NO-UNDO.
+        VAR Monster oDragon.
         Build("0").
         mWorld:Hero:Hp = 99.
         mWorld:Hero:MaxHp = 99.
@@ -263,7 +263,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterWillNotHitAHeroStandingOnAScrollOfScareMonster():
-        DEFINE VARIABLE oHob AS Monster NO-UNDO.
+        VAR Monster oHob.
         Build("19").
         oHob = Spawn(MonsterKind:Hobgoblin, 7, 6, TRUE).
         mWorld:DropOnFloor(Items:Make(ItemType:Scroll, INTEGER(ScrollKind:ScareMonster)), 6, 6).
@@ -275,7 +275,7 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID AMonsterWillNotStepOntoAScrollOfScareMonster():
-        DEFINE VARIABLE oHob AS Monster NO-UNDO.
+        VAR Monster oHob.
         Build("19").
         oHob = Spawn(MonsterKind:Hobgoblin, 14, 6, TRUE).
         mWorld:DropOnFloor(Items:Make(ItemType:Scroll, INTEGER(ScrollKind:ScareMonster)), 13, 6).
@@ -289,8 +289,8 @@ CLASS ProGriddle.Games.Rogue.MonsterTurnsTests:
 
     @Test.
     METHOD PUBLIC VOID TheMonstersStopWhenTheHeroIsDead():
-        DEFINE VARIABLE oHob  AS Monster NO-UNDO.
-        DEFINE VARIABLE oOrc  AS Monster NO-UNDO.
+        VAR Monster oHob.
+        VAR Monster oOrc.
         Build("19").
         mWorld:Hero:Hp = 1.
         oHob = Spawn(MonsterKind:Hobgoblin, 7, 6, TRUE).

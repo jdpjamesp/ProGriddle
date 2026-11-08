@@ -17,8 +17,8 @@ CLASS ProGriddle.Games.Rogue.RingsTests:
 
     @Test.
     METHOD PUBLIC VOID EveryKindHasANameAChanceAndAWorth():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
         DO i = 0 TO Rings:Count() - 1:
             Assert:IsTrue(LENGTH(Rings:NameOf(RingKind:GetEnum(i))) > 2).
             Assert:IsTrue(Rings:Chance(RingKind:GetEnum(i)) > 0).
@@ -44,10 +44,10 @@ CLASS ProGriddle.Games.Rogue.RingsTests:
 
     @Test.
     METHOD PUBLIC VOID ManyPicksTurnUpEveryKind():
-        DEFINE VARIABLE oRandom AS SeededRandom NO-UNDO.
-        DEFINE VARIABLE counts  AS INTEGER      NO-UNDO EXTENT 14.
-        DEFINE VARIABLE i       AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE k       AS INTEGER      NO-UNDO.
+        VAR SeededRandom oRandom.
+        VAR INTEGER[14] counts.
+        VAR INTEGER i.
+        VAR INTEGER k.
         oRandom = NEW SeededRandom(7).
         DO i = 1 TO 4000:
             k = INTEGER(Rings:Roll(oRandom)) + 1.

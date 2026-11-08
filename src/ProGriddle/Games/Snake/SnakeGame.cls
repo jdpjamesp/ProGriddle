@@ -48,33 +48,33 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
     /* the most time one Tick will count */
     &SCOPED-DEFINE MOST-MS 500
 
-    DEFINE PRIVATE VARIABLE mRandom    AS IRandom NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWidth     AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHeight    AS INTEGER NO-UNDO.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE INTEGER mWidth.
+    VAR PRIVATE INTEGER mHeight.
     /* the ring of cell indexes, tail to head: positions mTail to mHead, wrapping at the cell count */
-    DEFINE PRIVATE VARIABLE mBody      AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mTail      AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHead      AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLength    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDirection AS INTEGER NO-UNDO.
+    VAR PRIVATE INTEGER[] mBody.
+    VAR PRIVATE INTEGER mTail.
+    VAR PRIVATE INTEGER mHead.
+    VAR PRIVATE INTEGER mLength.
+    VAR PRIVATE INTEGER mDirection.
     /* turns waiting for a step, oldest first: 0 up, 1 right, 2 down, 3 left */
-    DEFINE PRIVATE VARIABLE mQueue1    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mQueue2    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mQueued    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFood      AS INTEGER NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mEaten     AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mAcc       AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWaitForKey AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mElapsed   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSerial    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBest      AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mEatMs     AS INTEGER NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mEatCell   AS INTEGER NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mFoodMs    AS INTEGER NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mOverMs    AS INTEGER NO-UNDO INITIAL -1.
+    VAR PRIVATE INTEGER mQueue1.
+    VAR PRIVATE INTEGER mQueue2.
+    VAR PRIVATE INTEGER mQueued.
+    VAR PRIVATE INTEGER mFood = -1.
+    VAR PRIVATE INTEGER mEaten.
+    VAR PRIVATE INTEGER mAcc.
+    VAR PRIVATE LOGICAL mWaitForKey.
+    VAR PRIVATE INTEGER mElapsed.
+    VAR PRIVATE INTEGER mSerial.
+    VAR PRIVATE INTEGER mBest.
+    VAR PRIVATE INTEGER mEatMs = -1.
+    VAR PRIVATE INTEGER mEatCell = -1.
+    VAR PRIVATE INTEGER mFoodMs = -1.
+    VAR PRIVATE INTEGER mOverMs = -1.
     /* the slice of the clock that Tick last said something changed in, and how long the slices are then */
-    DEFINE PRIVATE VARIABLE mSlice     AS INTEGER NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mSliceMs   AS INTEGER NO-UNDO.
+    VAR PRIVATE INTEGER mSlice = -1.
+    VAR PRIVATE INTEGER mSliceMs.
 
     DEFINE PUBLIC PROPERTY Paused AS LOGICAL NO-UNDO
         GET.
@@ -247,7 +247,7 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
        on it. The old grid is disposed. Throws GridException, and changes nothing, unless the grid has
        exactly one layer, named "view", and is at least 5 x 5. */
     METHOD PUBLIC VOID Replace(INPUT poGrid AS Grid):
-        DEFINE VARIABLE oldGrid AS Grid NO-UNDO.
+        VAR Grid oldGrid.
         CheckGrid(poGrid).
         oldGrid = Grid.
         Grid = poGrid.
@@ -291,7 +291,7 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
     /* Moves time on. Makes a step each time StepMs has gone by. Returns true when at least one step
        was made, so the controller redraws only when it has to. */
     METHOD PUBLIC LOGICAL Tick(INPUT piElapsedMs AS INTEGER):
-        DEFINE VARIABLE moved AS LOGICAL NO-UNDO.
+        VAR LOGICAL moved.
         IF Paused OR piElapsedMs = ? OR piElapsedMs <= 0 THEN RETURN FALSE.
         mElapsed = mElapsed + piElapsedMs.
         IF IsOver THEN RETURN Animating AND NewSlice().
@@ -323,8 +323,8 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
        something is moving (an eat, a new apple, the end) and about 10 times a second otherwise, enough for the tongue and the
        food to beat, instead of on every tick of a clock that may be faster than the screen can be drawn. */
     METHOD PRIVATE LOGICAL NewSlice():
-        DEFINE VARIABLE ms    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE slice AS INTEGER NO-UNDO.
+        VAR INTEGER ms.
+        VAR INTEGER slice.
         ms = (IF IsOver OR (mEatMs >= 0 AND mElapsed - mEatMs < 300) OR (mFoodMs >= 0 AND mElapsed - mFoodMs < 150) THEN 33 ELSE 100).
         slice = INTEGER(TRUNCATE(mElapsed / ms, 0)).
         IF slice = mSlice AND ms = mSliceMs THEN RETURN FALSE.
@@ -339,14 +339,14 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
        Throws GridException, and leaves the game as it was, when a cell is off the board, repeats,
        or is not next to the one before it, or when the head faces back along the body. */
     METHOD PUBLIC VOID StartWith(INPUT pcBody AS CHARACTER, INPUT pcDirection AS CHARACTER):
-        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dir AS INTEGER NO-UNDO.
-        DEFINE VARIABLE xs  AS INTEGER NO-UNDO EXTENT.
-        DEFINE VARIABLE ys  AS INTEGER NO-UNDO EXTENT.
+        VAR INTEGER n.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER dir.
+        VAR INTEGER[] xs.
+        VAR INTEGER[] ys.
         dir = LOOKUP(pcDirection, "Up,Right,Down,Left") - 1.
         IF pcDirection = ? OR dir < 0 THEN UNDO, THROW NEW GridException("Unknown Snake direction: " + STRING(pcDirection)).
         IF pcBody = ? OR pcBody = "" THEN UNDO, THROW NEW GridException("A snake needs at least one cell").
@@ -402,7 +402,7 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
     /* Puts the food in the empty cell at piX, piY, taking it from where it was. Throws GridException
        when the cell is off the board or the snake is on it. */
     METHOD PUBLIC VOID SetFood(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE target AS INTEGER NO-UNDO.
+        VAR INTEGER target.
         IF piX < 0 OR piX >= mWidth OR piY < 0 OR piY >= mHeight THEN
             UNDO, THROW NEW GridException(SUBSTITUTE("The food cannot go at &1,&2, which is off the board", piX, piY)).
         target = piY * mWidth + piX.
@@ -416,8 +416,8 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
 
     /* A new game: the snake of three cells in the middle of the board, facing right, and one piece of food. */
     METHOD PROTECTED OVERRIDE VOID OnInitialise():
-        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
         cx = INTEGER(TRUNCATE(mWidth / 2, 0)).
         cy = INTEGER(TRUNCATE(mHeight / 2, 0)).
         StartWith(SUBSTITUTE("&1,&3;&2,&3;&4,&3", cx - 2, cx - 1, cy, cx), "Right").
@@ -434,7 +434,7 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
 
     /* Queues a turn to face piDirection. See TurnUp for when it is refused. */
     METHOD PRIVATE LOGICAL Steer(INPUT piDirection AS INTEGER):
-        DEFINE VARIABLE previous AS INTEGER NO-UNDO.
+        VAR INTEGER previous.
         IF Paused OR IsOver THEN RETURN FALSE.
         IF Waiting THEN DO:
             /* the first key starts the snake. Reversing into its own body is no way to start */
@@ -458,11 +458,11 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
     /* One step: takes the oldest waiting turn, then moves the head one cell on. Ends the game when the
        head meets a wall or the body, and grows the snake when it meets the food. */
     METHOD PRIVATE VOID Step():
-        DEFINE VARIABLE nx      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ny      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE target  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE v       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE eating  AS LOGICAL NO-UNDO.
+        VAR INTEGER nx.
+        VAR INTEGER ny.
+        VAR INTEGER target.
+        VAR INTEGER v.
+        VAR LOGICAL eating.
         IF mQueued > 0 THEN DO:
             mDirection = mQueue1.
             mQueue1 = mQueue2.
@@ -505,8 +505,8 @@ CLASS ProGriddle.Games.Snake.SnakeGame FINAL INHERITS AbstractGame IMPLEMENTS IR
 
     /* Puts food in a random empty cell. A full board means the snake has won. */
     METHOD PRIVATE VOID PlaceFood():
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pick  AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER pick.
         IF mLength >= Grid:CellCount THEN DO:
             HasWon = TRUE.
             IsOver = TRUE.

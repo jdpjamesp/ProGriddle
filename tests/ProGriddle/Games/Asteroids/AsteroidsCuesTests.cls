@@ -10,8 +10,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Asteroids.AsteroidsCuesTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS AsteroidsGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCues AS AsteroidsCues NO-UNDO.
+    VAR PRIVATE AsteroidsGame mGame.
+    VAR PRIVATE AsteroidsCues mCues.
 
     @Setup.
     METHOD PUBLIC VOID BuildCues():
@@ -39,7 +39,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsCuesTests:
     END METHOD.
 
     METHOD PRIVATE VOID Frames(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO piCount:
             mGame:Advance().
         END.
@@ -47,7 +47,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsCuesTests:
 
     /* A game in play with no rocks and the ship's protection over, and the cues up to date. */
     METHOD PRIVATE VOID EmptySky():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mGame:StartGame().
         mGame:SkipIntro().
         DO i = 1 TO 60:
@@ -61,8 +61,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsCuesTests:
 
     /* Puts a rock of a size straight above the ship, fires and plays until it breaks: returns every cue heard. */
     METHOD PRIVATE CHARACTER BreakARock(INPUT piSize AS INTEGER):
-        DEFINE VARIABLE n    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE heardAll  AS CHARACTER NO-UNDO.
+        VAR INTEGER n.
+        VAR CHARACTER heardAll.
         EmptySky().
         mGame:Rocks:Add(160 * 4096, 90 * 4096, 0, 0, piSize, 0, 0, 1000, 1).
         mGame:FireHeld = TRUE.
@@ -77,7 +77,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsCuesTests:
 
     @Test.
     METHOD PUBLIC VOID TheTitleScreenAndTheStartOfAGameAreSilent():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 5:
             mGame:Advance().
             Assert:Equals("", mCues:Poll(mGame)).
@@ -101,7 +101,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsCuesTests:
 
     @Test.
     METHOD PUBLIC VOID ALargeRockBreakingBoomsAndTheShotThatDidItIsHeardToo():
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
+        VAR CHARACTER cues.
         cues = BreakARock(1).
         Assert:IsTrue(Has(cues, AsteroidsCue:Fire)).
         Assert:IsTrue(Has(cues, AsteroidsCue:RockLarge)).
@@ -111,7 +111,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsCuesTests:
 
     @Test.
     METHOD PUBLIC VOID AMediumRockHasItsOwnSound():
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
+        VAR CHARACTER cues.
         cues = BreakARock(2).
         Assert:IsTrue(Has(cues, AsteroidsCue:RockMedium)).
         Assert:IsFalse(Has(cues, AsteroidsCue:RockLarge)).
@@ -120,7 +120,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsCuesTests:
 
     @Test.
     METHOD PUBLIC VOID ASmallRockHasItsOwnSound():
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
+        VAR CHARACTER cues.
         cues = BreakARock(3).
         Assert:IsTrue(Has(cues, AsteroidsCue:RockSmall)).
         Assert:IsFalse(Has(cues, AsteroidsCue:RockLarge)).
@@ -129,7 +129,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsCuesTests:
 
     @Test.
     METHOD PUBLIC VOID TheShipBreakingUpIsOneShipDiesCueAndComesFirst():
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
+        VAR CHARACTER cues.
         EmptySky().
         mGame:Rocks:Add(160 * 4096, 120 * 4096, 0, 0, 1, 0, 0, 1000, 1).
         mGame:Advance().
@@ -152,8 +152,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsCuesTests:
 
     @Test.
     METHOD PUBLIC VOID HyperspaceIsOneCueAtTheStartOfTheJump():
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE jumps AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER jumps.
         EmptySky().
         mGame:Hyperspace().
         DO i = 1 TO 60:
@@ -165,8 +165,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsCuesTests:
 
     @Test.
     METHOD PUBLIC VOID ASaucersShotIsOneSaucerFireCueEach():
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE heard AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER heard.
         EmptySky().
         mGame:LaunchSaucerAt(TRUE, 1, 100).
         DO i = 1 TO 600:
@@ -181,9 +181,9 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsCuesTests:
 
     @Test.
     METHOD PUBLIC VOID ASaucerThatIsShotIsASaucerDiesCue():
-        DEFINE VARIABLE n    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE heardAll  AS CHARACTER NO-UNDO.
+        VAR INTEGER n.
+        VAR CHARACTER cues.
+        VAR CHARACTER heardAll.
         EmptySky().
         mGame:LaunchSaucerAt(TRUE, 1, 100).
         mGame:PlaceSaucer(160, 90).
@@ -199,8 +199,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsCuesTests:
 
     @Test.
     METHOD PUBLIC VOID ASaucerThatFliesIntoARockIsOneSoundNotTwo():
-        DEFINE VARIABLE oPlayer   AS RecordingSoundPlayer NO-UNDO.
-        DEFINE VARIABLE oRenderer AS SoundRenderer        NO-UNDO.
+        VAR RecordingSoundPlayer oPlayer.
+        VAR SoundRenderer oRenderer.
         EmptySky().
         oPlayer = NEW RecordingSoundPlayer().
         oRenderer = NEW SoundRenderer(NEW RecordingRenderer(), mCues, oPlayer).
@@ -255,9 +255,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsCuesTests:
 
     @Test.
     METHOD PUBLIC VOID AGameThatIsNotAsteroidsThrowsGridException():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oOther AS CountingGame NO-UNDO.
-        oOther = NEW CountingGame(NEW Grid(NEW ArrayStore(2, 2, "state")), 0).
+        VAR INTEGER thrown.
+        VAR CountingGame oOther = NEW CountingGame(NEW Grid(NEW ArrayStore(2, 2, "state")), 0).
         DO ON ERROR UNDO, THROW:
             mCues:Poll(oOther).
             CATCH e1 AS GridException:
@@ -276,8 +275,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsCuesTests:
     /* End to end: the shot and the thrust loop of a real game, through the renderer, reach the player. */
     @Test.
     METHOD PUBLIC VOID TheSoundRendererPlaysTheShotAndLoopsTheThrustOfARealGame():
-        DEFINE VARIABLE oPlayer   AS RecordingSoundPlayer NO-UNDO.
-        DEFINE VARIABLE oRenderer AS SoundRenderer        NO-UNDO.
+        VAR RecordingSoundPlayer oPlayer.
+        VAR SoundRenderer oRenderer.
         oPlayer = NEW RecordingSoundPlayer().
         oRenderer = NEW SoundRenderer(NEW RecordingRenderer(), mCues, oPlayer).
         EmptySky().

@@ -12,9 +12,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Centipede.CentipedePainterTests:
 
-    DEFINE PRIVATE VARIABLE mGame    AS CentipedeGame              NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInner   AS CentipedeRecordingRenderer NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPainter AS CentipedePainter           NO-UNDO.
+    VAR PRIVATE CentipedeGame mGame.
+    VAR PRIVATE CentipedeRecordingRenderer mInner.
+    VAR PRIVATE CentipedePainter mPainter.
 
     /* A game in play on an empty field, with a segment kept out of the way so the wave is not over, and the shooter at 112, 224. */
     @Setup.
@@ -54,9 +54,9 @@ CLASS ProGriddle.Games.Centipede.CentipedePainterTests:
 
     METHOD PRIVATE INTEGER CountIn2(INPUT poPainter AS CentipedePainter, INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER,
                                     INPUT piColour AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         DO y = piY TO piY + piH - 1:
             DO x = piX TO piX + piW - 1:
                 IF poPainter:Canvas:ColourAt(x, y) = piColour THEN n = n + 1.
@@ -66,7 +66,7 @@ CLASS ProGriddle.Games.Centipede.CentipedePainterTests:
     END METHOD.
 
     METHOD PRIVATE VOID Frames(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO piCount:
             mGame:Advance().
         END.
@@ -74,7 +74,7 @@ CLASS ProGriddle.Games.Centipede.CentipedePainterTests:
 
     /* Plays on to wave piWave by clearing the wave each time, then leaves the field as the setup did. */
     METHOD PRIVATE VOID ToWave(INPUT piWave AS INTEGER):
-        DEFINE VARIABLE guard AS INTEGER NO-UNDO.
+        VAR INTEGER guard.
         DO WHILE mGame:Wave < piWave AND guard < 2000:
             mGame:ClearCentipede().
             mGame:Advance().
@@ -242,7 +242,7 @@ CLASS ProGriddle.Games.Centipede.CentipedePainterTests:
 
     @Test.
     METHOD PUBLIC VOID ADivingSegmentFlickersInTheColoursOfBlight():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mGame:PlaceMushroom(3, 3, 4).
         mGame:PoisonMushroom(3, 3).
         mGame:AddSegment(5, 3, -1, TRUE).
@@ -348,7 +348,7 @@ CLASS ProGriddle.Games.Centipede.CentipedePainterTests:
 
     @Test.
     METHOD PUBLIC VOID ThePointsOfACreatureAreShownForAWhile():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mGame:PlacePlayer(120, 224).
         mGame:SpawnScorpion(10, TRUE).
         DO i = 1 TO 112:
@@ -403,9 +403,9 @@ CLASS ProGriddle.Games.Centipede.CentipedePainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheTitleShowsTheNameTheCrawlingGloamAndTheRollCall():
-        DEFINE VARIABLE oGame    AS CentipedeGame    NO-UNDO.
-        DEFINE VARIABLE oPainter AS CentipedePainter NO-UNDO.
-        DEFINE VARIABLE i        AS INTEGER          NO-UNDO.
+        VAR CentipedeGame oGame.
+        VAR CentipedePainter oPainter.
+        VAR INTEGER i.
         oGame = CentipedeFactory:Create(NEW ScriptedRandom("1")).
         oPainter = NEW CentipedePainter(NEW CentipedeRecordingRenderer(), oGame).
         DO i = 1 TO 40:
@@ -445,7 +445,7 @@ CLASS ProGriddle.Games.Centipede.CentipedePainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheGameOverScreenIsDimmedAndSaysGameOverAndPressSpaceAfterAMoment():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 3:
             mGame:ClearCentipede().
             mGame:PlacePlayer(112, 224).
@@ -475,7 +475,7 @@ CLASS ProGriddle.Games.Centipede.CentipedePainterTests:
 
     @Test.
     METHOD PUBLIC VOID RenderRefusesAGameThatIsNotCentipede():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mPainter:Render(mGame:Grid, ?).
             CATCH e1 AS GridException:
@@ -487,8 +487,8 @@ CLASS ProGriddle.Games.Centipede.CentipedePainterTests:
 
     @Test.
     METHOD PUBLIC VOID ThePainterNeedsARendererAndAGame():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oOther AS CentipedePainter NO-UNDO.
+        VAR INTEGER thrown.
+        VAR CentipedePainter oOther.
         DO ON ERROR UNDO, THROW:
             oOther = NEW CentipedePainter(?, mGame).
             CATCH e1 AS GridException:

@@ -11,11 +11,11 @@ CLASS ProGriddle.Games.Xevious.XeviousSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID EveryCueHasARecipeThatMakesSoundNotSilence():
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE oSynth AS ToneSynth NO-UNDO.
-        DEFINE VARIABLE mData  AS MEMPTR    NO-UNDO.
-        DEFINE VARIABLE loud   AS INTEGER   NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR ToneSynth oSynth.
+        VAR MEMPTR mData.
+        VAR INTEGER loud.
         oSynth = NEW ToneSynth().
         DO i = INTEGER(XeviousCue:Zap) TO INTEGER(XeviousCue:BossLoop):
             oSynth:Make(XeviousSounds:Recipe(XeviousCue:GetEnum(i)), 100, OUTPUT mData).
@@ -33,7 +33,7 @@ CLASS ProGriddle.Games.Xevious.XeviousSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID OnlyTheMothershipsHumLoopsAndItIsQuietest():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = INTEGER(XeviousCue:Zap) TO INTEGER(XeviousCue:StageClear):
             Assert:IsFalse(XeviousSounds:Recipe(XeviousCue:GetEnum(i)) BEGINS "@").
             Assert:IsTrue(XeviousSounds:VolumeOf(XeviousCue:GetEnum(i)) > XeviousSounds:VolumeOf(XeviousCue:BossLoop)).
@@ -43,8 +43,8 @@ CLASS ProGriddle.Games.Xevious.XeviousSoundsTests:
 
     @Test.
     METHOD PUBLIC VOID FillPutsEveryCueInTheBank():
-        DEFINE VARIABLE oBank AS SoundBank NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
+        VAR SoundBank oBank.
+        VAR INTEGER i.
         oBank = NEW SoundBank().
         XeviousSounds:Fill(oBank).
         DO i = INTEGER(XeviousCue:Zap) TO INTEGER(XeviousCue:BossLoop):

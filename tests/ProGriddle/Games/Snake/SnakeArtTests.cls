@@ -12,8 +12,8 @@ CLASS ProGriddle.Games.Snake.SnakeArtTests:
 
     @Test.
     METHOD PUBLIC VOID EveryTileIsSquareAtBothSizes():
-        DEFINE VARIABLE size AS INTEGER NO-UNDO.
-        DEFINE VARIABLE f    AS INTEGER NO-UNDO.
+        VAR INTEGER size.
+        VAR INTEGER f.
         DO size = 8 TO 16 BY 8:
             Assert:Equals(size, SnakeArt:Head(size):Width).
             Assert:Equals(size, SnakeArt:Head(size):Height).
@@ -55,7 +55,7 @@ CLASS ProGriddle.Games.Snake.SnakeArtTests:
 
     @Test.
     METHOD PUBLIC VOID ASizeOrAFrameThatDoesNotExistIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             SnakeArt:Head(12).
             CATCH e1 AS GridException:

@@ -11,8 +11,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.UI.Text.TextGridRenderer FINAL IMPLEMENTS IGridRenderer:
 
-    DEFINE PRIVATE VARIABLE mLayer   AS CHARACTER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSymbols AS CHARACTER NO-UNDO.
+    VAR PRIVATE CHARACTER mLayer.
+    VAR PRIVATE CHARACTER mSymbols.
 
     DEFINE PUBLIC PROPERTY LastOutput AS CHARACTER NO-UNDO
         GET.
@@ -39,11 +39,11 @@ CLASS ProGriddle.UI.Text.TextGridRenderer FINAL IMPLEMENTS IGridRenderer:
 
     /* The grid as text without recording it. */
     METHOD PUBLIC CHARACTER ToText(INPUT poGrid AS Grid):
-        DEFINE VARIABLE layer  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE v      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        VAR INTEGER layer.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER v.
+        VAR CHARACTER result.
         IF NOT VALID-OBJECT(poGrid) THEN
             UNDO, THROW NEW GridException("Nothing to render: the grid is not valid").
         layer = poGrid:Store:LayerIndex(mLayer).

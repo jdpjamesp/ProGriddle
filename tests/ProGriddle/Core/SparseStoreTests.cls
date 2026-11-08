@@ -10,7 +10,7 @@ CLASS ProGriddle.Core.SparseStoreTests:
 
     @Test.
     METHOD PUBLIC VOID OnlyNonZeroCellsAreStored():
-        DEFINE VARIABLE s AS SparseStore NO-UNDO.
+        VAR SparseStore s.
         DO ON ERROR UNDO, THROW:
             s = NEW SparseStore(10, 10, "a,b").
             Assert:Equals(0, s:OccupiedCount()).
@@ -31,7 +31,7 @@ CLASS ProGriddle.Core.SparseStoreTests:
 
     @Test.
     METHOD PUBLIC VOID FillLayerStoresEveryCellOnlyForANonZeroValue():
-        DEFINE VARIABLE s AS SparseStore NO-UNDO.
+        VAR SparseStore s.
         DO ON ERROR UNDO, THROW:
             s = NEW SparseStore(4, 4, "a,b").
             s:SetCell(2, 0, 0, 1).
@@ -47,7 +47,7 @@ CLASS ProGriddle.Core.SparseStoreTests:
 
     @Test.
     METHOD PUBLIC VOID ABoardOfAMillionCellsCostsOnlyItsOccupiedCells():
-        DEFINE VARIABLE s AS SparseStore NO-UNDO.
+        VAR SparseStore s.
         DO ON ERROR UNDO, THROW:
             s = NEW SparseStore(1000, 1000, "state").
             s:SetCell(1, 999, 999, 1).
@@ -66,8 +66,8 @@ CLASS ProGriddle.Core.SparseStoreTests:
 
     @Test.
     METHOD PUBLIC VOID DuplicateKeepsTheOccupiedCellsAndIsIndependent():
-        DEFINE VARIABLE s AS SparseStore NO-UNDO.
-        DEFINE VARIABLE d AS SparseStore NO-UNDO.
+        VAR SparseStore s.
+        VAR SparseStore d.
         DO ON ERROR UNDO, THROW:
             s = NEW SparseStore(5, 5, "a").
             s:SetCell(1, 1, 1, 4).
@@ -86,8 +86,8 @@ CLASS ProGriddle.Core.SparseStoreTests:
 
     @Test.
     METHOD PUBLIC VOID CopyFromReplacesWhatWasThereBefore():
-        DEFINE VARIABLE s AS SparseStore NO-UNDO.
-        DEFINE VARIABLE t AS SparseStore NO-UNDO.
+        VAR SparseStore s.
+        VAR SparseStore t.
         DO ON ERROR UNDO, THROW:
             s = NEW SparseStore(5, 5, "a").
             t = NEW SparseStore(5, 5, "a").
@@ -107,8 +107,8 @@ CLASS ProGriddle.Core.SparseStoreTests:
 
     @Test.
     METHOD PUBLIC VOID CopyFromAnArrayStoreKeepsOnlyTheNonZeroCells():
-        DEFINE VARIABLE a AS ArrayStore  NO-UNDO.
-        DEFINE VARIABLE s AS SparseStore NO-UNDO.
+        VAR ArrayStore a.
+        VAR SparseStore s.
         DO ON ERROR UNDO, THROW:
             a = NEW ArrayStore(6, 6, "a").
             s = NEW SparseStore(6, 6, "a").
@@ -127,7 +127,7 @@ CLASS ProGriddle.Core.SparseStoreTests:
 
     @Test.
     METHOD PUBLIC VOID ExportCellsGivesACopyOfEveryStoredCell():
-        DEFINE VARIABLE s AS SparseStore NO-UNDO.
+        VAR SparseStore s.
         DO ON ERROR UNDO, THROW:
             s = NEW SparseStore(4, 4, "a,b").
             s:SetCell(1, 1, 1, 5).
@@ -148,7 +148,7 @@ CLASS ProGriddle.Core.SparseStoreTests:
 
     @Test.
     METHOD PUBLIC VOID ImportCellsReplacesEverythingInTheStore():
-        DEFINE VARIABLE s AS SparseStore NO-UNDO.
+        VAR SparseStore s.
         DO ON ERROR UNDO, THROW:
             s = NEW SparseStore(4, 4, "a").
             s:SetCell(1, 0, 0, 9).
@@ -169,8 +169,8 @@ CLASS ProGriddle.Core.SparseStoreTests:
 
     @Test.
     METHOD PUBLIC VOID ExportThenImportRoundTrips():
-        DEFINE VARIABLE a AS SparseStore NO-UNDO.
-        DEFINE VARIABLE b AS SparseStore NO-UNDO.
+        VAR SparseStore a.
+        VAR SparseStore b.
         DO ON ERROR UNDO, THROW:
             a = NEW SparseStore(5, 5, "a").
             b = NEW SparseStore(5, 5, "a").
@@ -190,7 +190,7 @@ CLASS ProGriddle.Core.SparseStoreTests:
 
     @Test.
     METHOD PUBLIC VOID ImportingAnEmptyTableEmptiesTheStore():
-        DEFINE VARIABLE s AS SparseStore NO-UNDO.
+        VAR SparseStore s.
         DO ON ERROR UNDO, THROW:
             s = NEW SparseStore(3, 3, "a").
             s:SetCell(1, 1, 1, 1).
@@ -205,8 +205,8 @@ CLASS ProGriddle.Core.SparseStoreTests:
 
     @Test.
     METHOD PUBLIC VOID ImportCellsRejectsABadCellAndEmptiesTheStore():
-        DEFINE VARIABLE s      AS SparseStore NO-UNDO.
-        DEFINE VARIABLE caught AS LOGICAL NO-UNDO.
+        VAR SparseStore s.
+        VAR LOGICAL caught.
         DO ON ERROR UNDO, THROW:
             s = NEW SparseStore(3, 3, "a").
             s:SetCell(1, 1, 1, 1).
@@ -229,8 +229,7 @@ CLASS ProGriddle.Core.SparseStoreTests:
 
     @Test.
     METHOD PUBLIC VOID DisposeEmptiesTheStore():
-        DEFINE VARIABLE s AS SparseStore NO-UNDO.
-        s = NEW SparseStore(3, 3, "a").
+        VAR SparseStore s = NEW SparseStore(3, 3, "a").
         s:SetCell(1, 1, 1, 1).
         s:Dispose().
         Assert:Equals(0, s:OccupiedCount()).

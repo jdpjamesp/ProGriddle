@@ -9,9 +9,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.SparkFieldTests:
 
-    DEFINE PRIVATE VARIABLE mField  AS SparkField   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGrid   AS Grid         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas AS PixelCanvas  NO-UNDO.
+    VAR PRIVATE SparkField mField.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE PixelCanvas mCanvas.
 
     @Setup.
     METHOD PUBLIC VOID BuildField():
@@ -104,7 +104,7 @@ CLASS ProGriddle.Engine.SparkFieldTests:
 
     @Test.
     METHOD PUBLIC VOID ASparkNeedsALifeOfOneFrameOrMoreAndAFieldNeedsOneSlot():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mField:Add(1, 1, 0.0, 0.0, 0.0, 0, 0, 1, 2, 3, 4).
             CATCH e1 AS GridException:
@@ -137,7 +137,7 @@ CLASS ProGriddle.Engine.SparkFieldTests:
 
     @Test.
     METHOD PUBLIC VOID ADragOfNothingOrMoreThanOneIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mField:AddDragged(1, 1, 1.0, 0.0, 0.0, 0.0, 0, 10, 1, 2, 3, 4).
             CATCH e1 AS GridException:

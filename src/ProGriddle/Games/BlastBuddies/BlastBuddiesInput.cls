@@ -29,19 +29,19 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInput FINAL IMPLEMENTS IGameInput, IGameOptions:
 
-    DEFINE PRIVATE VARIABLE mGame     AS BlastBuddiesGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS ISettings        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlayer   AS ISoundPlayer     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNotice   AS CHARACTER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLeft     AS LOGICAL          NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRight    AS LOGICAL          NO-UNDO.
-    DEFINE PRIVATE VARIABLE mUp       AS LOGICAL          NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDown     AS LOGICAL          NO-UNDO.
-    DEFINE PRIVATE VARIABLE mEnter    AS LOGICAL          NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSpace    AS LOGICAL          NO-UNDO.
+    VAR PRIVATE BlastBuddiesGame mGame.
+    VAR PRIVATE ISettings mSettings.
+    VAR PRIVATE ISoundPlayer mPlayer.
+    VAR PRIVATE CHARACTER mNotice.
+    VAR PRIVATE LOGICAL mLeft.
+    VAR PRIVATE LOGICAL mRight.
+    VAR PRIVATE LOGICAL mUp.
+    VAR PRIVATE LOGICAL mDown.
+    VAR PRIVATE LOGICAL mEnter.
+    VAR PRIVATE LOGICAL mSpace.
     /* the key that went down last in each pair, 1 or -1, which wins when both are down */
-    DEFINE PRIVATE VARIABLE mWalkLatest AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mAimLatest  AS INTEGER        NO-UNDO.
+    VAR PRIVATE INTEGER mWalkLatest.
+    VAR PRIVATE INTEGER mAimLatest.
 
     DEFINE PUBLIC PROPERTY StatusText AS CHARACTER NO-UNDO
         GET():
@@ -111,7 +111,7 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInput FINAL IMPLEMENTS IGameInpu
     END CONSTRUCTOR.
 
     METHOD PUBLIC CHARACTER TakeNotice():
-        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        VAR CHARACTER notice.
         notice = mNotice.
         mNotice = "".
         RETURN notice.
@@ -280,12 +280,12 @@ CLASS ProGriddle.Games.BlastBuddies.BlastBuddiesInput FINAL IMPLEMENTS IGameInpu
 
     /* Chooses an item and starts a new game with it. A number of computer teams that leaves no team for a person is lowered to fit. */
     METHOD PUBLIC VOID SetOption(INPUT piOption AS INTEGER, INPUT pcValue AS CHARACTER):
-        DEFINE VARIABLE teams    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE buddies  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE computer AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE skill1   AS BuddySkill NO-UNDO.
-        DEFINE VARIABLE land     AS Theme     NO-UNDO.
-        DEFINE VARIABLE random1  AS LOGICAL   NO-UNDO.
+        VAR INTEGER teams.
+        VAR INTEGER buddies.
+        VAR INTEGER computer.
+        VAR BuddySkill skill1.
+        VAR Theme land.
+        VAR LOGICAL random1.
         IF piOption < 1 OR piOption > 5 THEN UNDO, THROW NEW GridException("Blast Buddies has no option " + STRING(piOption)).
         IF pcValue = ? OR LOOKUP(pcValue, OptionNames(piOption)) = 0 THEN
             UNDO, THROW NEW GridException(SUBSTITUTE("&1 is not a choice for &2", pcValue, OptionLabel(piOption))).

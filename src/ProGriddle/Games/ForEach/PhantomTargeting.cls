@@ -28,10 +28,10 @@ CLASS ProGriddle.Games.ForEach.PhantomTargeting FINAL:
                                            INPUT piCol AS INTEGER, INPUT piRow AS INTEGER,
                                            INPUT piDibbyCol AS INTEGER, INPUT piDibbyRow AS INTEGER, INPUT poDibbyDir AS MazeDir,
                                            INPUT piMaryCol AS INTEGER, INPUT piMaryRow AS INTEGER):
-        DEFINE VARIABLE dx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pc AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pr AS INTEGER NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER pc.
+        VAR INTEGER pr.
         IF poKind = ? THEN UNDO, THROW NEW GridException("A phantom cannot be unknown").
         IF poDibbyDir <> ? THEN ASSIGN dx = MazeDirs:Dx(poDibbyDir)
                                        dy = MazeDirs:Dy(poDibbyDir).

@@ -10,11 +10,11 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.RogueScores FINAL:
 
-    DEFINE PRIVATE VARIABLE mSettings AS ISettings NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScore    AS INTEGER   NO-UNDO EXTENT 10.
-    DEFINE PRIVATE VARIABLE mDepth    AS INTEGER   NO-UNDO EXTENT 10.
-    DEFINE PRIVATE VARIABLE mCause    AS CHARACTER NO-UNDO EXTENT 10.
-    DEFINE PRIVATE VARIABLE mWon      AS LOGICAL   NO-UNDO EXTENT 10.
+    VAR PRIVATE ISettings mSettings.
+    VAR PRIVATE INTEGER[10] mScore.
+    VAR PRIVATE INTEGER[10] mDepth.
+    VAR PRIVATE CHARACTER[10] mCause.
+    VAR PRIVATE LOGICAL[10] mWon.
 
     /* How many games are on the list. */
     DEFINE PUBLIC PROPERTY Count AS INTEGER NO-UNDO
@@ -23,11 +23,11 @@ CLASS ProGriddle.Games.Rogue.RogueScores FINAL:
 
     /* Throws GridException for no settings. Reads the list, ignoring any entry that is damaged. */
     CONSTRUCTOR PUBLIC RogueScores(INPUT poSettings AS ISettings):
-        DEFINE VARIABLE raw   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE parts AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE score AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE depth AS INTEGER   NO-UNDO.
+        VAR CHARACTER raw.
+        VAR INTEGER i.
+        VAR CHARACTER parts.
+        VAR INTEGER score.
+        VAR INTEGER depth.
         IF NOT VALID-OBJECT(poSettings) THEN UNDO, THROW NEW GridException("The scores need settings to be kept in").
         mSettings = poSettings.
         raw = mSettings:GetString("rogue.scores", "").
@@ -83,8 +83,8 @@ CLASS ProGriddle.Games.Rogue.RogueScores FINAL:
 
     /* Puts a game on the list if it is good enough, and saves the list. Gives the place (1 to 10), or 0 when it did not make it. */
     METHOD PUBLIC INTEGER Add(INPUT piScore AS INTEGER, INPUT piDepth AS INTEGER, INPUT pcCause AS CHARACTER, INPUT plWon AS LOGICAL):
-        DEFINE VARIABLE place AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        VAR INTEGER place.
+        VAR INTEGER i.
         place = Count + 1.
         DO i = 1 TO Count:
             IF piScore > mScore[i] THEN DO:
@@ -110,8 +110,8 @@ CLASS ProGriddle.Games.Rogue.RogueScores FINAL:
 
     /* The whole list as lines, one for each game, separated by CHR(10). Empty when nothing is on it. */
     METHOD PUBLIC CHARACTER Text():
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER result.
         DO i = 1 TO Count:
             result = result + (IF i > 1 THEN CHR(10) ELSE "") + Line(i).
         END.
@@ -119,8 +119,8 @@ CLASS ProGriddle.Games.Rogue.RogueScores FINAL:
     END METHOD.
 
     METHOD PRIVATE VOID Keep():
-        DEFINE VARIABLE i   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE raw AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER raw.
         DO i = 1 TO Count:
             raw = raw + (IF i > 1 THEN ";" ELSE "") + SUBSTITUTE("&1|&2|&3|&4", mScore[i], mDepth[i], mCause[i], (IF mWon[i] THEN "1" ELSE "0")).
         END.

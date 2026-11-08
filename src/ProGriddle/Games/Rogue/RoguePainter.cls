@@ -22,13 +22,13 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.RoguePainter FINAL IMPLEMENTS IGridRenderer:
 
-    DEFINE PRIVATE VARIABLE mInner    AS IGridRenderer NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGame     AS RogueGame     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScores   AS RogueScores   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGrid     AS Grid          NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas   AS PixelCanvas   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPen      AS AsciiPen      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDisposed AS LOGICAL       NO-UNDO.
+    VAR PRIVATE IGridRenderer mInner.
+    VAR PRIVATE RogueGame mGame.
+    VAR PRIVATE RogueScores mScores.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE PixelCanvas mCanvas.
+    VAR PRIVATE AsciiPen mPen.
+    VAR PRIVATE LOGICAL mDisposed.
 
     /* The canvas the picture is drawn on, and its grid (what the window's renderer is given). */
     DEFINE PUBLIC PROPERTY Canvas AS PixelCanvas NO-UNDO
@@ -106,11 +106,11 @@ CLASS ProGriddle.Games.Rogue.RoguePainter FINAL IMPLEMENTS IGridRenderer:
     /* ================================== the map ================================== */
 
     METHOD PRIVATE VOID DrawMap():
-        DEFINE VARIABLE x        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oMonster AS Monster NO-UNDO.
-        DEFINE VARIABLE oWorld   AS RogueWorld NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER i.
+        VAR Monster oMonster.
+        VAR RogueWorld oWorld.
         oWorld = mGame:World.
         DO y = 0 TO RogueRules:MapHeight() - 1:
             DO x = 0 TO RogueRules:MapWidth() - 1:
@@ -127,9 +127,9 @@ CLASS ProGriddle.Games.Rogue.RoguePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* One square of the dungeon: its terrain, and a trap when one has been found. */
     METHOD PRIVATE VOID DrawTerrain(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT plInView AS LOGICAL):
-        DEFINE VARIABLE code   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE colour AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t      AS INTEGER NO-UNDO.
+        VAR INTEGER code.
+        VAR INTEGER colour.
+        VAR INTEGER t.
         t = mGame:World:Cave:TerrainAt(piX, piY).
         CASE Terrain:GetEnum(t):
             WHEN Terrain:Rock THEN RETURN.
@@ -171,10 +171,10 @@ CLASS ProGriddle.Games.Rogue.RoguePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The things lying on the floor: where the hero can see, and the ones a potion or a scroll has shown. */
     METHOD PRIVATE VOID DrawThings():
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oItem AS Item    NO-UNDO.
-        DEFINE VARIABLE show  AS LOGICAL NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR Item oItem.
+        VAR LOGICAL show.
         DO y = 0 TO RogueRules:MapHeight() - 1:
             DO x = 0 TO RogueRules:MapWidth() - 1:
                 IF mGame:World:Cave:ItemAt(x, y) > 0 THEN DO:
@@ -192,7 +192,7 @@ CLASS ProGriddle.Games.Rogue.RoguePainter FINAL IMPLEMENTS IGridRenderer:
     END METHOD.
 
     METHOD PRIVATE VOID DrawMonster(INPUT poMonster AS Monster):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         IF mGame:World:Hero:Hallucinating > 0 THEN DO:
             n = (poMonster:X * 5 + poMonster:Y * 11 + mGame:World:Turns) MODULO 26.
             Stamp(ASC("A") + n, RogueLook:OfMonster(MonsterKind:GetEnum((n * 7) MODULO 26)), poMonster:X, poMonster:Y + 1).
@@ -204,7 +204,7 @@ CLASS ProGriddle.Games.Rogue.RoguePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The top row: what is being asked, or else what was said this turn. */
     METHOD PRIVATE VOID DrawMessageLine():
-        DEFINE VARIABLE words AS CHARACTER NO-UNDO.
+        VAR CHARACTER words.
         Block(0, 0, RogueRules:ScreenColumns(), 1, RogueLook:Colour(RogueTint:Background)).
         IF mGame:Asking <> "" THEN Say(mGame:Asking, RogueLook:Colour(RogueTint:Title), 0, 0).
         ELSE DO:
@@ -215,9 +215,9 @@ CLASS ProGriddle.Games.Rogue.RoguePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The two bottom rows: the numbers of the hero, and how the hero is. */
     METHOD PRIVATE VOID DrawStatus():
-        DEFINE VARIABLE w   AS RogueWorld NO-UNDO.
-        DEFINE VARIABLE across AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE hpColour AS INTEGER NO-UNDO.
+        VAR RogueWorld w.
+        VAR INTEGER across.
+        VAR INTEGER hpColour.
         w = mGame:World.
         across = Pair("Level:", STRING(w:Depth), RogueLook:Colour(RogueTint:Value), 0, 22).
         across = Pair("Gold:", STRING(w:Hero:Gold), RogueLook:Colour(RogueTint:Gold), across + 2, 22).
@@ -246,7 +246,7 @@ CLASS ProGriddle.Games.Rogue.RoguePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* A label and its value on a status line: gives the column after them. */
     METHOD PRIVATE INTEGER Pair(INPUT pcLabel AS CHARACTER, INPUT pcValue AS CHARACTER, INPUT piColour AS INTEGER, INPUT piCol AS INTEGER, INPUT piRow AS INTEGER):
-        DEFINE VARIABLE across AS INTEGER NO-UNDO.
+        VAR INTEGER across.
         across = Say(pcLabel, RogueLook:Colour(RogueTint:Label), piCol, piRow) + 1.
         RETURN Say(pcValue, piColour, across, piRow).
     END METHOD.
@@ -255,8 +255,8 @@ CLASS ProGriddle.Games.Rogue.RoguePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* A panel: a filled block of cells with a border drawn in the wall glyphs. */
     METHOD PRIVATE VOID Panel(INPUT piCol AS INTEGER, INPUT piRow AS INTEGER, INPUT piCols AS INTEGER, INPUT piRows AS INTEGER, INPUT pcTitle AS CHARACTER):
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE edge   AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER edge.
         edge = RogueLook:Colour(RogueTint:PanelEdge).
         Block(piCol, piRow, piCols, piRows, RogueLook:Colour(RogueTint:PanelBack)).
         DO i = 1 TO piCols - 2:
@@ -280,9 +280,9 @@ CLASS ProGriddle.Games.Rogue.RoguePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The pack, a thing to a line, the letter in front. While the game asks which thing, the pack has no border and sits at the top. */
     METHOD PRIVATE VOID DrawPack(INPUT plAsking AS LOGICAL):
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE row   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oItem AS Item    NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER row.
+        VAR Item oItem.
         IF mGame:World:Pack:Count = 0 THEN DO:
             Panel(20, 1, 40, 3, "Pack").
             Say("You are carrying nothing.", RogueLook:Colour(RogueTint:Dim), 22, 2).
@@ -302,9 +302,9 @@ CLASS ProGriddle.Games.Rogue.RoguePainter FINAL IMPLEMENTS IGridRenderer:
     END METHOD.
 
     METHOD PRIVATE VOID DrawOverlay():
-        DEFINE VARIABLE lines AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER   NO-UNDO.
+        VAR CHARACTER lines.
+        VAR INTEGER i.
+        VAR INTEGER n.
         CASE mGame:Showing:
             WHEN RogueOverlay:Inventory THEN DrawPack(FALSE).
             WHEN RogueOverlay:Help THEN DO:
@@ -330,7 +330,7 @@ CLASS ProGriddle.Games.Rogue.RoguePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Lines of text (separated by CHR(10)) from a column and a row, one to a row. */
     METHOD PRIVATE VOID DrawLines(INPUT pcLines AS CHARACTER, INPUT piCol AS INTEGER, INPUT piRow AS INTEGER, INPUT piColour AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO NUM-ENTRIES(pcLines, CHR(10)):
             Say(ENTRY(i, pcLines, CHR(10)), piColour, piCol, piRow + i - 1).
         END.
@@ -338,9 +338,9 @@ CLASS ProGriddle.Games.Rogue.RoguePainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The end of a game: a tombstone for a hero who has died, a word of triumph for one who has got out, and the ten best games. */
     METHOD PRIVATE VOID DrawTombstone():
-        DEFINE VARIABLE w   AS RogueWorld NO-UNDO.
-        DEFINE VARIABLE i   AS INTEGER    NO-UNDO.
-        DEFINE VARIABLE row AS INTEGER    NO-UNDO.
+        VAR RogueWorld w.
+        VAR INTEGER i.
+        VAR INTEGER row.
         w = mGame:World.
         Panel(14, 1, 52, 21, (IF w:Won THEN "A WINNER" ELSE "R.I.P.")).
         IF w:Won THEN DO:

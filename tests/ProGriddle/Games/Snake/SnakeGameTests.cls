@@ -16,7 +16,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Snake.SnakeGameTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS SnakeGame NO-UNDO.
+    VAR PRIVATE SnakeGame mGame.
 
     @Setup.
     METHOD PUBLIC VOID BuildGame():
@@ -42,14 +42,14 @@ CLASS ProGriddle.Games.Snake.SnakeGameTests:
 
     /* Runs n steps, which at the start is 150 ms each. */
     METHOD PRIVATE VOID Steps(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO piCount:
             mGame:Tick(mGame:StepMs).
         END.
     END METHOD.
 
     METHOD PRIVATE LOGICAL Throws(INPUT pcBody AS CHARACTER, INPUT pcDirection AS CHARACTER):
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             mGame:StartWith(pcBody, pcDirection).
             CATCH e AS GridException:
@@ -106,7 +106,7 @@ CLASS ProGriddle.Games.Snake.SnakeGameTests:
 
     @Test.
     METHOD PUBLIC VOID ASeededRandomSourceGivesTheSameGameEveryTime():
-        DEFINE VARIABLE other AS SnakeGame NO-UNDO.
+        VAR SnakeGame other.
         mGame:Dispose().
         mGame = SnakeFactory:Create(12, 9, NEW SeededRandom(11)).
         other = SnakeFactory:Create(12, 9, NEW SeededRandom(11)).
@@ -306,7 +306,7 @@ CLASS ProGriddle.Games.Snake.SnakeGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheFoodCannotGoOnTheSnakeOrOffTheBoard():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mGame:SetFood(3, 4).
             CATCH e1 AS GridException:
@@ -395,9 +395,9 @@ CLASS ProGriddle.Games.Snake.SnakeGameTests:
 
     @Test.
     METHOD PUBLIC VOID EatingTheLastPieceOfFoodFillsTheBoardAndWins():
-        DEFINE VARIABLE body AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER   NO-UNDO.
+        VAR CHARACTER body.
+        VAR INTEGER x.
+        VAR INTEGER y.
         mGame:Dispose().
         mGame = NEW SnakeGame(SnakeFactory:CreateGrid(5, 5), NEW ScriptedRandom("0")).
         /* a snake that winds along every row, left to right on the even rows and back on the odd ones,
@@ -573,7 +573,7 @@ CLASS ProGriddle.Games.Snake.SnakeGameTests:
 
     @Test.
     METHOD PUBLIC VOID ReplaceRefusesAGridThatWillNotDoAndChangesNothing():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mGame:Replace(NEW Grid(NEW ArrayStore(8, 8, "state"))).
             CATCH e1 AS GridException:
@@ -601,7 +601,7 @@ CLASS ProGriddle.Games.Snake.SnakeGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheGameNeedsAGridWithTheOneViewLayerAtLeastFiveByFive():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW SnakeGame(NEW Grid(NEW ArrayStore(8, 8, "state")), NEW ScriptedRandom("0")).
             CATCH e1 AS GridException:
@@ -625,7 +625,7 @@ CLASS ProGriddle.Games.Snake.SnakeGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheGameNeedsARandomSource():
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             NEW SnakeGame(SnakeFactory:CreateGrid(8, 8), ?).
             CATCH e AS GridException:
@@ -664,7 +664,7 @@ CLASS ProGriddle.Games.Snake.SnakeGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheBodyReadersRefuseAnIndexOutsideTheSnake():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mGame:BodyX(-1).
             CATCH e1 AS GridException:
@@ -692,7 +692,7 @@ CLASS ProGriddle.Games.Snake.SnakeGameTests:
 
     @Test.
     METHOD PUBLIC VOID EveryNewGameHasANewSerialNumber():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         before = mGame:GameSerial.
         mGame:StartWith("1,1;2,1", "Right").
         Assert:Equals(before + 1, mGame:GameSerial).
@@ -725,8 +725,7 @@ CLASS ProGriddle.Games.Snake.SnakeGameTests:
 
     @Test.
     METHOD PUBLIC VOID ABoardThatIsFilledEndsWithAWinAndTheTime():
-        DEFINE VARIABLE g AS SnakeGame NO-UNDO.
-        g = NEW SnakeGame(SnakeFactory:CreateGrid(5, 5), NEW ScriptedRandom("0")).
+        VAR SnakeGame g = NEW SnakeGame(SnakeFactory:CreateGrid(5, 5), NEW ScriptedRandom("0")).
         g:StartWith("0,0;1,0;2,0;3,0;4,0;4,1;3,1;2,1;1,1;0,1;0,2;1,2;2,2;3,2;4,2;4,3;3,3;2,3;1,3;0,3;0,4;1,4;2,4;3,4", "Right").
         g:SetFood(4, 4).
         g:Tick(150).
@@ -765,7 +764,7 @@ CLASS ProGriddle.Games.Snake.SnakeGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheBestScoreIsHeldForThePainterAndRefusesNonsense():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         Assert:Equals(0, mGame:BestScore).
         mGame:BestScore = 120.
         Assert:Equals(120, mGame:BestScore).

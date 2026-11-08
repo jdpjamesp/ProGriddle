@@ -8,7 +8,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.MessageLogTests:
 
-    DEFINE PRIVATE VARIABLE mLog AS MessageLog NO-UNDO.
+    VAR PRIVATE MessageLog mLog.
 
     @Setup.
     METHOD PUBLIC VOID BuildLog():
@@ -75,7 +75,7 @@ CLASS ProGriddle.Games.Rogue.MessageLogTests:
 
     @Test.
     METHOD PUBLIC VOID TheHistoryKeepsTheLastHundredNewestFirst():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 130:
             mLog:BeginTurn().
             mLog:Add("m" + STRING(i)).
@@ -88,7 +88,7 @@ CLASS ProGriddle.Games.Rogue.MessageLogTests:
 
     @Test.
     METHOD PUBLIC VOID AVeryBusyTurnKeepsTheNewestTwentyMessages():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 25:
             mLog:Add("x" + STRING(i)).
         END.
@@ -108,7 +108,7 @@ CLASS ProGriddle.Games.Rogue.MessageLogTests:
 
     @Test.
     METHOD PUBLIC VOID APlaceBeyondTheHistoryIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         mLog:Add("One.").
         DO ON ERROR UNDO, THROW:
             mLog:At(1).

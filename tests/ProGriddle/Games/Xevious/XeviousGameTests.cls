@@ -11,7 +11,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Xevious.XeviousGameTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS XeviousGame NO-UNDO.
+    VAR PRIVATE XeviousGame mGame.
 
     @Setup.
     METHOD PUBLIC VOID BuildGame():
@@ -36,7 +36,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGameTests:
     END METHOD.
 
     METHOD PRIVATE VOID Frames(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO piCount:
             mGame:Advance().
         END.
@@ -50,7 +50,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGameTests:
 
     /* Whether any slot of the effects holds an effect of a kind. */
     METHOD PRIVATE LOGICAL HasFx(INPUT poKind AS XeviousFx):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 0 TO mGame:FxSlots - 1:
             IF VALID-OBJECT(mGame:FxKindAt(i)) AND mGame:FxKindAt(i) = poKind THEN RETURN TRUE.
         END.
@@ -97,8 +97,8 @@ CLASS ProGriddle.Games.Xevious.XeviousGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheGridMustHaveTheRightShapeAndTheGroundLayer():
-        DEFINE VARIABLE thrown AS INTEGER      NO-UNDO.
-        DEFINE VARIABLE oOther AS XeviousGame  NO-UNDO.
+        VAR INTEGER thrown.
+        VAR XeviousGame oOther.
         DO ON ERROR UNDO, THROW:
             oOther = NEW XeviousGame(NEW Grid(NEW ArrayStore(20, 16, "ground")), NEW ScriptedRandom("1")).
             CATCH e1 AS GridException:
@@ -545,8 +545,8 @@ CLASS ProGriddle.Games.Xevious.XeviousGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheSlotNumbersAreChecked():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
+        VAR INTEGER x.
         DO ON ERROR UNDO, THROW:
             x = mGame:AirX(99).
             CATCH e1 AS GridException:
@@ -582,8 +582,8 @@ CLASS ProGriddle.Games.Xevious.XeviousGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheEffectsHaveAnAgeAPlaceAndAValueAndEndAfterTheirLife():
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE found AS INTEGER NO-UNDO INITIAL -1.
+        VAR INTEGER i.
+        VAR INTEGER found = -1.
         Scene().
         mGame:SpawnAir(XeviousAir:Zakato, 104, 120).
         mGame:ZapHeld = TRUE.
@@ -647,7 +647,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheGameIsOverWhenTheLastShipIsLostAndWaitsForAFireKey():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Scene().
         DO i = 1 TO 3:
             mGame:StopWaves().
@@ -694,7 +694,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheBestScoreCannotBeNegativeAndPointsCannotBeEither():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mGame:HiScore = -1.
             CATCH e1 AS GridException:
@@ -755,7 +755,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGameTests:
 
     @Test.
     METHOD PUBLIC VOID AStageUnderOneIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mGame:BeginStage(0).
             CATCH e1 AS GridException:
@@ -769,7 +769,7 @@ CLASS ProGriddle.Games.Xevious.XeviousGameTests:
 
     @Test.
     METHOD PUBLIC VOID EveryFourthStageBringsTheMothershipAtTheEnd():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Scene().
         mGame:BeginStage(4).
         mGame:StopWaves().
@@ -799,8 +799,8 @@ CLASS ProGriddle.Games.Xevious.XeviousGameTests:
 
     @Test.
     METHOD PUBLIC VOID ABombOnTheCoreHurtsTheMothershipAndThreeDestroyItForFourThousand():
-        DEFINE VARIABLE targetX AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hits    AS INTEGER NO-UNDO.
+        VAR INTEGER targetX.
+        VAR INTEGER hits.
         Scene().
         mGame:SpawnBoss().
         Frames(180).

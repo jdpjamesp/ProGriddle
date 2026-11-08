@@ -8,8 +8,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
-    DEFINE PRIVATE VARIABLE mLauncher AS RecordingGameLauncher NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWindow   AS ArcadeWindow          NO-UNDO.
+    VAR PRIVATE RecordingGameLauncher mLauncher.
+    VAR PRIVATE ArcadeWindow mWindow.
 
     @Setup.
     METHOD PUBLIC VOID BuildWindow():
@@ -93,7 +93,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
     @Test.
     METHOD PUBLIC VOID TheCaptionListsThreeOrMoreGamesWithCommasAndAnd():
-        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        VAR ArcadeWindow w.
         DO ON ERROR UNDO, THROW:
             w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog("a|Alpha|1;b|Beta|2;c|Gamma|3"), mLauncher).
             Assert:Equals("Alpha, Beta and Gamma, all cooking on the same grid.", w:Caption).
@@ -121,7 +121,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
     @Test.
     METHOD PUBLIC VOID AnEmptyCatalogShowsNoButtonsAndSaysSo():
-        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        VAR ArcadeWindow w.
         DO ON ERROR UNDO, THROW:
             w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(""), mLauncher).
             Assert:Equals(0, w:GameCount).
@@ -155,26 +155,23 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID TheWindowNeedsATitle():
-        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
-        w = NEW ArcadeWindow("", NEW FixedGameCatalog(""), mLauncher).
+        VAR ArcadeWindow w = NEW ArcadeWindow("", NEW FixedGameCatalog(""), mLauncher).
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID TheWindowNeedsACatalog():
-        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
-        w = NEW ArcadeWindow("Arcade", ?, mLauncher).
+        VAR ArcadeWindow w = NEW ArcadeWindow("Arcade", ?, mLauncher).
     END METHOD.
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID TheWindowNeedsALauncher():
-        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
-        w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(""), ?).
+        VAR ArcadeWindow w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(""), ?).
     END METHOD.
 
     /* A catalog of n games named G1 to Gn. */
     METHOD PRIVATE CHARACTER Games(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER result.
         DO i = 1 TO piCount:
             result = result + (IF i > 1 THEN ";" ELSE "") + SUBSTITUTE("run/run-g&1.p|G&1|Game &1", i).
         END.
@@ -183,8 +180,8 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
     /* The height of the window for a catalog of n games. */
     METHOD PRIVATE INTEGER HeightFor(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
-        DEFINE VARIABLE h AS INTEGER      NO-UNDO.
+        VAR ArcadeWindow w.
+        VAR INTEGER h.
         DO ON ERROR UNDO, THROW:
             w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(Games(piCount)), mLauncher).
             h = w:ClientSize:Height.
@@ -215,7 +212,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
     @Test.
     METHOD PUBLIC VOID TheChipsAreSmallAndSitTwoToARowFortySixPixelsApart():
-        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        VAR ArcadeWindow w.
         DO ON ERROR UNDO, THROW:
             w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(Games(4)), mLauncher).
             Assert:Equals(232, w:ButtonFor("run/run-g1.p"):Width).
@@ -233,7 +230,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
     @Test.
     METHOD PUBLIC VOID MoreThanEightGamesScrollInTheListInsteadOfLosingAny():
-        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        VAR ArcadeWindow w.
         DO ON ERROR UNDO, THROW:
             w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(Games(12)), mLauncher).
             Assert:Equals(650, w:ClientSize:Height).
@@ -250,8 +247,8 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
     /* The window with the given games, and the accent name of one of them. */
     METHOD PRIVATE CHARACTER AccentIn(INPUT pcGames AS CHARACTER, INPUT pcProgram AS CHARACTER):
-        DEFINE VARIABLE w      AS ArcadeWindow NO-UNDO.
-        DEFINE VARIABLE result AS CHARACTER    NO-UNDO.
+        VAR ArcadeWindow w.
+        VAR CHARACTER result.
         DO ON ERROR UNDO, THROW:
             w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(pcGames), mLauncher).
             result = w:AccentNameFor(pcProgram).
@@ -274,9 +271,9 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
     @Test.
     METHOD PUBLIC VOID AGameKeepsItsColourWhateverElseIsInTheList():
-        DEFINE VARIABLE alone  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE second AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE third  AS CHARACTER NO-UNDO.
+        VAR CHARACTER alone.
+        VAR CHARACTER second.
+        VAR CHARACTER third.
         alone = AccentIn("run/run-z.p|Zebra|x", "run/run-z.p").
         second = AccentIn("run/run-a.p|Alpha|x;run/run-z.p|Zebra|x", "run/run-z.p").
         third = AccentIn("run/run-a.p|Alpha|x;run/run-b.p|Beta|x;run/run-z.p|Zebra|x", "run/run-z.p").
@@ -292,7 +289,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
     @Test.
     METHOD PUBLIC VOID TheDefaultColourIsOneOfTheSeven():
-        DEFINE VARIABLE c AS CHARACTER NO-UNDO.
+        VAR CHARACTER c.
         c = AccentIn("run/run-a.p|Alpha|x", "run/run-a.p").
         Assert:IsTrue(LOOKUP(c, "red,orange,blue,purple,green,yellow,teal") > 0).
     END METHOD.
@@ -317,7 +314,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
     @Test.
     METHOD PUBLIC VOID CategoriesBecomeTabsInOrderThenOtherThenAll():
-        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        VAR ArcadeWindow w.
         DO ON ERROR UNDO, THROW:
             w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(SortedGames()), mLauncher).
             Assert:Equals("Arcade,Puzzle,Other,All", w:TabNames).
@@ -338,7 +335,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
     @Test.
     METHOD PUBLIC VOID TheFirstTabIsShowingWhenTheWindowOpens():
-        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        VAR ArcadeWindow w.
         DO ON ERROR UNDO, THROW:
             w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog("a|Alpha|1||Zoo;b|Beta|2||Puzzle"), mLauncher).
             Assert:Equals("Puzzle,Zoo,All", w:TabNames).
@@ -356,7 +353,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
     @Test.
     METHOD PUBLIC VOID ATabShowsOnlyTheGamesOfItsCategory():
-        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        VAR ArcadeWindow w.
         DO ON ERROR UNDO, THROW:
             w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(SortedGames()), mLauncher).
             w:ShowTab("Puzzle").
@@ -383,7 +380,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
     @Test.
     METHOD PUBLIC VOID ATabButtonIsNamedAfterTheCategoryItShows():
-        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        VAR ArcadeWindow w.
         DO ON ERROR UNDO, THROW:
             w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(SortedGames()), mLauncher).
             Assert:Equals("Arcade", w:TabFor("Arcade"):Name).
@@ -399,7 +396,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
     @Test.
     METHOD PUBLIC VOID ACategoryIsMatchedIgnoringCaseAndSpaces():
-        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        VAR ArcadeWindow w.
         DO ON ERROR UNDO, THROW:
             w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog("a|Alpha|1||puzzle;b|Beta|2||  Puzzle "), mLauncher).
             Assert:Equals("puzzle,All", w:TabNames).
@@ -416,7 +413,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
     @Test.
     METHOD PUBLIC VOID TheTabsKeepTheWindowTheSameSizeAndTheCaptionShort():
-        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        VAR ArcadeWindow w.
         DO ON ERROR UNDO, THROW:
             w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(SortedGames()), mLauncher).
             Assert:Equals(650, w:ClientSize:Height).
@@ -432,7 +429,7 @@ CLASS ProGriddle.UI.WinForms.ArcadeWindowTests:
 
     @Test.
     METHOD PUBLIC VOID AGameStillStartsFromAFilteredList():
-        DEFINE VARIABLE w AS ArcadeWindow NO-UNDO.
+        VAR ArcadeWindow w.
         DO ON ERROR UNDO, THROW:
             w = NEW ArcadeWindow("Arcade", NEW FixedGameCatalog(SortedGames()), mLauncher).
             w:ShowTab("Arcade").

@@ -9,7 +9,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.ForEachFactoryTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS ForEachGame NO-UNDO.
+    VAR PRIVATE ForEachGame mGame.
 
     @TearDown.
     METHOD PUBLIC VOID ReleaseGame():
@@ -18,8 +18,8 @@ CLASS ProGriddle.Games.ForEach.ForEachFactoryTests:
     END METHOD.
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE other AS ForEachGame NO-UNDO.
-        DEFINE VARIABLE grid  AS Grid       NO-UNDO.
+        VAR ForEachGame other.
+        VAR Grid grid.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN other = ForEachFactory:Create(?).
@@ -60,7 +60,7 @@ CLASS ProGriddle.Games.ForEach.ForEachFactoryTests:
 
     @Test.
     METHOD PUBLIC VOID CreateGridMakesAnEmptyGridForAMaze():
-        DEFINE VARIABLE grid AS Grid NO-UNDO.
+        VAR Grid grid.
         grid = ForEachFactory:CreateGrid(NEW MazeMap(ForEachMaze:Layout())).
         Assert:Equals(224, grid:Width).
         Assert:Equals(288, grid:Height).

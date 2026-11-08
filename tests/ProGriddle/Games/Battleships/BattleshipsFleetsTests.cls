@@ -26,10 +26,10 @@ CLASS ProGriddle.Games.Battleships.BattleshipsFleetsTests:
 
     @Test.
     METHOD PUBLIC VOID BiggerBoardsGetMoreAndLongerShips():
-        DEFINE VARIABLE i        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE previous AS INTEGER NO-UNDO.
-        DEFINE VARIABLE prevMax  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE prevSide AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER previous.
+        VAR INTEGER prevMax.
+        VAR INTEGER prevSide.
         DO i = 1 TO NUM-ENTRIES(BattleshipsFleets:Names()):
             Assert:IsTrue(NUM-ENTRIES(BattleshipsFleets:FleetOf(ENTRY(i, BattleshipsFleets:Names()))) >= previous).
             Assert:IsTrue(INTEGER(ENTRY(1, BattleshipsFleets:FleetOf(ENTRY(i, BattleshipsFleets:Names())))) >= prevMax).
@@ -42,10 +42,10 @@ CLASS ProGriddle.Games.Battleships.BattleshipsFleetsTests:
 
     @Test.
     METHOD PUBLIC VOID NoShipIsShorterThanTwoAndEveryFleetIsUnderAFifthOfItsBoard():
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE sizeName  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE fleet AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR CHARACTER sizeName.
+        VAR CHARACTER fleet.
         DO i = 1 TO NUM-ENTRIES(BattleshipsFleets:Names()):
             sizeName = ENTRY(i, BattleshipsFleets:Names()).
             fleet = BattleshipsFleets:FleetOf(sizeName).

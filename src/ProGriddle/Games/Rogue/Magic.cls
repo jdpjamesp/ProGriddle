@@ -34,10 +34,10 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
 
     /* A floor square picked at random that has no monster on it and is not where the hero stands. Gives false when there is none. */
     METHOD PUBLIC STATIC LOGICAL RandomFreeFloor(INPUT poWorld AS RogueWorld, OUTPUT piX AS INTEGER, OUTPUT piY AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
+        VAR INTEGER k.
         DO y = 0 TO RogueRules:MapHeight() - 1:
             DO x = 0 TO RogueRules:MapWidth() - 1:
                 IF IsFreeFloor(poWorld, x, y) THEN n = n + 1.
@@ -67,8 +67,8 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
 
     /* Moves the hero to a free floor square picked at random, and out of any hold. */
     METHOD PUBLIC STATIC VOID Teleport(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         IF RandomFreeFloor(poWorld, OUTPUT x, OUTPUT y) THEN DO:
             poWorld:PlaceHero(x, y).
             poWorld:Hero:HeldBy = ?.
@@ -81,9 +81,9 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
 
     /* The first monster in a direction from the hero (up to 12 squares, stopping at a wall), or unknown. */
     METHOD PUBLIC STATIC Monster FirstInLine(INPUT poWorld AS RogueWorld, INPUT piDX AS INTEGER, INPUT piDY AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
         x = poWorld:Hero:X.
         y = poWorld:Hero:Y.
         DO i = 1 TO 12:
@@ -99,7 +99,7 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
 
     /* Eats one of the food in a slot: the stomach is filled by what the food gives, up to a full stomach. */
     METHOD PUBLIC STATIC LOGICAL Eat(INPUT poWorld AS RogueWorld, INPUT piSlot AS INTEGER):
-        DEFINE VARIABLE oFood AS Item NO-UNDO.
+        VAR Item oFood.
         IF NOT Gear:Holds(poWorld, piSlot, ItemType:Food, "That's disgusting!") THEN RETURN FALSE.
         oFood = UseOne(poWorld, piSlot).
         poWorld:Hero:Nutrition = MINIMUM(RogueRules:StomachSize(), poWorld:Hero:Nutrition + Foods:Nutrition(FoodKind:GetEnum(oFood:Kind))).
@@ -112,12 +112,12 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
 
     /* Drinks one of the potions in a slot. */
     METHOD PUBLIC STATIC LOGICAL Quaff(INPUT poWorld AS RogueWorld, INPUT piSlot AS INTEGER):
-        DEFINE VARIABLE oPotion AS Item    NO-UNDO.
-        DEFINE VARIABLE learnt  AS LOGICAL NO-UNDO INITIAL TRUE.
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oMon    AS Monster NO-UNDO.
-        DEFINE VARIABLE n       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE more    AS INTEGER NO-UNDO.
+        VAR Item oPotion.
+        VAR LOGICAL learnt = TRUE.
+        VAR INTEGER i.
+        VAR Monster oMon.
+        VAR INTEGER n.
+        VAR INTEGER more.
         IF NOT Gear:Holds(poWorld, piSlot, ItemType:Potion, "Yuk! Why would you want to drink that?") THEN RETURN FALSE.
         oPotion = UseOne(poWorld, piSlot).
         CASE PotionKind:GetEnum(oPotion:Kind):
@@ -205,8 +205,8 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
 
     /* True when some magic thing (a potion, scroll, wand, ring or enchanted weapon or armour) lies on the floor. */
     METHOD PUBLIC STATIC LOGICAL AnyMagicOnTheFloor(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO y = 0 TO RogueRules:MapHeight() - 1:
             DO x = 0 TO RogueRules:MapWidth() - 1:
                 IF IsMagic(poWorld:FloorItemAt(x, y)) THEN RETURN TRUE.
@@ -230,13 +230,13 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
     /* Reads one of the scrolls in a slot. plPick is true when it was a scroll of identify and the game should now ask which thing to
        identify (IdentifyItem does it). */
     METHOD PUBLIC STATIC LOGICAL ReadScroll(INPUT poWorld AS RogueWorld, INPUT piSlot AS INTEGER, OUTPUT plPick AS LOGICAL):
-        DEFINE VARIABLE oScroll AS Item    NO-UNDO.
-        DEFINE VARIABLE oArmour AS Item    NO-UNDO.
-        DEFINE VARIABLE oWeapon AS Item    NO-UNDO.
-        DEFINE VARIABLE learnt  AS LOGICAL NO-UNDO INITIAL TRUE.
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oMon    AS Monster NO-UNDO.
+        VAR Item oScroll.
+        VAR Item oArmour.
+        VAR Item oWeapon.
+        VAR LOGICAL learnt = TRUE.
+        VAR INTEGER i.
+        VAR INTEGER n.
+        VAR Monster oMon.
         plPick = FALSE.
         IF NOT Gear:Holds(poWorld, piSlot, ItemType:Scroll, "There is nothing on it to read.") THEN RETURN FALSE.
         oScroll = UseOne(poWorld, piSlot).
@@ -355,7 +355,7 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
 
     /* The scroll of identify at work: the thing in a slot is known for what it is, and so is its kind. */
     METHOD PUBLIC STATIC VOID IdentifyItem(INPUT poWorld AS RogueWorld, INPUT piSlot AS INTEGER):
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
+        VAR Item oItem.
         IF piSlot < 0 OR piSlot >= RogueRules:PackSize() OR NOT poWorld:Pack:Holds(piSlot) THEN DO:
             poWorld:Say("You have nothing like that.").
             RETURN.
@@ -368,8 +368,8 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
 
     /* Shows the shape of the whole level, secret doors as doors. */
     METHOD PUBLIC STATIC VOID MapTheLevel(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO y = 0 TO RogueRules:MapHeight() - 1:
             DO x = 0 TO RogueRules:MapWidth() - 1:
                 IF poWorld:Cave:IsSecret(x, y) THEN poWorld:Cave:SetTerrain(x, y, Terrain:Door).
@@ -380,9 +380,9 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
 
     /* True when some food lies on the floor. */
     METHOD PUBLIC STATIC LOGICAL AnyFoodOnTheFloor(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oItem AS Item    NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR Item oItem.
         DO y = 0 TO RogueRules:MapHeight() - 1:
             DO x = 0 TO RogueRules:MapWidth() - 1:
                 oItem = poWorld:FloorItemAt(x, y).
@@ -394,12 +394,12 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
 
     /* Puts a new monster of the level's kind on a free square next to the hero. Gives false when there is no square. */
     METHOD PUBLIC STATIC LOGICAL MakeMonsterNear(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE dx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE start AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oMon  AS Monster NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER start.
+        VAR INTEGER k.
+        VAR INTEGER d.
+        VAR Monster oMon.
         start = poWorld:Random:NextInt(8).
         DO k = 0 TO 7:
             d = (start + k) MODULO 8.
@@ -418,9 +418,9 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
 
     /* Zaps a wand in a direction. A wand with no charges left does nothing. */
     METHOD PUBLIC STATIC LOGICAL Zap(INPUT poWorld AS RogueWorld, INPUT piSlot AS INTEGER, INPUT piDX AS INTEGER, INPUT piDY AS INTEGER):
-        DEFINE VARIABLE oWand   AS Item    NO-UNDO.
-        DEFINE VARIABLE oTarget AS Monster NO-UNDO.
-        DEFINE VARIABLE learnt  AS LOGICAL NO-UNDO.
+        VAR Item oWand.
+        VAR Monster oTarget.
+        VAR LOGICAL learnt.
         IF NOT Gear:Holds(poWorld, piSlot, ItemType:Wand, "You can't zap with that.") THEN RETURN FALSE.
         oWand = poWorld:Pack:At(piSlot).
         IF oWand:Charges <= 0 THEN DO:
@@ -451,11 +451,11 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
 
     /* What a wand does to the monster it hits. Gives true when the hero has seen what it was. */
     METHOD PRIVATE STATIC LOGICAL ZapMonster(INPUT poWorld AS RogueWorld, INPUT poKind AS WandKind, INPUT poMonster AS Monster):
-        DEFINE VARIABLE name AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE x    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE kind AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE oNew AS Monster   NO-UNDO.
+        VAR CHARACTER name.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER kind.
+        VAR Monster oNew.
         name = Fighting:Name(poWorld, poMonster, FALSE).
         poMonster:Awake = TRUE.
         CASE poKind:
@@ -517,8 +517,8 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
 
     /* Moves a monster to a free square next to the hero if there is one. */
     METHOD PRIVATE STATIC VOID PullNextToHero(INPUT poWorld AS RogueWorld, INPUT poMonster AS Monster):
-        DEFINE VARIABLE dx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
         DO dy = -1 TO 1:
             DO dx = -1 TO 1:
                 IF (dx <> 0 OR dy <> 0) AND poWorld:Cave:Walkable(poWorld:Hero:X + dx, poWorld:Hero:Y + dy) AND poWorld:Cave:MonsterAt(poWorld:Hero:X + dx, poWorld:Hero:Y + dy) = 0 THEN DO:
@@ -531,9 +531,9 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
 
     /* The wand of drain life: the hero loses half the hit points they have, and every monster in sight loses as many. */
     METHOD PRIVATE STATIC LOGICAL DrainLife(INPUT poWorld AS RogueWorld):
-        DEFINE VARIABLE cost AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oMon AS Monster NO-UNDO.
+        VAR INTEGER cost.
+        VAR INTEGER i.
+        VAR Monster oMon.
         IF poWorld:Hero:Hp < 2 THEN DO:
             poWorld:Say("You are too weak to use it.").
             RETURN FALSE.
@@ -553,7 +553,7 @@ CLASS ProGriddle.Games.Rogue.Magic FINAL:
     /* The hero steps on a trap: it is found, and does what it does. Gives true when the hero has fallen through a trap door (the game
        then takes the hero down a level). */
     METHOD PUBLIC STATIC LOGICAL SpringTrap(INPUT poWorld AS RogueWorld, INPUT poKind AS TrapKind):
-        DEFINE VARIABLE oWorn AS Item NO-UNDO.
+        VAR Item oWorn.
         poWorld:Cave:SetTrapFound(poWorld:Hero:X, poWorld:Hero:Y, TRUE).
         CASE poKind:
             WHEN TrapKind:TrapDoor THEN DO:

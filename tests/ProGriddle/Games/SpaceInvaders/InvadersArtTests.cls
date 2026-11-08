@@ -16,7 +16,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersArtTests:
 
     @Test.
     METHOD PUBLIC VOID EveryPictureIsThereAndIsNotEmpty():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Assert:IsTrue(InvadersArt:Count() > 30).
         DO i = 1 TO InvadersArt:Count():
             Assert:IsTrue(InvadersArt:Picture(Image:GetEnum(i - 1)):Count > 0, "picture " + STRING(i)).
@@ -48,7 +48,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersArtTests:
 
     @Test.
     METHOD PUBLIC VOID TheInvaderPicturesMatchTheWidthsThatTheRackUses():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
+        VAR INTEGER k.
         DO k = 0 TO 2:
             Assert:Equals(InvaderRack:WidthOfKind(k), InvadersArt:Invader(k, 0):Width).
             Assert:Equals(InvaderRack:SpriteHeight(), InvadersArt:Invader(k, 1):Height).
@@ -65,8 +65,8 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersArtTests:
 
     @Test.
     METHOD PUBLIC VOID EveryBombIsThreeWideAndSevenHighInAllFourFramesOfAllThreeTypes():
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
-        DEFINE VARIABLE f AS INTEGER NO-UNDO.
+        VAR INTEGER t.
+        VAR INTEGER f.
         DO t = 0 TO 2:
             DO f = 0 TO 3:
                 Assert:IsTrue(Size(InvadersArt:Bomb(t, f), 3, 7), SUBSTITUTE("bomb &1 frame &2", t, f)).
@@ -89,7 +89,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersArtTests:
 
     @Test.
     METHOD PUBLIC VOID TheShieldHasAnArchCutOutOfItsBottom():
-        DEFINE VARIABLE s AS Sprite NO-UNDO.
+        VAR Sprite s.
         s = InvadersArt:Picture(Image:Shield).
         Assert:Equals(0, s:ToneAt(11, 15)).
         Assert:Equals(0, s:ToneAt(7, 12)).
@@ -100,8 +100,8 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersArtTests:
 
     @Test.
     METHOD PUBLIC VOID TheChipsThatEatAShieldComeInThreeVariantsForEachKind():
-        DEFINE VARIABLE k AS INTEGER NO-UNDO.
-        DEFINE VARIABLE v AS INTEGER NO-UNDO.
+        VAR INTEGER k.
+        VAR INTEGER v.
         DO k = 0 TO 1:
             DO v = 0 TO 2:
                 Assert:IsTrue(InvadersArt:Chip(k, v):Count > 8).
@@ -140,7 +140,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersArtTests:
 
     @Test.
     METHOD PUBLIC VOID ABadPictureKindOrPoseIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             InvadersArt:Picture(?).
             CATCH e1 AS GridException:

@@ -15,7 +15,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.ForEachGameTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS ForEachGame NO-UNDO.
+    VAR PRIVATE ForEachGame mGame.
 
     @Setup.
     METHOD PUBLIC VOID BuildGame():
@@ -29,7 +29,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGameTests:
     END METHOD.
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE other AS ForEachGame NO-UNDO.
+        VAR ForEachGame other.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN other = NEW ForEachGame(?, NEW MazeMap(ForEachMaze:Layout()), NEW SeededRandom(1)).
@@ -80,7 +80,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGameTests:
 
     @Test.
     METHOD PUBLIC VOID AMazeWithoutPhantomStartsHasNoPhantoms():
-        DEFINE VARIABLE lane AS ForEachGame NO-UNDO.
+        VAR ForEachGame lane.
         lane = ForEachKit:GameOn(ForEachKit:ClosedCorridor()).
         Assert:IsFalse(lane:PhantomPresent(PhantomKind:Mary)).
         Assert:IsFalse(lane:PhantomPresent(PhantomKind:Chip)).
@@ -169,7 +169,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheFrameCountGrowsByOneForEveryFrame():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         ForEachKit:Play(mGame).
         before = mGame:FrameCount.
         ForEachKit:Frames(mGame, 5).
@@ -180,7 +180,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGameTests:
 
     @Test.
     METHOD PUBLIC VOID TickMakesAFrameForEverySixtiethOfASecondAtFullSpeed():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         ForEachKit:Play(mGame).
         before = mGame:FrameCount.
         Assert:IsFalse(mGame:Tick(0)).
@@ -192,7 +192,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGameTests:
 
     @Test.
     METHOD PUBLIC VOID TickNeverMakesMoreThanFourFramesAtOnceSoAStallIsNotABurst():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         ForEachKit:Play(mGame).
         before = mGame:FrameCount.
         Assert:IsTrue(mGame:Tick(1000)).
@@ -201,7 +201,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheGameStartsAtFullSpeedAndASlowerSpeedMakesFewerFrames():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         Assert:Equals(100, mGame:SpeedPercent).
         ForEachKit:Play(mGame).
         mGame:SpeedPercent = 50.
@@ -212,8 +212,8 @@ CLASS ProGriddle.Games.ForEach.ForEachGameTests:
 
     @Test.
     METHOD PUBLIC VOID NothingHappensWhilePausedAndPlayCarriesOnWhenItIsNot():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
+        VAR INTEGER before.
+        VAR INTEGER x.
         ForEachKit:Play(mGame).
         mGame:Paused = TRUE.
         before = mGame:FrameCount.

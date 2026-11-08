@@ -18,15 +18,15 @@ CLASS ProGriddle.Games.Asteroids.TitleTrace FINAL:
     &SCOPED-DEFINE PER-LETTER 10
     &SCOPED-DEFINE PER-TICK 12
 
-    DEFINE PRIVATE VARIABLE mXs    AS INTEGER NO-UNDO EXTENT {&LETTERS}.
-    DEFINE PRIVATE VARIABLE mGlyph AS Outline NO-UNDO EXTENT {&LETTERS}.
-    DEFINE PRIVATE VARIABLE mHeadX AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHeadY AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHeadOn AS LOGICAL NO-UNDO.
+    VAR PRIVATE INTEGER[{&LETTERS}] mXs.
+    VAR PRIVATE Outline[{&LETTERS}] mGlyph.
+    VAR PRIVATE INTEGER mHeadX.
+    VAR PRIVATE INTEGER mHeadY.
+    VAR PRIVATE LOGICAL mHeadOn.
 
     CONSTRUCTOR PUBLIC TitleTrace():
-        DEFINE VARIABLE i  AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE xs AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER xs.
         xs = "40,68,96,124,152,180,208,232,260".
         DO i = 1 TO {&LETTERS}:
             mXs[i] = INTEGER(ENTRY(i, xs)).
@@ -42,12 +42,12 @@ CLASS ProGriddle.Games.Asteroids.TitleTrace FINAL:
     /* Draws the title as it is at a tick (counted from the start of the title screen) with DrawLine, so call it in a
        batch. Every glow goes down first, then every stroke, then the heads, so a glow never covers a line. */
     METHOD PUBLIC VOID DrawTo(INPUT poCanvas AS PixelCanvas, INPUT piTick AS INTEGER):
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE halo  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE core  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE white AS INTEGER NO-UNDO.
-        DEFINE VARIABLE shown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE reach AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER halo.
+        VAR INTEGER core.
+        VAR INTEGER white.
+        VAR INTEGER shown.
+        VAR INTEGER reach.
         halo = AsteroidsLook:Colour(Palette:TitleHalo).
         core = AsteroidsLook:Colour(Palette:TitleCore).
         white = AsteroidsLook:Colour(Palette:Flash).
@@ -80,18 +80,18 @@ CLASS ProGriddle.Games.Asteroids.TitleTrace FINAL:
        the beam is in mHeadX and mHeadY, and whether it is still on its way in mHeadOn. */
     METHOD PRIVATE VOID Stroke(INPUT poCanvas AS PixelCanvas, INPUT piLetter AS INTEGER, INPUT piReach AS INTEGER,
                                INPUT piOffsetX AS INTEGER, INPUT piOffsetY AS INTEGER, INPUT piColour AS INTEGER):
-        DEFINE VARIABLE g      AS Outline NO-UNDO.
-        DEFINE VARIABLE l      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE p      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE q      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ax     AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE ay     AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE bx     AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE by2    AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE span   AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE togo   AS DECIMAL NO-UNDO.
-        DEFINE VARIABLE part   AS DECIMAL NO-UNDO.
+        VAR Outline g.
+        VAR INTEGER l.
+        VAR INTEGER n.
+        VAR INTEGER p.
+        VAR INTEGER q.
+        VAR DECIMAL ax.
+        VAR DECIMAL ay.
+        VAR DECIMAL bx.
+        VAR DECIMAL by2.
+        VAR DECIMAL span.
+        VAR DECIMAL togo.
+        VAR DECIMAL part.
         g = mGlyph[piLetter].
         togo = piReach.
         mHeadOn = FALSE.

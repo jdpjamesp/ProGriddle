@@ -32,9 +32,9 @@ CLASS ProGriddle.Games.Life.LifeFactory FINAL:
        neighbours. pdLiveFraction is the expected share of live cells. */
     METHOD PUBLIC STATIC LifeGame Create(INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER, INPUT plWrap AS LOGICAL,
                                          INPUT poRules AS LifeRules, INPUT pdLiveFraction AS DECIMAL):
-        DEFINE VARIABLE sparse AS LOGICAL     NO-UNDO.
-        DEFINE VARIABLE grid   AS Grid        NO-UNDO.
-        DEFINE VARIABLE game   AS LifeGame    NO-UNDO.
+        VAR LOGICAL sparse.
+        VAR Grid grid.
+        VAR LifeGame game.
         sparse = UsesSparse(pdLiveFraction, poRules).
         grid = BuildGrid(piWidth, piHeight, plWrap, sparse).
         game = NEW LifeGame(grid, poRules, BuildEngine(grid, poRules, sparse)).
@@ -50,12 +50,12 @@ CLASS ProGriddle.Games.Life.LifeFactory FINAL:
        the board may move between the dense and the sparse engine. Throws GridException for a side
        outside LifeSizes:MinSide to MaxSide, and changes nothing. */
     METHOD PUBLIC STATIC VOID Rebuild(INPUT poGame AS LifeGame, INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER, INPUT poRules AS LifeRules):
-        DEFINE VARIABLE oldGrid  AS Grid   NO-UNDO.
-        DEFINE VARIABLE newGrid  AS Grid   NO-UNDO.
-        DEFINE VARIABLE sparse   AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE sameSize AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE x        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y        AS INTEGER NO-UNDO.
+        VAR Grid oldGrid.
+        VAR Grid newGrid.
+        VAR LOGICAL sparse.
+        VAR LOGICAL sameSize.
+        VAR INTEGER x.
+        VAR INTEGER y.
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("There is no game to rebuild").
         IF NOT VALID-OBJECT(poRules) THEN UNDO, THROW NEW GridException("A Life game needs rules").
         IF piWidth = ? OR piHeight = ? OR piWidth < LifeSizes:MinSide() OR piWidth > LifeSizes:MaxSide()
@@ -75,8 +75,8 @@ CLASS ProGriddle.Games.Life.LifeFactory FINAL:
     END METHOD.
 
     METHOD PRIVATE STATIC Grid BuildGrid(INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER, INPUT plWrap AS LOGICAL, INPUT plSparse AS LOGICAL):
-        DEFINE VARIABLE store AS ICellStore NO-UNDO.
-        DEFINE VARIABLE topo  AS ITopology  NO-UNDO.
+        VAR ICellStore store.
+        VAR ITopology topo.
         IF plSparse THEN store = NEW SparseStore(piWidth, piHeight, "state").
         ELSE store = NEW ArrayStore(piWidth, piHeight, "state").
         IF plWrap THEN topo = NEW ToroidalTopology().

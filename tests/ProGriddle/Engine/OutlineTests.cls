@@ -9,7 +9,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Engine.OutlineTests:
 
     METHOD PRIVATE LOGICAL Refused(INPUT pcSpec AS CHARACTER):
-        DEFINE VARIABLE thrown AS LOGICAL NO-UNDO.
+        VAR LOGICAL thrown.
         DO ON ERROR UNDO, THROW:
             NEW Outline(pcSpec).
             CATCH e AS GridException:
@@ -26,8 +26,7 @@ CLASS ProGriddle.Engine.OutlineTests:
 
     @Test.
     METHOD PUBLIC VOID TheShipIsOneClosedLineOfFivePointsAndAnOpenOneOfTwo():
-        DEFINE VARIABLE o AS Outline NO-UNDO.
-        o = NEW Outline("closed 0,-6 3.6,3 1.6,1.6 -1.6,1.6 -3.6,3 / open 0,-4.4 0,1.6").
+        VAR Outline o = NEW Outline("closed 0,-6 3.6,3 1.6,1.6 -1.6,1.6 -3.6,3 / open 0,-4.4 0,1.6").
         Assert:Equals(2, o:LineCount).
         Assert:Equals(7, o:PointTotal).
         Assert:Equals(6, o:SegmentCount).
@@ -39,8 +38,7 @@ CLASS ProGriddle.Engine.OutlineTests:
 
     @Test.
     METHOD PUBLIC VOID PointsAreKeptAs64thsOfACellAndRoundedToTheNearest():
-        DEFINE VARIABLE o AS Outline NO-UNDO.
-        o = NEW Outline("closed 0,-6 3.6,3 -1.6,1.6").
+        VAR Outline o = NEW Outline("closed 0,-6 3.6,3 -1.6,1.6").
         Assert:Equals(0, o:PointX(1, 1)).
         Assert:Equals(-384, o:PointY(1, 1)).
         Assert:Equals(230, o:PointX(1, 2)).
@@ -51,8 +49,7 @@ CLASS ProGriddle.Engine.OutlineTests:
 
     @Test.
     METHOD PUBLIC VOID WholeNumbersAndNumbersStartingWithADotAreRead():
-        DEFINE VARIABLE o AS Outline NO-UNDO.
-        o = NEW Outline("open 2,-3 .5,-.25").
+        VAR Outline o = NEW Outline("open 2,-3 .5,-.25").
         Assert:Equals(128, o:PointX(1, 1)).
         Assert:Equals(-192, o:PointY(1, 1)).
         Assert:Equals(32, o:PointX(1, 2)).
@@ -74,8 +71,7 @@ CLASS ProGriddle.Engine.OutlineTests:
 
     @Test.
     METHOD PUBLIC VOID ExtraSpacesDoNotMatter():
-        DEFINE VARIABLE o AS Outline NO-UNDO.
-        o = NEW Outline("  closed   0,0   4,0  4,4  /  open 1,1   2,2 ").
+        VAR Outline o = NEW Outline("  closed   0,0   4,0  4,4  /  open 1,1   2,2 ").
         Assert:Equals(2, o:LineCount).
         Assert:Equals(3, o:PointCount(1)).
         Assert:Equals(2, o:PointCount(2)).
@@ -98,8 +94,8 @@ CLASS ProGriddle.Engine.OutlineTests:
 
     @Test.
     METHOD PUBLIC VOID ALineOrPointOutsideTheOutlineIsRefused():
-        DEFINE VARIABLE o      AS Outline NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR Outline o.
+        VAR INTEGER thrown.
         o = NEW Outline("open 0,0 4,0").
         DO ON ERROR UNDO, THROW:
             o:PointX(0, 1).
@@ -130,8 +126,8 @@ CLASS ProGriddle.Engine.OutlineTests:
 
     @Test.
     METHOD PUBLIC VOID DrawToTurnsMovesAndRoundsTheShapeOntoACanvas():
-        DEFINE VARIABLE grid   AS Grid        NO-UNDO.
-        DEFINE VARIABLE canvas AS PixelCanvas NO-UNDO.
+        VAR Grid grid.
+        VAR PixelCanvas canvas.
         grid = NEW Grid(NEW ArrayStore(30, 20, "view,kind,back")).
         canvas = NEW PixelCanvas(grid).
         NEW Outline("open 0,0 0,-4"):DrawTo(canvas, 10 * 256, 10 * 256, 16, 1, 777, 0, 0).
@@ -147,8 +143,8 @@ CLASS ProGriddle.Engine.OutlineTests:
 
     @Test.
     METHOD PUBLIC VOID DrawScaledToStretchesTheShapeAlongAndAcrossBeforeTurningIt():
-        DEFINE VARIABLE grid   AS Grid        NO-UNDO.
-        DEFINE VARIABLE canvas AS PixelCanvas NO-UNDO.
+        VAR Grid grid.
+        VAR PixelCanvas canvas.
         grid = NEW Grid(NEW ArrayStore(30, 20, "view,kind,back")).
         canvas = NEW PixelCanvas(grid).
         /* a line of 4 along the nose, drawn at 100 percent across and 200 along, is 8 long */
@@ -173,9 +169,9 @@ CLASS ProGriddle.Engine.OutlineTests:
 
     @Test.
     METHOD PUBLIC VOID DrawScaledToRefusesNoCanvasAndANegativeScale():
-        DEFINE VARIABLE grid   AS Grid        NO-UNDO.
-        DEFINE VARIABLE canvas AS PixelCanvas NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER     NO-UNDO.
+        VAR Grid grid.
+        VAR PixelCanvas canvas.
+        VAR INTEGER thrown.
         grid = NEW Grid(NEW ArrayStore(30, 20, "view,kind,back")).
         canvas = NEW PixelCanvas(grid).
         DO ON ERROR UNDO, THROW:
@@ -203,11 +199,11 @@ CLASS ProGriddle.Engine.OutlineTests:
 
     @Test.
     METHOD PUBLIC VOID DrawToRefusesNoCanvasAndALineOfMoreThan64Points():
-        DEFINE VARIABLE grid   AS Grid        NO-UNDO.
-        DEFINE VARIABLE canvas AS PixelCanvas NO-UNDO.
-        DEFINE VARIABLE spec   AS CHARACTER   NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER     NO-UNDO.
-        DEFINE VARIABLE thrown AS INTEGER     NO-UNDO.
+        VAR Grid grid.
+        VAR PixelCanvas canvas.
+        VAR CHARACTER spec.
+        VAR INTEGER i.
+        VAR INTEGER thrown.
         grid = NEW Grid(NEW ArrayStore(30, 20, "view,kind,back")).
         canvas = NEW PixelCanvas(grid).
         DO ON ERROR UNDO, THROW:

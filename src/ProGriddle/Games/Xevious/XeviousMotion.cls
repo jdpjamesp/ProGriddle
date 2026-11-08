@@ -16,8 +16,8 @@ CLASS ProGriddle.Games.Xevious.XeviousMotion FINAL:
     /* A triangle wave that starts at 0, rises to piAmp, falls to -piAmp and comes back to 0 every piPeriod frames. The period must
        be a multiple of 4 and the age 0 or more. */
     METHOD PUBLIC STATIC INTEGER Wave(INPUT piAge AS INTEGER, INPUT piPeriod AS INTEGER, INPUT piAmp AS INTEGER):
-        DEFINE VARIABLE q AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h AS INTEGER NO-UNDO.
+        VAR INTEGER q.
+        VAR INTEGER h.
         q = Div(piPeriod, 4).
         h = piAge MODULO piPeriod.
         IF h < q THEN RETURN Div(h * piAmp, q).

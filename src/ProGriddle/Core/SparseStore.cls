@@ -59,7 +59,7 @@ CLASS ProGriddle.Core.SparseStore FINAL INHERITS AbstractCellStore:
 
     /* Number of stored (non-zero) cells across all layers. */
     METHOD PUBLIC INTEGER OccupiedCount():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         FOR EACH ttCell:
             n = n + 1.
         END.
@@ -71,7 +71,7 @@ CLASS ProGriddle.Core.SparseStore FINAL INHERITS AbstractCellStore:
     END METHOD.
 
     METHOD PUBLIC OVERRIDE VOID FillLayer(INPUT piLayer AS INTEGER, INPUT piValue AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         ValidateLayer(piLayer).
         FOR EACH ttCell WHERE ttCell.layerNo = piLayer:
             DELETE ttCell.
@@ -87,7 +87,7 @@ CLASS ProGriddle.Core.SparseStore FINAL INHERITS AbstractCellStore:
     END METHOD.
 
     METHOD PUBLIC OVERRIDE INTEGER CountOf(INPUT piLayer AS INTEGER, INPUT piValue AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         ValidateLayer(piLayer).
         IF piValue = 0 THEN DO:
             FOR EACH ttCell WHERE ttCell.layerNo = piLayer:
@@ -102,8 +102,7 @@ CLASS ProGriddle.Core.SparseStore FINAL INHERITS AbstractCellStore:
     END METHOD.
 
     METHOD PUBLIC OVERRIDE ICellStore Duplicate():
-        DEFINE VARIABLE copy AS SparseStore NO-UNDO.
-        copy = NEW SparseStore(mWidth, mHeight, LayerList()).
+        VAR SparseStore copy = NEW SparseStore(mWidth, mHeight, LayerList()).
         copy:CopyFrom(THIS-OBJECT).
         RETURN copy.
     END METHOD.
@@ -130,7 +129,7 @@ CLASS ProGriddle.Core.SparseStore FINAL INHERITS AbstractCellStore:
        When a cell is invalid the store is emptied, because the table has already replaced its
        contents, and GridException is thrown. */
     METHOD PUBLIC VOID ImportCells(INPUT TABLE ttCell):
-        DEFINE VARIABLE bad AS CHARACTER NO-UNDO.
+        VAR CHARACTER bad.
         FOR EACH ttCell:
             IF ttCell.layerNo < 1 OR ttCell.layerNo > mLayerCount
                OR ttCell.cellIdx < 0 OR ttCell.cellIdx >= mCells OR ttCell.cellVal = 0 THEN DO:

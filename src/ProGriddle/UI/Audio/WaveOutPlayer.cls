@@ -18,17 +18,17 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayer FINAL IMPLEMENTS ISoundPlayer:
 
     &SCOPED-DEFINE VOICES 8
 
-    DEFINE PRIVATE VARIABLE mBank     AS SoundBank NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWinMm    AS HANDLE    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHandle   AS INT64     NO-UNDO EXTENT {&VOICES}.
-    DEFINE PRIVATE VARIABLE mHeader   AS MEMPTR    NO-UNDO EXTENT {&VOICES}.
+    VAR PRIVATE SoundBank mBank.
+    VAR PRIVATE HANDLE mWinMm.
+    VAR PRIVATE INT64[{&VOICES}] mHandle.
+    VAR PRIVATE MEMPTR[{&VOICES}] mHeader.
     /* a buffer was written on the voice and not yet let go of */
-    DEFINE PRIVATE VARIABLE mBusy     AS LOGICAL   NO-UNDO EXTENT {&VOICES}.
+    VAR PRIVATE LOGICAL[{&VOICES}] mBusy.
     /* the cue a voice is looping, 0 for none: a looping voice stays busy until it is stopped */
-    DEFINE PRIVATE VARIABLE mLoopCue  AS INTEGER   NO-UNDO EXTENT {&VOICES}.
-    DEFINE PRIVATE VARIABLE mMuted    AS LOGICAL   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mOpened   AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mVolume   AS INTEGER   NO-UNDO INITIAL 100.
+    VAR PRIVATE INTEGER[{&VOICES}] mLoopCue.
+    VAR PRIVATE LOGICAL mMuted.
+    VAR PRIVATE INTEGER mOpened.
+    VAR PRIVATE INTEGER mVolume = 100.
 
     /* True when at least one voice opened. */
     DEFINE PUBLIC PROPERTY Working AS LOGICAL NO-UNDO
@@ -42,7 +42,7 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayer FINAL IMPLEMENTS ISoundPlayer:
             RETURN mMuted.
         END GET.
         SET(INPUT plValue AS LOGICAL):
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
+            VAR INTEGER i.
             mMuted = plValue.
             IF mMuted THEN
                 DO i = 1 TO mOpened:
@@ -55,7 +55,7 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayer FINAL IMPLEMENTS ISoundPlayer:
             RETURN mVolume.
         END GET.
         SET(INPUT piVolume AS INTEGER):
-            DEFINE VARIABLE i AS INTEGER NO-UNDO.
+            VAR INTEGER i.
             IF piVolume = ? OR piVolume < 0 OR piVolume > 100 THEN UNDO, THROW NEW GridException("A volume is 0 to 100 percent, not " + STRING(piVolume)).
             mVolume = piVolume.
             DO i = 1 TO mOpened:
@@ -82,9 +82,9 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayer FINAL IMPLEMENTS ISoundPlayer:
     /* Opens the voices on the default device. poBank holds the sounds and must outlive the player's use of it. Throws GridException
        for no bank. */
     CONSTRUCTOR PUBLIC WaveOutPlayer(INPUT poBank AS SoundBank):
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE voice  AS INT64   NO-UNDO.
-        DEFINE VARIABLE rc     AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INT64 voice.
+        VAR INTEGER rc.
         IF NOT VALID-OBJECT(poBank) THEN UNDO, THROW NEW GridException("A wave out player needs a sound bank").
         mBank = poBank.
         RUN ProGriddle/UI/Audio/WinMm.p PERSISTENT SET mWinMm.
@@ -103,8 +103,8 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayer FINAL IMPLEMENTS ISoundPlayer:
 
     /* How many sounds are playing now (after letting go of the ones that have finished). */
     METHOD PUBLIC INTEGER BusyVoices():
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE busy  AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER busy.
         Reap().
         DO i = 1 TO mOpened:
             IF mBusy[i] THEN busy = busy + 1.
@@ -115,9 +115,9 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayer FINAL IMPLEMENTS ISoundPlayer:
     /* Starts the sound of a cue on a free voice. Nothing happens when the player is muted or not working, when the bank has no
        sound for the cue, or when every voice is busy (the sound is dropped and counted). */
     METHOD PUBLIC VOID Play(INPUT piCue AS INTEGER):
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE v  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rc AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER v.
+        VAR INTEGER rc.
         IF Muted OR mOpened = 0 OR NOT mBank:Has(piCue) THEN RETURN.
         Reap().
         DO i = 1 TO mOpened:
@@ -151,9 +151,9 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayer FINAL IMPLEMENTS ISoundPlayer:
        is already looping, when the player is muted or not working, or when the bank has no sound for the cue. The sound should be
        made from a recipe that loops (see ToneSynth). When every voice is busy the loop is not started (and counted as dropped). */
     METHOD PUBLIC VOID StartLoop(INPUT piCue AS INTEGER):
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE v  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rc AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER v.
+        VAR INTEGER rc.
         IF Muted OR mOpened = 0 OR NOT mBank:Has(piCue) THEN RETURN.
         IF LoopVoice(piCue) > 0 THEN RETURN.
         Reap().
@@ -188,14 +188,14 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayer FINAL IMPLEMENTS ISoundPlayer:
 
     /* Stops the looping sound of a cue at once. Nothing happens when it is not looping. */
     METHOD PUBLIC VOID StopLoop(INPUT piCue AS INTEGER):
-        DEFINE VARIABLE v AS INTEGER NO-UNDO.
+        VAR INTEGER v.
         v = LoopVoice(piCue).
         IF v > 0 THEN ReleaseLoop(v).
     END METHOD.
 
     /* Stops every sound, closes the voices and frees the headers. Safe to call more than once. */
     METHOD PUBLIC VOID Dispose():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF VALID-HANDLE(mWinMm) THEN DO:
             DO i = 1 TO mOpened:
                 /* a reset marks every buffer done, and a header must be unprepared before its voice is closed */
@@ -216,7 +216,7 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayer FINAL IMPLEMENTS ISoundPlayer:
 
     /* The voice that is looping a cue, 0 for none. */
     METHOD PRIVATE INTEGER LoopVoice(INPUT piCue AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF piCue = ? OR piCue < 1 THEN RETURN 0.
         DO i = 1 TO mOpened:
             IF mLoopCue[i] = piCue THEN RETURN i.
@@ -234,7 +234,7 @@ CLASS ProGriddle.UI.Audio.WaveOutPlayer FINAL IMPLEMENTS ISoundPlayer:
 
     /* Lets go of the voices whose buffer has finished: the done flag (1) of dwFlags is set. */
     METHOD PRIVATE VOID Reap():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO mOpened:
             IF mBusy[i] AND GET-LONG(mHeader[i], 25) MODULO 2 = 1 THEN DO:
                 RUN UnprepareHeader IN mWinMm(mHandle[i], mHeader[i]).

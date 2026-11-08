@@ -9,8 +9,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.DungeonTests:
 
-    DEFINE PRIVATE VARIABLE mGrid AS Grid     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mMap  AS LevelMap NO-UNDO.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE LevelMap mMap.
 
     @Setup.
     METHOD PUBLIC VOID BuildMap():
@@ -26,23 +26,22 @@ CLASS ProGriddle.Games.Rogue.DungeonTests:
     END METHOD.
 
     METHOD PRIVATE Dungeon Build(INPUT piSeed AS INTEGER, INPUT piDepth AS INTEGER):
-        DEFINE VARIABLE oDungeon AS Dungeon NO-UNDO.
-        oDungeon = NEW Dungeon(mMap, NEW SeededRandom(piSeed)).
+        VAR Dungeon oDungeon = NEW Dungeon(mMap, NEW SeededRandom(piSeed)).
         oDungeon:Build(piDepth).
         RETURN oDungeon.
     END METHOD.
 
     /* The number of cells that can be reached on foot from a cell, counting a secret door as a door that is there to be found. */
     METHOD PRIVATE INTEGER Reachable(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE seen  AS LOGICAL NO-UNDO EXTENT 1680.
-        DEFINE VARIABLE queue AS INTEGER NO-UNDO EXTENT 1680.
-        DEFINE VARIABLE head  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tail  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE nx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ny    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d     AS INTEGER NO-UNDO.
+        VAR LOGICAL[1680] seen.
+        VAR INTEGER[1680] queue.
+        VAR INTEGER head.
+        VAR INTEGER tail.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER nx.
+        VAR INTEGER ny.
+        VAR INTEGER d.
         queue[1] = piY * 80 + piX.
         seen[piY * 80 + piX + 1] = TRUE.
         head = 1.
@@ -66,9 +65,9 @@ CLASS ProGriddle.Games.Rogue.DungeonTests:
 
     /* How many cells of the map can be walked on or are secret doors. */
     METHOD PRIVATE INTEGER OpenCells():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         DO y = 0 TO 20:
             DO x = 0 TO 79:
                 IF mMap:Walkable(x, y) OR mMap:IsSecret(x, y) THEN n = n + 1.
@@ -79,9 +78,9 @@ CLASS ProGriddle.Games.Rogue.DungeonTests:
 
     @Test.
     METHOD PUBLIC VOID EveryOpenCellOfEveryLevelCanBeReachedFromTheStart():
-        DEFINE VARIABLE seed     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE depth    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oDungeon AS Dungeon NO-UNDO.
+        VAR INTEGER seed.
+        VAR INTEGER depth.
+        VAR Dungeon oDungeon.
         DO seed = 1 TO 40:
             depth = 1 + (seed * 7) MODULO 26.
             oDungeon = Build(seed, depth).
@@ -91,8 +90,8 @@ CLASS ProGriddle.Games.Rogue.DungeonTests:
 
     @Test.
     METHOD PUBLIC VOID TheStairsAreOnTheirSquareAndTheStartIsAFloorSquareAwayFromThem():
-        DEFINE VARIABLE seed     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oDungeon AS Dungeon NO-UNDO.
+        VAR INTEGER seed.
+        VAR Dungeon oDungeon.
         DO seed = 1 TO 30:
             oDungeon = Build(seed, 1 + seed MODULO 26).
             Assert:Equals(INTEGER(Terrain:Stairs), mMap:TerrainAt(oDungeon:StairsX, oDungeon:StairsY)).
@@ -104,9 +103,9 @@ CLASS ProGriddle.Games.Rogue.DungeonTests:
 
     @Test.
     METHOD PUBLIC VOID ThereAreFiveToNineRoomsAndEachRoomIsWhereItsExtentsSay():
-        DEFINE VARIABLE seed     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oDungeon AS Dungeon NO-UNDO.
+        VAR INTEGER seed.
+        VAR INTEGER r.
+        VAR Dungeon oDungeon.
         DO seed = 1 TO 30:
             oDungeon = Build(seed, 5).
             Assert:IsTrue(oDungeon:RealRooms >= 5 AND oDungeon:RealRooms <= 9).
@@ -130,10 +129,10 @@ CLASS ProGriddle.Games.Rogue.DungeonTests:
 
     @Test.
     METHOD PUBLIC VOID TheWallsAreAWallAroundTheFloorWithOnlyDoorsBrokenIn():
-        DEFINE VARIABLE oDungeon AS Dungeon NO-UNDO.
-        DEFINE VARIABLE r        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t        AS INTEGER NO-UNDO.
+        VAR Dungeon oDungeon.
+        VAR INTEGER r.
+        VAR INTEGER x.
+        VAR INTEGER t.
         oDungeon = Build(3, 1).
         DO r = 0 TO 8:
             IF NOT oDungeon:IsRoom(r) THEN NEXT.
@@ -148,11 +147,11 @@ CLASS ProGriddle.Games.Rogue.DungeonTests:
 
     @Test.
     METHOD PUBLIC VOID EveryCellHasACorridorToAtLeastOneNeighbourAndTheLinksRunBothWays():
-        DEFINE VARIABLE seed     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE a        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE links    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oDungeon AS Dungeon NO-UNDO.
+        VAR INTEGER seed.
+        VAR INTEGER a.
+        VAR INTEGER b.
+        VAR INTEGER links.
+        VAR Dungeon oDungeon.
         DO seed = 1 TO 20:
             oDungeon = Build(seed, 2).
             links = 0.
@@ -169,11 +168,11 @@ CLASS ProGriddle.Games.Rogue.DungeonTests:
 
     @Test.
     METHOD PUBLIC VOID TrapsAreHiddenOnFloorSquaresAndThereAreFewOnShallowLevels():
-        DEFINE VARIABLE seed     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oDungeon AS Dungeon NO-UNDO.
+        VAR INTEGER seed.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
+        VAR Dungeon oDungeon.
         DO seed = 1 TO 20:
             oDungeon = Build(seed, 1).
             n = 0.
@@ -195,9 +194,9 @@ CLASS ProGriddle.Games.Rogue.DungeonTests:
 
     @Test.
     METHOD PUBLIC VOID OnTheFirstLevelEveryRoomIsLitAndNoDoorIsSecret():
-        DEFINE VARIABLE seed     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oDungeon AS Dungeon NO-UNDO.
+        VAR INTEGER seed.
+        VAR INTEGER r.
+        VAR Dungeon oDungeon.
         DO seed = 1 TO 25:
             oDungeon = Build(seed, 1).
             DO r = 0 TO 8:
@@ -210,11 +209,11 @@ CLASS ProGriddle.Games.Rogue.DungeonTests:
 
     @Test.
     METHOD PUBLIC VOID DeepLevelsHaveDarkRoomsAndSecretDoors():
-        DEFINE VARIABLE seed     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dark     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE secret   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oDungeon AS Dungeon NO-UNDO.
+        VAR INTEGER seed.
+        VAR INTEGER r.
+        VAR INTEGER dark.
+        VAR INTEGER secret.
+        VAR Dungeon oDungeon.
         DO seed = 1 TO 25:
             oDungeon = Build(seed, 22).
             DO r = 0 TO 8:
@@ -229,12 +228,12 @@ CLASS ProGriddle.Games.Rogue.DungeonTests:
 
     @Test.
     METHOD PUBLIC VOID TheSameSeedBuildsTheSameLevelAndAnotherSeedAnotherOne():
-        DEFINE VARIABLE a AS Dungeon NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE same AS INTEGER NO-UNDO.
-        DEFINE VARIABLE before AS INTEGER NO-UNDO EXTENT 1680.
-        DEFINE VARIABLE differs AS INTEGER NO-UNDO.
+        VAR Dungeon a.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER same.
+        VAR INTEGER[1680] before.
+        VAR INTEGER differs.
         a = Build(77, 6).
         DO y = 0 TO 20:
             DO x = 0 TO 79:
@@ -259,8 +258,7 @@ CLASS ProGriddle.Games.Rogue.DungeonTests:
 
     @Test.
     METHOD PUBLIC VOID BuildingAgainStartsFromAnEmptyMap():
-        DEFINE VARIABLE oDungeon AS Dungeon NO-UNDO.
-        oDungeon = NEW Dungeon(mMap, NEW SeededRandom(5)).
+        VAR Dungeon oDungeon = NEW Dungeon(mMap, NEW SeededRandom(5)).
         oDungeon:Build(3).
         mMap:SetSeen(10, 10, TRUE).
         mMap:SetItem(10, 10, 4).
@@ -271,11 +269,11 @@ CLASS ProGriddle.Games.Rogue.DungeonTests:
 
     @Test.
     METHOD PUBLIC VOID APickedRoomIsARoomAndAFloorCellInItIsInsideIt():
-        DEFINE VARIABLE oDungeon AS Dungeon NO-UNDO.
-        DEFINE VARIABLE r        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i        AS INTEGER NO-UNDO.
+        VAR Dungeon oDungeon.
+        VAR INTEGER r.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER i.
         oDungeon = Build(11, 8).
         DO i = 1 TO 50:
             r = oDungeon:PickRoom().
@@ -288,7 +286,7 @@ CLASS ProGriddle.Games.Rogue.DungeonTests:
 
     @Test.
     METHOD PUBLIC VOID ForgettingTheRoomsLeavesNoneToAskAbout():
-        DEFINE VARIABLE oDungeon AS Dungeon NO-UNDO.
+        VAR Dungeon oDungeon.
         oDungeon = Build(5, 3).
         Assert:IsTrue(oDungeon:RealRooms >= 5).
         oDungeon:Forget().
@@ -300,11 +298,11 @@ CLASS ProGriddle.Games.Rogue.DungeonTests:
 
     @Test.
     METHOD PUBLIC VOID BadDepthsRoomsAndNoMapAreRefused():
-        DEFINE VARIABLE oDungeon AS Dungeon NO-UNDO.
-        DEFINE VARIABLE thrown   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r        AS INTEGER NO-UNDO.
+        VAR Dungeon oDungeon.
+        VAR INTEGER thrown.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER r.
         oDungeon = Build(4, 1).
         DO ON ERROR UNDO, THROW:
             oDungeon:Build(0).

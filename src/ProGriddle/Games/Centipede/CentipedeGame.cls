@@ -45,49 +45,49 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
     /* room for the segments: a wave is 12 */
     &SCOPED-DEFINE MAX-SEGS 16
 
-    DEFINE PRIVATE VARIABLE mRandom    AS IRandom NO-UNDO.
-    DEFINE PRIVATE VARIABLE mAcc       AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNotice    AS CHARACTER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFireReady AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNextExtra AS INTEGER NO-UNDO.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE INTEGER mAcc.
+    VAR PRIVATE CHARACTER mNotice.
+    VAR PRIVATE LOGICAL mFireReady.
+    VAR PRIVATE INTEGER mNextExtra.
     /* the shooter and its shot, in pixels */
-    DEFINE PRIVATE VARIABLE mPlayerX   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlayerY   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShotOn    AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShotX     AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShotY     AS INTEGER NO-UNDO.
+    VAR PRIVATE INTEGER mPlayerX.
+    VAR PRIVATE INTEGER mPlayerY.
+    VAR PRIVATE LOGICAL mShotOn.
+    VAR PRIVATE INTEGER mShotX.
+    VAR PRIVATE INTEGER mShotY.
     /* the segments in the order of the train: where (pixels), the way along the row (1 or -1), the way down the rows (1 or -1),
        the pixels still to fall to the next row, whether it leads, whether it is diving and whether it has reached the bottom */
-    DEFINE PRIVATE VARIABLE mSegN      AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSegX      AS INTEGER NO-UNDO EXTENT {&MAX-SEGS}.
-    DEFINE PRIVATE VARIABLE mSegY      AS INTEGER NO-UNDO EXTENT {&MAX-SEGS}.
-    DEFINE PRIVATE VARIABLE mSegDx     AS INTEGER NO-UNDO EXTENT {&MAX-SEGS}.
-    DEFINE PRIVATE VARIABLE mSegDy     AS INTEGER NO-UNDO EXTENT {&MAX-SEGS}.
-    DEFINE PRIVATE VARIABLE mSegFall   AS INTEGER NO-UNDO EXTENT {&MAX-SEGS}.
-    DEFINE PRIVATE VARIABLE mSegHead   AS LOGICAL NO-UNDO EXTENT {&MAX-SEGS}.
-    DEFINE PRIVATE VARIABLE mSegDive   AS LOGICAL NO-UNDO EXTENT {&MAX-SEGS}.
-    DEFINE PRIVATE VARIABLE mSegZone   AS LOGICAL NO-UNDO EXTENT {&MAX-SEGS}.
+    VAR PRIVATE INTEGER mSegN.
+    VAR PRIVATE INTEGER[{&MAX-SEGS}] mSegX.
+    VAR PRIVATE INTEGER[{&MAX-SEGS}] mSegY.
+    VAR PRIVATE INTEGER[{&MAX-SEGS}] mSegDx.
+    VAR PRIVATE INTEGER[{&MAX-SEGS}] mSegDy.
+    VAR PRIVATE INTEGER[{&MAX-SEGS}] mSegFall.
+    VAR PRIVATE LOGICAL[{&MAX-SEGS}] mSegHead.
+    VAR PRIVATE LOGICAL[{&MAX-SEGS}] mSegDive.
+    VAR PRIVATE LOGICAL[{&MAX-SEGS}] mSegZone.
     /* loose heads still to come in this wave, and the frames until the next one */
-    DEFINE PRIVATE VARIABLE mHeadsToCome AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHeadTimer AS INTEGER NO-UNDO.
+    VAR PRIVATE INTEGER mHeadsToCome.
+    VAR PRIVATE INTEGER mHeadTimer.
     /* the flea, the spider and the scorpion: whether out, where (pixels), and the frames until the next one comes (-1 for never) */
-    DEFINE PRIVATE VARIABLE mFleaOn    AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFleaX     AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFleaY     AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFleaHp    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFleaTimer AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSpiderOn  AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSpiderX   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSpiderY   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSpiderDx  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSpiderDy  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSpiderT   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSpiderTimer AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScorpOn   AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScorpX    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScorpY    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScorpDx   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScorpTimer AS INTEGER NO-UNDO.
+    VAR PRIVATE LOGICAL mFleaOn.
+    VAR PRIVATE INTEGER mFleaX.
+    VAR PRIVATE INTEGER mFleaY.
+    VAR PRIVATE INTEGER mFleaHp.
+    VAR PRIVATE INTEGER mFleaTimer.
+    VAR PRIVATE LOGICAL mSpiderOn.
+    VAR PRIVATE INTEGER mSpiderX.
+    VAR PRIVATE INTEGER mSpiderY.
+    VAR PRIVATE INTEGER mSpiderDx.
+    VAR PRIVATE INTEGER mSpiderDy.
+    VAR PRIVATE INTEGER mSpiderT.
+    VAR PRIVATE INTEGER mSpiderTimer.
+    VAR PRIVATE LOGICAL mScorpOn.
+    VAR PRIVATE INTEGER mScorpX.
+    VAR PRIVATE INTEGER mScorpY.
+    VAR PRIVATE INTEGER mScorpDx.
+    VAR PRIVATE INTEGER mScorpTimer.
 
     DEFINE PUBLIC PROPERTY Paused AS LOGICAL NO-UNDO
         GET.
@@ -350,7 +350,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
     /* Moves time on: the milliseconds become frames (at SpeedPercent of 60 a second) and each one is made. Returns true when
        a frame was made, so the controller redraws. A stall of more than 100 ms is cut to 100. Does nothing while Paused. */
     METHOD PUBLIC LOGICAL Tick(INPUT piElapsedMs AS INTEGER):
-        DEFINE VARIABLE made AS INTEGER NO-UNDO.
+        VAR INTEGER made.
         IF Paused OR piElapsedMs = ? OR piElapsedMs <= 0 THEN RETURN FALSE.
         mAcc = mAcc + INTEGER(ROUND(MINIMUM(piElapsedMs, {&MOST-MS}) * 0.6 * SpeedPercent, 0)).
         DO WHILE mAcc >= 1000 AND made < {&MOST-FRAMES}:
@@ -369,7 +369,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
 
     /* Starts a new game from any phase: no score, three shooters, wave 1 and a field of 30 mushrooms. */
     METHOD PUBLIC VOID StartGame():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Score = 0.
         Lives = CentipedeRules:StartLives().
         Wave = 1.
@@ -388,7 +388,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
 
     /* A few words about what just happened (an extra shooter, a new wave), or "" for nothing. Taking them clears them. */
     METHOD PUBLIC CHARACTER TakeNotice():
-        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        VAR CHARACTER notice.
         notice = mNotice.
         mNotice = "".
         RETURN notice.
@@ -614,8 +614,8 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
     /* ============================== the shooter and its shot ============================== */
 
     METHOD PRIVATE VOID MovePlayer():
-        DEFINE VARIABLE nx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ny AS INTEGER NO-UNDO.
+        VAR INTEGER nx.
+        VAR INTEGER ny.
         IF MoveX <> 0 THEN DO:
             nx = MINIMUM(CentipedeRules:BoardPixels() - CentipedeRules:Tile(), MAXIMUM(0, mPlayerX + MoveX * CentipedeRules:PlayerSpeed())).
             IF NOT Blocked(nx, mPlayerY) THEN mPlayerX = nx.
@@ -628,8 +628,8 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
 
     /* True when the shooter, with its top left at piX, piY, would be inside a mushroom. The shooter's box is the inner 6 x 6 pixels. */
     METHOD PRIVATE LOGICAL Blocked(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
         DO cy = Cell(piY + 1) TO Cell(piY + 6):
             DO cx = Cell(piX + 1) TO Cell(piX + 6):
                 IF Hp(cx, cy) > 0 THEN RETURN TRUE.
@@ -640,7 +640,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
 
     /* The shot flies up, a pixel at a time so nothing is skipped, and stops at the first thing it hits or at the top. */
     METHOD PRIVATE VOID MoveShot():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO n = 1 TO CentipedeRules:ShotSpeed():
             mShotY = mShotY - 1.
             IF mShotY < 0 THEN DO:
@@ -656,9 +656,9 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
 
     /* Looks for something at the tip of the shot and, if there is, deals with it. Returns true when the shot hit. */
     METHOD PRIVATE LOGICAL ShotHits():
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
         DO i = 1 TO mSegN:
             IF Overlaps(mShotX, mShotY, 2, 1, mSegX[i], mSegY[i], 8, 8) THEN DO:
                 KillSegment(i).
@@ -687,7 +687,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
     END METHOD.
 
     METHOD PRIVATE VOID DamageMushroom(INPUT piX AS INTEGER, INPUT piY AS INTEGER):
-        DEFINE VARIABLE hp AS INTEGER NO-UNDO.
+        VAR INTEGER hp.
         hp = Hp(piX, piY) - 1.
         Grid:Store:SetCellAt({&HP-LAYER}, piY * CentipedeRules:Cols() + piX, hp).
         FieldVersion = FieldVersion + 1.
@@ -702,8 +702,8 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
 
     /* Makes the segments of the wave: the body comes in from the right in row 0, and the loose heads follow in the player zone. */
     METHOD PRIVATE VOID StartWave():
-        DEFINE VARIABLE extras AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
+        VAR INTEGER extras.
+        VAR INTEGER i.
         extras = MINIMUM(Wave - 1, CentipedeRules:MostExtraHeads()).
         ClearCentipede().
         DO i = 1 TO CentipedeRules:SegmentsPerWave() - extras:
@@ -714,8 +714,8 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
     END METHOD.
 
     METHOD PRIVATE VOID MoveSegments():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER i.
         DO n = 1 TO CentipedeRules:SegmentSpeed(Wave):
             DO i = 1 TO mSegN:
                 StepSegment(i).
@@ -754,10 +754,10 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
     /* A segment is on a tile boundary: if the way ahead is blocked by the edge or a mushroom it drops a row and turns round, and
        if the mushroom is poisoned it dives. A tile off the right edge is not in the way of a segment coming on from there. */
     METHOD PRIVATE VOID Decide(INPUT piSeg AS INTEGER):
-        DEFINE VARIABLE cy      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ahead   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE blocked AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE poison  AS LOGICAL NO-UNDO.
+        VAR INTEGER cy.
+        VAR INTEGER ahead.
+        VAR LOGICAL blocked.
+        VAR LOGICAL poison.
         cy = Cell(mSegY[piSeg]).
         ahead = Cell(mSegX[piSeg]) + mSegDx[piSeg].
         IF ahead < 0 OR (ahead >= CentipedeRules:Cols() AND mSegDx[piSeg] > 0) THEN blocked = TRUE.
@@ -770,7 +770,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
     /* Drops a segment to the next row and sends it back the way it came. In the player zone it climbs once it has been to the bottom,
        and comes down again at the top of the zone. */
     METHOD PRIVATE VOID TurnRound(INPUT piSeg AS INTEGER, INPUT plPoison AS LOGICAL):
-        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
+        VAR INTEGER cy.
         cy = Cell(mSegY[piSeg]).
         mSegDx[piSeg] = - mSegDx[piSeg].
         IF plPoison AND cy < CentipedeRules:Rows() - 1 THEN ASSIGN
@@ -785,9 +785,9 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
 
     /* Shoots a segment: points, a mushroom where it was, and the segment behind it leads. */
     METHOD PRIVATE VOID KillSegment(INPUT piSeg AS INTEGER):
-        DEFINE VARIABLE i  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
         cx = Cell(mSegX[piSeg] + 4).
         cy = Cell(mSegY[piSeg] + 4).
         SegmentsKilled = SegmentsKilled + 1.
@@ -827,9 +827,9 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
     /* ============================== the creatures ============================== */
 
     METHOD PRIVATE VOID StepFlea():
-        DEFINE VARIABLE n  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
         IF NOT mFleaOn THEN DO:
             IF mSegN = 0 THEN RETURN.
             mFleaTimer = mFleaTimer - 1.
@@ -865,8 +865,8 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
     END METHOD.
 
     METHOD PRIVATE VOID StepSpider():
-        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cy AS INTEGER NO-UNDO.
+        VAR INTEGER cx.
+        VAR INTEGER cy.
         IF NOT mSpiderOn THEN DO:
             IF mSegN = 0 THEN RETURN.
             mSpiderTimer = mSpiderTimer - 1.
@@ -892,8 +892,8 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
     END METHOD.
 
     METHOD PRIVATE VOID KillSpider():
-        DEFINE VARIABLE dx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy AS INTEGER NO-UNDO.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
         dx = ABSOLUTE(mSpiderX + 8 - (mPlayerX + 4)).
         dy = ABSOLUTE(mSpiderY + 4 - (mPlayerY + 4)).
         SpiderKills = SpiderKills + 1.
@@ -902,7 +902,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
     END METHOD.
 
     METHOD PRIVATE VOID StepScorpion():
-        DEFINE VARIABLE cx AS INTEGER NO-UNDO.
+        VAR INTEGER cx.
         IF NOT mScorpOn THEN DO:
             IF mSegN = 0 OR mScorpTimer < 0 THEN RETURN.
             mScorpTimer = mScorpTimer - 1.
@@ -937,7 +937,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
 
     /* True when the centipede, the flea or the spider touches the shooter. */
     METHOD PRIVATE LOGICAL PlayerTouched():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO mSegN:
             IF Overlaps(mPlayerX + 1, mPlayerY + 1, 6, 6, mSegX[i], mSegY[i], 8, 8) THEN RETURN TRUE.
         END.
@@ -956,7 +956,7 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
 
     /* The breaking up is over: the game ends, or the field is mended and the wave starts again. */
     METHOD PRIVATE VOID AfterDeath():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF Lives <= 0 THEN DO:
             mFireReady = FALSE.
             SetPhase(GamePhase:GameOver).
@@ -1033,8 +1033,8 @@ CLASS ProGriddle.Games.Centipede.CentipedeGame FINAL INHERITS AbstractGame IMPLE
 
     /* Mushrooms in the rows from piFromRow down. */
     METHOD PRIVATE INTEGER CountMushrooms(INPUT piFromRow AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER n.
         DO i = piFromRow * CentipedeRules:Cols() TO Grid:CellCount - 1:
             IF Grid:Store:GetCellAt({&HP-LAYER}, i) > 0 THEN n = n + 1.
         END.

@@ -29,17 +29,17 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInput FINAL IMPLEMENTS IGameInput:
 
 
-    DEFINE PRIVATE VARIABLE mGame     AS SpaceInvadersGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS ISettings         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlayer   AS ISoundPlayer      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mNotice   AS CHARACTER         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLeft     AS LOGICAL           NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRight    AS LOGICAL           NO-UNDO.
+    VAR PRIVATE SpaceInvadersGame mGame.
+    VAR PRIVATE ISettings mSettings.
+    VAR PRIVATE ISoundPlayer mPlayer.
+    VAR PRIVATE CHARACTER mNotice.
+    VAR PRIVATE LOGICAL mLeft.
+    VAR PRIVATE LOGICAL mRight.
     /* the direction key that went down last, 1 or -1, which wins when both are down */
-    DEFINE PRIVATE VARIABLE mLatest   AS INTEGER           NO-UNDO.
+    VAR PRIVATE INTEGER mLatest.
     /* the fire keys that are down now, as ",Space,Up," */
-    DEFINE PRIVATE VARIABLE mFireKeys AS CHARACTER         NO-UNDO INITIAL ",".
-    DEFINE PRIVATE VARIABLE mSavedHi  AS INTEGER           NO-UNDO.
+    VAR PRIVATE CHARACTER mFireKeys = ",".
+    VAR PRIVATE INTEGER mSavedHi.
 
     DEFINE PUBLIC PROPERTY StatusText AS CHARACTER NO-UNDO
         GET():
@@ -109,7 +109,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInput FINAL IMPLEMENTS IGameIn
 
     /* The game's own notices: an extra cannon, a new wave. */
     METHOD PUBLIC CHARACTER TakeNotice():
-        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        VAR CHARACTER notice.
         notice = mGame:TakeNotice().
         IF mNotice <> "" THEN ASSIGN
             notice = mNotice

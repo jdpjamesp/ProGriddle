@@ -41,8 +41,8 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersSounds FINAL:
 
     /* Makes the sound of every cue into a bank, under the cue's number. */
     METHOD PUBLIC STATIC VOID Fill(INPUT poBank AS SoundBank):
-        DEFINE VARIABLE i   AS INTEGER     NO-UNDO.
-        DEFINE VARIABLE cue AS InvadersCue NO-UNDO.
+        VAR INTEGER i.
+        VAR InvadersCue cue.
         DO i = INTEGER(InvadersCue:Shoot) TO INTEGER(InvadersCue:SaucerHum):
             cue = InvadersCue:GetEnum(i).
             poBank:Define(i, Recipe(cue), VolumeOf(cue)).

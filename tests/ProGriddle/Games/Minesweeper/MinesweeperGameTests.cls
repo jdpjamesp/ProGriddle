@@ -13,9 +13,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
    . blank open cell, 1 to 8, * mine, X exploded mine, ! wrong flag. */
 CLASS ProGriddle.Games.Minesweeper.MinesweeperGameTests:
 
-    DEFINE PRIVATE VARIABLE mGame  AS MinesweeperGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mClock AS FakeClock       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mText  AS TextGridRenderer NO-UNDO.
+    VAR PRIVATE MinesweeperGame mGame.
+    VAR PRIVATE FakeClock mClock.
+    VAR PRIVATE TextGridRenderer mText.
 
     @Setup.
     METHOD PUBLIC VOID BuildGame():
@@ -42,8 +42,8 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGameTests:
 
     /* Opens every cell that is not a mine, in reading order. */
     METHOD PRIVATE VOID RevealAllSafeCells():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO y = 0 TO mGame:Grid:Height - 1:
             DO x = 0 TO mGame:Grid:Width - 1:
                 IF NOT mGame:MineAt(x, y) THEN mGame:Reveal(x, y).
@@ -71,13 +71,13 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheSameSeedMakesTheSameBoardAndAnotherSeedADifferentOne():
-        DEFINE VARIABLE a AS MinesweeperGame NO-UNDO.
-        DEFINE VARIABLE b AS MinesweeperGame NO-UNDO.
-        DEFINE VARIABLE c AS MinesweeperGame NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sameAB AS LOGICAL NO-UNDO INITIAL TRUE.
-        DEFINE VARIABLE sameAC AS LOGICAL NO-UNDO INITIAL TRUE.
+        VAR MinesweeperGame a.
+        VAR MinesweeperGame b.
+        VAR MinesweeperGame c.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR LOGICAL sameAB = TRUE.
+        VAR LOGICAL sameAC = TRUE.
         DO ON ERROR UNDO, THROW:
             a = MinesweeperFactory:Create(9, 9, 10, NEW SeededRandom(7), NEW FakeClock()).
             b = MinesweeperFactory:Create(9, 9, 10, NEW SeededRandom(7), NEW FakeClock()).
@@ -100,7 +100,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGameTests:
 
     @Test.
     METHOD PUBLIC VOID ABoardThatIsAlmostAllMinesStillGetsExactlyTheRightNumber():
-        DEFINE VARIABLE g AS MinesweeperGame NO-UNDO.
+        VAR MinesweeperGame g.
         DO ON ERROR UNDO, THROW:
             g = MinesweeperFactory:Create(5, 5, 24, NEW SeededRandom(3), NEW FakeClock()).
             Assert:Equals(24, MinesOnBoard(g)).
@@ -112,7 +112,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGameTests:
 
     @Test.
     METHOD PUBLIC VOID AMoreThanHalfFullBoardHasExactlyTheRightNumberOfMines():
-        DEFINE VARIABLE g AS MinesweeperGame NO-UNDO.
+        VAR MinesweeperGame g.
         DO ON ERROR UNDO, THROW:
             g = MinesweeperFactory:Create(9, 9, 60, NEW SeededRandom(11), NEW FakeClock()).
             Assert:Equals(60, MinesOnBoard(g)).
@@ -171,7 +171,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGameTests:
 
     @Test.
     METHOD PUBLIC VOID ConfigureWithTheSameSizeKeepsTheGridAndStartsANewGame():
-        DEFINE VARIABLE before AS Grid NO-UNDO.
+        VAR Grid before.
         before = mGame:Grid.
         mGame:ToggleFlag(0, 0).
         mGame:Configure(9, 9, 12).
@@ -203,8 +203,8 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheConstructorRefusesAnythingThatIsNotAMinesweeperBoard():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE g      AS MinesweeperGame NO-UNDO.
+        VAR INTEGER thrown.
+        VAR MinesweeperGame g.
         DO ON ERROR UNDO, THROW:
             g = NEW MinesweeperGame(NEW Grid(NEW TableStore(5, 5, "mine,revealed,flag,adjacent")), 3, NEW SeededRandom(1), NEW FakeClock()).
             CATCH e1 AS GridException:
@@ -374,14 +374,14 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheFirstClickIsNeverAMineOnAnyOfManyBoardsOfEveryLevel():
-        DEFINE VARIABLE seed  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE level AS INTEGER NO-UNDO.
-        DEFINE VARIABLE g     AS MinesweeperGame NO-UNDO.
-        DEFINE VARIABLE w     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE h     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE m     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lost  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE wrong AS INTEGER NO-UNDO.
+        VAR INTEGER seed.
+        VAR INTEGER level.
+        VAR MinesweeperGame g.
+        VAR INTEGER w.
+        VAR INTEGER h.
+        VAR INTEGER m.
+        VAR INTEGER lost.
+        VAR INTEGER wrong.
         DO level = 1 TO 3:
             w = (IF level = 1 THEN 9 ELSE IF level = 2 THEN 16 ELSE 30).
             h = (IF level = 1 THEN 9 ELSE 16).
@@ -403,7 +403,7 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGameTests:
 
     @Test.
     METHOD PUBLIC VOID AFullBoardOfMinesButOneStillGivesASafeFirstClick():
-        DEFINE VARIABLE g AS MinesweeperGame NO-UNDO.
+        VAR MinesweeperGame g.
         DO ON ERROR UNDO, THROW:
             g = MinesweeperFactory:Create(3, 3, 8, NEW SeededRandom(5), NEW FakeClock()).
             g:Reveal(1, 1).
@@ -793,9 +793,9 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGameTests:
 
     @Test.
     METHOD PUBLIC VOID AnExpertBoardFloodsWithoutTroubleAndTheCountsAddUp():
-        DEFINE VARIABLE g AS MinesweeperGame NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR MinesweeperGame g.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO ON ERROR UNDO, THROW:
             g = MinesweeperFactory:Create(30, 16, 99, NEW SeededRandom(2), NEW FakeClock()).
             g:Reveal(15, 8).
@@ -817,8 +817,8 @@ CLASS ProGriddle.Games.Minesweeper.MinesweeperGameTests:
     @Test.
     METHOD PUBLIC VOID AnOpenBoardFloodsAllTheWayRoundWithoutOverflowingTheStack():
         /* one mine in the middle of a 30 x 24 board: a click in the corner opens every other cell */
-        DEFINE VARIABLE y    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rows AS CHARACTER NO-UNDO.
+        VAR INTEGER y.
+        VAR CHARACTER rows.
         DO y = 0 TO 23:
             rows = rows + (IF y > 0 THEN "/" ELSE "") + (IF y = 12 THEN FILL(".", 15) + "*" + FILL(".", 14) ELSE FILL(".", 30)).
         END.

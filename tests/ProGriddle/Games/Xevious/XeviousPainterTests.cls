@@ -11,9 +11,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Xevious.XeviousPainterTests:
 
-    DEFINE PRIVATE VARIABLE mGame    AS XeviousGame              NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInner   AS XeviousRecordingRenderer NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPainter AS XeviousPainter           NO-UNDO.
+    VAR PRIVATE XeviousGame mGame.
+    VAR PRIVATE XeviousRecordingRenderer mInner.
+    VAR PRIVATE XeviousPainter mPainter.
 
     /* A game in play on an empty field, the ship at 104, 208. The area start band lasts the first 120 frames of a stage. */
     @Setup.
@@ -44,9 +44,9 @@ CLASS ProGriddle.Games.Xevious.XeviousPainterTests:
 
     /* How many pixels of a colour there are in a rectangle of the picture. */
     METHOD PRIVATE INTEGER CountIn(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piW AS INTEGER, INPUT piH AS INTEGER, INPUT piColour AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         DO y = piY TO piY + piH - 1:
             DO x = piX TO piX + piW - 1:
                 IF mPainter:Canvas:ColourAt(x, y) = piColour THEN n = n + 1.
@@ -56,7 +56,7 @@ CLASS ProGriddle.Games.Xevious.XeviousPainterTests:
     END METHOD.
 
     METHOD PRIVATE VOID Frames(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO piCount:
             mGame:Advance().
         END.
@@ -98,8 +98,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheBottomRowOfTheGroundIsTheFirstRowOfTilesAtTheStartOfAStage():
-        DEFINE VARIABLE oSprites AS XeviousSprites NO-UNDO.
-        DEFINE VARIABLE x        AS INTEGER NO-UNDO.
+        VAR XeviousSprites oSprites.
+        VAR INTEGER x.
         mPainter:Render(mGame:Grid, mGame).
         oSprites = NEW XeviousSprites().
         oSprites:ForArea(1).
@@ -112,11 +112,11 @@ CLASS ProGriddle.Games.Xevious.XeviousPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheGroundScrollsDownAsTheDistanceGrows():
-        DEFINE VARIABLE oSprites AS XeviousSprites NO-UNDO.
-        DEFINE VARIABLE x        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE u        AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r        AS INTEGER NO-UNDO.
+        VAR XeviousSprites oSprites.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER u.
+        VAR INTEGER r.
         mPainter:Render(mGame:Grid, mGame).
         Frames(100).
         mGame:ClearBullets().
@@ -146,7 +146,7 @@ CLASS ProGriddle.Games.Xevious.XeviousPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheShipBanksTowardsTheSideItMovesTo():
-        DEFINE VARIABLE level AS INTEGER NO-UNDO.
+        VAR INTEGER level.
         PastTheBand().
         mPainter:Render(mGame:Grid, mGame).
         level = CountIn(100, 16 + 208, 24, 16, Colour(XeviousTint:Hull)).
@@ -182,7 +182,7 @@ CLASS ProGriddle.Games.Xevious.XeviousPainterTests:
 
     @Test.
     METHOD PUBLIC VOID EveryKindOfGroundTargetAndAirEnemyCanBeDrawn():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         PastTheBand().
         DO i = 0 TO 6:
             mGame:PlaceGround(XeviousGround:GetEnum(i), 10 + i * 16, 100).
@@ -252,8 +252,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheTitleDrawsTheNameTheRollCallAndAVeiledLand():
-        DEFINE VARIABLE oGame    AS XeviousGame              NO-UNDO.
-        DEFINE VARIABLE oPainter AS XeviousPainter           NO-UNDO.
+        VAR XeviousGame oGame.
+        VAR XeviousPainter oPainter.
         oGame = XeviousFactory:Create(NEW ScriptedRandom("1")).
         oPainter = NEW XeviousPainter(NEW XeviousRecordingRenderer(), oGame).
         oPainter:Render(oGame:Grid, oGame).
@@ -297,8 +297,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheShipBreaksUpIntoPiecesThatCrumbleAway():
-        DEFINE VARIABLE early AS INTEGER NO-UNDO.
-        DEFINE VARIABLE late  AS INTEGER NO-UNDO.
+        VAR INTEGER early.
+        VAR INTEGER late.
         PastTheBand().
         mGame:SpawnAir(XeviousAir:Zakato, mGame:PlayerX, mGame:PlayerY).
         Frames(2).
@@ -312,10 +312,10 @@ CLASS ProGriddle.Games.Xevious.XeviousPainterTests:
 
     @Test.
     METHOD PUBLIC VOID TheHazeTintsTheLandAndCanBeSwitchedOff():
-        DEFINE VARIABLE plain AS INT64   NO-UNDO.
-        DEFINE VARIABLE hazy  AS INT64   NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
+        VAR INT64 plain.
+        VAR INT64 hazy.
+        VAR INTEGER x.
+        VAR INTEGER y.
         PastTheBand().
         mPainter:Render(mGame:Grid, mGame).
         DO y = 16 TO 270 BY 3:
@@ -346,8 +346,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainterTests:
 
     @Test.
     METHOD PUBLIC VOID ItNeedsARendererAndAGameAndOnlyDrawsAXeviousGame():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oOther AS XeviousPainter NO-UNDO.
+        VAR INTEGER thrown.
+        VAR XeviousPainter oOther.
         DO ON ERROR UNDO, THROW:
             oOther = NEW XeviousPainter(?, mGame).
             CATCH e1 AS GridException:

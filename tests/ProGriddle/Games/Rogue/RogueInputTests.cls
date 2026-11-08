@@ -10,10 +10,10 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Rogue.RogueInputTests:
 
-    DEFINE PRIVATE VARIABLE mGame     AS RogueGame   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS ISettings   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mScores   AS RogueScores NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInput    AS RogueInput  NO-UNDO.
+    VAR PRIVATE RogueGame mGame.
+    VAR PRIVATE ISettings mSettings.
+    VAR PRIVATE RogueScores mScores.
+    VAR PRIVATE RogueInput mInput.
 
     @Setup.
     METHOD PUBLIC VOID BuildInput():
@@ -92,7 +92,7 @@ CLASS ProGriddle.Games.Rogue.RogueInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheSavedSettingChoosesTheKeys():
-        DEFINE VARIABLE oOther AS RogueInput NO-UNDO.
+        VAR RogueInput oOther.
         mSettings:SetString("rogue.keys", "numpad").
         oOther = NEW RogueInput(mGame, mSettings, mScores).
         Assert:IsFalse(oOther:ViKeys).
@@ -141,7 +141,7 @@ CLASS ProGriddle.Games.Rogue.RogueInputTests:
 
     @Test.
     METHOD PUBLIC VOID AnUnknownButtonIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             mInput:Perform("Dance").
             CATCH e1 AS GridException:
@@ -219,7 +219,7 @@ CLASS ProGriddle.Games.Rogue.RogueInputTests:
 
     @Test.
     METHOD PUBLIC VOID NoGameNoSettingsOrNoScoresIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW RogueInput(?, mSettings, mScores).
             CATCH e1 AS GridException:

@@ -14,9 +14,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.ForEach.ForEachInputTests:
 
-    DEFINE PRIVATE VARIABLE mGame     AS ForEachGame     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS MemorySettings NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInput    AS ForEachInput    NO-UNDO.
+    VAR PRIVATE ForEachGame mGame.
+    VAR PRIVATE MemorySettings mSettings.
+    VAR PRIVATE ForEachInput mInput.
 
     @Setup.
     METHOD PUBLIC VOID BuildInput():
@@ -32,7 +32,7 @@ CLASS ProGriddle.Games.ForEach.ForEachInputTests:
     END METHOD.
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE other AS ForEachInput NO-UNDO.
+        VAR ForEachInput other.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN other = NEW ForEachInput(?, mSettings).
@@ -172,7 +172,7 @@ CLASS ProGriddle.Games.ForEach.ForEachInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheSpeedStaysBetweenFiftyAndOneHundredAndFifty():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO n = 1 TO 20:
             mInput:HandleKey("Subtract").
         END.
@@ -185,8 +185,8 @@ CLASS ProGriddle.Games.ForEach.ForEachInputTests:
 
     @Test.
     METHOD PUBLIC VOID ASavedSpeedIsGivenToTheGame():
-        DEFINE VARIABLE game2  AS ForEachGame  NO-UNDO.
-        DEFINE VARIABLE input2 AS ForEachInput NO-UNDO.
+        VAR ForEachGame game2.
+        VAR ForEachInput input2.
         mSettings:SetInteger("foreach.speed", 70).
         game2 = ForEachFactory:Create(NEW SeededRandom(3)).
         input2 = NEW ForEachInput(game2, mSettings).
@@ -208,8 +208,8 @@ CLASS ProGriddle.Games.ForEach.ForEachInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheSavedBestScoreIsGivenToTheGame():
-        DEFINE VARIABLE game2  AS ForEachGame  NO-UNDO.
-        DEFINE VARIABLE input2 AS ForEachInput NO-UNDO.
+        VAR ForEachGame game2.
+        VAR ForEachInput input2.
         mSettings:SetInteger("foreach.hiscore", 4200).
         game2 = ForEachFactory:Create(NEW SeededRandom(3)).
         input2 = NEW ForEachInput(game2, mSettings).

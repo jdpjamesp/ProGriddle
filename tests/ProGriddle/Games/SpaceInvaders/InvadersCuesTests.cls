@@ -10,8 +10,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.SpaceInvaders.InvadersCuesTests:
 
-    DEFINE PRIVATE VARIABLE mGame AS SpaceInvadersGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCues AS InvadersCues      NO-UNDO.
+    VAR PRIVATE SpaceInvadersGame mGame.
+    VAR PRIVATE InvadersCues mCues.
 
     @Setup.
     METHOD PUBLIC VOID BuildCues():
@@ -52,8 +52,8 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCuesTests:
     END METHOD.
 
     METHOD PRIVATE VOID EmptyField(INPUT piKeep AS INTEGER):
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE top AS INTEGER NO-UNDO INITIAL 60.
+        VAR INTEGER i.
+        VAR INTEGER top = 60.
         IF piKeep > 0 THEN top = mGame:Rack:Y(piKeep - 1) + InvaderRack:SpriteHeight().
         DO i = piKeep TO InvaderRack:Total() - 1:
             IF mGame:Rack:Alive(i) THEN mGame:Rack:Kill(i).
@@ -63,7 +63,7 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCuesTests:
 
     @Test.
     METHOD PUBLIC VOID TheTitleScreenAndAWaveBeingDrawnInAreSilent():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 5:
             mGame:Advance().
             Assert:Equals("", mCues:Poll(mGame)).
@@ -99,9 +99,9 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCuesTests:
 
     @Test.
     METHOD PUBLIC VOID TheRackMarchesInFourNotesInTurnOneForEachPass():
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cues  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE notes AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER cues.
+        VAR CHARACTER notes.
         Play().
         /* eleven invaders make a pass in eleven frames, so sixty frames are five passes, and it is before the first bomb */
         EmptyField(11).
@@ -120,9 +120,9 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCuesTests:
 
     @Test.
     METHOD PUBLIC VOID TheMarchGoesRoundToTheFirstNoteAfterTheFourth():
-        DEFINE VARIABLE i     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cues  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE notes AS CHARACTER NO-UNDO.
+        VAR INTEGER i.
+        VAR CHARACTER cues.
+        VAR CHARACTER notes.
         Play().
         /* with one invader left every frame is a pass, so five frames are five notes */
         EmptyField(1).
@@ -140,9 +140,9 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCuesTests:
 
     @Test.
     METHOD PUBLIC VOID TheCannonBlowingUpIsOnePlayerDiesCue():
-        DEFINE VARIABLE n    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE hits AS INTEGER   NO-UNDO.
+        VAR INTEGER n.
+        VAR CHARACTER cues.
+        VAR INTEGER hits.
         Play().
         mGame:DropBomb(0, mGame:PlayerX, 205).
         DO n = 1 TO 200:
@@ -157,9 +157,9 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCuesTests:
 
     @Test.
     METHOD PUBLIC VOID ASaucerThatIsShotIsASaucerHitAndHumsWhileItIsOut():
-        DEFINE VARIABLE n      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cues   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE hit    AS INTEGER   NO-UNDO.
+        VAR INTEGER n.
+        VAR CHARACTER cues.
+        VAR INTEGER hit.
         Play().
         EmptyField(1).
         mGame:Canvas:ClearRect(0, 184, 224, 16).
@@ -193,9 +193,9 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCuesTests:
 
     @Test.
     METHOD PUBLIC VOID ASaucerThatFliesAwayIsNotAHit():
-        DEFINE VARIABLE n    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE hit  AS INTEGER   NO-UNDO.
+        VAR INTEGER n.
+        VAR CHARACTER cues.
+        VAR INTEGER hit.
         Play().
         EmptyField(1).
         mGame:LaunchSaucer(1).
@@ -231,8 +231,8 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCuesTests:
 
     @Test.
     METHOD PUBLIC VOID ClearingTheWaveIsAFanfareAndTheNextWaveIsSilent():
-        DEFINE VARIABLE cues AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i    AS INTEGER   NO-UNDO.
+        VAR CHARACTER cues.
+        VAR INTEGER i.
         Play().
         EmptyField(0).
         mGame:Advance().
@@ -260,9 +260,8 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCuesTests:
 
     @Test.
     METHOD PUBLIC VOID AGameThatIsNotSpaceInvadersThrowsGridException():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oOther AS CountingGame NO-UNDO.
-        oOther = NEW CountingGame(NEW Grid(NEW ArrayStore(2, 2, "state")), 0).
+        VAR INTEGER thrown.
+        VAR CountingGame oOther = NEW CountingGame(NEW Grid(NEW ArrayStore(2, 2, "state")), 0).
         DO ON ERROR UNDO, THROW:
             mCues:Poll(oOther).
             CATCH e1 AS GridException:
@@ -281,8 +280,8 @@ CLASS ProGriddle.Games.SpaceInvaders.InvadersCuesTests:
     /* End to end: the cues and the saucer's loop of a real game, through the renderer, reach the player. */
     @Test.
     METHOD PUBLIC VOID TheSoundRendererPlaysTheShotAndLoopsTheHumOfARealGame():
-        DEFINE VARIABLE oPlayer   AS RecordingSoundPlayer NO-UNDO.
-        DEFINE VARIABLE oRenderer AS SoundRenderer        NO-UNDO.
+        VAR RecordingSoundPlayer oPlayer.
+        VAR SoundRenderer oRenderer.
         oPlayer = NEW RecordingSoundPlayer().
         oRenderer = NEW SoundRenderer(NEW RecordingRenderer(), mCues, oPlayer).
         Play().

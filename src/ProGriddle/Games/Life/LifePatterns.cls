@@ -101,14 +101,14 @@ CLASS ProGriddle.Games.Life.LifePatterns FINAL:
     /* Builds a shape from plain text pattern lines. Throws GridException when there is no live
        cell. */
     METHOD PUBLIC STATIC Shape FromPlainText(INPUT pcText AS CHARACTER):
-        DEFINE VARIABLE body   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE oneLine   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE allRows   AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE i      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE c      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE ch     AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE rowText    AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE found    AS LOGICAL   NO-UNDO.
+        VAR CHARACTER body.
+        VAR CHARACTER oneLine.
+        VAR CHARACTER allRows.
+        VAR INTEGER i.
+        VAR INTEGER c.
+        VAR CHARACTER ch.
+        VAR CHARACTER rowText.
+        VAR LOGICAL found.
 
         IF pcText = ? THEN UNDO, THROW NEW GridException("Pattern text cannot be unknown").
         body = REPLACE(REPLACE(pcText, CHR(13) + CHR(10), CHR(10)), CHR(13), CHR(10)).

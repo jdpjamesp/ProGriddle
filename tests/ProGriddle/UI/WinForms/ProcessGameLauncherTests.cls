@@ -15,7 +15,7 @@ CLASS ProGriddle.UI.WinForms.ProcessGameLauncherTests:
 
     @Test.
     METHOD PUBLIC VOID TheTempFilesGoToAProGriddleFolderThatIsCreated():
-        DEFINE VARIABLE dir AS CHARACTER NO-UNDO.
+        VAR CHARACTER dir.
         dir = NEW ProcessGameLauncher():TempDirectory().
         Assert:Equals("~\ProGriddle", SUBSTRING(dir, LENGTH(dir) - 10)).
         FILE-INFORMATION:FILE-NAME = dir.
@@ -25,8 +25,8 @@ CLASS ProGriddle.UI.WinForms.ProcessGameLauncherTests:
 
     @Test.
     METHOD PUBLIC VOID EveryGameIsStartedWithTheTempFolderParameter():
-        DEFINE VARIABLE args AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE tail AS CHARACTER NO-UNDO INITIAL '-l 1024 -p tools/launch.p -param "run/run-tetris.p"'.
+        VAR CHARACTER args.
+        VAR CHARACTER tail = '-l 1024 -p tools/launch.p -param "run/run-tetris.p"'.
         args = NEW ProcessGameLauncher():ArgumentsFor("run/run-tetris.p").
         Assert:IsTrue(args BEGINS '-T "').
         Assert:IsTrue(INDEX(args, "ProGriddle") > 0).

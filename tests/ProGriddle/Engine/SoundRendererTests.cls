@@ -8,12 +8,12 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Engine.SoundRendererTests:
 
-    DEFINE PRIVATE VARIABLE mInner    AS RecordingRenderer    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSource   AS ScriptedCueSource    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlayer   AS RecordingSoundPlayer NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRenderer AS SoundRenderer        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGrid     AS Grid                 NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGame     AS CountingGame         NO-UNDO.
+    VAR PRIVATE RecordingRenderer mInner.
+    VAR PRIVATE ScriptedCueSource mSource.
+    VAR PRIVATE RecordingSoundPlayer mPlayer.
+    VAR PRIVATE SoundRenderer mRenderer.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE CountingGame mGame.
 
     @Setup.
     METHOD PUBLIC VOID BuildRenderer():
@@ -111,8 +111,7 @@ CLASS ProGriddle.Engine.SoundRendererTests:
 
     @Test.
     METHOD PUBLIC VOID ASourceThatIsNotALoopSourceStartsNoLoops():
-        DEFINE VARIABLE oPlain AS ICueSource NO-UNDO.
-        oPlain = NEW PlainCueSource().
+        VAR ICueSource oPlain = NEW PlainCueSource().
         mRenderer = NEW SoundRenderer(mInner, oPlain, mPlayer).
         mRenderer:Render(mGrid, mGame).
         Assert:Equals("", mPlayer:Looping).
@@ -121,7 +120,7 @@ CLASS ProGriddle.Engine.SoundRendererTests:
 
     @Test.
     METHOD PUBLIC VOID ARendererNeedsAnInnerRendererASourceAndAPlayer():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW SoundRenderer(?, mSource, mPlayer).
             CATCH e1 AS GridException:

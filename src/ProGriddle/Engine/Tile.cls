@@ -16,7 +16,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Engine.Tile FINAL:
 
     /* the characters of the picture, row by row */
-    DEFINE PRIVATE VARIABLE mPixels AS CHARACTER NO-UNDO.
+    VAR PRIVATE CHARACTER mPixels.
 
     DEFINE PUBLIC PROPERTY Width AS INTEGER NO-UNDO
         GET.
@@ -28,10 +28,10 @@ CLASS ProGriddle.Engine.Tile FINAL:
 
     /* Throws GridException for no rows, rows of different lengths, or a character that is not a dot, a digit 1 to 5 or a capital letter. */
     CONSTRUCTOR PUBLIC Tile(INPUT pcRows AS CHARACTER):
-        DEFINE VARIABLE r    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE c    AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE row  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE ch   AS CHARACTER NO-UNDO.
+        VAR INTEGER r.
+        VAR INTEGER c.
+        VAR CHARACTER row.
+        VAR CHARACTER ch.
         IF pcRows = ? OR LENGTH(pcRows) = 0 THEN UNDO, THROW NEW GridException("A tile needs some rows").
         Height = NUM-ENTRIES(pcRows, "/").
         Width = LENGTH(ENTRY(1, pcRows, "/")).
@@ -58,13 +58,13 @@ CLASS ProGriddle.Engine.Tile FINAL:
     /* The tile turned clockwise piTurns quarter turns (any whole number, a negative one turns the other way). A pixel at
        row j, column i goes to row i, column size - 1 - j. Throws GridException for a tile that is not square. */
     METHOD PUBLIC Tile Turned(INPUT piTurns AS INTEGER):
-        DEFINE VARIABLE n       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE k       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE i       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE j       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE picture AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE turned  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE rows    AS CHARACTER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER k.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR CHARACTER picture.
+        VAR CHARACTER turned.
+        VAR CHARACTER rows.
         IF Width <> Height THEN UNDO, THROW NEW GridException("Only a square tile can be turned").
         IF piTurns = ? THEN UNDO, THROW NEW GridException("A tile is turned a known number of times").
         n = piTurns MODULO 4.
@@ -90,13 +90,13 @@ CLASS ProGriddle.Engine.Tile FINAL:
        tones, a legend entry that is not a letter, an equals sign and a colour, or a letter the picture uses that the
        legend does not have. */
     METHOD PUBLIC PixelStamp Colourise(INPUT pcTones AS CHARACTER, INPUT pcLegend AS CHARACTER):
-        DEFINE VARIABLE tones   AS INTEGER   NO-UNDO EXTENT 5.
-        DEFINE VARIABLE named   AS INTEGER   NO-UNDO EXTENT 26 INITIAL -1.
-        DEFINE VARIABLE colours AS INTEGER   NO-UNDO EXTENT.
-        DEFINE VARIABLE i       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE entry1  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE ch      AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE slot    AS INTEGER   NO-UNDO.
+        VAR INTEGER[5] tones.
+        VAR INTEGER[26] named = -1.
+        VAR INTEGER[] colours.
+        VAR INTEGER i.
+        VAR CHARACTER entry1.
+        VAR CHARACTER ch.
+        VAR INTEGER slot.
         IF pcTones = ? OR NUM-ENTRIES(pcTones) <> 5 THEN UNDO, THROW NEW GridException("A tile's tones are five hex colours separated by commas").
         DO i = 1 TO 5:
             tones[i] = ColourMath:FromHex(TRIM(ENTRY(i, pcTones))).

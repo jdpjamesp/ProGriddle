@@ -14,7 +14,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Engine.Heading FINAL:
 
     /* sine of 0, 1 ... 16 steps, times 1024 */
-    DEFINE PRIVATE STATIC VARIABLE sQuarter AS INTEGER NO-UNDO EXTENT 17.
+    VAR PRIVATE STATIC INTEGER[17] sQuarter.
 
     CONSTRUCTOR STATIC Heading():
         sQuarter[1] = 0.
@@ -48,7 +48,7 @@ CLASS ProGriddle.Engine.Heading FINAL:
 
     /* A step brought into 0 to 63. */
     METHOD PUBLIC STATIC INTEGER Wrap(INPUT piStep AS INTEGER):
-        DEFINE VARIABLE s AS INTEGER NO-UNDO.
+        VAR INTEGER s.
         IF piStep = ? THEN UNDO, THROW NEW GridException("A heading cannot be unknown").
         s = piStep MODULO 64.
         IF s < 0 THEN s = s + 64.
@@ -57,8 +57,8 @@ CLASS ProGriddle.Engine.Heading FINAL:
 
     /* The sine of a heading, times 1024: 0 for straight up, 1024 for right, -1024 for left. */
     METHOD PUBLIC STATIC INTEGER Sin(INPUT piStep AS INTEGER):
-        DEFINE VARIABLE s AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r AS INTEGER NO-UNDO.
+        VAR INTEGER s.
+        VAR INTEGER r.
         s = Wrap(piStep).
         r = s MODULO 16.
         CASE INTEGER(TRUNCATE(s / 16, 0)):
@@ -87,10 +87,10 @@ CLASS ProGriddle.Engine.Heading FINAL:
     /* The heading that points most nearly along (piDx, piDy), which need not be a unit vector. Straight
        up for no direction at all. */
     METHOD PUBLIC STATIC INTEGER Nearest(INPUT piDx AS INTEGER, INPUT piDy AS INTEGER):
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE best  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE score AS INT64   NO-UNDO.
-        DEFINE VARIABLE top   AS INT64   NO-UNDO INITIAL -1.
+        VAR INTEGER i.
+        VAR INTEGER best.
+        VAR INT64 score.
+        VAR INT64 top = -1.
         IF piDx = 0 AND piDy = 0 THEN RETURN 0.
         DO i = 0 TO 63:
             score = INT64(piDx) * DirX(i) + INT64(piDy) * DirY(i).

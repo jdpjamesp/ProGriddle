@@ -13,13 +13,13 @@ CLASS ProGriddle.Core.Grid FINAL:
 
     /* Index step of each neighbourhood offset: dy * Width + dx. For a cell far enough from
        every edge, its neighbours are simply its own index plus these. */
-    DEFINE PRIVATE VARIABLE mDelta       AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mDx          AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mDy          AS INTEGER NO-UNDO EXTENT.
-    DEFINE PRIVATE VARIABLE mOffsets     AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mReach       AS INTEGER NO-UNDO.
+    VAR PRIVATE INTEGER[] mDelta.
+    VAR PRIVATE INTEGER[] mDx.
+    VAR PRIVATE INTEGER[] mDy.
+    VAR PRIVATE INTEGER mOffsets.
+    VAR PRIVATE INTEGER mReach.
     /* True when wrapping on a board this small can list a cell twice or list the cell itself. */
-    DEFINE PRIVATE VARIABLE mNeedsUnique AS LOGICAL NO-UNDO.
+    VAR PRIVATE LOGICAL mNeedsUnique.
 
     DEFINE PUBLIC PROPERTY Width AS INTEGER NO-UNDO
         GET.
@@ -53,7 +53,7 @@ CLASS ProGriddle.Core.Grid FINAL:
 
     /* The grid takes its size from the store, so the two can never disagree. */
     CONSTRUCTOR PUBLIC Grid(INPUT poStore AS ICellStore, INPUT poTopology AS ITopology, INPUT poNeighbourhood AS INeighbourhood):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF NOT VALID-OBJECT(poStore) THEN
             UNDO, THROW NEW GridException("A grid needs a cell store").
         IF NOT VALID-OBJECT(poTopology) THEN
@@ -124,12 +124,12 @@ CLASS ProGriddle.Core.Grid FINAL:
        Throws GridException when (piX, piY) is off the grid or the array is too small. */
     METHOD PUBLIC INTEGER GetNeighbourIndexes(INPUT piX AS INTEGER, INPUT piY AS INTEGER,
                                               INPUT-OUTPUT piIndexes AS INTEGER EXTENT):
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE idx   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dupe  AS LOGICAL NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
+        VAR INTEGER n.
+        VAR INTEGER idx.
+        VAR INTEGER r.
+        VAR LOGICAL dupe.
 
         IF piX < 0 OR piX >= Width OR piY < 0 OR piY >= Height THEN
             UNDO, THROW NEW GridException(SUBSTITUTE("Cell (&1,&2) is outside the &3 x &4 grid", piX, piY, Width, Height)).

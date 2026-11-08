@@ -10,9 +10,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
    and the player's own board is columns 7 to 12 on these 6 x 6 boards. */
 CLASS ProGriddle.Games.Battleships.BattleshipsInputTests:
 
-    DEFINE PRIVATE VARIABLE mGame     AS BattleshipsGame  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mOpponent AS ScriptedOpponent NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInput    AS BattleshipsInput NO-UNDO.
+    VAR PRIVATE BattleshipsGame mGame.
+    VAR PRIVATE ScriptedOpponent mOpponent.
+    VAR PRIVATE BattleshipsInput mInput.
 
     METHOD PRIVATE CHARACTER Own():
         RETURN "XX..../....../..XXX./....../X...../X.....".
@@ -24,9 +24,9 @@ CLASS ProGriddle.Games.Battleships.BattleshipsInputTests:
 
     /* Every water cell of the player's board in reading order, for a computer that never hits. */
     METHOD PRIVATE CHARACTER WaterShots():
-        DEFINE VARIABLE x      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR CHARACTER result.
         DO y = 0 TO 5:
             DO x = 0 TO 5:
                 IF SUBSTRING(ENTRY(y + 1, Own(), "/"), x + 1, 1) <> "X" THEN result = result + (IF result = "" THEN "" ELSE ";") + SUBSTITUTE("&1,&2", x, y).
@@ -354,8 +354,7 @@ CLASS ProGriddle.Games.Battleships.BattleshipsInputTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID TheInputNeedsAGame():
-        DEFINE VARIABLE i AS BattleshipsInput NO-UNDO.
-        i = NEW BattleshipsInput(?).
+        VAR BattleshipsInput i = NEW BattleshipsInput(?).
     END METHOD.
 
 END CLASS.

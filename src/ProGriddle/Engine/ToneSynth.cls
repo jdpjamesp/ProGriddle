@@ -28,13 +28,13 @@ CLASS ProGriddle.Engine.ToneSynth FINAL:
     &SCOPED-DEFINE RATE 11025
     &SCOPED-DEFINE MAXPARTS 64
 
-    DEFINE PRIVATE VARIABLE mKind   AS CHARACTER NO-UNDO EXTENT {&MAXPARTS}.
-    DEFINE PRIVATE VARIABLE mFrom   AS INTEGER   NO-UNDO EXTENT {&MAXPARTS}.
-    DEFINE PRIVATE VARIABLE mTo     AS INTEGER   NO-UNDO EXTENT {&MAXPARTS}.
-    DEFINE PRIVATE VARIABLE mMs     AS INTEGER   NO-UNDO EXTENT {&MAXPARTS}.
-    DEFINE PRIVATE VARIABLE mDecay  AS INTEGER   NO-UNDO EXTENT {&MAXPARTS}.
-    DEFINE PRIVATE VARIABLE mParts  AS INTEGER   NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLoop   AS LOGICAL   NO-UNDO.
+    VAR PRIVATE CHARACTER[{&MAXPARTS}] mKind.
+    VAR PRIVATE INTEGER[{&MAXPARTS}] mFrom.
+    VAR PRIVATE INTEGER[{&MAXPARTS}] mTo.
+    VAR PRIVATE INTEGER[{&MAXPARTS}] mMs.
+    VAR PRIVATE INTEGER[{&MAXPARTS}] mDecay.
+    VAR PRIVATE INTEGER mParts.
+    VAR PRIVATE LOGICAL mLoop.
 
     /* Samples a second: 11025. */
     METHOD PUBLIC STATIC INTEGER SampleRate():
@@ -50,31 +50,31 @@ CLASS ProGriddle.Engine.ToneSynth FINAL:
        memory and sets its size to 0 when done. Throws GridException for a recipe that cannot be read or a volume outside 0 to 100
        (nothing is allocated then). */
     METHOD PUBLIC VOID Make(INPUT pcRecipe AS CHARACTER, INPUT piVolume AS INTEGER, OUTPUT pmData AS MEMPTR):
-        DEFINE VARIABLE total     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pos       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE part      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i         AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cnt       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE fadeIn    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE fadeOut   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE inStep    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE outStep   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rise      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE fall      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE peak      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE amp       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sample    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE kind      AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE swing     AS INT64   NO-UNDO.
-        DEFINE VARIABLE swingStep AS INT64   NO-UNDO.
-        DEFINE VARIABLE cycle     AS INT64   NO-UNDO INITIAL 1099511627776.
-        DEFINE VARIABLE half      AS INT64   NO-UNDO INITIAL 549755813888.
-        DEFINE VARIABLE phase     AS INT64   NO-UNDO.
-        DEFINE VARIABLE pitch     AS INT64   NO-UNDO.
-        DEFINE VARIABLE slope     AS INT64   NO-UNDO.
-        DEFINE VARIABLE lfsr      AS INT64   NO-UNDO INITIAL 12345.
-        DEFINE VARIABLE noiseHold AS INTEGER NO-UNDO.
-        DEFINE VARIABLE noiseHigh AS LOGICAL NO-UNDO.
+        VAR INTEGER total.
+        VAR INTEGER pos.
+        VAR INTEGER part.
+        VAR INTEGER i.
+        VAR INTEGER cnt.
+        VAR INTEGER fadeIn.
+        VAR INTEGER fadeOut.
+        VAR INTEGER inStep.
+        VAR INTEGER outStep.
+        VAR INTEGER rise.
+        VAR INTEGER fall.
+        VAR INTEGER peak.
+        VAR INTEGER amp.
+        VAR INTEGER sample.
+        VAR CHARACTER kind.
+        VAR INT64 swing.
+        VAR INT64 swingStep.
+        VAR INT64 cycle = 1099511627776.
+        VAR INT64 half = 549755813888.
+        VAR INT64 phase.
+        VAR INT64 pitch.
+        VAR INT64 slope.
+        VAR INT64 lfsr = 12345.
+        VAR INTEGER noiseHold.
+        VAR LOGICAL noiseHigh.
         IF piVolume = ? OR piVolume < 0 OR piVolume > 100 THEN UNDO, THROW NEW GridException("A volume is 0 to 100 percent, not " + STRING(piVolume)).
         total = Parse(pcRecipe).
         SET-SIZE(pmData) = total.
@@ -131,13 +131,13 @@ CLASS ProGriddle.Engine.ToneSynth FINAL:
 
     /* Reads a recipe into the part tables and returns how many samples it makes. Throws GridException for a recipe that cannot be read. */
     METHOD PRIVATE INTEGER Parse(INPUT pcRecipe AS CHARACTER):
-        DEFINE VARIABLE j       AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE total   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE seg     AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE spec    AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE kind    AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE pitchA  AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE pitchB  AS CHARACTER NO-UNDO.
+        VAR INTEGER j.
+        VAR INTEGER total.
+        VAR CHARACTER seg.
+        VAR CHARACTER spec.
+        VAR CHARACTER kind.
+        VAR CHARACTER pitchA.
+        VAR CHARACTER pitchB.
         IF pcRecipe = ? OR pcRecipe = "" THEN UNDO, THROW NEW GridException("A sound recipe is empty").
         mLoop = (SUBSTRING(pcRecipe, 1, 1) = "@").
         IF mLoop THEN pcRecipe = SUBSTRING(pcRecipe, 2).

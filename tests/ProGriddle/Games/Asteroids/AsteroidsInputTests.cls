@@ -9,9 +9,9 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Asteroids.AsteroidsInputTests:
 
-    DEFINE PRIVATE VARIABLE mGame     AS AsteroidsGame  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS MemorySettings NO-UNDO.
-    DEFINE PRIVATE VARIABLE mInput    AS AsteroidsInput NO-UNDO.
+    VAR PRIVATE AsteroidsGame mGame.
+    VAR PRIVATE MemorySettings mSettings.
+    VAR PRIVATE AsteroidsInput mInput.
 
     @Setup.
     METHOD PUBLIC VOID BuildInput():
@@ -27,7 +27,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsInputTests:
     END METHOD.
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE other AS AsteroidsInput NO-UNDO.
+        VAR AsteroidsInput other.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN other = NEW AsteroidsInput(?, mSettings).
@@ -201,8 +201,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheSavedBestScoreIsGivenToTheGame():
-        DEFINE VARIABLE game2 AS AsteroidsGame  NO-UNDO.
-        DEFINE VARIABLE input2 AS AsteroidsInput NO-UNDO.
+        VAR AsteroidsGame game2.
+        VAR AsteroidsInput input2.
         mSettings:SetInteger("asteroids.hiscore", 4200).
         game2 = AsteroidsFactory:Create(NEW SeededRandom(3)).
         input2 = NEW AsteroidsInput(game2, mSettings).
@@ -240,7 +240,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheSpeedStaysBetweenTwentyAndOneHundredPercent():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 12:
             mInput:HandleKey("Subtract").
         END.
@@ -253,8 +253,8 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsInputTests:
 
     @Test.
     METHOD PUBLIC VOID ASavedSpeedIsPutBack():
-        DEFINE VARIABLE game2 AS AsteroidsGame NO-UNDO.
-        DEFINE VARIABLE input2 AS AsteroidsInput NO-UNDO.
+        VAR AsteroidsGame game2.
+        VAR AsteroidsInput input2.
         mSettings:SetInteger("asteroids.speed", 60).
         game2 = AsteroidsFactory:Create(NEW SeededRandom(3)).
         input2 = NEW AsteroidsInput(game2, mSettings).
@@ -271,8 +271,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsInputTests:
 
     @Test.
     METHOD PUBLIC VOID SoundIsOfferedOnlyWithAWorkingPlayerAndSwitchesItAndRemembersIt():
-        DEFINE VARIABLE oPlayer AS RecordingSoundPlayer NO-UNDO.
-        oPlayer = NEW RecordingSoundPlayer().
+        VAR RecordingSoundPlayer oPlayer = NEW RecordingSoundPlayer().
         mInput = NEW AsteroidsInput(mGame, mSettings, oPlayer).
         Assert:Equals("Sound:M", mInput:CommandNames).
         mInput:Perform("Sound").
@@ -290,7 +289,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsInputTests:
 
     @Test.
     METHOD PUBLIC VOID TheInputNeedsASoundPlayer():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW AsteroidsInput(mGame, mSettings, ?).
             CATCH e1 AS GridException:

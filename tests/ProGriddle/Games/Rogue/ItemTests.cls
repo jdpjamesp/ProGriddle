@@ -10,8 +10,7 @@ CLASS ProGriddle.Games.Rogue.ItemTests:
 
     @Test.
     METHOD PUBLIC VOID ANewItemIsOneOfItsKindAndPlain():
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
-        oItem = NEW Item(ItemType:Potion, INTEGER(PotionKind:Healing)).
+        VAR Item oItem = NEW Item(ItemType:Potion, INTEGER(PotionKind:Healing)).
         Assert:Equals(ItemType:Potion, oItem:Category).
         Assert:Equals(INTEGER(PotionKind:Healing), oItem:Kind).
         Assert:Equals(1, oItem:Count).
@@ -25,7 +24,7 @@ CLASS ProGriddle.Games.Rogue.ItemTests:
 
     @Test.
     METHOD PUBLIC VOID AnItemWithNoTypeOrAMinusKindIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             NEW Item(?, 1).
             CATCH e1 AS GridException:
@@ -57,8 +56,8 @@ CLASS ProGriddle.Games.Rogue.ItemTests:
 
     @Test.
     METHOD PUBLIC VOID TwoItemsStackOnlyWhenTheyAreTheSameKindAndPlus():
-        DEFINE VARIABLE a AS Item NO-UNDO.
-        DEFINE VARIABLE b AS Item NO-UNDO.
+        VAR Item a.
+        VAR Item b.
         a = NEW Item(ItemType:Weapon, INTEGER(WeaponKind:Arrow)).
         b = NEW Item(ItemType:Weapon, INTEGER(WeaponKind:Arrow)).
         Assert:IsTrue(a:StacksWith(b)).
@@ -72,8 +71,8 @@ CLASS ProGriddle.Games.Rogue.ItemTests:
 
     @Test.
     METHOD PUBLIC VOID ACopyKeepsEverythingButTheCount():
-        DEFINE VARIABLE a AS Item NO-UNDO.
-        DEFINE VARIABLE b AS Item NO-UNDO.
+        VAR Item a.
+        VAR Item b.
         a = NEW Item(ItemType:Weapon, INTEGER(WeaponKind:Dart)).
         a:Count = 9.
         a:Bonus = 2.
@@ -96,8 +95,7 @@ CLASS ProGriddle.Games.Rogue.ItemTests:
 
     @Test.
     METHOD PUBLIC VOID WhatAnItemIsWorthIsItsTablePriceTimesItsCount():
-        DEFINE VARIABLE oItem AS Item NO-UNDO.
-        oItem = NEW Item(ItemType:Gold, 0).
+        VAR Item oItem = NEW Item(ItemType:Gold, 0).
         oItem:Count = 120.
         Assert:Equals(120, oItem:Worth()).
         oItem = NEW Item(ItemType:Potion, INTEGER(PotionKind:RaiseLevel)).

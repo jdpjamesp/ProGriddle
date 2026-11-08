@@ -14,8 +14,8 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.UI.WinForms.InfoDialog INHERITS Form:
 
-    DEFINE PRIVATE VARIABLE mBox AS TextBox NO-UNDO.
-    DEFINE PRIVATE VARIABLE mOk  AS Button  NO-UNDO.
+    VAR PRIVATE TextBox mBox.
+    VAR PRIVATE Button mOk.
 
     /* The text on show, with the line breaks the text box uses. */
     DEFINE PUBLIC PROPERTY Body AS CHARACTER NO-UNDO

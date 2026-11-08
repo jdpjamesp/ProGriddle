@@ -28,37 +28,37 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     &SCOPED-DEFINE HEIGHT 288
     &SCOPED-DEFINE FIELD 256
 
-    DEFINE PRIVATE VARIABLE mInner     AS IGridRenderer  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGame      AS XeviousGame    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGrid      AS Grid           NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCanvas    AS PixelCanvas    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mText      AS TextStampCache NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSprites   AS XeviousSprites NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDisposed  AS LOGICAL        NO-UNDO.
+    VAR PRIVATE IGridRenderer mInner.
+    VAR PRIVATE XeviousGame mGame.
+    VAR PRIVATE Grid mGrid.
+    VAR PRIVATE PixelCanvas mCanvas.
+    VAR PRIVATE TextStampCache mText.
+    VAR PRIVATE XeviousSprites mSprites.
+    VAR PRIVATE LOGICAL mDisposed.
     /* one row of colours, and a block of the whole field's rows, for writing the background */
-    DEFINE PRIVATE VARIABLE mRowMem    AS MEMPTR         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBlock     AS MEMPTR         NO-UNDO.
+    VAR PRIVATE MEMPTR mRowMem.
+    VAR PRIVATE MEMPTR mBlock.
     /* what the background is built for: the stage and the distance gone by (-1 for nothing yet), and the map row whose tiles are known */
-    DEFINE PRIVATE VARIABLE mBakedStage AS INTEGER       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBakedDistance AS INTEGER    NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mRowR      AS INTEGER        NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mRowTiles  AS INTEGER        NO-UNDO EXTENT 14.
+    VAR PRIVATE INTEGER mBakedStage.
+    VAR PRIVATE INTEGER mBakedDistance = -1.
+    VAR PRIVATE INTEGER mRowR = -1.
+    VAR PRIVATE INTEGER[14] mRowTiles.
     /* the ground slots whose scorch is already in the background */
-    DEFINE PRIVATE VARIABLE mScorched  AS LOGICAL        NO-UNDO EXTENT 28.
+    VAR PRIVATE LOGICAL[28] mScorched.
     /* cell lists (three whole numbers each: across, down, colour) for the rings of bloom and the clouds of haze, and how many cells */
-    DEFINE PRIVATE VARIABLE mBloomBullet AS MEMPTR       NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBloomZap  AS MEMPTR         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBloomSight AS MEMPTR        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCloudA    AS MEMPTR         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCloudB    AS MEMPTR         NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBloomBulletN AS INTEGER     NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBloomZapN AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBloomSightN AS INTEGER      NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCloudAN   AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCloudBN   AS INTEGER        NO-UNDO.
+    VAR PRIVATE MEMPTR mBloomBullet.
+    VAR PRIVATE MEMPTR mBloomZap.
+    VAR PRIVATE MEMPTR mBloomSight.
+    VAR PRIVATE MEMPTR mCloudA.
+    VAR PRIVATE MEMPTR mCloudB.
+    VAR PRIVATE INTEGER mBloomBulletN.
+    VAR PRIVATE INTEGER mBloomZapN.
+    VAR PRIVATE INTEGER mBloomSightN.
+    VAR PRIVATE INTEGER mCloudAN.
+    VAR PRIVATE INTEGER mCloudBN.
     /* the way the ship is banking, and the frame it last moved sideways */
-    DEFINE PRIVATE VARIABLE mBankWay   AS INTEGER        NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBankFrame AS INTEGER        NO-UNDO.
+    VAR PRIVATE INTEGER mBankWay.
+    VAR PRIVATE INTEGER mBankFrame.
 
     /* The canvas the picture is drawn on, and the grid it is on (what the window's renderer is given). */
     DEFINE PUBLIC PROPERTY Canvas AS PixelCanvas NO-UNDO
@@ -171,9 +171,9 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     /* A list of the cells of a ring one cell wide round a picture of piW x piH (the picture itself is not in it). The cells are in
        the form PutCells reads, from the top left of the ring, which is one cell up and left of the picture. */
     METHOD PRIVATE VOID BuildRing(INPUT piW AS INTEGER, INPUT piH AS INTEGER, INPUT-OUTPUT pmCells AS MEMPTR, OUTPUT piCount AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         SET-SIZE(pmCells) = (piW + 2) * (piH + 2) * 12.
         DO y = 0 TO piH + 1:
             DO x = 0 TO piW + 1:
@@ -191,13 +191,13 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     /* A soft cloud: an ellipse of piRx x piRy with a wobbling rim, the rim only every other cell (a checker), which reads as soft with no
        blending. The cells are from the top left of its bounding box. */
     METHOD PRIVATE VOID BuildCloud(INPUT piRx AS INTEGER, INPUT piRy AS INTEGER, INPUT piSeed AS INTEGER, INPUT-OUTPUT pmCells AS MEMPTR, OUTPUT piCount AS INTEGER):
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE d     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE wob   AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER d.
+        VAR INTEGER wob.
         SET-SIZE(pmCells) = (2 * piRx + 1) * (2 * piRy + 1) * 12.
         DO y = 0 TO 2 * piRy:
             DO x = 0 TO 2 * piRx:
@@ -221,8 +221,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     /* Makes the background the ground for the game as it is: built whole when the stage changes or the ground jumps (a stage
        begins, a ship comes back at a checkpoint), and scrolled down a row at a time as the ground goes by. */
     METHOD PRIVATE VOID SyncGround():
-        DEFINE VARIABLE d     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE veil  AS INTEGER NO-UNDO.
+        VAR INTEGER d.
+        VAR INTEGER veil.
         d = mGame:Distance.
         /* the title and the game over screen show the land under a veil of Ink, which is made in the colours of the tiles once, so it costs
            nothing in a frame */
@@ -244,7 +244,7 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     END METHOD.
 
     METHOD PRIVATE VOID RebuildGround():
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER y.
         mSprites:ForArea(mGame:Stage).
         mRowR = -1.
         DO y = 0 TO {&FIELD} - 1:
@@ -261,10 +261,10 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     /* The colours of one line of the field (screen line piY, 0 at the top of the field) when the ground has gone by piDistance, written
        as 14 tile lines into pmTo from byte piAt. Row 0 of the map is the first at the bottom of the screen when the stage begins. */
     METHOD PRIVATE VOID FillLine(INPUT piDistance AS INTEGER, INPUT piY AS INTEGER, INPUT pmTo AS MEMPTR, INPUT piAt AS INTEGER):
-        DEFINE VARIABLE u    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE r    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE line AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c    AS INTEGER NO-UNDO.
+        VAR INTEGER u.
+        VAR INTEGER r.
+        VAR INTEGER line.
+        VAR INTEGER c.
         u = XeviousRules:FieldHeight() - 16 + piDistance - piY.
         r = (IF u <= 0 THEN 0 ELSE XeviousMotion:Div(u + 15, 16)).
         line = 16 * r - u.
@@ -281,8 +281,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* A target that has been destroyed leaves its scorch in the background, where it scrolls away with the land. */
     METHOD PRIVATE VOID BakeScorches():
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE kind AS XeviousGround NO-UNDO.
+        VAR INTEGER i.
+        VAR XeviousGround kind.
         DO i = 0 TO mGame:GroundSlots - 1:
             IF mGame:GroundState(i) = 2 THEN DO:
                 IF NOT mScorched[i + 1] THEN DO:
@@ -311,8 +311,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     /* The light that a burst throws on the land: three rings of Glow Light (30 percent inside 8 cells, 20 to 16, 10 to 24), all scaled
        by how little of the first 8 frames is left. It warms the ground only, so it is drawn before anything stands on it. */
     METHOD PRIVATE VOID DrawLight():
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE fx  AS XeviousFx NO-UNDO.
+        VAR INTEGER i.
+        VAR XeviousFx fx.
         DO i = 0 TO mGame:FxSlots - 1:
             fx = mGame:FxKindAt(i).
             IF VALID-OBJECT(fx) AND (fx = XeviousFx:GroundBlast OR fx = XeviousFx:BossBlast) AND mGame:FxAge(i) < 8 THEN DO:
@@ -325,8 +325,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* A disk of piR cells round piX, piY tinted piPercent toward Glow Light, row by row. */
     METHOD PRIVATE VOID Disk(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piR AS INTEGER, INPUT piPercent AS INTEGER):
-        DEFINE VARIABLE dy   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE half AS INTEGER NO-UNDO.
+        VAR INTEGER dy.
+        VAR INTEGER half.
         IF piPercent <= 0 THEN RETURN.
         DO dy = - piR TO piR:
             half = XeviousMotion:Div(INTEGER(SQRT(piR * piR - dy * dy)) * 1, 1).
@@ -353,12 +353,12 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The ground targets. A hidden one shows nothing, except its flicker while the sight's centre is in its box. */
     METHOD PRIVATE VOID DrawGroundTargets():
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE state AS INTEGER NO-UNDO.
-        DEFINE VARIABLE kind  AS XeviousGround NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE age   AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER state.
+        VAR XeviousGround kind.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER age.
         DO i = 0 TO mGame:GroundSlots - 1:
             state = mGame:GroundState(i).
             IF state = 0 OR state = 2 THEN NEXT.
@@ -387,7 +387,7 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* True when the centre of the sight is inside the box of the ground slot piIndex (0 up). */
     METHOD PRIVATE LOGICAL Under(INPUT piIndex AS INTEGER):
-        DEFINE VARIABLE kind AS XeviousGround NO-UNDO.
+        VAR XeviousGround kind.
         kind = mGame:GroundKindAt(piIndex).
         RETURN mGame:SightX >= mGame:GroundX(piIndex) + XeviousBoxes:GroundLeft(kind)
            AND mGame:SightX < mGame:GroundX(piIndex) + XeviousBoxes:GroundLeft(kind) + XeviousBoxes:GroundWidth(kind)
@@ -397,9 +397,9 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Everything in the air casts its outline on the ground: the ship (+6, +10) and the enemies (+4, +6). */
     METHOD PRIVATE VOID DrawShadows():
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE kind AS XeviousAir NO-UNDO.
-        DEFINE VARIABLE pic  AS XeviousPicture NO-UNDO.
+        VAR INTEGER i.
+        VAR XeviousAir kind.
+        VAR XeviousPicture pic.
         DO i = 0 TO mGame:AirSlots - 1:
             IF mGame:AirActive(i) THEN DO:
                 kind = mGame:AirKindAt(i).
@@ -414,8 +414,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     /* Clouds high over the land: two soft lumps of Haze at 22 percent that move down 1.25 times as fast as the land and drift sideways,
        so the land seems to slide under them. */
     METHOD PRIVATE VOID DrawHaze():
-        DEFINE VARIABLE d  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y  AS INTEGER NO-UNDO.
+        VAR INTEGER d.
+        VAR INTEGER y.
         IF NOT Haze THEN RETURN.
         d = mGame:Distance.
         y = XeviousMotion:Div(d * 5, 4) MODULO ({&FIELD} + 40) - 20.
@@ -426,7 +426,7 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The sight (15 x 15, its centre cell the aim point), in Sight Lock with a glow when a target is under it. */
     METHOD PRIVATE VOID DrawSight():
-        DEFINE VARIABLE onTarget AS LOGICAL NO-UNDO.
+        VAR LOGICAL onTarget.
         IF NOT mGame:PlayerAlive THEN RETURN.
         onTarget = mGame:SightOnTarget.
         IF onTarget THEN mCanvas:TintCells(mBloomSight, mBloomSightN, mGame:SightX - 8, {&STRIP} + mGame:SightY - 8, Colour(XeviousTint:SightLock), 30).
@@ -436,8 +436,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     /* The bomb in the air: three frames pulsing 1 2 3 2, and the last 4 frames on the third. From straight above it does not shrink: it
        is lifted up and left of its shadow by an amount that falls to nothing as it lands. */
     METHOD PRIVATE VOID DrawBomb():
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lift AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER lift.
         IF NOT mGame:BombActive THEN RETURN.
         IF mGame:BombAge >= XeviousRules:BombFlight() - 4 THEN n = 3.
         ELSE n = INTEGER(ENTRY(XeviousMotion:Div(mGame:BombAge, 3) MODULO 4 + 1, "1,2,3,2")).
@@ -471,8 +471,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     END METHOD.
 
     METHOD PRIVATE VOID DrawAir():
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pic AS XeviousPicture NO-UNDO.
+        VAR INTEGER i.
+        VAR XeviousPicture pic.
         DO i = 0 TO mGame:AirSlots - 1:
             IF mGame:AirActive(i) THEN DO:
                 pic = AirFrame(mGame:AirKindAt(i), mGame:AirAge(i)).
@@ -483,8 +483,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The Citadel: the core of eight plates, and the four shield plates round it (the north one turned for the other three). */
     METHOD PRIVATE VOID DrawBoss():
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
         IF NOT mGame:BossActive THEN RETURN.
         x = mGame:BossX.
         y = {&STRIP} + mGame:BossY.
@@ -498,9 +498,9 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Enemy bullets, always Hot, with a halo. */
     METHOD PRIVATE VOID DrawBullets():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER x.
+        VAR INTEGER y.
         DO i = 0 TO mGame:BulletSlots - 1:
             IF mGame:BulletActive(i) THEN DO:
                 x = mGame:BulletX(i) - 2.
@@ -512,7 +512,7 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     END METHOD.
 
     METHOD PRIVATE VOID DrawZaps():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 0 TO XeviousRules:ZapMax() - 1:
             IF mGame:ZapActive(i) THEN DO:
                 mCanvas:TintCells(mBloomZap, mBloomZapN, mGame:ZapX(i) - 1, {&STRIP} + mGame:ZapY(i) - 1, Colour(XeviousTint:ZapGlow), 30).
@@ -524,9 +524,9 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     /* The ship: level, or banking to the side it is moving (and back to level 4 frames after it stops), with a flame of two frames that
        stays on the second while it moves up. It blinks while protected. A ship that is breaking up is drawn in pieces. */
     METHOD PRIVATE VOID DrawPlayer():
-        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE pic AS XeviousPicture NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR XeviousPicture pic.
         IF mGame:MoveX <> 0 THEN ASSIGN mBankWay = mGame:MoveX mBankFrame = mGame:Frames.
         ELSE IF mGame:Frames - mBankFrame > 4 THEN mBankWay = 0.
         IF mGame:Phase = XeviousPhase:Dying THEN DO:
@@ -548,16 +548,16 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     /* The ship in four pieces over 90 frames (section 3.7 of the design): each piece starts at an offset and drifts, and from frame 12
        each cell is mixed toward Smoke, and a cell goes when a pattern says so, so the pieces crumble rather than blink out. */
     METHOD PRIVATE VOID DrawBreakup(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piAge AS INTEGER):
-        DEFINE VARIABLE piece  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE c      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ox     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE oy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dx     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE dy     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE smoke  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE stamp  AS PixelStamp NO-UNDO.
+        VAR INTEGER piece.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER c.
+        VAR INTEGER ox.
+        VAR INTEGER oy.
+        VAR INTEGER dx.
+        VAR INTEGER dy.
+        VAR INTEGER smoke.
+        VAR PixelStamp stamp.
         IF piAge >= 90 THEN RETURN.
         smoke = MINIMUM(100, XeviousMotion:Div(140 * MAXIMUM(0, piAge - 12), 90)).
         DO piece = 0 TO 3:
@@ -591,9 +591,9 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     /* ================================ effects ================================ */
 
     METHOD PRIVATE VOID DrawEffects():
-        DEFINE VARIABLE i   AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE fx  AS XeviousFx NO-UNDO.
-        DEFINE VARIABLE age AS INTEGER   NO-UNDO.
+        VAR INTEGER i.
+        VAR XeviousFx fx.
+        VAR INTEGER age.
         DO i = 0 TO mGame:FxSlots - 1:
             fx = mGame:FxKindAt(i).
             IF NOT VALID-OBJECT(fx) THEN NEXT.
@@ -613,8 +613,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The Citadel going: a burst at the core and one at each of the four plate sockets, 6 frames apart. */
     METHOD PRIVATE VOID DrawBossBlast(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piAge AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
-        DEFINE VARIABLE a AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER a.
         DO n = 0 TO 4:
             a = piAge - n * 6.
             IF a >= 0 AND a < 30 THEN
@@ -627,7 +627,7 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* The score strip above the field and the strip of spare ships and the area below it. */
     METHOD PRIVATE VOID DrawStrips():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         mCanvas:FillRect(0, 0, {&WIDTH}, {&STRIP}, 0, Colour(XeviousTint:Strip)).
         mCanvas:FillRect(0, {&STRIP} - 1, {&WIDTH}, 1, 0, Colour(XeviousTint:Ink)).
         mCanvas:FillRect(0, {&STRIP} + {&FIELD}, {&WIDTH}, {&STRIP}, 0, Colour(XeviousTint:Strip)).
@@ -657,7 +657,7 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Half the height of the area start band at this age: 15 rows once open. */
     METHOD PRIVATE INTEGER BandHalf():
-        DEFINE VARIABLE age AS INTEGER NO-UNDO.
+        VAR INTEGER age.
         age = mGame:StageAge.
         IF age < 10 THEN RETURN XeviousMotion:Div(15 * age, 10).
         IF age >= 110 THEN RETURN XeviousMotion:Div(15 * (120 - age), 10).
@@ -679,8 +679,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     END METHOD.
 
     METHOD PRIVATE VOID DrawTitle():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER x.
         Words("XEVIOUS", 4, XeviousTint:DawnTop, XeviousTint:DawnLow, -1, 40, TRUE).
         /* three horizon lines, like a sunrise */
         mCanvas:FillRect(37, 84, 150, 1, 0, Colour(XeviousTint:DawnLow)).
@@ -712,8 +712,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     END METHOD.
 
     METHOD PRIVATE VOID DrawAreaStart():
-        DEFINE VARIABLE age   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE sweep AS INTEGER NO-UNDO.
+        VAR INTEGER age.
+        VAR INTEGER sweep.
         age = mGame:StageAge.
         IF age < 10 OR age >= 110 THEN RETURN.
         mCanvas:FillRect(0, 120, {&WIDTH}, 1, 0, Colour(XeviousTint:WingMark)).
@@ -728,10 +728,10 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
     /* The end of a stage: the targets destroyed light up a square at a time, the percent and the hidden towers found, and the bonus
        that counts up with the squares. */
     METHOD PRIVATE VOID DrawBonus():
-        DEFINE VARIABLE total   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lit     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE shown   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i       AS INTEGER NO-UNDO.
+        VAR INTEGER total.
+        VAR INTEGER lit.
+        VAR INTEGER shown.
+        VAR INTEGER i.
         total = MINIMUM(48, MAXIMUM(1, mGame:StageGround)).
         lit = MINIMUM(XeviousMotion:Div(mGame:StageKilled * total, MAXIMUM(1, mGame:StageGround)), XeviousMotion:Div(mGame:PhaseFrames, 3)).
         shown = (IF mGame:StageKilled = 0 THEN mGame:StageBonus
@@ -767,7 +767,7 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* Every odd row of the picture a little darker: the optional scanlines. */
     METHOD PRIVATE VOID DrawScanlines():
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
+        VAR INTEGER y.
         DO y = 1 TO {&HEIGHT} - 1 BY 2:
             mCanvas:DimRect(0, y, {&WIDTH}, 1, 12, Colour(XeviousTint:Ink)).
         END.
@@ -777,8 +777,8 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
        plCentre puts it in the middle of the picture across, else piX is where it starts. */
     METHOD PRIVATE VOID Words(INPUT pcText AS CHARACTER, INPUT piScale AS INTEGER, INPUT poTop AS XeviousTint, INPUT poBottom AS XeviousTint,
                               INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT plCentre AS LOGICAL):
-        DEFINE VARIABLE stamp AS TextStamp NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER   NO-UNDO.
+        VAR TextStamp stamp.
+        VAR INTEGER x.
         stamp = mText:Get(pcText, piScale, Colour(poTop), Colour(poBottom), (IF piScale > 1 THEN Colour(XeviousTint:Ink) ELSE -1)).
         x = (IF plCentre THEN INTEGER(TRUNCATE(({&WIDTH} - stamp:Width) / 2, 0)) ELSE piX).
         stamp:DrawTo(mCanvas, x, piY).
@@ -786,7 +786,7 @@ CLASS ProGriddle.Games.Xevious.XeviousPainter FINAL IMPLEMENTS IGridRenderer:
 
     /* One line of ordinary text, right aligned 6 cells from the edge. */
     METHOD PRIVATE VOID WordsRight(INPUT pcText AS CHARACTER, INPUT poTint AS XeviousTint, INPUT piY AS INTEGER):
-        DEFINE VARIABLE stamp AS TextStamp NO-UNDO.
+        VAR TextStamp stamp.
         stamp = mText:Get(pcText, 1, Colour(poTint), Colour(poTint), -1).
         stamp:DrawTo(mCanvas, {&WIDTH} - 6 - stamp:Width, piY).
     END METHOD.

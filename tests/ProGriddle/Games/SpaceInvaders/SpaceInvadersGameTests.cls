@@ -15,7 +15,7 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
 
-    DEFINE PRIVATE VARIABLE mGame AS SpaceInvadersGame NO-UNDO.
+    VAR PRIVATE SpaceInvadersGame mGame.
 
     @Setup.
     METHOD PUBLIC VOID BuildGame():
@@ -40,7 +40,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     END METHOD.
 
     METHOD PRIVATE VOID Frames(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO n = 1 TO piCount:
             mGame:Advance().
         END.
@@ -50,8 +50,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
        rack, and wipes their pictures: everything between the kept invaders and the shields. The shields, the
        saucer lane and the cannon stay. */
     METHOD PRIVATE VOID EmptyField(INPUT piKeep AS INTEGER):
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE top AS INTEGER NO-UNDO INITIAL 60.
+        VAR INTEGER i.
+        VAR INTEGER top = 60.
         IF piKeep > 0 THEN top = mGame:Rack:Y(piKeep - 1) + InvaderRack:SpriteHeight().
         DO i = piKeep TO InvaderRack:Total() - 1:
             IF mGame:Rack:Alive(i) THEN mGame:Rack:Kill(i).
@@ -65,9 +65,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     /* How many cells of a rectangle show something other than the background. */
     METHOD PRIVATE INTEGER CountLit(INPUT piX AS INTEGER, INPUT piY AS INTEGER, INPUT piWidth AS INTEGER, INPUT piHeight AS INTEGER):
-        DEFINE VARIABLE x AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER n.
         DO y = piY TO piY + piHeight - 1:
             DO x = piX TO piX + piWidth - 1:
                 IF mGame:Canvas:ColourAt(x, y) <> mGame:Canvas:BackAt(x, y) THEN n = n + 1.
@@ -83,7 +83,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     /* Fires, and plays until the shot is gone (at most piMost frames). */
     METHOD PRIVATE VOID FireAndWait(INPUT piMost AS INTEGER):
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         mGame:FireHeld = TRUE.
         mGame:Advance().
         mGame:FireHeld = FALSE.
@@ -94,7 +94,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     END METHOD.
 
     METHOD PRIVATE INTEGER FreeBombType():
-        DEFINE VARIABLE t AS INTEGER NO-UNDO.
+        VAR INTEGER t.
         DO t = 0 TO 2:
             IF NOT mGame:BombActive(t) THEN RETURN t.
         END.
@@ -103,7 +103,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     /* Drops a bomb on the cannon and plays until it has been hit. */
     METHOD PRIVATE VOID BombTheCannon():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         mGame:DropBomb(FreeBombType(), mGame:PlayerX, 205).
         DO n = 1 TO 40:
             IF mGame:Phase <> GamePhase:Playing THEN LEAVE.
@@ -113,10 +113,10 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     /* Plays piFrames frames and says how many bombs were dropped meanwhile. */
     METHOD PRIVATE INTEGER CountBombs(INPUT piFrames AS INTEGER):
-        DEFINE VARIABLE n     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE total AS INTEGER NO-UNDO.
-        DEFINE VARIABLE was   AS LOGICAL NO-UNDO EXTENT 3.
+        VAR INTEGER n.
+        VAR INTEGER t.
+        VAR INTEGER total.
+        VAR LOGICAL[3] was.
         DO n = 1 TO piFrames:
             mGame:Advance().
             DO t = 0 TO 2:
@@ -129,7 +129,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     /* Plays until the cannon has finished exploding. */
     METHOD PRIVATE VOID WaitForTheBlast():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO n = 1 TO 130:
             IF mGame:Phase <> GamePhase:Dying THEN LEAVE.
             mGame:Advance().
@@ -137,7 +137,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     END METHOD.
 
     METHOD PRIVATE LOGICAL ThrowsGridException(INPUT piWhich AS INTEGER):
-        DEFINE VARIABLE other AS SpaceInvadersGame NO-UNDO.
+        VAR SpaceInvadersGame other.
         DO ON ERROR UNDO, THROW:
             CASE piWhich:
                 WHEN 1 THEN mGame:DropBomb(3, 10, 10).
@@ -273,9 +273,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheCannonBlinksThroughTheIntroAndEndsSolid():
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE fewest AS INTEGER NO-UNDO INITIAL 9999.
-        DEFINE VARIABLE most   AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER fewest = 9999.
+        VAR INTEGER most.
         StartTheGame().
         DO n = 1 TO 129:
             mGame:Advance().
@@ -426,7 +426,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID HoldingFireShootsAgainTheMomentTheShotIsGone():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         Play().
         EmptyField(1).
         mGame:FireHeld = TRUE.
@@ -508,7 +508,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID AKillLeavesNoExplosionOrSparksBehindForLong():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         Play().
         mGame:Canvas:ClearRect(0, 184, 224, 16).
         before = mGame:Canvas:CountKind(INTEGER(CellKind:Fx)).
@@ -522,7 +522,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID AShotThatHitsAShieldEatsPartOfItAndIsGone():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         Play().
         before = mGame:Canvas:CountKind(INTEGER(CellKind:Shield)).
         AimAt(35 + 10).
@@ -534,7 +534,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID AShotAndABombThatMeetDestroyEachOther():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         Play().
         EmptyField(1).
         mGame:DropBomb(1, 110, 150).
@@ -598,7 +598,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheSaucerComesAboutEveryTwentyFiveSecondsFromTheRightFirst():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         Play().
         /* eight invaders at the top, with the cannon under a shield, so little can go wrong meanwhile */
         EmptyField(8).
@@ -613,7 +613,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheSaucerNeverComesWithFewerThanEightInvadersLeft():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         Play().
         EmptyField(7).
         mGame:SetPlayerX(40).
@@ -638,7 +638,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID ABombFallsAboutOneAndAQuarterCellsAFrame():
-        DEFINE VARIABLE y0 AS INTEGER NO-UNDO.
+        VAR INTEGER y0.
         Play().
         mGame:DropBomb(2, 20, 100).
         Assert:Equals(20, mGame:BombX(2)).
@@ -650,7 +650,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID ABombThatReachesTheGroundIsSpentAndHurtsNothing():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         Play().
         mGame:DropBomb(2, 20, 215).
         DO n = 1 TO 30:
@@ -664,8 +664,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID ABombThatHitsAShieldEatsPartOfItAndIsGone():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
+        VAR INTEGER before.
+        VAR INTEGER n.
         Play().
         before = mGame:Canvas:CountKind(INTEGER(CellKind:Shield)).
         mGame:DropBomb(0, 45, 170).
@@ -689,7 +689,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheSquigglyBombIsNotDroppedWhileTheSaucerIsOut():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         Play().
         mGame:SetPlayerX(40).
         mGame:LaunchSaucer(1).
@@ -702,10 +702,10 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID ANewBombWaitsForTheOnesInTheAirSoThereIsOneAtATimeAtTheStart():
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE t    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE out  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE most AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER t.
+        VAR INTEGER out.
+        VAR INTEGER most.
         Play().
         mGame:SetPlayerX(40).
         DO n = 1 TO 600:
@@ -721,8 +721,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID OnceTheScoreHasRisenBombsComeMoreOften():
-        DEFINE VARIABLE low  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE high AS INTEGER NO-UNDO.
+        VAR INTEGER low.
+        VAR INTEGER high.
         Play().
         mGame:SetPlayerX(40).
         low = CountBombs(900).
@@ -741,9 +741,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID AllThreeTypesOfBombAreDroppedWhenTheSaucerIsNotOut():
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE seen AS LOGICAL NO-UNDO EXTENT 3.
-        DEFINE VARIABLE t    AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR LOGICAL[3] seen.
+        VAR INTEGER t.
         Play().
         mGame:SetPlayerX(40).
         DO n = 1 TO 400:
@@ -816,7 +816,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID LosingTheLastCannonEndsTheGameAndTheFireKeyReturnsToTheTitle():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         Play().
         DO n = 1 TO 3:
             BombTheCannon().
@@ -850,7 +850,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID InvadersThatReachTheCannonsRowEndTheGameWhateverLivesAreLeft():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         Play().
         EmptyField(1).
         /* walk the lone invader down in the rack until one more drop is the last */
@@ -1004,10 +1004,10 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID AfterTheExplosionTheCannonBlinksWithItsOutlineForOneAndAHalfSeconds():
-        DEFINE VARIABLE n      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE fewest AS INTEGER NO-UNDO INITIAL 9999.
-        DEFINE VARIABLE most   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE cells  AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER fewest = 9999.
+        VAR INTEGER most.
+        VAR INTEGER cells.
         Play().
         mGame:SetPlayerX(40).
         BombTheCannon().
@@ -1026,9 +1026,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheCannonExplodesInAFlashThenTwoPicturesThenRubble():
-        DEFINE VARIABLE flash  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE middle AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rubble AS INTEGER NO-UNDO.
+        VAR INTEGER flash.
+        VAR INTEGER middle.
+        VAR INTEGER rubble.
         Play().
         mGame:SetPlayerX(40).
         BombTheCannon().
@@ -1046,9 +1046,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheSaucersBodyPulsesThroughSeveralReds():
-        DEFINE VARIABLE n       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE seen    AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE colour  AS CHARACTER NO-UNDO.
+        VAR INTEGER n.
+        VAR CHARACTER seen.
+        VAR CHARACTER colour.
         Play().
         mGame:SetPlayerX(40).
         mGame:LaunchSaucer(1).
@@ -1063,7 +1063,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheStarsDriftBehindTheTitleLettersWithoutWipingThem():
-        DEFINE VARIABLE before AS INTEGER NO-UNDO.
+        VAR INTEGER before.
         Frames(262).
         before = CountLit(40, 40, 150, 60).
         Frames(400).
@@ -1073,7 +1073,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
     /* ---------------------------------- the screens ---------------------------------- */
 
     METHOD PRIVATE VOID LoseEverything():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         DO n = 1 TO 3:
             BombTheCannon().
             WaitForTheBlast().
@@ -1102,14 +1102,14 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID NoStarFallingThroughTheHeadingOrTheCreditEatsAnyOfTheirCells():
-        DEFINE VARIABLE words    AS CHARACTER NO-UNDO INITIAL "SCORE ADVANCE TABLE".
-        DEFINE VARIABLE credit   AS CHARACTER NO-UNDO INITIAL "PROGRIDDLE COOKOFF".
-        DEFINE VARIABLE c        AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE y        AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE x        AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE bits     AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE want     AS INTEGER   NO-UNDO.
-        DEFINE VARIABLE wantCred AS INTEGER   NO-UNDO.
+        VAR CHARACTER words = "SCORE ADVANCE TABLE".
+        VAR CHARACTER credit = "PROGRIDDLE COOKOFF".
+        VAR INTEGER c.
+        VAR INTEGER y.
+        VAR INTEGER x.
+        VAR CHARACTER bits.
+        VAR INTEGER want.
+        VAR INTEGER wantCred.
         Frames(900).
         DO c = 1 TO LENGTH(words):
             DO y = 0 TO 6:
@@ -1189,8 +1189,8 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheGameOverScreenPopsInItsLettersShowsTheScoreAndWaitsForTheFireKey():
-        DEFINE VARIABLE bare AS INTEGER NO-UNDO.
-        DEFINE VARIABLE five AS INTEGER NO-UNDO.
+        VAR INTEGER bare.
+        VAR INTEGER five.
         Play().
         mGame:AddScore(120).
         LoseEverything().
@@ -1277,9 +1277,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheLastInvaderLeftFlickersBetweenItsColoursAndLight():
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE seen AS CHARACTER NO-UNDO.
-        DEFINE VARIABLE c    AS CHARACTER NO-UNDO.
+        VAR INTEGER n.
+        VAR CHARACTER seen.
+        VAR CHARACTER c.
         Play().
         mGame:SetPlayerX(40).
         EmptyField(1).
@@ -1320,7 +1320,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID FiringPutsAWhitePlusAtTheBarrelForThreeFrames():
-        DEFINE VARIABLE white AS INTEGER NO-UNDO.
+        VAR INTEGER white.
         Play().
         EmptyField(1).
         mGame:FireHeld = TRUE.
@@ -1336,10 +1336,10 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID AShieldShimmersAroundABiteAndThenSettlesBackToItsColours():
-        DEFINE VARIABLE n       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y       AS INTEGER NO-UNDO.
-        DEFINE VARIABLE flashed AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER flashed.
         Play().
         AimAt(35 + 10).
         mGame:FireHeld = TRUE.
@@ -1366,7 +1366,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheGroundFlashesWhereABombLandsThenGoesBack():
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR INTEGER n.
         Play().
         mGame:DropBomb(2, 20, 215).
         DO n = 1 TO 30:
@@ -1382,9 +1382,9 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheGroundLinePulsesRedWhileTheRackIsLowAndOnlyThen():
-        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE red AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE grn AS LOGICAL NO-UNDO.
+        VAR INTEGER n.
+        VAR LOGICAL red.
+        VAR LOGICAL grn.
         Play().
         mGame:SetPlayerX(8).
         EmptyField(1).
@@ -1409,10 +1409,10 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID ASaucerKillTurnsTheScoreGoldForAWhileAndThePopUpRisesAndFades():
-        DEFINE VARIABLE gold  AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE lowY  AS INTEGER NO-UNDO INITIAL 999.
+        VAR INTEGER gold.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER lowY = 999.
         Play().
         EmptyField(1).
         ClearShields().
@@ -1460,10 +1460,10 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersGameTests:
 
     @Test.
     METHOD PUBLIC VOID TheBrightStarsFlashWhiteNowAndThen():
-        DEFINE VARIABLE n   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE x   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE y   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE hit AS INTEGER NO-UNDO.
+        VAR INTEGER n.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        VAR INTEGER hit.
         Play().
         mGame:SetPlayerX(40).
         DO n = 1 TO 8:

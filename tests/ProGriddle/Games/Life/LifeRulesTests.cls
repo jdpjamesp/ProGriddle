@@ -7,8 +7,8 @@ CLASS ProGriddle.Games.Life.LifeRulesTests:
 
     @Test.
     METHOD PUBLIC VOID ConwayIsBirthOnThreeAndSurvivalOnTwoOrThree():
-        DEFINE VARIABLE r AS LifeRules NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR LifeRules r.
+        VAR INTEGER n.
         r = LifeRules:Conway().
         Assert:Equals("B3/S23", r:Notation).
         DO n = 0 TO 8:
@@ -19,7 +19,7 @@ CLASS ProGriddle.Games.Life.LifeRulesTests:
 
     @Test.
     METHOD PUBLIC VOID HighLifeAlsoGivesBirthOnSix():
-        DEFINE VARIABLE r AS LifeRules NO-UNDO.
+        VAR LifeRules r.
         r = LifeRules:HighLife().
         Assert:Equals("B36/S23", r:Notation).
         Assert:IsTrue(r:Births(3)).
@@ -33,7 +33,7 @@ CLASS ProGriddle.Games.Life.LifeRulesTests:
 
     @Test.
     METHOD PUBLIC VOID NextStateAppliesBirthToDeadCellsAndSurvivalToLiveOnes():
-        DEFINE VARIABLE r AS LifeRules NO-UNDO.
+        VAR LifeRules r.
         r = LifeRules:Conway().
         Assert:Equals(1, r:NextState(0, 3)).
         Assert:Equals(0, r:NextState(0, 2)).
@@ -47,7 +47,7 @@ CLASS ProGriddle.Games.Life.LifeRulesTests:
 
     @Test.
     METHOD PUBLIC VOID AnyNonZeroStateCountsAsAlive():
-        DEFINE VARIABLE r AS LifeRules NO-UNDO.
+        VAR LifeRules r.
         r = LifeRules:Conway().
         Assert:Equals(1, r:NextState(5, 2)).
         Assert:Equals(0, r:NextState(-1, 4)).
@@ -55,8 +55,7 @@ CLASS ProGriddle.Games.Life.LifeRulesTests:
 
     @Test.
     METHOD PUBLIC VOID CountsOutsideZeroToEightNeverGiveBirthOrSurvival():
-        DEFINE VARIABLE r AS LifeRules NO-UNDO.
-        r = NEW LifeRules("B012345678/S012345678").
+        VAR LifeRules r = NEW LifeRules("B012345678/S012345678").
         Assert:IsFalse(r:Births(-1)).
         Assert:IsFalse(r:Births(9)).
         Assert:IsFalse(r:Survives(-1)).
@@ -75,8 +74,8 @@ CLASS ProGriddle.Games.Life.LifeRulesTests:
 
     @Test.
     METHOD PUBLIC VOID EmptyListsMeanNothingIsBornAndNothingSurvives():
-        DEFINE VARIABLE r AS LifeRules NO-UNDO.
-        DEFINE VARIABLE n AS INTEGER NO-UNDO.
+        VAR LifeRules r.
+        VAR INTEGER n.
         r = NEW LifeRules("B/S").
         DO n = 0 TO 8:
             Assert:IsFalse(r:Births(n)).
@@ -133,7 +132,7 @@ CLASS ProGriddle.Games.Life.LifeRulesTests:
 
     @Test (expected="ProGriddle.Core.GridException").
     METHOD PUBLIC VOID RejectsUnknownNotation():
-        DEFINE VARIABLE s AS CHARACTER NO-UNDO.
+        VAR CHARACTER s.
         NEW LifeRules(s).
     END METHOD.
 
@@ -144,7 +143,7 @@ CLASS ProGriddle.Games.Life.LifeRulesTests:
 
     @Test.
     METHOD PUBLIC VOID EveryPresetHasANotationThatLifeRulesAccepts():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO NUM-ENTRIES(LifeRules:PresetNames()):
             Assert:IsTrue(LifeRules:PresetNotation(ENTRY(i, LifeRules:PresetNames())) <> "").
             Assert:Equals(LifeRules:PresetNotation(ENTRY(i, LifeRules:PresetNames())),

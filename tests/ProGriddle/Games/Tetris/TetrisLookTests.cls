@@ -17,8 +17,8 @@ CLASS ProGriddle.Games.Tetris.TetrisLookTests:
 
     @Test.
     METHOD PUBLIC VOID EveryColourIsSixHexDigitsAndTheyAreAllDifferent():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
         DO i = 1 TO 11:
             Assert:Equals(6, LENGTH(ENTRY(i, TetrisLook:Palette()))).
             DO j = i + 1 TO 11:
@@ -43,10 +43,10 @@ CLASS ProGriddle.Games.Tetris.TetrisLookTests:
 
     @Test.
     METHOD PUBLIC VOID EveryColourRowHasFiveTonesGettingDarkerAndTheBaseIsTheThirdOne():
-        DEFINE VARIABLE row AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE a   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE b   AS INTEGER NO-UNDO.
+        VAR INTEGER row.
+        VAR INTEGER i.
+        VAR INTEGER a.
+        VAR INTEGER b.
         DO row = 1 TO 9:
             Assert:Equals(5, NUM-ENTRIES(TetrisLook:Tones(row))).
             DO i = 1 TO 4:
@@ -63,8 +63,8 @@ CLASS ProGriddle.Games.Tetris.TetrisLookTests:
 
     @Test.
     METHOD PUBLIC VOID TheSevenPiecesHaveSevenDifferentBaseColours():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
-        DEFINE VARIABLE j AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER j.
         DO i = 1 TO 7:
             DO j = i + 1 TO 7:
                 Assert:IsTrue(ENTRY(3, TetrisLook:Tones(i)) <> ENTRY(3, TetrisLook:Tones(j))).
@@ -74,7 +74,7 @@ CLASS ProGriddle.Games.Tetris.TetrisLookTests:
 
     @Test.
     METHOD PUBLIC VOID LitTonesAreOneStepLighterWithAWhiteHighlightAndWhiteTopKeepsTheRest():
-        DEFINE VARIABLE t AS CHARACTER NO-UNDO.
+        VAR CHARACTER t.
         t = TetrisLook:Tones(1).
         Assert:Equals(SUBSTITUTE("FFFFFF,&1,&2,&3,&4", ENTRY(1, t), ENTRY(2, t), ENTRY(3, t), ENTRY(4, t)), TetrisLook:LitTones(1)).
         Assert:Equals(SUBSTITUTE("FFFFFF,&1,&2,&3,&4", ENTRY(2, t), ENTRY(3, t), ENTRY(4, t), ENTRY(5, t)), TetrisLook:WhiteTopTones(1)).
@@ -82,7 +82,7 @@ CLASS ProGriddle.Games.Tetris.TetrisLookTests:
 
     @Test.
     METHOD PUBLIC VOID ARowOrColourThatDoesNotExistIsRefused():
-        DEFINE VARIABLE thrown AS INTEGER NO-UNDO.
+        VAR INTEGER thrown.
         DO ON ERROR UNDO, THROW:
             TetrisLook:Tones(0).
             CATCH e1 AS GridException:

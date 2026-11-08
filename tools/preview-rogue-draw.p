@@ -12,23 +12,23 @@ USING ProGriddle.Core.*.
 USING ProGriddle.Engine.*.
 USING ProGriddle.Games.Rogue.*.
 
-DEFINE VARIABLE cSeed     AS CHARACTER        NO-UNDO.
-DEFINE VARIABLE cScenario AS CHARACTER        NO-UNDO.
-DEFINE VARIABLE cFile     AS CHARACTER        NO-UNDO.
-DEFINE VARIABLE oGame     AS RogueGame        NO-UNDO.
-DEFINE VARIABLE oPainter  AS RoguePainter     NO-UNDO.
-DEFINE VARIABLE oScores   AS RogueScores      NO-UNDO.
-DEFINE VARIABLE oCanvas   AS PixelCanvas      NO-UNDO.
-DEFINE VARIABLE mBmp      AS MEMPTR           NO-UNDO.
-DEFINE VARIABLE x         AS INTEGER          NO-UNDO.
-DEFINE VARIABLE y         AS INTEGER          NO-UNDO.
-DEFINE VARIABLE c         AS INTEGER          NO-UNDO.
-DEFINE VARIABLE iPos      AS INTEGER          NO-UNDO.
-DEFINE VARIABLE iScale    AS INTEGER          NO-UNDO INITIAL 2.
-DEFINE VARIABLE iWidth    AS INTEGER          NO-UNDO.
-DEFINE VARIABLE iHeight   AS INTEGER          NO-UNDO.
-DEFINE VARIABLE i         AS INTEGER          NO-UNDO.
-DEFINE VARIABLE cRuns     AS CHARACTER        NO-UNDO INITIAL "run6,run2,run4,run8,run3,run7,run9,run1,run6,run2,run6,run8".
+VAR CHARACTER cSeed.
+VAR CHARACTER cScenario.
+VAR CHARACTER cFile.
+VAR RogueGame oGame.
+VAR RoguePainter oPainter.
+VAR RogueScores oScores.
+VAR PixelCanvas oCanvas.
+VAR MEMPTR mBmp.
+VAR INTEGER x.
+VAR INTEGER y.
+VAR INTEGER c.
+VAR INTEGER iPos.
+VAR INTEGER iScale = 2.
+VAR INTEGER iWidth.
+VAR INTEGER iHeight.
+VAR INTEGER i.
+VAR CHARACTER cRuns = "run6,run2,run4,run8,run3,run7,run9,run1,run6,run2,run6,run8".
 
 cSeed = ENTRY(1, SESSION:PARAMETER, "|").
 cScenario = ENTRY(2, SESSION:PARAMETER, "|").

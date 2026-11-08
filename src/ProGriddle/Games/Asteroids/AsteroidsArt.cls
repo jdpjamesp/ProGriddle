@@ -14,13 +14,13 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 CLASS ProGriddle.Games.Asteroids.AsteroidsArt FINAL:
 
     /* the rocks, five large ones, then four medium, then four small */
-    DEFINE PRIVATE STATIC VARIABLE sRocks   AS Outline NO-UNDO EXTENT 13.
-    DEFINE PRIVATE STATIC VARIABLE sFlames  AS Outline NO-UNDO EXTENT 6.
-    DEFINE PRIVATE STATIC VARIABLE sSaucers AS Outline NO-UNDO EXTENT 2.
-    DEFINE PRIVATE STATIC VARIABLE sGlyphs  AS Outline NO-UNDO EXTENT 8.
-    DEFINE PRIVATE STATIC VARIABLE sShip    AS Outline NO-UNDO.
-    DEFINE PRIVATE STATIC VARIABLE sSpine   AS Outline NO-UNDO.
-    DEFINE PRIVATE STATIC VARIABLE sPieces  AS Outline NO-UNDO.
+    VAR PRIVATE STATIC Outline[13] sRocks.
+    VAR PRIVATE STATIC Outline[6] sFlames.
+    VAR PRIVATE STATIC Outline[2] sSaucers.
+    VAR PRIVATE STATIC Outline[8] sGlyphs.
+    VAR PRIVATE STATIC Outline sShip.
+    VAR PRIVATE STATIC Outline sSpine.
+    VAR PRIVATE STATIC Outline sPieces.
 
     CONSTRUCTOR STATIC AsteroidsArt():
         sShip = NEW Outline("closed 0,-6 3.6,3 1.6,1.6 -1.6,1.6 -3.6,3").
@@ -153,7 +153,7 @@ CLASS ProGriddle.Games.Asteroids.AsteroidsArt FINAL:
 
     /* A letter of the title as lines, in cells from the top left of the letter: one of A S T E R O I D. */
     METHOD PUBLIC STATIC Outline Glyph(INPUT pcLetter AS CHARACTER):
-        DEFINE VARIABLE slot AS INTEGER NO-UNDO.
+        VAR INTEGER slot.
         IF pcLetter = ? OR LENGTH(pcLetter) <> 1 THEN UNDO, THROW NEW GridException("A title letter is one character").
         slot = INDEX("ASTEROID", CAPS(pcLetter)).
         IF slot = 0 THEN UNDO, THROW NEW GridException("There is no title letter " + pcLetter).

@@ -52,58 +52,58 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
     &SCOPED-DEFINE OUTSIDE-Y 92
     &SCOPED-DEFINE INSIDE-Y 116
 
-    DEFINE PRIVATE VARIABLE mMaze      AS MazeMap NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRandom    AS IRandom NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWidth     AS INTEGER NO-UNDO.
+    VAR PRIVATE MazeMap mMaze.
+    VAR PRIVATE IRandom mRandom.
+    VAR PRIVATE INTEGER mWidth.
 
     /* Dibby */
-    DEFINE PRIVATE VARIABLE mDx        AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDy        AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDir       AS MazeDir NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDAcc      AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mMoving    AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mEatPause  AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLastCol   AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLastRow   AS INTEGER NO-UNDO.
+    VAR PRIVATE INTEGER mDx.
+    VAR PRIVATE INTEGER mDy.
+    VAR PRIVATE MazeDir mDir.
+    VAR PRIVATE INTEGER mDAcc.
+    VAR PRIVATE LOGICAL mMoving.
+    VAR PRIVATE INTEGER mEatPause.
+    VAR PRIVATE INTEGER mLastCol.
+    VAR PRIVATE INTEGER mLastRow.
     /* true while Dibby is cutting a corner, and the pixel (across for a lane that runs across, else down) of the tile middle he is cutting it at */
-    DEFINE PRIVATE VARIABLE mCornering AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCorner    AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mCornerDir AS MazeDir NO-UNDO.
+    VAR PRIVATE LOGICAL mCornering.
+    VAR PRIVATE INTEGER mCorner.
+    VAR PRIVATE MazeDir mCornerDir.
 
     /* the phantoms, by INTEGER(PhantomKind) */
-    DEFINE PRIVATE VARIABLE mPresent   AS LOGICAL     NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mPx        AS INTEGER     NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mPy        AS INTEGER     NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mPDir      AS MazeDir     NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mPMode     AS PhantomMode NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mPAcc      AS INTEGER     NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mPersonal  AS INTEGER     NO-UNDO EXTENT 4.
-    DEFINE PRIVATE VARIABLE mDescend   AS LOGICAL     NO-UNDO EXTENT 4.
+    VAR PRIVATE LOGICAL[4] mPresent.
+    VAR PRIVATE INTEGER[4] mPx.
+    VAR PRIVATE INTEGER[4] mPy.
+    VAR PRIVATE MazeDir[4] mPDir.
+    VAR PRIVATE PhantomMode[4] mPMode.
+    VAR PRIVATE INTEGER[4] mPAcc.
+    VAR PRIVATE INTEGER[4] mPersonal.
+    VAR PRIVATE LOGICAL[4] mDescend.
 
     /* the level */
-    DEFINE PRIVATE VARIABLE mPhaseFrames AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mChain       AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mWaveForever AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mItem1       AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mItem2       AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mIdle        AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGlobalOn    AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mGlobalCount AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mRageForce   AS INTEGER NO-UNDO INITIAL -1.
-    DEFINE PRIVATE VARIABLE mRageHeld    AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mExtraGiven  AS LOGICAL NO-UNDO.
-    DEFINE PRIVATE VARIABLE mAcc         AS INTEGER NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHiAtStart   AS INTEGER NO-UNDO.
+    VAR PRIVATE INTEGER mPhaseFrames.
+    VAR PRIVATE INTEGER mChain.
+    VAR PRIVATE LOGICAL mWaveForever.
+    VAR PRIVATE LOGICAL mItem1.
+    VAR PRIVATE LOGICAL mItem2.
+    VAR PRIVATE INTEGER mIdle.
+    VAR PRIVATE LOGICAL mGlobalOn.
+    VAR PRIVATE INTEGER mGlobalCount.
+    VAR PRIVATE INTEGER mRageForce = -1.
+    VAR PRIVATE LOGICAL mRageHeld.
+    VAR PRIVATE LOGICAL mExtraGiven.
+    VAR PRIVATE INTEGER mAcc.
+    VAR PRIVATE INTEGER mHiAtStart.
     /* the last tiles eaten, round and round */
-    DEFINE PRIVATE VARIABLE mEatenCol    AS INTEGER NO-UNDO EXTENT 256.
-    DEFINE PRIVATE VARIABLE mEatenRow    AS INTEGER NO-UNDO EXTENT 256.
+    VAR PRIVATE INTEGER[256] mEatenCol.
+    VAR PRIVATE INTEGER[256] mEatenRow.
 
     /* The frames the game has been in this phase: what the picture's timed effects (the title, the crash, the flash) are worked from. */
     DEFINE PUBLIC PROPERTY PhaseAge AS INTEGER NO-UNDO
         GET.
         PRIVATE SET.
 
-    DEFINE PRIVATE VARIABLE mPhase AS ForEachPhase NO-UNDO.
+    VAR PRIVATE ForEachPhase mPhase.
 
     /* The phase the game is in. Every change of phase starts PhaseAge again. */
     DEFINE PUBLIC PROPERTY Phase AS ForEachPhase NO-UNDO
@@ -383,7 +383,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* The maze full again, the counts of a level at nothing and everyone at their start. */
     METHOD PRIVATE VOID PrepareLevel(INPUT piLevel AS INTEGER):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         Level = piLevel.
         mMaze:Refill().
         LevelSerial = LevelSerial + 1.
@@ -401,7 +401,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* Everyone back at their start, the waves beginning again and no item out. */
     METHOD PRIVATE VOID PlaceStarts():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         ASSIGN mDx = mMaze:DibbyStartX
                mDy = mMaze:DibbyStartY
                mDir = MazeDir:Left
@@ -452,7 +452,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
     /* Moves time on by piElapsedMs milliseconds, making a frame for every sixtieth of a second at the speed chosen. Returns true
        when a frame was made. Does nothing, and returns false, while Paused. */
     METHOD PUBLIC LOGICAL Tick(INPUT piElapsedMs AS INTEGER):
-        DEFINE VARIABLE made AS INTEGER NO-UNDO.
+        VAR INTEGER made.
         IF Paused OR piElapsedMs <= 0 THEN RETURN FALSE.
         mAcc = mAcc + INTEGER(ROUND(MINIMUM(piElapsedMs, {&MOST-MS}) * 0.6 * SpeedPercent, 0)).
         DO WHILE mAcc >= 1000 AND made < {&MOST-FRAMES}:
@@ -530,7 +530,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* The maze has flashed: a cartoon, or the next level. */
     METHOD PRIVATE VOID AfterClear():
-        DEFINE VARIABLE act AS INTEGER NO-UNDO.
+        VAR INTEGER act.
         act = ForEachRules:IntermissionAfter(Level).
         IF act = 0 THEN DO:
             BeginLevel(Level + 1).
@@ -544,7 +544,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
     /* ---------------------------------- a frame of play ---------------------------------- */
 
     METHOD PRIVATE VOID PlayFrame():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF FreezeFramesLeft > 0 THEN DO:
             FreezeFramesLeft = FreezeFramesLeft - 1.
             RETURN.
@@ -615,8 +615,8 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
     END METHOD.
 
     METHOD PRIVATE VOID MoveDibby():
-        DEFINE VARIABLE steps AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        VAR INTEGER steps.
+        VAR INTEGER i.
         IF mEatPause > 0 THEN DO:
             mEatPause = mEatPause - 1.
             RETURN.
@@ -635,10 +635,10 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* One pixel. Returns false when Dibby cannot go on. */
     METHOD PRIVATE LOGICAL StepDibby():
-        DEFINE VARIABLE nx AS INTEGER NO-UNDO.
-        DEFINE VARIABLE ny AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tc AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rw AS INTEGER NO-UNDO.
+        VAR INTEGER nx.
+        VAR INTEGER ny.
+        VAR INTEGER tc.
+        VAR INTEGER rw.
         IF AtMiddle(mDx, mDy) THEN DO:
             mCornering = FALSE.
             tc = DibbyCol.
@@ -686,13 +686,13 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
        he comes into the new lane as he reaches the middle, up to 4 pixels sooner than if he had waited for it. This is what lets him get
        away from a phantom at a corner. Returns true when this step was a step of cutting a corner (it has been made), false when it was not. */
     METHOD PRIVATE LOGICAL CutCorner():
-        DEFINE VARIABLE want   AS MazeDir NO-UNDO.
-        DEFINE VARIABLE across AS LOGICAL NO-UNDO.
-        DEFINE VARIABLE pos    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE centre AS INTEGER NO-UNDO.
-        DEFINE VARIABLE gap    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE tc     AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rw     AS INTEGER NO-UNDO.
+        VAR MazeDir want.
+        VAR LOGICAL across.
+        VAR INTEGER pos.
+        VAR INTEGER centre.
+        VAR INTEGER gap.
+        VAR INTEGER tc.
+        VAR INTEGER rw.
         /* a corner that has been started is finished the way it was started, whatever is asked for meanwhile */
         want = (IF mCornering THEN mCornerDir ELSE WantedDir).
         IF want = ? OR want = mDir OR want = MazeDirs:Opposite(mDir) THEN RETURN FALSE.
@@ -730,7 +730,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* Eats what is on the tile Dibby has just entered. The last bit clears the level. */
     METHOD PRIVATE VOID EatAt(INPUT piCol AS INTEGER, INPUT piRow AS INTEGER):
-        DEFINE VARIABLE kind AS TileKind NO-UNDO.
+        VAR TileKind kind.
         kind = mMaze:Take(piCol, piRow).
         IF kind <> TileKind:Bit AND kind <> TileKind:Commit THEN RETURN.
         Noted(piCol, piRow).
@@ -764,7 +764,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
     /* What eating a bit or a commit token does: the points, the counts, a commit token's rollback and the bonus items that come
        out at 70 and 170 things eaten. */
     METHOD PRIVATE VOID WasEaten(INPUT poKind AS TileKind):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF poKind = TileKind:Commit THEN DO:
             AddScore(ForEachRules:CommitPoints()).
             CommitsEatenTotal = CommitsEatenTotal + 1.
@@ -807,10 +807,10 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
     /* Eats this many bits (never a commit token) as if Dibby had walked over them: the points, the counts, the items and the
        phantoms let out. Throws GridException for a number below 0 or more than there are. */
     METHOD PUBLIC VOID EatBits(INPUT piCount AS INTEGER):
-        DEFINE VARIABLE cc   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rr   AS INTEGER NO-UNDO.
-        DEFINE VARIABLE n    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE spare AS INTEGER NO-UNDO.
+        VAR INTEGER cc.
+        VAR INTEGER rr.
+        VAR INTEGER n.
+        VAR INTEGER spare.
         IF piCount = ? OR piCount < 0 THEN UNDO, THROW NEW GridException("A number of bits cannot be below 0").
         DO rr = 0 TO mMaze:Rows - 1:
             DO cc = 0 TO mMaze:Cols - 1:
@@ -888,20 +888,20 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* The tile a phantom is heading for, or unknown when it is not heading for one (waiting, leaving or rolled back). */
     METHOD PUBLIC INTEGER PhantomTargetCol(INPUT poKind AS PhantomKind):
-        DEFINE VARIABLE target AS Coord NO-UNDO.
+        VAR Coord target.
         target = TargetOf(INTEGER(poKind)).
         RETURN (IF VALID-OBJECT(target) THEN target:X ELSE ?).
     END METHOD.
 
     METHOD PUBLIC INTEGER PhantomTargetRow(INPUT poKind AS PhantomKind):
-        DEFINE VARIABLE target AS Coord NO-UNDO.
+        VAR Coord target.
         target = TargetOf(INTEGER(poKind)).
         RETURN (IF VALID-OBJECT(target) THEN target:Y ELSE ?).
     END METHOD.
 
     METHOD PRIVATE Coord TargetOf(INPUT piIdx AS INTEGER):
-        DEFINE VARIABLE kind AS PhantomKind NO-UNDO.
-        DEFINE VARIABLE mary AS INTEGER     NO-UNDO.
+        VAR PhantomKind kind.
+        VAR INTEGER mary.
         kind = PhantomKind:GetEnum(piIdx).
         CASE mPMode[piIdx]:
             WHEN PhantomMode:Scatter THEN RETURN PhantomTargeting:ScatterTarget(kind).
@@ -918,7 +918,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
     /* Puts a phantom at a place facing a way in a mode, bringing it into play if the maze has no start for it. */
     METHOD PUBLIC VOID PlacePhantom(INPUT poKind AS PhantomKind, INPUT piX AS INTEGER, INPUT piY AS INTEGER,
                                     INPUT poDir AS MazeDir, INPUT poMode AS PhantomMode):
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF poDir = ? OR poMode = ? THEN UNDO, THROW NEW GridException("A phantom must face some way and be doing something").
         i = INTEGER(poKind).
         ASSIGN mPresent[i] = TRUE
@@ -939,8 +939,8 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
     /* What eating a commit token does to the phantoms in the maze: every one turns round, and for the time of the level they are
        rolled back (from level 19 they only turn round). A phantom in the lobby or running home is left alone. */
     METHOD PUBLIC VOID Rollback():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE frames AS INTEGER NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER frames.
         mChain = 0.
         frames = ForEachRules:RollbackFrames(Level).
         DO i = 1 TO 4:
@@ -954,7 +954,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* The time of rolling back is up: the phantoms go back to the mode of the wave. */
     METHOD PRIVATE VOID EndRollback():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 4:
             IF mPresent[i] AND mPMode[i] = PhantomMode:RolledBack THEN mPMode[i] = OutMode().
         END.
@@ -962,7 +962,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* The wave is over: the next one starts and the phantoms in the maze change mode and turn round. The last wave does not end. */
     METHOD PUBLIC VOID SwitchWave():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         IF WaveNumber >= 8 THEN RETURN.
         WaveNumber = WaveNumber + 1.
         SetWaveTimer().
@@ -982,7 +982,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* The speed of a phantom as a percentage of full speed. */
     METHOD PRIVATE INTEGER SpeedOf(INPUT piIdx AS INTEGER):
-        DEFINE VARIABLE tunnel AS LOGICAL NO-UNDO.
+        VAR LOGICAL tunnel.
         tunnel = mMaze:IsTunnel(ColOf(mPx[piIdx]), RowOf(mPy[piIdx])).
         CASE mPMode[piIdx]:
             WHEN PhantomMode:Returning THEN RETURN {&RETURNING-SPEED}.
@@ -997,8 +997,8 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
     END METHOD.
 
     METHOD PRIVATE VOID MovePhantom(INPUT piIdx AS INTEGER):
-        DEFINE VARIABLE steps AS INTEGER NO-UNDO.
-        DEFINE VARIABLE i     AS INTEGER NO-UNDO.
+        VAR INTEGER steps.
+        VAR INTEGER i.
         IF NOT mPresent[piIdx] OR mPMode[piIdx] = PhantomMode:Waiting THEN RETURN.
         mPAcc[piIdx] = mPAcc[piIdx] + INTEGER(SpeedOf(piIdx) * 16 / 5).
         steps = INTEGER(TRUNCATE(mPAcc[piIdx] / {&UNIT}, 0)).
@@ -1010,9 +1010,9 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* One pixel of a phantom. Leaving and returning phantoms use the door by a fixed path, the rest steer along the lanes. */
     METHOD PRIVATE VOID StepPhantom(INPUT piIdx AS INTEGER):
-        DEFINE VARIABLE dir AS MazeDir NO-UNDO.
-        DEFINE VARIABLE tc AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rw  AS INTEGER NO-UNDO.
+        VAR MazeDir dir.
+        VAR INTEGER tc.
+        VAR INTEGER rw.
         CASE mPMode[piIdx]:
             WHEN PhantomMode:Leaving THEN DO:
                 IF mPx[piIdx] < {&DOOR-X} THEN mPx[piIdx] = mPx[piIdx] + 1.
@@ -1053,9 +1053,9 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* Which way a phantom at the middle of a tile goes on. */
     METHOD PRIVATE MazeDir ChooseWay(INPUT piIdx AS INTEGER):
-        DEFINE VARIABLE target AS Coord NO-UNDO.
-        DEFINE VARIABLE tc    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE rw     AS INTEGER NO-UNDO.
+        VAR Coord target.
+        VAR INTEGER tc.
+        VAR INTEGER rw.
         tc = ColOf(mPx[piIdx]).
         rw = RowOf(mPy[piIdx]).
         IF mPMode[piIdx] = PhantomMode:RolledBack THEN RETURN PhantomSteering:ChooseAtRandom(mMaze, tc, rw, mPDir[piIdx], mRandom).
@@ -1069,9 +1069,9 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
     /* Lets the first phantom waiting in the lobby out when its count is reached: its own count of bits eaten (which starts when
        the phantom before it is gone) or, after a life is lost, the count shared between them. */
     METHOD PRIVATE VOID ReleaseCheck():
-        DEFINE VARIABLE i    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE k    AS INTEGER NO-UNDO.
-        DEFINE VARIABLE done AS LOGICAL NO-UNDO.
+        VAR INTEGER i.
+        VAR INTEGER k.
+        VAR LOGICAL done.
         DO WHILE NOT done:
             done = TRUE.
             DO i = 1 TO 4:
@@ -1090,7 +1090,7 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
 
     /* Lets the first phantom waiting out, whatever its count: Dibby has not eaten for a while. */
     METHOD PRIVATE VOID ReleaseNext():
-        DEFINE VARIABLE i AS INTEGER NO-UNDO.
+        VAR INTEGER i.
         DO i = 1 TO 4:
             IF mPresent[ListOrder(i)] AND mPMode[ListOrder(i)] = PhantomMode:Waiting THEN DO:
                 LetOut(ListOrder(i)).
@@ -1111,8 +1111,8 @@ CLASS ProGriddle.Games.ForEach.ForEachGame FINAL INHERITS AbstractGame IMPLEMENT
     /* A phantom rolled back that touches Dibby is eaten, one that is hunting him catches him. Phantoms in the lobby and running
        home are harmless. */
     METHOD PRIVATE VOID Collide():
-        DEFINE VARIABLE i      AS INTEGER NO-UNDO.
-        DEFINE VARIABLE caught AS LOGICAL NO-UNDO.
+        VAR INTEGER i.
+        VAR LOGICAL caught.
         DO i = 1 TO 4:
             IF mPresent[i] AND ABSOLUTE(mPx[i] - mDx) < {&TOUCH} AND ABSOLUTE(mPy[i] - mDy) < {&TOUCH} THEN DO:
                 CASE mPMode[i]:

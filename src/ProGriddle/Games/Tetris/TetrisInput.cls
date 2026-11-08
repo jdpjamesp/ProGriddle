@@ -31,21 +31,21 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
 
-    DEFINE PRIVATE VARIABLE mGame     AS TetrisGame NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSettings AS ISettings  NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlayer   AS ISoundPlayer NO-UNDO.
-    DEFINE PRIVATE VARIABLE mChoice  AS INTEGER    NO-UNDO INITIAL 1.
-    DEFINE PRIVATE VARIABLE mNotice   AS CHARACTER  NO-UNDO.
+    VAR PRIVATE TetrisGame mGame.
+    VAR PRIVATE ISettings mSettings.
+    VAR PRIVATE ISoundPlayer mPlayer.
+    VAR PRIVATE INTEGER mChoice = 1.
+    VAR PRIVATE CHARACTER mNotice.
     /* keys that are down now, as ",Up,Space," */
-    DEFINE PRIVATE VARIABLE mHeld     AS CHARACTER  NO-UNDO INITIAL ",".
-    DEFINE PRIVATE VARIABLE mScores   AS TetrisHighScores NO-UNDO.
+    VAR PRIVATE CHARACTER mHeld = ",".
+    VAR PRIVATE TetrisHighScores mScores.
     /* the game that has just ended has been put on the list, and the place it got (0 for none) */
-    DEFINE PRIVATE VARIABLE mRecorded AS LOGICAL    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPlace    AS INTEGER    NO-UNDO.
+    VAR PRIVATE LOGICAL mRecorded.
+    VAR PRIVATE INTEGER mPlace.
 
     DEFINE PUBLIC PROPERTY StatusText AS CHARACTER NO-UNDO
         GET():
-            DEFINE VARIABLE result AS CHARACTER NO-UNDO.
+            VAR CHARACTER result.
             NoteEnd().
             IF mGame:IsOver THEN DO:
                 result = SUBSTITUTE("Game over   Score &1   Lines &2   Level &3", mGame:Score, mGame:LinesCleared, mGame:Level).
@@ -101,8 +101,8 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
 
     DEFINE PUBLIC PROPERTY InfoText AS CHARACTER NO-UNDO
         GET():
-            DEFINE VARIABLE result AS CHARACTER NO-UNDO.
-            DEFINE VARIABLE place AS INTEGER   NO-UNDO.
+            VAR CHARACTER result.
+            VAR INTEGER place.
             NoteEnd().
             /* the help window is about 40 characters wide, so keep every line short */
             IF mScores:Count() > 0 THEN DO:
@@ -149,7 +149,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
     END CONSTRUCTOR.
 
     METHOD PUBLIC CHARACTER TakeNotice():
-        DEFINE VARIABLE notice AS CHARACTER NO-UNDO.
+        VAR CHARACTER notice.
         notice = mNotice.
         mNotice = "".
         RETURN notice.
@@ -170,7 +170,7 @@ CLASS ProGriddle.Games.Tetris.TetrisInput FINAL IMPLEMENTS IGameInput:
     /* The keys of the game. Returns true for every key it uses, whether or not the move could be made,
        so the window never gives these keys a second meaning. */
     METHOD PUBLIC LOGICAL HandleKey(INPUT pcKey AS CHARACTER):
-        DEFINE VARIABLE repeating AS LOGICAL NO-UNDO.
+        VAR LOGICAL repeating.
         IF pcKey = ? THEN RETURN FALSE.
         NoteEnd().
         CASE pcKey:

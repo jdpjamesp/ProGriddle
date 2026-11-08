@@ -20,31 +20,31 @@ BLOCK-LEVEL ON ERROR UNDO, THROW.
 
 CLASS ProGriddle.Games.BlastBuddies.BuddyCues FINAL IMPLEMENTS ICueSource, ILoopSource:
 
-    DEFINE PRIVATE VARIABLE mSeen     AS LOGICAL    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFrames   AS INTEGER    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSerial   AS INTEGER    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mPhase    AS BuddyPhase NO-UNDO.
-    DEFINE PRIVATE VARIABLE mTurns    AS INTEGER    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHops     AS INTEGER    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mFlips    AS INTEGER    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSteps    AS INTEGER    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mAims     AS INTEGER    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mLands    AS INTEGER    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mShots    AS INTEGER    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBlasts   AS INTEGER    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mHurt     AS INTEGER    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mDeaths   AS INTEGER    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSplashes AS INTEGER    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mBucket   AS INTEGER    NO-UNDO.
-    DEFINE PRIVATE VARIABLE mSeconds  AS INTEGER    NO-UNDO.
+    VAR PRIVATE LOGICAL mSeen.
+    VAR PRIVATE INTEGER mFrames.
+    VAR PRIVATE INTEGER mSerial.
+    VAR PRIVATE BuddyPhase mPhase.
+    VAR PRIVATE INTEGER mTurns.
+    VAR PRIVATE INTEGER mHops.
+    VAR PRIVATE INTEGER mFlips.
+    VAR PRIVATE INTEGER mSteps.
+    VAR PRIVATE INTEGER mAims.
+    VAR PRIVATE INTEGER mLands.
+    VAR PRIVATE INTEGER mShots.
+    VAR PRIVATE INTEGER mBlasts.
+    VAR PRIVATE INTEGER mHurt.
+    VAR PRIVATE INTEGER mDeaths.
+    VAR PRIVATE INTEGER mSplashes.
+    VAR PRIVATE INTEGER mBucket.
+    VAR PRIVATE INTEGER mSeconds.
 
     /* Throws GridException for a game that is not a Blast Buddies game. */
     METHOD PUBLIC CHARACTER Poll(INPUT poGame AS IGame):
-        DEFINE VARIABLE oGame  AS BlastBuddiesGame NO-UNDO.
-        DEFINE VARIABLE cues   AS CHARACTER        NO-UNDO.
-        DEFINE VARIABLE bucket AS INTEGER          NO-UNDO.
-        DEFINE VARIABLE secs   AS INTEGER          NO-UNDO.
-        DEFINE VARIABLE splash AS INTEGER          NO-UNDO.
+        VAR BlastBuddiesGame oGame.
+        VAR CHARACTER cues.
+        VAR INTEGER bucket.
+        VAR INTEGER secs.
+        VAR INTEGER splash.
         IF NOT TYPE-OF(poGame, BlastBuddiesGame) THEN UNDO, THROW NEW GridException("The cues of Blast Buddies need a Blast Buddies game").
         oGame = CAST(poGame, BlastBuddiesGame).
         /* the first look, and a game that has started again: take the state as it is, and say nothing */
@@ -78,7 +78,7 @@ CLASS ProGriddle.Games.BlastBuddies.BuddyCues FINAL IMPLEMENTS ICueSource, ILoop
 
     /* The rocket's hiss sounds while a rocket is in the air, in a game that is being played and is not paused. */
     METHOD PUBLIC CHARACTER Loops(INPUT poGame AS IGame):
-        DEFINE VARIABLE oGame AS BlastBuddiesGame NO-UNDO.
+        VAR BlastBuddiesGame oGame.
         IF NOT TYPE-OF(poGame, BlastBuddiesGame) THEN UNDO, THROW NEW GridException("The cues of Blast Buddies need a Blast Buddies game").
         oGame = CAST(poGame, BlastBuddiesGame).
         IF oGame:Paused OR oGame:IsOver THEN RETURN "".
