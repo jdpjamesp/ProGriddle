@@ -1,6 +1,6 @@
 # Sound
 
-Games can have sound effects: 8 bit, mono, made from short recipes at start up, with no sound files. Tetris and Snake have it in the soft, warm voice of their Lantern Glass look, Space Invaders and Asteroids in the square waves and noise of the arcade, and Blast Buddies in cheerful chiptune with a hiss that loops while a rocket flies. Life, Minesweeper, Battleships and 2048 have none, on purpose. A game that has no sound is unchanged, and a machine with no sound device just stays quiet.
+Games can have sound effects: 8 bit, mono, made from short recipes at start up, with no sound files. Tetris and Snake have it in the soft, warm voice of their Lantern Glass look, Space Invaders, Asteroids, Centipede and Xevious in the square waves and noise of the arcade, FOR EACH in the beeps of a maze, and Blast Buddies in cheerful chiptune with a hiss that loops while a rocket flies. Life, Minesweeper, Battleships, 2048 and Rogue have none, on purpose. A game that has no sound is unchanged, and a machine with no sound device just stays quiet.
 
 Sound is on by default. The M key (or the Sound button) switches it on and off in any game that has it, and the choice is saved.
 
