@@ -52,3 +52,5 @@ ablunit.json
 prof.out
 prof_*.out
 profile.options
+.mcp.json
+.mcp.json.bak
