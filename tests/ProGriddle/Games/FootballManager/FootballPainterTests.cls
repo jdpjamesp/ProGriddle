@@ -160,4 +160,27 @@ CLASS ProGriddle.Games.FootballManager.FootballPainterTests:
         Assert:IsTrue(Refused("wronggame")).
     END METHOD.
 
+    /* How many pixels of the prompt's yellow are in the strip under the ticker. */
+    METHOD PRIVATE INTEGER PromptPixels():
+        VAR INTEGER px.
+        VAR INTEGER py.
+        VAR INTEGER found.
+        DO py = 226 TO 238:
+            DO px = 40 TO 280:
+                IF mPainter:Canvas:ColourAt(px, py) = INTEGER(FootballLook:Colour(FootballTint:ChalkYellow)) THEN found = found + 1.
+            END.
+        END.
+        RETURN found.
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID WhenTheHighlightsAreOverThePictureSaysHowToGoOn():
+        Assert:IsTrue(MatchWithFirstAttackBy(1)).
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:Equals(0, PromptPixels()).
+        mGame:SkipHighlights().
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsTrue(PromptPixels() > 40).
+    END METHOD.
+
 end CLASS.
