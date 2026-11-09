@@ -224,6 +224,13 @@ END CLASS.
 write('XeviousLook', ''.join(look))
 
 
+def abl_text(text):
+    """A picture row as the inside of an ABL string literal. A backslash is an escape character on Unix, so it is
+    written as tilde backslash (the tilde is ABL's own escape and works on every platform)."""
+    assert '~' not in text and '"' not in text
+    return text.replace(chr(92), '~' + chr(92))
+
+
 def art_class(cls, enum, items, doc):
     out = [BANNER + doc + '''
 USING Progress.Lang.*.
@@ -239,7 +246,7 @@ CLASS ProGriddle.Games.Xevious.%s FINAL:
         CASE poPicture:
 ''' % (cls, enum)]
     for it in items:
-        out.append('            WHEN %s:%s THEN RETURN "%s".\n' % (enum, pascal(it['name']), '/'.join(it['rows'])))
+        out.append('            WHEN %s:%s THEN RETURN "%s".\n' % (enum, pascal(it['name']), abl_text('/'.join(it['rows']))))
     out.append('''            OTHERWISE UNDO, THROW NEW GridException("A picture cannot be unknown").
         END CASE.
     END METHOD.
