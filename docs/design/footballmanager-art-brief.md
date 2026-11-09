@@ -98,7 +98,7 @@ Two points: **every frame must fit its size** (or you say how much it overhangs)
 Give each screen as a list of "this text or sprite, in this colour, at this x and y" (origin at the top left), with the **font and its scale**:
 
 - **Title / attract screen**: the name, a hint line (the controls), a blinking PRESS SPACE, and a short intro (a few frames of figures running a ball in, a kick, a goal). A short animation is welcome (the game can play a sequence of frames on a timer; say how many pixels of the picture change).
-- **New game** (three short screens): the manager's name (up to 20 characters), **pick a club** (a list of 16 per page, 4 pages, one for each division), the **level** from 1 to 7 (Beginner, Novice, Average, Good, Expert, Super Expert, Genius), and **pick the 12 starting players** from the pool of 24 (a grid, 8 for each position).
+- **New game** (three short screens): the manager's name (up to 20 characters), **pick a club** (a list of 16 per page, 4 pages, one for each division), the **level** from 1 to 7 (Beginner, Novice, Average, Good, Expert, Super Expert, Genius), and **the kit colour** (black or white). The 12 starting players are dealt at random, so the game only shows the squad.
 - **Status bar** (on every screen): week, division, bank, loan, and the club's name.
 - **The squad screen**: 16 rows of name, position icon, skill (1 to 5, with a bar or stars), energy (1 to 20 with a bar), state icon, value. A cursor and a way to mark who is picked.
 - **The pick the team screen**: the squad with the picked marks, the five team numbers (Defence, Midfield, Attack, Energy, Morale) as bars, and the formation (4-4-2 or similar, drawn as a small pitch of dots).

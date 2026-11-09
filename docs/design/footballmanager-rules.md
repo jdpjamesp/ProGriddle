@@ -7,7 +7,7 @@ The name lists are at the end of this page.
 ## Shape of the game
 - 4 divisions of 16 clubs, 64 in all (1 is the top). The player starts in division 4 (8947 to 8953).
 - Division multiplier `d2 = 5 - division` (1 in division 4 up to 4 in division 1) scales money.
-- **Set up** (8900 to 8990): manager name (20 characters), pick a club, level 1 to 7 (Beginner, Novice, Average, Good, Expert, Super Expert, Genius), pick 12 players from the pool of 24 (the first 11 start, the 12th is the reserve).
+- **Set up** (8900 to 8990): manager name (20 characters), pick a club, level 1 to 7 (Beginner, Novice, Average, Good, Expert, Super Expert, Genius), the squad is **dealt at random**: 12 of the pool of 24 (the first 11 drawn start, the 12th is the reserve), with no choice and no say over positions, and the manager picks a kit colour, black or white (the other side wears the other).
 - **Weekly loop** (100 to 199): menu, the match, the money report (8000), the season end check (8100), one transfer offer (8700). Menu: sell, loan, repay, status, level, change names, save, continue.
 
 ## Fixtures and season
@@ -33,7 +33,7 @@ Five numbers each side, 1 to 20: **Energy** (sum of the starters' energy divided
 
 ## Money
 - Starts at nothing: cash and loan are never set, so the first week's costs go into the loan.
-- **Gate** (to the club, every fixture, whatever the result): league home `g` (5000 * d2 at a season start); after a home league win `g = g + INT((10000 * d2 - g) / 10)`, after a loss `g = g - INT(g/10)` (not below 1000), a draw leaves it. League away `(17 - opponent's league position) * 500 * d2`. Cup home `g`; cup away `(5 - opponent's division) * 10000`; semi-final 50000, final 100000.
+- **Gate** (to the club, every fixture, whatever the result): league home `g` (5000 * d2 at a season start); after a league win, home or away, `g = g + INT((10000 * d2 - g) / 10)`, after a loss, home or away, `g = g - INT(g/10)` (not below 1000), a draw leaves it. League away `(17 - opponent's league position) * 500 * d2`. Cup home `g`; cup away `(5 - opponent's division) * 10000`; semi-final 50000, final 100000.
 - **Weekly costs**: wages `sum of skill * 100 * d2` over every player owned, ground rent `500 * d2`, interest `INT(loan / 100)`. Cash below zero is turned into loan.
 - **Loan**: allowed while `loan <= 250000 * d2` (check: the listing line is damaged). Repay needs the cash. **Going over the limit ends the game** (8060), the only way to lose.
 - **Season end prize** `(17 - position) * 5000 * d2`. Top 3 promoted (from divisions 2 to 4), bottom 3 relegated (from divisions 1 to 3, none from 4).
@@ -66,3 +66,7 @@ The raw file has two damaged spots in the player data (a missing quote before Ne
 - Division 4: Blackpool, Bury, Colchester, Crewe, Darlington, Halifax, Hartlepool, Hereford, Hull, Mansfield, Port Vale, Rochdale, Scunthorpe, Stockport, Torquay, York City.
 
 Club names are at most 10 characters and player names at most 9, so the screens need no more width than that.
+
+## The pitch of the port (as built in `PitchAttack`)
+
+The pitch is 32 columns by 22 rows of cells. The original draws it in perspective, so each goal line is a diagonal: the ball leaves through the left goal where column plus row falls under 22, and through the right goal where column minus row goes over 9. A goal is a ball that leaves between rows 5 and 13 and columns 7 to 14 (left) or 17 to 24 (right), except by the corner at column 7 or 24, row 13 when it is drifting up. The home side (team 1) attacks the right goal, the away side the left. A match has at most 22 attacks (two for each of 5 numbers for each side, then one each if 0 to 0). A ball struck two columns at a time can skip over a one cell wide player, as in the original. One thing is not the original's: a ball that has not left the pitch after 40 steps counts as wide, so an attack always ends. The port's tests pin all of this.
