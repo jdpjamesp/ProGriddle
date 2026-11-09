@@ -72,7 +72,7 @@ CLASS ProGriddle.Games.FootballManager.FootballGameTests:
                     mGame:Continue().
                     mGame:Continue().
                 END.
-                WHEN "ticknotinmatch" THEN mGame:Tick(10).
+                WHEN "ticknegative" THEN mGame:Tick(-1).
                 WHEN "skipnotinmatch" THEN mGame:SkipHighlights().
                 WHEN "overnotinmatch" THEN mGame:HighlightsOver().
                 WHEN "norandom" THEN NEW FootballGame(NEW Grid(NEW ArrayStore(1, 1, "state")), ?).
@@ -196,13 +196,29 @@ CLASS ProGriddle.Games.FootballManager.FootballGameTests:
         total = Highlights:TotalMs(mGame:Played).
         Assert:Equals(0, mGame:MatchMs).
         Assert:IsFalse(mGame:HighlightsOver()).
-        mGame:Tick(500).
+        Assert:IsTrue(mGame:Tick(500)).
         Assert:Equals(500, mGame:MatchMs).
+        mGame:Paused = TRUE.
+        Assert:IsFalse(mGame:Tick(500)).
+        Assert:Equals(500, mGame:MatchMs).
+        mGame:Paused = FALSE.
         mGame:Tick(total * 2).
         Assert:Equals(total, mGame:MatchMs).
         Assert:IsTrue(mGame:HighlightsOver()).
+        Assert:IsFalse(mGame:Tick(100)).
         mGame:Proceed().
-        Assert:IsTrue(Refused("ticknotinmatch")).
+        Assert:IsFalse(mGame:Tick(100)).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheGameAlwaysAsksForTheClockSoASackedGameCanStartAgainWithHighlights():
+        StartedGame(1).
+        Assert:IsTrue(mGame:Animating).
+        mGame:World:Cash = 0.
+        mGame:World:Loan = 1000000.
+        PlayWeek().
+        Assert:IsTrue(mGame:IsOver).
+        Assert:IsTrue(mGame:Animating).
     END METHOD.
 
     @Test.
@@ -387,6 +403,7 @@ CLASS ProGriddle.Games.FootballManager.FootballGameTests:
         Assert:IsTrue(Refused("sellinjured")).
         Assert:IsTrue(Refused("borrowinmatch")).
         Assert:IsTrue(Refused("continuetwice")).
+        Assert:IsTrue(Refused("ticknegative")).
         Assert:IsTrue(Refused("skipnotinmatch")).
         Assert:IsTrue(Refused("overnotinmatch")).
         Assert:IsTrue(Refused("norandom")).

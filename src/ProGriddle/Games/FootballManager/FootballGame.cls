@@ -21,7 +21,7 @@ USING ProGriddle.Games.FootballManager.*.
 
 BLOCK-LEVEL ON ERROR UNDO, THROW.
 
-CLASS ProGriddle.Games.FootballManager.FootballGame FINAL INHERITS AbstractGame IMPLEMENTS ITurnBasedGame:
+CLASS ProGriddle.Games.FootballManager.FootballGame FINAL INHERITS AbstractGame IMPLEMENTS ITurnBasedGame, IRealTimeGame, IAnimated:
 
     VAR PRIVATE FootballWorld mWorld.
     VAR PRIVATE IRandom mRandom.
@@ -216,11 +216,26 @@ CLASS ProGriddle.Games.FootballManager.FootballGame FINAL INHERITS AbstractGame 
         Phase = FootballPhase:Match.
     END METHOD.
 
-    /* Moves the highlights on by piMs milliseconds (only while the phase is Match; they stop at the end). */
-    METHOD PUBLIC VOID Tick(INPUT piMs AS INTEGER):
-        Need(FootballPhase:Match).
-        IF piMs = ? OR piMs < 0 THEN UNDO, THROW NEW GridException("A tick cannot be " + STRING(piMs) + " milliseconds").
-        MatchMs = MINIMUM(MatchMs + piMs, Highlights:TotalMs(Played)).
+    /* Always true: the clock keeps running even when the manager has been sacked, because Enter starts a new game and its highlights need the clock (a
+       game that is over would otherwise stop it). */
+    DEFINE PUBLIC PROPERTY Animating AS LOGICAL NO-UNDO
+        GET():
+            RETURN TRUE.
+        END GET.
+
+    /* While true the highlights ignore the clock. */
+    DEFINE PUBLIC PROPERTY Paused AS LOGICAL NO-UNDO
+        GET.
+        SET.
+
+    /* Moves the highlights on by piElapsedMs milliseconds while the phase is Match (they stop at the end), and returns true when the picture changed. In every other phase nothing moves with the clock and it returns false; so does a paused game. Throws GridException for a negative time. */
+    METHOD PUBLIC LOGICAL Tick(INPUT piElapsedMs AS INTEGER):
+        VAR INTEGER before.
+        IF piElapsedMs = ? OR piElapsedMs < 0 THEN UNDO, THROW NEW GridException("A tick cannot be " + STRING(piElapsedMs) + " milliseconds").
+        IF Paused OR Phase <> FootballPhase:Match THEN RETURN FALSE.
+        before = MatchMs.
+        MatchMs = MINIMUM(MatchMs + piElapsedMs, Highlights:TotalMs(Played)).
+        RETURN MatchMs <> before.
     END METHOD.
 
     /* Jumps to the end of the highlights (the full time score). */

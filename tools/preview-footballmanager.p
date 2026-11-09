@@ -2,8 +2,9 @@
    sets the PROPATH (a program that names classes cannot do it before its own USING statements) and runs
    tools/preview-footballmanager-draw.p. From the repository root:
 
-     _progres -b -T "%TEMP%\ProGriddle" -p tools/preview-footballmanager.p -param "match:2000|file.bmp"
+     _progres -b -T "%TEMP%\ProGriddle" -p tools/preview-footballmanager.p -param "keys:B,O,B,Return,Return,Return|file.bmp"
 
-   The scenario is match:ms, the match played to ms milliseconds into its highlights (seed 7, the club in the fourth division). */
+   The scenario is keys:LIST or keys:LIST:ms, the keys of LIST pressed one at a time (names as the window gives them, such as B, Return, Down, Space, K), and
+   then the match played to ms milliseconds into its highlights if it is being shown (seed 7). */
 PROPATH = "src,tests," + PROPATH.
 RUN tools/preview-footballmanager-draw.p.

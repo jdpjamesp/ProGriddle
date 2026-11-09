@@ -8,6 +8,11 @@ VAR CHARACTER cScenario.
 VAR CHARACTER cFile.
 VAR FootballGame oGame.
 VAR FootballPainter oPainter.
+VAR FootballInput oInput.
+VAR FootballUi oUi.
+VAR LOGICAL lRich.
+VAR INTEGER k.
+VAR CHARACTER cKeys.
 VAR PixelCanvas oCanvas.
 VAR MEMPTR mBmp.
 VAR INTEGER x.
@@ -23,16 +28,20 @@ cFile = ENTRY(2, SESSION:PARAMETER, "|").
 
 DO ON ERROR UNDO, THROW:
     oGame = NEW FootballGame(NEW Grid(NEW ArrayStore(1, 1, "state")), NEW SeededRandom(7)).
-    oGame:StartNewGame("Bob", 1, 3, 7).
-    oGame:World:Cash = 10000000.
-    CASE ENTRY(1, cScenario, ":"):
-        WHEN "match" THEN DO:
-            oGame:Continue().
-            oGame:KickOff().
-            oGame:Tick(INTEGER(ENTRY(2, cScenario, ":"))).
+    oUi = NEW FootballUi().
+    oInput = NEW FootballInput(oGame, oUi).
+    oPainter = NEW FootballPainter(NEW RecordingRenderer(), oGame, oUi).
+    /* keys:LIST:TICK presses the keys of LIST (such as B,O,B,Return) one at a time, the club having plenty of cash once the game starts, then ticks the match TICK milliseconds */
+    IF ENTRY(1, cScenario, ":") = "keys" THEN DO:
+        cKeys = ENTRY(2, cScenario, ":").
+        DO k = 1 TO NUM-ENTRIES(cKeys):
+            oInput:HandleKey(ENTRY(k, cKeys)).
+            IF NOT lRich AND oGame:Phase = FootballPhase:Menu THEN ASSIGN
+                oGame:World:Cash = 10000000
+                lRich = TRUE.
         END.
-    END CASE.
-    oPainter = NEW FootballPainter(NEW RecordingRenderer(), oGame).
+        IF NUM-ENTRIES(cScenario, ":") >= 3 AND oGame:Phase = FootballPhase:Match THEN oGame:Tick(INTEGER(ENTRY(3, cScenario, ":"))).
+    END.
     oPainter:Render(oGame:Grid, oGame).
     oCanvas = oPainter:Canvas.
     iWidth = oCanvas:Width * iScale.

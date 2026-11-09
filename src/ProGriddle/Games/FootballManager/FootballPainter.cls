@@ -34,6 +34,10 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
     /* which background the canvas has now: 0 none, 1 the right goal, 2 the left goal, 3 the board */
     VAR PRIVATE INTEGER mShown.
     VAR PRIVATE LOGICAL mDisposed.
+    VAR PRIVATE FootballUi mUi.
+    VAR PRIVATE FootballScreens mScreens.
+    /* the highlight time the frame is drawn at: the game's clock during the match, its end at full time */
+    VAR PRIVATE INTEGER mShownMs.
     /* what the picture pass worked out for the text pass of a match frame: the attack number, the attack, the time in it and whether the highlights are over */
     VAR PRIVATE INTEGER mAttackNo.
     VAR PRIVATE PitchAttack mAttack.
@@ -46,12 +50,19 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
             RETURN mCanvas.
         END GET.
 
-    /* Throws GridException for no renderer or no game. */
+    /* A painter with screen state of its own (a new game's, at the name screen). */
     CONSTRUCTOR PUBLIC FootballPainter(INPUT poInner AS IGridRenderer, INPUT poGame AS FootballGame):
+        THIS-OBJECT(poInner, poGame, NEW FootballUi()).
+    END CONSTRUCTOR.
+
+    /* A painter that draws the screens from the screen state poUi, which the input changes. Throws GridException for no renderer, no game or no screen state. */
+    CONSTRUCTOR PUBLIC FootballPainter(INPUT poInner AS IGridRenderer, INPUT poGame AS FootballGame, INPUT poUi AS FootballUi):
         IF NOT VALID-OBJECT(poInner) THEN UNDO, THROW NEW GridException("A Football Manager painter needs a renderer to hand the picture to").
         IF NOT VALID-OBJECT(poGame) THEN UNDO, THROW NEW GridException("A Football Manager painter needs a game").
+        IF NOT VALID-OBJECT(poUi) THEN UNDO, THROW NEW GridException("A Football Manager painter needs the screen state").
         mInner = poInner.
         mGame = poGame.
+        mUi = poUi.
         mGrid = NEW Grid(NEW ArrayStore(320, 240, "view,kind,back")).
         mGridRight = NEW Grid(NEW ArrayStore(320, 240, "view,kind,back")).
         mGridLeft = NEW Grid(NEW ArrayStore(320, 240, "view,kind,back")).
@@ -63,6 +74,7 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
         BuildPitch(mRight, FALSE).
         BuildPitch(mLeft, TRUE).
         BuildBoard(mBoard).
+        mScreens = NEW FootballScreens(mCanvas, mGame, mUi).
     END CONSTRUCTOR.
 
     DESTRUCTOR PUBLIC FootballPainter():
@@ -72,9 +84,17 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
     /* Draws the game on the canvas and gives the canvas to the window's renderer. */
     METHOD PUBLIC VOID Render(INPUT poGrid AS Grid, INPUT poGame AS IGame):
         VAR INTEGER wanted.
+        VAR LOGICAL matchLike.
         IF NOT VALID-OBJECT(poGame) OR NOT TYPE-OF(poGame, FootballGame) THEN UNDO, THROW NEW GridException("A Football Manager painter draws a Football Manager game").
-        wanted = 3.
-        IF mGame:Phase = FootballPhase:Match THEN wanted = ViewFor().
+        mUi:Settle(mGame:Phase).
+        matchLike = mGame:Phase = FootballPhase:Match OR mGame:Phase = FootballPhase:FullTime.
+        IF matchLike THEN
+        DO:
+            IF mGame:Phase = FootballPhase:Match THEN mShownMs = mGame:MatchMs.
+            ELSE mShownMs = Highlights:TotalMs(mGame:Played).
+            wanted = ViewFor().
+        END.
+        ELSE wanted = 3.
         IF wanted <> mShown THEN
         DO:
             CASE wanted:
@@ -85,15 +105,16 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
             mShown = wanted.
         END.
         mCanvas:Restore().
-        IF mGame:Phase = FootballPhase:Match THEN
+        IF matchLike THEN
         DO:
             /* the pictures go in a batch (much faster), the text after it: text cannot be drawn in a batch */
             mCanvas:BeginBatch().
             DrawMatch().
             mCanvas:EndBatch().
             DrawMatchText().
+            IF mGame:Phase = FootballPhase:FullTime THEN mScreens:FullTimePlate().
         END.
-        ELSE DrawBoardScreen().
+        ELSE mScreens:Draw().
         mInner:Render(mGrid, poGame).
     END METHOD.
 
@@ -457,7 +478,7 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
     /* The view the shown attack needs: 1 for the right goal (the home side attacks it), 2 for the left. */
     METHOD PRIVATE INTEGER ViewFor():
         VAR INTEGER a.
-        a = Highlights:AttackAtMs(mGame:Played, mGame:MatchMs).
+        a = Highlights:AttackAtMs(mGame:Played, mShownMs).
         IF a = 0 THEN a = mGame:Played:AttackCount.
         RETURN mGame:Played:AttackAt(a):Team.
     END METHOD.
@@ -500,8 +521,8 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
     /* Draws the match at the game's highlight time: the score bar, the pitch with its seven figures and the ball, the ticker and, for a shot, the close up. */
     METHOD PRIVATE VOID DrawMatch():
         VAR MatchResult result = mGame:Played.
-        VAR INTEGER a = Highlights:AttackAtMs(result, mGame:MatchMs).
-        VAR INTEGER t = Highlights:LocalMs(result, mGame:MatchMs).
+        VAR INTEGER a = Highlights:AttackAtMs(result, mShownMs).
+        VAR INTEGER t = Highlights:LocalMs(result, mShownMs).
         VAR PitchAttack attack.
         VAR INTEGER team.
         VAR INTEGER dribbleMs.
@@ -635,8 +656,8 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
         VAR CHARACTER awayName.
         VAR INTEGER homeColour.
         VAR INTEGER awayColour.
-        homeGoals = Highlights:GoalsAtMs(mGame:Played, mGame:MatchMs, 1).
-        awayGoals = Highlights:GoalsAtMs(mGame:Played, mGame:MatchMs, 2).
+        homeGoals = Highlights:GoalsAtMs(mGame:Played, mShownMs, 1).
+        awayGoals = Highlights:GoalsAtMs(mGame:Played, mShownMs, 2).
         Sides(OUTPUT homeName, OUTPUT awayName, OUTPUT homeColour, OUTPUT awayColour).
         mCanvas:DrawText(CAPS(homeName), 24, 6, homeColour).
         mCanvas:DrawTextScaled(STRING(homeGoals), 152 - PixelCanvas:ScaledWidth(STRING(homeGoals), 2), 2, homeColour, homeColour, 2).
@@ -796,14 +817,6 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
                 Stamp(FootballSprite:GmBallFar, x0 + tx, 87 + ty, FALSE).
             END.
         END CASE.
-    END METHOD.
-
-    /* ================================ the other screens ================================ */
-
-    /* Until a screen is drawn: its board and the name of what the game is waiting for. */
-    METHOD PRIVATE VOID DrawBoardScreen():
-        mCanvas:DrawText("FOOTBALL MANAGER", 10, 21, Hue(FootballTint:ChalkYellow)).
-        mCanvas:DrawText(CAPS(mGame:Phase:ToString()), 10, 40, Hue(FootballTint:Chalk)).
     END METHOD.
 
 END CLASS.
