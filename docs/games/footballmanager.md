@@ -9,7 +9,7 @@ A football management game, a port of the rules of Kevin Toms' 1982 Football Man
 From the repository root, or from the Cookoff (`cookoff.bat`), where it has a button of its own under Strategy:
 
 ```
-"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -l 1024 -p tools/launch.p -param "run/run-footballmanager.p"
+"C:\Progress\OpenEdge\bin\prowin.exe" -T "%TEMP%\ProGriddle" -l 2048 -p tools/launch.p -param "run/run-footballmanager.p"
 ```
 
 Optional entries after the program name: a settings file (`default` for `%APPDATA%\ProGriddle\settings.json`), a number of seconds after which the window closes by itself, and a seed for the game (the last two are for scripted checks).
@@ -60,6 +60,6 @@ The window's own keys work too (P pauses the highlights, R or F2 starts a new ga
 
 Every random number comes from the source the game is given, so a seeded game plays the same every time. A ball that has not left the pitch after 40 steps counts as wide, so an attack always ends: the one place the port differs from the original. The original's quirks are kept (for example a cup tie changes morale twice).
 
-`tools/preview-footballmanager.p` draws any screen into a BMP with no window, from a list of keys: `_progres -b -l 1024 -p tools/preview-footballmanager.p -param "keys:B,O,B,Return,Return,Return,C,K:1500|file.bmp"`. There is no window smoke test yet and the window has not been run by the author of this page, only the preview.
+`tools/preview-footballmanager.p` draws any screen into a BMP with no window, from a list of keys: `_progres -b -l 2048 -p tools/preview-footballmanager.p -param "keys:B,O,B,Return,Return,Return,C,K:1500|file.bmp"`. There is no window smoke test yet and the window has not been run by the author of this page, only the preview.
 
 Each attack shows the dribble, the ball crossing the pitch to the goal with its trail, the close up of the goal mouth (the net ripples and the crowd jumps for a goal). Not drawn yet: the close up shake, the title screen and the trophy cabinet.

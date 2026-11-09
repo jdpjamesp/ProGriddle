@@ -26,7 +26,7 @@ CLASS ProGriddle.UI.WinForms.ProcessGameLauncherTests:
     @Test.
     METHOD PUBLIC VOID EveryGameIsStartedWithTheTempFolderParameter():
         VAR CHARACTER args.
-        VAR CHARACTER tail = '-l 1024 -p tools/launch.p -param "run/run-tetris.p"'.
+        VAR CHARACTER tail = '-l 2048 -p tools/launch.p -param "run/run-tetris.p"'.
         args = NEW ProcessGameLauncher():ArgumentsFor("run/run-tetris.p").
         Assert:IsTrue(args BEGINS '-T "').
         Assert:IsTrue(INDEX(args, "ProGriddle") > 0).

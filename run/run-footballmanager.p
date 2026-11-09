@@ -5,7 +5,7 @@
    Category: Strategy
 
    Run it under prowin from the repository root:
-     prowin.exe -T "%TEMP%\ProGriddle" -l 1024 -p tools/launch.p -param "run/run-footballmanager.p"
+     prowin.exe -T "%TEMP%\ProGriddle" -l 2048 -p tools/launch.p -param "run/run-footballmanager.p"
    Optional entries after the program name: the settings file ("default" for %APPDATA%\ProGriddle\settings.json), a number of seconds after
    which the window closes by itself (for scripted checks), and a seed for the game (for scripted checks).
 
