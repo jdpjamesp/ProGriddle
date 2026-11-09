@@ -319,7 +319,6 @@ CLASS ProGriddle.Games.Xevious.XeviousMap FINAL:
        ground target, then forest (chosen by its four corners) and last open ground in one of three variants. */
     METHOD PUBLIC STATIC XeviousTilePicture PictureAt(INPUT piStage AS INTEGER, INPUT piCol AS INTEGER, INPUT piRow AS INTEGER):
         VAR XeviousTilePicture pic.
-        VAR CHARACTER name.
         VAR LOGICAL nw.
         VAR LOGICAL ne.
         VAR LOGICAL sw.

@@ -151,7 +151,6 @@ CLASS ProGriddle.Games.Xevious.XeviousSprites FINAL:
         VAR INTEGER y.
         VAR CHARACTER rows.
         VAR CHARACTER ch.
-        VAR INTEGER c.
         VAR INTEGER pct.
         VAR INTEGER tint.
         VAR CHARACTER lastIn = ?.
