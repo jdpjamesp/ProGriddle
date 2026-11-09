@@ -16,10 +16,11 @@ def tones(base, hi=0.60, lo=0.30, sh=0.34, ed=0.70, ink=INK):
 
 # ---- tone rows: name -> five hex values, and a note --------------------------------------------------------------
 ROWS = [
-    ('Home', tones('E2493E', hi=0.55, lo=0.25), 'the home kit shirt and socks: coral red (the stripes are Home Stripe, the shorts Home Shorts)'),
-    ('Away', tones('3FA6E8', hi=0.55, lo=0.25), 'the away kit shirt and socks: sky blue (the hoop is Away Hoop, the shorts Away Shorts)'),
+    ('White', ['FFFFFF', 'F6F7F9', 'E2E5EA', 'AEB4BF', '545A68'], 'the white kit shirt and socks (set by hand; the hoop is Kit Hoop, the shorts Kit Dark Shorts)'),
+    ('Black', ['9AA0AC', '62687A', '33373F', '24272E', '0E1013'], 'the black kit shirt and socks (set by hand, a cool grey highlight so it reads on the grass; the pinstripes are Kit Pinstripe, the shorts Kit Light Shorts)'),
+    ('Magnet Red', tones('E2493E', hi=0.55, lo=0.25), 'the red tactics magnet (picked to start)'),
+    ('Magnet Blue', tones('3FA6E8', hi=0.55, lo=0.25), 'the blue ring magnet (the reserve)'),
     ('Keeper', tones('F2C230', hi=0.55, lo=0.25, sh=0.30), 'both goalkeepers: marigold (plain shirt, white gloves, black shorts)'),
-    ('Referee', ['8E96A8', '5C6476', '343A48', '242833', '15181F'], 'the referee: charcoal (set by hand, a lighter highlight so the shape reads on the grass)'),
     ('Gold', ['FFF4C0', 'FFDD70', 'F2B630', 'B07A1C', '5A3A10'], 'coins, the trophy, the title (set by hand): gold is money and glory'),
     ('Silver', ['FFFFFF', 'E0E6EE', 'B4BECC', '7A8698', '3E4656'], 'the cup trophy, the bank and the lower medals (set by hand)'),
     ('Wood', ['E0A868', 'C89052', '9A6634', '6E4424', '2A170C'], 'the frame round every chalkboard, the trophy plinths, the desk (set by hand)'),
@@ -102,16 +103,15 @@ GROUPS = [
         ('Trail 3', '5CA45C', 'the ball trail, the far pixel'),
     ]),
     ('Kits (the fixed parts)', [
-        ('Home Stripe', 'F4EEDC', 'the white stripes on the home shirt'),
-        ('Home Shorts', 'F4EEDC', 'the home shorts (same as Home Stripe on purpose)'),
-        ('Home Shorts Dark', 'BDB5A0', 'the shade side of the home shorts'),
-        ('Away Hoop', '16305E', 'the navy hoop on the away shirt'),
-        ('Away Shorts', '16305E', 'the away shorts (same as Away Hoop on purpose)'),
-        ('Away Shorts Dark', '0C1C3A', 'the shade side of the away shorts'),
+        ('Kit Hoop', '24272E', 'the black hoop on the white shirt (same as Black 4)'),
+        ('Kit Dark Shorts', '24272E', 'the white kit\'s shorts: black (same as Kit Hoop on purpose)'),
+        ('Kit Dark Shorts Shade', '0E1013', 'their shade side'),
+        ('Kit Pinstripe', 'C8CCD4', 'the pale grey pinstripes on the black shirt'),
+        ('Kit Light Shorts', 'E2E5EA', 'the black kit\'s shorts: white (same as White 3 on purpose)'),
+        ('Kit Light Shorts Shade', 'AEB4BF', 'their shade side'),
         ('Glove', 'F4EEDC', 'the keeper\'s gloves'),
         ('Keeper Shorts', '20242C', 'the keepers\' shorts'),
         ('Keeper Shorts Dark', '121418', 'the shade side'),
-        ('Ref Collar', 'E6EFDA', 'the referee\'s collar and cuffs'),
         ('Boot', '17120E', 'every boot'),
         ('Skin 1', 'F2C6A0', 'skin, light (base)'),
         ('Skin 1 Shade', 'C99474', 'skin, light (shade)'),
@@ -132,7 +132,7 @@ GROUPS = [
         ('Cheek', 'E58A72', 'a ruddy cheek'),
         ('Face Back', '22342D', 'the square behind a face (one step lighter than Board)'),
     ]),
-    ('Badges and cards', [
+    ('Badges', [
         ('Badge Edge', '0E0B0A', 'the outline of every badge'),
         ('Badge Red', 'D8433A', 'a badge colour'),
         ('Badge White', 'F3EEE0', 'a badge colour'),
@@ -146,9 +146,6 @@ GROUPS = [
         ('Badge Maroon', '7E2236', 'a badge colour'),
         ('Badge Brown', '8A5A2E', 'a badge colour'),
         ('Badge Orange', 'EE8A2E', 'a badge colour'),
-        ('Card Yellow', 'FFD23A', 'a yellow card'),
-        ('Card Red', 'E4302C', 'a red card'),
-        ('Card Edge', '3A0E0C', 'the edge of a card'),
     ]),
     ('Icons', [
         ('Pos GK', 'F2C230', 'the goalkeeper icon (same as Keeper tone 3 on purpose)'),

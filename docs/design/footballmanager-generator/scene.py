@@ -34,10 +34,7 @@ def status_bar(cv, st):
     cv.amount(cash, 172, 4, C('Chalk Green' if cash >= 0 else 'Chalk Red'))
     put(cv, SP.ALL['money_loan'], 228, 3)
     loan = st['loan']
-    loan_col = 'Chalk Red' if loan > st['limit'] * 8 // 10 else 'Chalk'
-    s = str(loan)
-    # the loan has no sign: draw the digits with the group gaps (amount() without its sign)
-    cv.amount(loan, 238, 4, C(loan_col), sign=False)
+    cv.amount(loan, 238, 4, C('Chalk'), sign=False)
     put(cv, SP.ALL['morale'], 288, 3)
     cv.text('%2d' % st['morale'], 298, 4, C('Chalk Blue'))
 
@@ -50,7 +47,7 @@ STATUS_ITEMS = [
     ('money_coin, or money_owed when the cash is below 0', 'sprite', '', 162, 3),
     ('the cash: sign and digits, group gaps (section 5.2), ends by x 222', '5 x 7, 1x', 'Chalk Green or Chalk Red', 172, 4),
     ('money_loan', 'sprite', '', 228, 3),
-    ('the loan: digits with group gaps, no sign, ends by x 284', '5 x 7, 1x', 'Chalk, or Chalk Red above 80% of the limit', 238, 4),
+    ('the loan: digits with group gaps, no sign, ends by x 284', '5 x 7, 1x', 'Chalk', 238, 4),
     ('morale icon', 'sprite', '', 288, 3),
     ('the morale, 2 digits, right aligned', '5 x 7, 1x', 'Chalk Blue', 298, 4),
 ]
@@ -166,25 +163,46 @@ def compare_bar(cv, x, y, mine, theirs, unit=3):
         cv.small('-', nx + 9, y, C('Chalk Red'))
 
 
-# ---- the match --------------------------------------------------------------------------------------------------------
-PITCH_X, PITCH_Y = 32, 34      # the top left of cell (0, 0)
-CELL = 8
-COLS, ROWS = 32, 20
-GOAL_ROWS = (8, 11)            # the goal mouth: cell rows 8 to 11 at both ends (32 pixels)
+# ---- the match ----------------------------------------------------------------------------------------------------------
+# The pitch of the rules: 32 columns by 22 rows of cells, seen from the side in perspective. The picture is the view of
+# the RIGHT goal (column - row = 9 is its goal line); the view of the left goal (column + row = 22) is the same picture
+# mirrored (x becomes 319 - x), because cell (c, r) of the left view sits where cell (31 - c, r) sits in the right view.
+PX, PY = 91, 36        # the top left pixel of cell (0, 0)
+CW, RH = 8, 7          # a cell is 8 pixels wide and 7 tall
+SHEAR = 3              # each row starts 3 pixels further left than the one above it
+COLS, ROWS = 32, 22
+GOAL_ROWS = (8, 15)    # the rows of the goal mouth on the goal line (columns 17 to 24 at the right, 7 to 14 at the left)
 SCORE = (0, 17)
 TOP_STAND = (18, 33)
 BOTTOM_STAND = (194, 205)
 TICKER = (206, 227)
 
 
-def cell_xy(c, r):
-    """The pixel at the middle of the bottom of a cell: the feet of a figure standing on it."""
-    return PITCH_X + c * CELL + 4, PITCH_Y + r * CELL + 7
+def cell_left(c, r):
+    return PX + CW * c - SHEAR * r
 
 
-def ball_xy(c, r):
-    """The middle of a cell: the ball's origin when it is on that cell."""
-    return PITCH_X + c * CELL + 4, PITCH_Y + r * CELL + 4
+def cell_xy(c, r, side='right'):
+    """The feet of a figure on cell (c, r): the middle of the cell's bottom row. side 'left' is the mirrored view."""
+    if side == 'left':
+        x, y = cell_xy(31 - c, r)
+        return 319 - x, y
+    return cell_left(c, r) + 4, PY + RH * r + 6
+
+
+def ball_xy(c, r, side='right'):
+    """The ball's origin on cell (c, r): the middle of the cell."""
+    if side == 'left':
+        x, y = ball_xy(31 - c, r)
+        return 319 - x, y
+    return cell_left(c, r) + 4, PY + RH * r + 3
+
+
+def line_x(y, k):
+    """The x, on pixel row y, of the edge between cell columns (k - 1 + row) and (k + row): a line parallel to the goal line.
+    k = 10 is the goal line itself (it lies after column 9 + row)."""
+    t = y - PY
+    return PX + CW * k + (CW - SHEAR) * t // RH
 
 
 def ellipse_points(cx, cy, rx, ry):
@@ -238,71 +256,90 @@ def floodlight(cv, x, y):
     cv.rect(x, y, 6, 3, C('Floodlight'))
 
 
+Y_TOP, Y_BOTTOM = PY, PY + RH * ROWS - 1      # the touch lines: the top row of row 0 (y 36) and the bottom of row 21 (y 189)
+
+
 def pitch(cv):
-    """The pitch, from above. Run off round it, mown stripes 16 pixels wide, the lines, the goals."""
-    x0, y0 = PITCH_X, PITCH_Y
-    pw, ph = COLS * CELL, ROWS * CELL
+    """The right goal end of the pitch in perspective (the left goal view is this, mirrored)."""
     cv.rect(0, TOP_STAND[1] + 1, W, BOTTOM_STAND[0] - TOP_STAND[1] - 1, C('Run Off'))
-    for s in range(COLS // 2):
-        cv.rect(x0 + s * 16, y0, 16, ph, C('Grass A' if s % 2 == 0 else 'Grass B'))
     L = C('Line')
-    # touch lines and goal lines on the outermost pixels of the cells
-    cv.rect(x0, y0, pw, 1, L)
-    cv.rect(x0, y0 + ph - 1, pw, 1, L)
-    cv.rect(x0, y0, 1, ph, L)
-    cv.rect(x0 + pw - 1, y0, 1, ph, L)
-    # halfway line: two pixels, the edge between cell 15 and 16
-    cv.rect(x0 + 16 * CELL - 1, y0, 2, ph, L)
-    cx, cy = x0 + 16 * CELL - 1, y0 + 10 * CELL - 1
-    for (px, py) in ellipse_points(cx + 0.5, cy + 0.5, 22, 22):
-        cv.put(px, py, L)
-    cv.rect(cx, cy, 2, 2, L)
-    # penalty areas: 5 cells deep, rows 4 to 15; goal areas 2 cells deep, rows 7 to 12; spots 3.5 cells out
-    for side in (0, 1):
-        def bx(c):
-            return x0 + c * CELL if side == 0 else x0 + pw - c * CELL - 1
-        for (d, r0, r1) in ((5, 4, 16), (2, 7, 13)):
-            yA, yB = y0 + r0 * CELL, y0 + r1 * CELL - 1
-            xa, xb = sorted((bx(0), bx(d)))
-            cv.rect(xa, yA, xb - xa + 1, 1, L)
-            cv.rect(xa, yB, xb - xa + 1, 1, L)
-            cv.rect(bx(d), yA, 1, yB - yA + 1, L)
-        sx = bx(4) - (1 if side == 0 else -1) * 4
-        cv.rect(sx, cy, 2, 2, L)
-        # the arc at the edge of the box: points of a circle radius 18 round the spot, outside the box
-        for (px, py) in ellipse_points(sx + 0.5, cy + 0.5, 18, 18):
-            if (side == 0 and px > bx(5)) or (side == 1 and px < bx(5)):
-                cv.put(px, py, L)
-        # the goal, from above: 8 pixels deep outside the line, rows 8 to 11 of the cells
-        gy0, gy1 = y0 + GOAL_ROWS[0] * CELL, y0 + (GOAL_ROWS[1] + 1) * CELL - 1
-        gx = x0 - 8 if side == 0 else x0 + pw
-        cv.rect(gx, gy0, 8, gy1 - gy0 + 1, C('Net Dark'))
-        for yy in range(gy0, gy1 + 1):
-            for xx in range(gx, gx + 8):
-                if (xx + yy) % 3 == 0:
-                    cv.put(xx, yy, C('Net'))
-        post = gx + 7 if side == 0 else gx
-        cv.rect(post, gy0 - 1, 1, gy1 - gy0 + 3, C('Post'))
-        back = gx if side == 0 else gx + 7
-        cv.rect(back, gy0, 1, gy1 - gy0 + 1, C('Net'))
-        cv.rect(gx, gy0 - 1, 8, 1, C('Post'))
-        cv.rect(gx, gy1 + 1, 8, 1, C('Post'))
-    # corner flags: a 1 x 3 post and a 2 pixel flag
-    for (fx, fy, d) in ((x0, y0, 1), (x0 + pw - 1, y0, -1), (x0, y0 + ph - 1, 1), (x0 + pw - 1, y0 + ph - 1, -1)):
-        cv.rect(fx, fy - 3, 1, 3, C('Post'))
-        cv.put(fx + d, fy - 3, C('Chalk Yellow'))
-        cv.put(fx + d, fy - 2, C('Chalk Yellow'))
+    for y in range(Y_TOP, Y_BOTTOM + 1):
+        gx = line_x(y, 10)
+        for x in range(0, gx):
+            # mown stripes 16 pixels wide, parallel to the goal line, counted back from it
+            k = (gx - 1 - x) // 16
+            cv.put(x, y, C('Grass A' if k % 2 == 0 else 'Grass B'))
+        cv.put(gx, y, L)                                   # the goal line
+    for x in range(0, line_x(Y_TOP, 10) + 1):
+        cv.put(x, Y_TOP, L)                                # the far touch line
+    for x in range(0, line_x(Y_BOTTOM, 10) + 1):
+        cv.put(x, Y_BOTTOM, L)                             # the near touch line
+    # the penalty area (5 cells in front of the line, rows 4 to 19) and the goal area (2 cells, rows 7 to 16)
+    for k, r0, r1 in ((5, 4, 19), (8, 7, 16)):
+        ya, yb = PY + RH * r0, PY + RH * (r1 + 1) - 1
+        for y in range(ya, yb + 1):
+            cv.put(line_x(y, k), y, L)
+        for y in (ya, yb):
+            for x in range(line_x(y, k), line_x(y, 10)):
+                cv.put(x, y, L)
+    # the penalty spot: 2 x 1, on the line 3.5 cells out, at the middle of the goal (row 11.5)
+    sy = PY + RH * 12 - 4
+    sx = (line_x(sy, 6) + line_x(sy, 7)) // 2
+    cv.rect(sx, sy, 2, 1, L)
+    goal(cv)
 
 
-def match_background(cv, frame=0):
+def goal_points():
+    """The goal's foot points on the goal line: the far post at the top of row 8, the near post at the bottom of row 15."""
+    ya, yb = PY + RH * GOAL_ROWS[0], PY + RH * (GOAL_ROWS[1] + 1) - 1
+    return (line_x(ya, 10), ya), (line_x(yb, 10), yb)
+
+
+GOAL_H = 14      # post height in pixels
+GOAL_D = 10      # depth of the net behind the line, in pixels to the right
+
+
+def goal(cv):
+    (xa, ya), (xb, yb) = goal_points()
+    n = yb - ya
+    # the net: between the goal line and the back line (GOAL_D to the right), from the ground up to the bar
+    for i in range(n + 1):
+        y = ya + i
+        x0 = xa + (xb - xa) * i // n
+        for dy in range(0, GOAL_H + 1):
+            for dx in range(1, GOAL_D + 1):
+                px, py = x0 + dx, y - dy
+                col = 'Net' if (px + py) % 3 == 0 else 'Net Dark'
+                cv.put(px, py, C(col))
+    # back posts and the back of the roof of the net
+    for (x, y) in ((xa, ya), (xb, yb)):
+        cv.rect(x + GOAL_D, y - GOAL_H, 1, GOAL_H + 1, C('Net'))
+        for dx in range(GOAL_D + 1):
+            cv.put(x + dx, y - GOAL_H, C('Net'))
+    # the front frame: two posts 2 pixels wide and the crossbar along the line, GOAL_H up
+    for i in range(n + 1):
+        cv.put(xa + (xb - xa) * i // n, ya + i - GOAL_H, C('Post'))
+        cv.put(xa + (xb - xa) * i // n + 1, ya + i - GOAL_H, C('Silver 3'))
+    for (x, y) in ((xa, ya), (xb, yb)):
+        cv.rect(x, y - GOAL_H, 1, GOAL_H + 1, C('Post'))
+        cv.rect(x + 1, y - GOAL_H, 1, GOAL_H + 1, C('Silver 3'))
+
+
+def match_background(cv, frame=0, side='right'):
     cv.rect(0, 0, W, H, C('Night'))
     stand(cv, TOP_STAND[0], TOP_STAND[1], frame)
     pitch(cv)
     stand(cv, BOTTOM_STAND[0], BOTTOM_STAND[1], frame, flip=True)
-    # floodlights over the corners of the top stand
     for x in (6, 308):
         floodlight(cv, x - 3, 19)
+    if side == 'left':
+        mirror_x(cv, 34, 193)
     return cv
+
+
+def mirror_x(cv, y0, y1):
+    for y in range(y0, y1 + 1):
+        cv.px[y] = cv.px[y][::-1]
 
 
 # ---- the goal mouth (96 x 64, face on from the penalty spot) -----------------------------------------------------------

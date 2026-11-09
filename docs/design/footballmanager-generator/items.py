@@ -127,7 +127,7 @@ def face(skin, hair, style, extra, mouth):
     for y in range(24):
         for x in range(24):
             g.g[y][x] = 'G'
-    # shoulders and shirt (Home row tones, the game may recolour)
+    # shoulders and shirt (White row tones, the game may recolour with the Black row)
     g.ellipse(12, 26, 11, 7.5, '3')
     g.shade()
     # collar
@@ -233,10 +233,32 @@ def face(skin, hair, style, extra, mouth):
     rows = g.rows()
     sk, sh = SKIN[skin]
     legend = {'G': 'Face Back', 'A': sk, 'B': sh, 'H': hair, 'K': 'Eye', 'W': 'Eye White', 'M': 'Mouth', 'F': 'Cheek',
-              'P': 'Home Stripe', 'D': 'Home 3', 'C': 'Skin 1'}
+              'P': 'Kit Hoop', 'D': 'Magnet Red 3', 'C': 'Skin 1'}
     if skin == 1:
         legend['C'] = 'Eye White'
-    legend.update({k: 'Home %s' % k for k in '12345'})
+    legend.update({k: 'White %s' % k for k in '12345'})
+    legend = {k: v for k, v in legend.items() if any(k in r for r in rows)}
+    return rows, legend
+
+
+def shirt(kit):
+    """A big shirt for the kit screen: body, sleeves, a V collar; the white has a black hoop, the black pale pinstripes."""
+    g = Grid(24, 24)
+    g.poly([(4, 3), (9, 1), (15, 1), (20, 3), (23, 9), (19, 11), (18, 9), (18, 22), (6, 22), (6, 9), (5, 11), (1, 9)], '3')
+    g.shade()
+    for y in range(24):
+        for x in range(24):
+            if g.g[y][x] in '1234':
+                if kit == 'white' and 11 <= y <= 14:
+                    g.g[y][x] = 'P'
+                if kit == 'black' and x % 4 == 1 and y >= 4 and 6 <= x <= 18:
+                    g.g[y][x] = 'P'
+    for x, y in ((10, 1), (11, 2), (12, 3), (13, 2), (14, 1)):
+        g.set(x, y, 'V')
+    g.outline('5')
+    rows = g.rows()
+    legend = {'P': 'Kit Hoop' if kit == 'white' else 'Kit Pinstripe', 'V': 'Kit Hoop' if kit == 'white' else 'Kit Pinstripe'}
+    legend.update({k: ('White %s' if kit == 'white' else 'Black %s') % k for k in '12345'})
     legend = {k: v for k, v in legend.items() if any(k in r for r in rows)}
     return rows, legend
 
@@ -267,16 +289,12 @@ ICONS = {
     'pos_fw': ('...P..,...PP.,PPPPPP,...PP.,...P..', {'P': 'Pos FW'}, 'forward: an arrow'),
     # states
     'state_injured': ('..WW..,..RR..,WRRRRW,WRRRRW,..RR..,..WW..', {'W': 'Plaster', 'R': 'Chalk Red'}, 'injured: a red cross on a plaster'),
-    'state_card': ('RRRR,RRRR,RRRR,RRRR,RRRR,RRRR', {'R': 'Card Red'}, 'suspended (not used by the rules, kept for later): a red card'),
     'state_tired': ('ZZZ...,..Z...,.Z.ZZ.,ZZZ.Z.,...ZZ.', {'Z': 'Zzz'}, 'tired (energy 6 or less): two Zs'),
     'state_form': ('..F...,.FF.F.,.FFFF.,FFYYF.,FYYYYF,.FYYF.', {'F': 'Flame', 'Y': 'Flame Core'}, 'in form (energy 16 or more and fit): a flame'),
     # events
     'ev_goal': ('NNNNNN,N.N.N.,.N.WW.,N.WWWW,.NWWWW,N.NWW.', {'N': 'Net', 'W': 'Ball 3'}, 'goal: the ball in the net'),
-    'ev_yellow': ('YYYY,YYYY,YYYY,YYYY,YYYY,YYYY', {'Y': 'Card Yellow'}, 'a yellow card'),
-    'ev_red': ('RRRR,RRRR,RRRR,RRRR,RRRR,RRRR', {'R': 'Card Red'}, 'a red card'),
-    'ev_sub': ('.G...R,GGG.RRR,.G...R,.G...R..', {'G': 'Chalk Green', 'R': 'Chalk Red'}, 'substitution: on (green, up) and off (red, down)'),
     'ev_injury': ('..RR..,..RR..,RRRRRR,RRRRRR,..RR..,..RR..', {'R': 'Chalk Red'}, 'injury: a red cross'),
-    'ev_whistle': ('....SS,SSSSSS,SKKSSS,SKKSS.,.SS...', {'S': 'Silver 3', 'K': 'Silver 5'}, 'whistle: kick off, half time, full time'),
+    'ev_whistle': ('....SS,SSSSSS,SKKSSS,SKKSS.,.SS...', {'S': 'Silver 3', 'K': 'Silver 5'}, 'whistle: kick off and full time'),
     'ev_save': ('C....C,CC..CC,.CCCC.,.CWWC.,..WW..', {'C': 'Glove', 'W': 'Ball 3'}, 'a save: two gloves and the ball'),
     'ev_wide': ('P....,P..W.,P....,P....,P....', {'P': 'Post', 'W': 'Ball 3'}, 'wide: a post and the ball beside it'),
     'ev_block': ('.SS...,SSSS..,.SS.W.,.SS...,S..S..', {'S': 'Chalk Dim', 'W': 'Ball 3'}, 'blocked: a defender and the ball turned back'),
@@ -288,14 +306,14 @@ ICONS = {
     'money_ground': ('B....B,BB..BB,BBBBBB,BGGGGB,BGGGGB', {'B': 'Brick', 'G': 'Turf'}, 'the ground (gate receipts, rent)'),
     'money_wages': ('PPPPPP,PSPPSP,PPSSPP,PPPPPP,PPPPPP', {'P': 'Envelope', 'S': 'Envelope Shade'}, 'the wage packet'),
     'morale': ('.CCCC.,CKCCKC,CCCCCC,CKCCKC,CCKKCC,.CCCC.', {'C': 'Chalk Blue', 'K': 'Board'}, 'morale: a smiling face'),
-    'kit_home': ('PP..PP,P3P3P3,.3P3P.,.3P3P.,.3P3P.', {'P': 'Home Stripe', '3': 'Home 3'}, 'the home kit, for the score bar'),
-    'kit_away': ('33..33,333333,.3333.,.PPPP.,.3333.', {'P': 'Away Hoop', '3': 'Away 3'}, 'the away kit, for the score bar'),
+    'kit_white': ('33..33,333333,.3333.,.PPPP.,.3333.', {'P': 'Kit Hoop', '3': 'White 3'}, 'the white kit (a black hoop), for the score bar'),
+    'kit_black': ('33..33,3P3P33,.P3P3.,.P3P3.,.P3P3.', {'P': 'Kit Pinstripe', '3': 'Black 3'}, 'the black kit (pale pinstripes), for the score bar'),
     # table and markers
     'mark_up': ('..G..,.GGG.,GGGGG,..G..,..G..', {'G': 'Chalk Green'}, 'promotion zone marker'),
     'mark_down': ('..R..,..R..,RRRRR,.RRR.,..R..', {'R': 'Chalk Red'}, 'relegation zone marker'),
     'mark_star': ('...Y...,...Y...,YYYYYYY,.YYYYY.,..YYY..,.YY.YY.', {'Y': 'Chalk Yellow'}, 'the lit star beside a club that went up'),
-    'magnet_on': ('.RRRR.,RHRRRR,RRRRRR,RRRRRR,RRRRRS,.RSSS.', {'R': 'Home 3', 'H': 'Home 1', 'S': 'Home 4'}, 'picked to start: a red tactics magnet'),
-    'magnet_res': ('.RRRR.,RH..RR,R....R,R....R,RR..RS,.RSSS.', {'R': 'Away 3', 'H': 'Away 1', 'S': 'Away 4'}, 'the reserve: a blue ring magnet'),
+    'magnet_on': ('.RRRR.,RHRRRR,RRRRRR,RRRRRR,RRRRRS,.RSSS.', {'R': 'Magnet Red 3', 'H': 'Magnet Red 1', 'S': 'Magnet Red 4'}, 'picked to start: a red tactics magnet'),
+    'magnet_res': ('.RRRR.,RH..RR,R....R,R....R,RR..RS,.RSSS.', {'R': 'Magnet Blue 3', 'H': 'Magnet Blue 1', 'S': 'Magnet Blue 4'}, 'the reserve: a blue ring magnet'),
     'cursor_1': ('YY....,YYYY..,YYYYYY,YYYY..,YY....', {'Y': 'Chalk Yellow'}, 'the chalk arrow cursor, frame 1'),
     'cursor_2': ('.YY...,.YYYY.,.YYYYY,.YYYY.,.YY...', {'Y': 'Chalk Yellow'}, 'frame 2: one pixel right'),
 }

@@ -1,29 +1,33 @@
-# FootballManager: art and screen design, "Chalk and Floodlights"
+# FootballManager: art and screen design, "Chalk and Floodlights" (revision 2)
 
-Designer's answer to `footballmanager-art-brief.md` (the revised brief of 9 November 2026) and `footballmanager-rules.md`. Everything here is meant to be pasted into code with no further decisions. Section 11 lists what I decided and the calls still open for James.
+Designer's answer to `footballmanager-art-brief.md`, its revision `footballmanager-art-brief-2.md` and `footballmanager-rules.md`. Everything here is meant to be pasted into code with no further decisions. Section 11 lists what I decided and the calls still open for James.
 
-**The idea in one line.** Every menu is the **chalkboard in the dressing room**: chalk lettering on a bottle green slate in a wooden frame, red and blue tactics magnets for the picks. Every match is a **floodlit night game** seen from the gantry: a bright mown pitch, a dark stand of dots that jumps when a goal goes in, and a close up of the goal mouth for every shot. The working title stays in the file names; the name I propose for the game is **Gaffer** (section 1.2).
+**The idea in one line.** Every menu is the **chalkboard in the dressing room**: chalk lettering on a bottle green slate in a wooden frame, red and blue tactics magnets for the picks. Every match is a **floodlit night game**: the attacked end of the pitch in perspective with its goal line on the diagonal, seven figures, and a close up of the goal mouth for every shot.
 
-**What is kept and what is ours.** The rules, the numbers, the weekly order (menu, pick the team, the match, the result and the money, the table, one transfer offer), the five team numbers, the four divisions of 16 and every screen in the brief's list are kept as the brief and the rules file give them. The name, the look, the goal mouth view (face on from the penalty spot, not isometric), the badges, the faces and **all club and player names** are original. The design does not use the 1982 game's name, screens, lettering, colours or its lists of clubs and players: the names in the previews are invented placeholders, and the art does not depend on any name, since every screen draws whatever text the game holds.
+**What changed in revision 2.** The pitch follows the rules' 32 x 22 grid with diagonal goal lines (3.2), with seven figures in an attack and the keeper on his diagonal. The kits are **white** and **black** (your side wears the colour picked on the new kit screen, the other side the other), told apart by a hoop and pinstripes as well as by colour. The pick 12 screen and the referee are gone, as are the card and substitute icons, the scorers strip and the loan warning colours. The cup is the **F.A. Cup**. Badges go by slot. Sprite names are unchanged where the sprite is unchanged; the renamed and removed ones are listed in 11.1.
+
+**Names.** The game's name is drawn from a text constant by the rule of 6.5, and every club and player name comes from the game's data. This file and its previews do not carry the 1982 game's name or its lists of clubs and players: the previews show placeholder names in the data's format (a club of at most 10 characters, a player of at most 9 as `K.PUDDLE`), and every column is sized for those lengths.
 
 Previews (made by the generator from the data in this file, so the pictures and the text cannot disagree):
 
-- `footballmanager-preview.png` (3x): the match part way through, attack 7, the close up showing a high save.
+- `footballmanager-preview.png` (3x): an attack on the right goal part way through, attack 7, the close up showing a high save.
+- `footballmanager-preview-left.png` (3x): the same attack on the left goal (the mirrored view).
 - `footballmanager-preview-table.png` (3x): the division 3 table, your club 3rd, both zones marked.
 - `footballmanager-preview-squad.png` (3x): the squad, the cursor on a midfielder, all three energy levels.
 - `footballmanager-preview-title.png` (3x): the title, part way through the intro (the shot on its way).
-- `footballmanager-screens.png` (2x): every other screen: the three set up screens, the week menu, pick the team, results, the money report, the transfer offer (bid, and refused), sell a player, the cup round, full time, end of season, sacked, paused, the trophy cabinet.
+- `footballmanager-screens.png` (2x): every other screen: the three set up screens (name and level, club, colours), the week menu, pick the team, results, the money report, the transfer offer (bid, and refused), sell a player, the F.A. Cup round, an attack on the left goal without the close up, full time, end of season, sacked, paused, the trophy cabinet.
 - `footballmanager-goalmouth.png` (3x): the nine saves, goals, wide, over, off the post, the shot's three frames and the ripple.
 - `footballmanager-later.png` (2x): the four division looks and the stand at four sizes (section 9).
 - `footballmanager-sprites.png` (4x): every sprite, alternate rows on the board and on the grass.
-- `footballmanager-colour-check.png` (1x): the match, the squad and the money report as drawn, through deuteranopia, protanopia and tritanopia, and in grey scale.
+- `footballmanager-colour-check.png` (1x): the match, the squad and the kit screen as drawn, through deuteranopia, protanopia and tritanopia, and in grey scale.
 
 ## 0. Read this first
 
 - The canvas is **320 x 240**, as the brief proposes, shown at 3x (2x on small screens), nearest neighbour. It is a **direct colour PixelCanvas** like Space Invaders, Centipede, Xevious and Cuber. 320 is wide enough: the table's last column ends at x 306 in the 5 x 7 font at 1x, so no size change is asked for.
+- The **pitch** is the rules' 32 x 22 grid, drawn as the attacked end in perspective (3.2).
 - Every menu screen has the same frame: the **status bar** (rows 0 to 13), the **board** in its wooden frame (rows 14 to 227), the **key bar** (rows 228 to 239). The match replaces the status bar with a **score bar** and the board with the pitch (section 3.1).
 - **Sprite format**: the tone format of `snake-art.md`. `.` is transparent, `1` to `5` are the tones of the sprite's colour row (1 highlight, 2 light, 3 base, 4 shade, 5 edge), letters are fixed colours given in each legend. No legend has more than 16 colours (the largest has 14).
-- **Origin**: every sprite gives its origin. For a figure it is **the middle of its feet** and goes on `cell_xy(column, row)` (section 3.2). Badges, faces and icons are placed by their top left (origin (0, 0)).
+- **Origin**: every sprite gives its origin. For a figure it is **the middle of its feet** and goes on `cell_xy(column, row, side)` (section 3.2). Badges, faces and icons are placed by their top left (origin (0, 0)).
 - **Facing**: figures are drawn facing right; the game mirrors the columns for left (the origin column becomes `width - 1 - x`). Every figure is lit from the top, so a mirrored figure is right. The kit pattern is applied **before** mirroring (section 4.1).
 - **Text**: the house 5 x 7 font, plus six new glyphs and a 3 x 5 font for the dense places (section 5). Everything is in capitals.
 - **Draw order** on the match: the baked background (stands, pitch, goals), the figures sorted by feet y (then x), the ball's shadow, the trail, the ball, the score bar and ticker, then the close up and any plate on top.
@@ -40,12 +44,12 @@ It is a sibling of the others (dark ground, chunky pixels, the 5 x 7 font, banne
 
 ### 1.2 The names
 
-| Thing | Name | Why |
+| Thing | Name | Note |
 |---|---|---|
-| The game | **Gaffer** (working title FootballManager, kept in the file names) | What the players call the manager. Short, warm, a little funny, and not the original's name |
+| The game | a text constant | drawn on the title by the rule of 6.5; the file names keep the working title footballmanager |
 | The look | Chalk and Floodlights | The board for the week, the lights for the match |
-| The week menu | the Manager's Office (the board's title) | The menu of the original's choices, under a friendlier heading |
-| The cup | THE CUP | A knockout cup with no real competition's name (see 11.2) |
+| The week menu | the Manager's Office (the board's title) | The original's choices, under a friendlier heading |
+| The cup | F.A. CUP | as the brief writes it; rounds ROUND 1 to ROUND 6, SEMI-FINAL, FINAL |
 | A pick | a magnet | Red disc to start, blue ring for the reserve |
 
 ### 1.3 What is the same on purpose
@@ -53,12 +57,13 @@ It is a sibling of the others (dark ground, chunky pixels, the 5 x 7 font, banne
 - **Everything that costs you is Chalk Red** (`FF6F61`): debt, wages, rent and interest in the money report, relegation, a spent bar, an injury, a defeat, SACKED. Everything that pays is **Chalk Green** (`7FE39A`). A minus sign, the cracked coin or a down arrow always comes with the red; a plus sign, the coin or an up arrow with the green.
 - **Yellow chalk is you**: your club's name and row, your bars on the pick screen, the cursor, the selected item. **Blue chalk is them** (their bars) and information (week, division, morale, the cup).
 - **Gold is money and glory**: the coin, the league trophy and the title lettering share the Gold row.
+- **The kits are white and black**, and the keeper marigold, so the three never share a value; the white has a black hoop and black shorts, the black has pale pinstripes and white shorts.
 - **The keeper is marigold everywhere**: the Keeper row on the pitch and in the close up, and the goalkeeper position icon (`Pos GK` = `Keeper 3`).
 - **The board's rows** mean the same on every screen: Board Stripe on every second row, Cursor Row under the cursor, Your Row (with two Chalk Yellow rules) under your club.
 
 ## 2. The palette
 
-**144 distinct colours.** Some names share a value on purpose and say so.
+**143 distinct colours.** Some names share a value on purpose and say so.
 
 ### 2.1 Tone rows
 
@@ -66,10 +71,11 @@ Most rows are made from a base: tones 1 and 2 are the base mixed with white, ton
 
 | Row | 1 Highlight | 2 Light | 3 Base | 4 Shade | 5 Edge | Used for |
 |---|---|---|---|---|---|---|
-| Home | `F2ADA8` | `E9766E` | `E2493E` | `99352D` | `4B1F1B` | the home kit shirt and socks: coral red (the stripes are Home Stripe, the shorts Home Shorts) |
-| Away | `A9D7F5` | `6FBCEE` | `3FA6E8` | `2D729D` | `1A3B4E` | the away kit shirt and socks: sky blue (the hoop is Away Hoop, the shorts Away Shorts) |
+| White | `FFFFFF` | `F6F7F9` | `E2E5EA` | `AEB4BF` | `545A68` | the white kit shirt and socks (set by hand; the hoop is Kit Hoop, the shorts Kit Dark Shorts) |
+| Black | `9AA0AC` | `62687A` | `33373F` | `24272E` | `0E1013` | the black kit shirt and socks (set by hand, a cool grey highlight so it reads on the grass; the pinstripes are Kit Pinstripe, the shorts Kit Light Shorts) |
+| Magnet Red | `F2ADA8` | `E9766E` | `E2493E` | `99352D` | `4B1F1B` | the red tactics magnet (picked to start) |
+| Magnet Blue | `A9D7F5` | `6FBCEE` | `3FA6E8` | `2D729D` | `1A3B4E` | the blue ring magnet (the reserve) |
 | Keeper | `F9E4A2` | `F5D164` | `F2C230` | `AC8C25` | `504317` | both goalkeepers: marigold (plain shirt, white gloves, black shorts) |
-| Referee | `8E96A8` | `5C6476` | `343A48` | `242833` | `15181F` | the referee: charcoal (set by hand, a lighter highlight so the shape reads on the grass) |
 | Gold | `FFF4C0` | `FFDD70` | `F2B630` | `B07A1C` | `5A3A10` | coins, the trophy, the title (set by hand): gold is money and glory |
 | Silver | `FFFFFF` | `E0E6EE` | `B4BECC` | `7A8698` | `3E4656` | the cup trophy, the bank and the lower medals (set by hand) |
 | Wood | `E0A868` | `C89052` | `9A6634` | `6E4424` | `2A170C` | the frame round every chalkboard, the trophy plinths, the desk (set by hand) |
@@ -169,16 +175,15 @@ Most rows are made from a base: tones 1 and 2 are the base mixed with white, ton
 
 | Name | Hex | Used for |
 |---|---|---|
-| Home Stripe | `F4EEDC` | the white stripes on the home shirt |
-| Home Shorts | `F4EEDC` | the home shorts (same as Home Stripe on purpose) |
-| Home Shorts Dark | `BDB5A0` | the shade side of the home shorts |
-| Away Hoop | `16305E` | the navy hoop on the away shirt |
-| Away Shorts | `16305E` | the away shorts (same as Away Hoop on purpose) |
-| Away Shorts Dark | `0C1C3A` | the shade side of the away shorts |
+| Kit Hoop | `24272E` | the black hoop on the white shirt (same as Black 4) |
+| Kit Dark Shorts | `24272E` | the white kit's shorts: black (same as Kit Hoop on purpose) |
+| Kit Dark Shorts Shade | `0E1013` | their shade side |
+| Kit Pinstripe | `C8CCD4` | the pale grey pinstripes on the black shirt |
+| Kit Light Shorts | `E2E5EA` | the black kit's shorts: white (same as White 3 on purpose) |
+| Kit Light Shorts Shade | `AEB4BF` | their shade side |
 | Glove | `F4EEDC` | the keeper's gloves |
 | Keeper Shorts | `20242C` | the keepers' shorts |
 | Keeper Shorts Dark | `121418` | the shade side |
-| Ref Collar | `E6EFDA` | the referee's collar and cuffs |
 | Boot | `17120E` | every boot |
 | Skin 1 | `F2C6A0` | skin, light (base) |
 | Skin 1 Shade | `C99474` | skin, light (shade) |
@@ -202,7 +207,7 @@ Most rows are made from a base: tones 1 and 2 are the base mixed with white, ton
 | Cheek | `E58A72` | a ruddy cheek |
 | Face Back | `22342D` | the square behind a face (one step lighter than Board) |
 
-**Badges and cards**
+**Badges**
 
 | Name | Hex | Used for |
 |---|---|---|
@@ -219,9 +224,6 @@ Most rows are made from a base: tones 1 and 2 are the base mixed with white, ton
 | Badge Maroon | `7E2236` | a badge colour |
 | Badge Brown | `8A5A2E` | a badge colour |
 | Badge Orange | `EE8A2E` | a badge colour |
-| Card Yellow | `FFD23A` | a yellow card |
-| Card Red | `E4302C` | a red card |
-| Card Edge | `3A0E0C` | the edge of a card |
 
 **Icons**
 
@@ -262,7 +264,7 @@ Most rows are made from a base: tones 1 and 2 are the base mixed with white, ton
 |---|---|
 | 0 to 17 | the score bar (Tunnel, a Tunnel Rule on row 17), section 6.12 |
 | 18 to 33 | the top stand: Roof rows 18 and 19, Roof Edge row 20, one row of crowd tiles rows 21 to 28, Wall row 29, the hoardings rows 30 to 33 |
-| 34 to 193 | the pitch: 32 x 20 cells of 8 x 8 from x 32 (x 32 to 287); Run Off to the sides (x 0 to 31 and 288 to 319) |
+| 34 to 193 | the pitch and the run off; the grid's 22 rows are y 36 to 189 (3.2) |
 | 194 to 205 | the bottom stand: the hoardings rows 194 to 197, a row of crowd tiles rows 198 to 205 |
 | 206 to 227 | the ticker (Tunnel, a Tunnel Rule on row 206) |
 | 228 to 239 | the key bar |
@@ -271,27 +273,35 @@ Two floodlight heads (3.3) sit on the top stand at (3, 19) and (305, 19).
 
 ### 3.2 The pitch and its cells
 
-The pitch is seen **from above**, the figures from the side (the classic way, and it keeps a cell square). The ball runs on **32 columns by 20 rows of cells of 8 x 8 pixels**, the size the brief proposes; it suits the look.
+**The geometry of the rules, and why there are two views.** The ball runs on 32 columns by 22 rows. It leaves through the right goal where column - row > 9 and through the left goal where column + row < 22. Those two diagonals cross (at column 15.5, row 6.5), so they cannot both be the ends of one drawn pitch; but each attack only ever goes toward one of them, and the two are mirror images: cell (c, r) on the left goal's side matches cell (31 - c, r) on the right goal's side (c + r < 22 becomes (31 - c) - r > 9). So the match shows **the attacked end**: the right goal view is drawn below, and the left goal view is the same picture with x mirrored (x becomes 319 - x) over rows 34 to 193. The home side attacks the right goal, the away side the left, as the rules say.
 
-- `cell_xy(c, r) = (32 + 8c + 4, 34 + 8r + 7)`: the middle of the bottom row of the cell. A figure's feet (its origin) go here, so its 12 rows rise 4 rows into the cell above.
-- `ball_xy(c, r) = (32 + 8c + 4, 34 + 8r + 4)`: the middle of the cell, the ball's origin. Its shadow is drawn 1 right and 3 down.
-- **The goals** are at both ends on **cell rows 8 to 11** (y 98 to 129), the left goal outside column 0, the right outside column 31 (see 11.2 about the rules file's goal numbers).
+**The goal mouth rows.** The goal posts sit where the brief's columns put them: columns 17 to 24 lie on the right goal line (column = 9 + row) at **rows 8 to 15**, and columns 7 to 14 on the left goal line (column = 22 - row) at the same rows. The rules file also says "rows 5 to 13", which does not fit those columns on those lines (at rows 5 to 13 the right line runs through columns 14 to 22). The art draws rows 8 to 15 (GOAL_ROWS in the generator) until James says otherwise (11.2).
 
-The background, drawn once:
+**Cell to pixel**, right goal view. A cell is 8 pixels wide and 7 tall; each row starts 3 pixels further left than the row above, so the pitch leans like a pitch seen from the side stand:
+
+- the cell's top left: `(91 + 8c - 3r, 36 + 7r)`, for c 0 to 31, r 0 to 21;
+- **a figure's feet** (its origin): `cell_xy(c, r) = (95 + 8c - 3r, 42 + 7r)`, the middle of the cell's bottom row;
+- **the ball** (its origin): `ball_xy(c, r) = (95 + 8c - 3r, 39 + 7r)`, the middle of the cell; its shadow 1 right and 3 down;
+- **left goal view**: `cell_xy_left(c, r) = (319 - x, y)` where (x, y) = `cell_xy(31 - c, r)`; the same for the ball; every figure is also mirrored (a figure facing the right goal on the right view faces the left goal on the left view).
+
+The cells right of the goal line (column > 9 + row) are off the pitch: the ball only enters them as it leaves.
+
+The background (right goal view), drawn once per view:
 
 | Part | Recipe |
 |---|---|
 | Run off | Run Off over rows 34 to 193, the full width |
-| Mown stripes | 16 stripes 16 pixels wide from x 32: Grass A on even stripes, Grass B on odd |
-| Touch and goal lines | Line on x 32 to 287 at y 34 and y 193; on y 34 to 193 at x 32 and x 287 |
-| Halfway line | Line, 2 wide, x 159 and 160 |
-| Centre circle | Line on the points of a circle radius 22 round (159.5, 113.5) (every 0.5 degree, rounded); a 2 x 2 spot at (159, 113) |
-| Penalty areas | 5 cells deep, cell rows 4 to 15 (y 66 to 161): the box lines at x 72 (left) and x 247 (right) |
-| Goal areas | 2 cells deep, cell rows 7 to 12 (y 90 to 137): lines at x 48 and x 271 |
-| Spots | 2 x 2 at (60, 113) and (258, 113) |
-| Arcs | the points of a circle radius 18 round each spot that lie outside the box |
-| Goals | from above: 8 x 32 of Net Dark at x 24 to 31 and x 288 to 295, y 98 to 129, with Net on every pixel where (x + y) mod 3 = 0; Post on the goal line side (x 31 and x 288, y 97 to 130) and along the top and bottom (y 97 and 130); Net on the back line |
-| Corner flags | a 1 x 3 Post above each corner and a 2 pixel Chalk Yellow flag pointing in |
+| The goal line | on each pixel row y from 36 to 189, Line at `gx(y) = 91 + 80 + 5 (y - 36) div 7` (the edge after column 9 + row); it runs from (171, 36) to (280, 189) |
+| Lines parallel to it | `line_x(y, k) = 91 + 8k + 5 (y - 36) div 7`; the goal line is k = 10 |
+| Mown stripes | every pixel left of the goal line on rows 36 to 189: Grass A when ((gx(y) - 1 - x) div 16) is even, else Grass B (stripes 16 wide, parallel to the goal line) |
+| Touch lines | Line on row 36 from x 0 to gx(36), and on row 189 from x 0 to gx(189) (rows 0 and 21 of the grid) |
+| Penalty area | k = 5 (5 cells in front of the line), rows 4 to 19: Line at line_x(y, 5) for y 64 to 175, and across from it to the goal line on y 64 and y 175 |
+| Goal area | k = 8, rows 7 to 16: Line at line_x(y, 8) for y 85 to 154, and across on y 85 and y 154 |
+| Penalty spot | 2 x 1 Line at y 116, x midway between line_x(116, 6) and line_x(116, 7) |
+| The goal | the foot of the far post at (gx(92), 92), the top of row 8; the near post at (gx(147), 147), the bottom of row 15. Posts 14 pixels tall, Post with a Silver 3 column on their right; the crossbar along the line 14 pixels up, Post with Silver 3 beside it; the net behind, 10 pixels to the right of the line from the ground to the bar, Net where (x + y) mod 3 = 0 else Net Dark; the back posts and the roof edge of the net in Net |
+| Left edge | the grid's column 0 is not a line: the grass runs on to x 0 |
+
+**The attack layout.** Seven figures: the keeper, the dribbler (one cell behind the ball, on the ball's row), two more attackers and three defenders, on the cells the game gives. The keeper stands on **c = 8 + r** (right goal; c + r = 23 at the left goal), rows 8 to 13, and steps along that diagonal toward the ball's row one cell at a time (a step is 120 ms of run frames). Attackers face the goal; defenders and the keeper face the ball. The ball moves **two columns a step**, toward the goal (8.3 gives its trail), and drifts a row when the game says.
 
 ### 3.3 Stands, crowd, hoardings and floodlights
 
@@ -429,37 +439,17 @@ The figures (8 x 12, origin (4, 11), facing right) are given once with the shirt
 
 | Kit | Tone row | `S` shorts | `T` shorts shade | `C` hands | Pattern (becomes `P`) | `P` colour |
 |---|---|---|---|---|---|---|
-| home | Home | Home Shorts | Home Shorts Dark | Skin | **vertical stripes**: torso columns 3 and 5, below the torso's top row | Home Stripe |
-| away | Away | Away Shorts | Away Shorts Dark | Skin | **a hoop**: the torso's third row (top + 2), all of it | Away Hoop |
+| white | White | Kit Dark Shorts | Kit Dark Shorts Shade | Skin | **a hoop**: the torso's third row (top + 2), all of it | Kit Hoop |
+| black | Black | Kit Light Shorts | Kit Light Shorts Shade | Skin | **pinstripes**: torso columns 3 and 5, below the torso's top row | Kit Pinstripe |
 | keeper | Keeper | Keeper Shorts | Keeper Shorts Dark | Glove | none (plain shirt, white gloves) |  |
-| referee | Referee | Referee 4 | Referee 5 | Skin | **a collar**: the torso's top row | Ref Collar |
 
-Fixed letters in every figure: `A` skin, `B` skin shade, `H` hair, `O` Boot, `C` hands. **Skin and hair vary** by the player's number n (1 to 24): skin pair `n mod 3` (Skin 1, Skin 2, Skin 3, each with its Shade), hair `n mod 4` (Hair Dark, Hair Black, Hair Fair, Hair Ginger). The keepers and the referee use pair 1 and Hair Dark. The home side (left, attacking right) always wears home and the away side away, whichever is your club.
+Your side wears the colour picked on the kit screen (6.8), the other side the other one, home or away. Fixed letters in every figure: `A` skin, `B` skin shade, `H` hair, `O` Boot, `C` hands. **Skin and hair vary** by the player's number n (1 to 24): skin pair `n mod 3` (Skin 1, Skin 2, Skin 3, each with its Shade), hair `n mod 4` (Hair Dark, Hair Black, Hair Fair, Hair Ginger). The opposition's figures use their place on the pitch as n. The keeper uses pair 2 and Hair Black on the pitch, as in the close up.
 
-The four kits standing, as the brief asks (pattern applied):
+The three kits standing (pattern applied):
 
-#### fig_stand_home (8 x 12, origin (4, 11))
+#### fig_stand_white (8 x 12, origin (4, 11))
 
-Legend: `1234` tones 1, 2, 3, 4 of the Home row (`F2ADA8`, `E9766E`, `E2493E`, `99352D`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `P` Home Stripe `F4EEDC`; `S` Home Shorts `F4EEDC`; `T` Home Shorts Dark `BDB5A0`.
-
-```
-...HHH..
-...HAAA.
-...BAA..
-..2112..
-.C2P3PC.
-.C3P3PC.
-..3P4P..
-..SSST..
-..S..T..
-..3..4..
-..3..4..
-..OO.OO.
-```
-
-#### fig_stand_away (8 x 12, origin (4, 11))
-
-Legend: `1234` tones 1, 2, 3, 4 of the Away row (`A9D7F5`, `6FBCEE`, `3FA6E8`, `2D729D`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `P` Away Hoop `16305E`; `S` Away Shorts `16305E`; `T` Away Shorts Dark `0C1C3A`.
+Legend: `1234` tones 1, 2, 3, 4 of the White row (`FFFFFF`, `F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `P` Kit Hoop `24272E`; `S` Kit Dark Shorts `24272E`; `T` Kit Dark Shorts Shade `0E1013`.
 
 ```
 ...HHH..
@@ -469,6 +459,25 @@ Legend: `1234` tones 1, 2, 3, 4 of the Away row (`A9D7F5`, `6FBCEE`, `3FA6E8`, `
 .C2333C.
 .CPPPPC.
 ..3344..
+..SSST..
+..S..T..
+..3..4..
+..3..4..
+..OO.OO.
+```
+
+#### fig_stand_black (8 x 12, origin (4, 11))
+
+Legend: `1234` tones 1, 2, 3, 4 of the Black row (`9AA0AC`, `62687A`, `33373F`, `24272E`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `P` Kit Pinstripe `C8CCD4`; `S` Kit Light Shorts `E2E5EA`; `T` Kit Light Shorts Shade `AEB4BF`.
+
+```
+...HHH..
+...HAAA.
+...BAA..
+..2112..
+.C2P3PC.
+.C3P3PC.
+..3P4P..
 ..SSST..
 ..S..T..
 ..3..4..
@@ -495,32 +504,13 @@ Legend: `1234` tones 1, 2, 3, 4 of the Keeper row (`F9E4A2`, `F5D164`, `F2C230`,
 ..OO.OO.
 ```
 
-#### fig_stand_referee (8 x 12, origin (4, 11))
-
-Legend: `234` tones 2, 3, 4 of the Referee row (`5C6476`, `343A48`, `242833`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `P` Ref Collar `E6EFDA`; `S` Referee 4 `242833`; `T` Referee 5 `15181F`.
-
-```
-...HHH..
-...HAAA.
-...BAA..
-..PPPP..
-.C2333C.
-.C3334C.
-..3344..
-..SSST..
-..S..T..
-..3..4..
-..3..4..
-..OO.OO.
-```
-
-The frames, before the pattern (shown with the Home row and the home legend):
+The frames, before the pattern (shown with the White row and the white legend):
 
 #### fig_stand (8 x 12, origin (4, 11))
 
-Standing (also the referee standing).
+Standing.
 
-Legend: `1234` tones 1, 2, 3, 4 of the Home row (`F2ADA8`, `E9766E`, `E2493E`, `99352D`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Home Shorts `F4EEDC`; `T` Home Shorts Dark `BDB5A0`.
+Legend: `1234` tones 1, 2, 3, 4 of the White row (`FFFFFF`, `F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Kit Dark Shorts `24272E`; `T` Kit Dark Shorts Shade `0E1013`.
 
 ```
 ...HHH..
@@ -539,9 +529,9 @@ Legend: `1234` tones 1, 2, 3, 4 of the Home row (`F2ADA8`, `E9766E`, `E2493E`, `
 
 #### fig_run_1 (8 x 12, origin (4, 11))
 
-Running 1 of 4: contact, right leg forward (also referee run 1).
+Running 1 of 4: contact, right leg forward.
 
-Legend: `1234` tones 1, 2, 3, 4 of the Home row (`F2ADA8`, `E9766E`, `E2493E`, `99352D`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Home Shorts `F4EEDC`; `T` Home Shorts Dark `BDB5A0`.
+Legend: `1234` tones 1, 2, 3, 4 of the White row (`FFFFFF`, `F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Kit Dark Shorts `24272E`; `T` Kit Dark Shorts Shade `0E1013`.
 
 ```
 ...HHH..
@@ -562,7 +552,7 @@ O.....OO
 
 Running 2: passing, the body 1 pixel up.
 
-Legend: `1234` tones 1, 2, 3, 4 of the Home row (`F2ADA8`, `E9766E`, `E2493E`, `99352D`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Home Shorts `F4EEDC`; `T` Home Shorts Dark `BDB5A0`.
+Legend: `1234` tones 1, 2, 3, 4 of the White row (`FFFFFF`, `F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Kit Dark Shorts `24272E`; `T` Kit Dark Shorts Shade `0E1013`.
 
 ```
 ........
@@ -581,9 +571,9 @@ Legend: `1234` tones 1, 2, 3, 4 of the Home row (`F2ADA8`, `E9766E`, `E2493E`, `
 
 #### fig_run_3 (8 x 12, origin (4, 11))
 
-Running 3: contact, the other leg (also referee run 2).
+Running 3: contact, the other leg.
 
-Legend: `1234` tones 1, 2, 3, 4 of the Home row (`F2ADA8`, `E9766E`, `E2493E`, `99352D`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Home Shorts `F4EEDC`; `T` Home Shorts Dark `BDB5A0`.
+Legend: `1234` tones 1, 2, 3, 4 of the White row (`FFFFFF`, `F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Kit Dark Shorts `24272E`; `T` Kit Dark Shorts Shade `0E1013`.
 
 ```
 ...HHH..
@@ -604,7 +594,7 @@ OO......
 
 Running 4: passing.
 
-Legend: `1234` tones 1, 2, 3, 4 of the Home row (`F2ADA8`, `E9766E`, `E2493E`, `99352D`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Home Shorts `F4EEDC`; `T` Home Shorts Dark `BDB5A0`.
+Legend: `1234` tones 1, 2, 3, 4 of the White row (`FFFFFF`, `F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Kit Dark Shorts `24272E`; `T` Kit Dark Shorts Shade `0E1013`.
 
 ```
 ........
@@ -625,7 +615,7 @@ Legend: `1234` tones 1, 2, 3, 4 of the Home row (`F2ADA8`, `E9766E`, `E2493E`, `
 
 Kicking 1: the wind up (the anticipation frame, shown 80 ms before the ball moves).
 
-Legend: `1234` tones 1, 2, 3, 4 of the Home row (`F2ADA8`, `E9766E`, `E2493E`, `99352D`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Home Shorts `F4EEDC`; `T` Home Shorts Dark `BDB5A0`.
+Legend: `1234` tones 1, 2, 3, 4 of the White row (`FFFFFF`, `F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Kit Dark Shorts `24272E`; `T` Kit Dark Shorts Shade `0E1013`.
 
 ```
 ...HHH..
@@ -646,7 +636,7 @@ O....OO.
 
 Kicking 2: the strike, the leg through; the ball leaves on this frame.
 
-Legend: `1234` tones 1, 2, 3, 4 of the Home row (`F2ADA8`, `E9766E`, `E2493E`, `99352D`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Home Shorts `F4EEDC`; `T` Home Shorts Dark `BDB5A0`.
+Legend: `1234` tones 1, 2, 3, 4 of the White row (`FFFFFF`, `F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Kit Dark Shorts `24272E`; `T` Kit Dark Shorts Shade `0E1013`.
 
 ```
 ...HHH..
@@ -667,7 +657,7 @@ C22333..
 
 Celebrating 1: arms up.
 
-Legend: `1234` tones 1, 2, 3, 4 of the Home row (`F2ADA8`, `E9766E`, `E2493E`, `99352D`); `A` Skin 1 `F2C6A0`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Home Shorts `F4EEDC`; `T` Home Shorts Dark `BDB5A0`.
+Legend: `1234` tones 1, 2, 3, 4 of the White row (`FFFFFF`, `F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 1 `F2C6A0`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Kit Dark Shorts `24272E`; `T` Kit Dark Shorts Shade `0E1013`.
 
 ```
 .C....C.
@@ -688,7 +678,7 @@ Legend: `1234` tones 1, 2, 3, 4 of the Home row (`F2ADA8`, `E9766E`, `E2493E`, `
 
 Celebrating 2: a jump, arms wide.
 
-Legend: `1234` tones 1, 2, 3, 4 of the Home row (`F2ADA8`, `E9766E`, `E2493E`, `99352D`); `A` Skin 1 `F2C6A0`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Home Shorts `F4EEDC`; `T` Home Shorts Dark `BDB5A0`.
+Legend: `1234` tones 1, 2, 3, 4 of the White row (`FFFFFF`, `F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 1 `F2C6A0`; `C` Skin 1 `F2C6A0`; `H` Hair Dark `2E1C12`; `O` Boot `17120E`; `S` Kit Dark Shorts `24272E`; `T` Kit Dark Shorts Shade `0E1013`.
 
 ```
 C......C
@@ -856,9 +846,9 @@ C22233344...
 C2..........
 ```
 
-### 4.3 The referee and the ball
+### 4.3 The ball
 
-The referee is the figure in the Referee kit: `ref_stand` = fig_stand, `ref_run_1` = fig_run_1, `ref_run_2` = fig_run_3 (two frames at 140 ms). He never touches the ball.
+There is no referee on the pitch in revision 2 (seven figures only), so `ref_stand`, `ref_run_1` and `ref_run_2` are gone.
 
 #### ball_roll_1 (5 x 5, origin (2, 2))
 
@@ -1239,7 +1229,7 @@ N.N...................N.
 
 ### 4.6 Club badges (16 x 16) and mini badges (8 x 8)
 
-Eight badges, assigned to the 64 clubs as `badge = club number mod 8`. The mini badge for the status bar and the tables is the badge sampled at every odd pixel (x and y 1, 3, 5, ... 15), given below so no code has to do it.
+Eight badges, assigned **by slot**: the club in slot s (1 to 16) of its division gets badge `(s - 1) mod 8` in the order below (star, hoops, tower, anchor, tree, chevron, fish, kettle), so every division shows each badge twice, slots s and s + 8. The mini badge for the status bar and the tables is the badge sampled at every odd pixel (x and y 1, 3, 5, ... 15), given below so no code has to do it.
 
 #### badge_star (16 x 16, origin (0, 0))
 
@@ -1579,13 +1569,13 @@ EBCCAAA.
 
 ### 4.7 Faces (24 x 24)
 
-Eight faces, reused as `face = player number mod 8` (the manager uses face_8 on the set up screen). The shirt at the bottom is the Home row; the game may swap it for any kit row. `P` is the collar.
+Eight faces, reused as `face = player number mod 8` (the manager uses face_8 on the set up screen). The shirt at the bottom is the White row with a Kit Hoop collar; for a side in black the game swaps the White row for the Black row. `P` is the collar.
 
 #### face_1 (24 x 24, origin (0, 0))
 
 short dark hair, a smile
 
-Legend: `234` tones 2, 3, 4 of the Home row (`E9766E`, `E2493E`, `99352D`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `F` Cheek `E58A72`; `G` Face Back `22342D`; `H` Hair Dark `2E1C12`; `K` Eye `141016`; `M` Mouth `7A2E26`; `P` Home Stripe `F4EEDC`; `W` Eye White `F6F2EA`.
+Legend: `234` tones 2, 3, 4 of the White row (`F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `F` Cheek `E58A72`; `G` Face Back `22342D`; `H` Hair Dark `2E1C12`; `K` Eye `141016`; `M` Mouth `7A2E26`; `P` Kit Hoop `24272E`; `W` Eye White `F6F2EA`.
 
 ```
 GGGGGGGGGGGGGGGGGGGGGGGG
@@ -1618,7 +1608,7 @@ GG244444444444444444442G
 
 a big round afro, a wide grin
 
-Legend: `234` tones 2, 3, 4 of the Home row (`E9766E`, `E2493E`, `99352D`); `A` Skin 2 `C98A5C`; `B` Skin 2 Shade `9C6640`; `F` Cheek `E58A72`; `G` Face Back `22342D`; `H` Hair Black `141016`; `K` Eye `141016`; `M` Mouth `7A2E26`; `P` Home Stripe `F4EEDC`; `W` Eye White `F6F2EA`.
+Legend: `234` tones 2, 3, 4 of the White row (`F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 2 `C98A5C`; `B` Skin 2 Shade `9C6640`; `F` Cheek `E58A72`; `G` Face Back `22342D`; `H` Hair Black `141016`; `K` Eye `141016`; `M` Mouth `7A2E26`; `P` Kit Hoop `24272E`; `W` Eye White `F6F2EA`.
 
 ```
 GGGGGGGGGGGGGGGGGGGGGGGG
@@ -1651,7 +1641,7 @@ GG244444444444444444442G
 
 shaved head, a full beard
 
-Legend: `234` tones 2, 3, 4 of the Home row (`E9766E`, `E2493E`, `99352D`); `A` Skin 3 `8A5634`; `B` Skin 3 Shade `633A20`; `F` Cheek `E58A72`; `G` Face Back `22342D`; `H` Hair Black `141016`; `K` Eye `141016`; `M` Mouth `7A2E26`; `P` Home Stripe `F4EEDC`; `W` Eye White `F6F2EA`.
+Legend: `234` tones 2, 3, 4 of the White row (`F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 3 `8A5634`; `B` Skin 3 Shade `633A20`; `F` Cheek `E58A72`; `G` Face Back `22342D`; `H` Hair Black `141016`; `K` Eye `141016`; `M` Mouth `7A2E26`; `P` Kit Hoop `24272E`; `W` Eye White `F6F2EA`.
 
 ```
 GGGGGGGGGGGGGGGGGGGGGGGG
@@ -1684,7 +1674,7 @@ GG244444444444444444442G
 
 a ginger mop and freckles
 
-Legend: `234` tones 2, 3, 4 of the Home row (`E9766E`, `E2493E`, `99352D`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `F` Cheek `E58A72`; `G` Face Back `22342D`; `H` Hair Ginger `B8542A`; `K` Eye `141016`; `M` Mouth `7A2E26`; `P` Home Stripe `F4EEDC`; `W` Eye White `F6F2EA`.
+Legend: `234` tones 2, 3, 4 of the White row (`F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `F` Cheek `E58A72`; `G` Face Back `22342D`; `H` Hair Ginger `B8542A`; `K` Eye `141016`; `M` Mouth `7A2E26`; `P` Kit Hoop `24272E`; `W` Eye White `F6F2EA`.
 
 ```
 GGGGGGGGGGGGGGGGGGGGGGGG
@@ -1717,7 +1707,7 @@ GG244444444444444444442G
 
 long fair hair and a headband
 
-Legend: `234` tones 2, 3, 4 of the Home row (`E9766E`, `E2493E`, `99352D`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `D` Home 3 `E2493E`; `F` Cheek `E58A72`; `G` Face Back `22342D`; `H` Hair Fair `E2B85A`; `K` Eye `141016`; `M` Mouth `7A2E26`; `P` Home Stripe `F4EEDC`; `W` Eye White `F6F2EA`.
+Legend: `234` tones 2, 3, 4 of the White row (`F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `D` Magnet Red 3 `E2493E`; `F` Cheek `E58A72`; `G` Face Back `22342D`; `H` Hair Fair `E2B85A`; `K` Eye `141016`; `M` Mouth `7A2E26`; `P` Kit Hoop `24272E`; `W` Eye White `F6F2EA`.
 
 ```
 GGGGGGGGGGGGGGGGGGGGGGGG
@@ -1750,7 +1740,7 @@ GG244444444444444444442G
 
 a quiff and a proud moustache
 
-Legend: `234` tones 2, 3, 4 of the Home row (`E9766E`, `E2493E`, `99352D`); `A` Skin 2 `C98A5C`; `B` Skin 2 Shade `9C6640`; `F` Cheek `E58A72`; `G` Face Back `22342D`; `H` Hair Dark `2E1C12`; `K` Eye `141016`; `M` Mouth `7A2E26`; `P` Home Stripe `F4EEDC`; `W` Eye White `F6F2EA`.
+Legend: `234` tones 2, 3, 4 of the White row (`F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 2 `C98A5C`; `B` Skin 2 Shade `9C6640`; `F` Cheek `E58A72`; `G` Face Back `22342D`; `H` Hair Dark `2E1C12`; `K` Eye `141016`; `M` Mouth `7A2E26`; `P` Kit Hoop `24272E`; `W` Eye White `F6F2EA`.
 
 ```
 GGGGGGGGGGGGGGGGGGGGGGGG
@@ -1783,7 +1773,7 @@ GG244444444444444444442G
 
 short hair with a side parting, serious
 
-Legend: `234` tones 2, 3, 4 of the Home row (`E9766E`, `E2493E`, `99352D`); `A` Skin 3 `8A5634`; `B` Skin 3 Shade `633A20`; `F` Cheek `E58A72`; `G` Face Back `22342D`; `H` Hair Black `141016`; `K` Eye `141016`; `M` Mouth `7A2E26`; `P` Home Stripe `F4EEDC`; `W` Eye White `F6F2EA`.
+Legend: `234` tones 2, 3, 4 of the White row (`F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 3 `8A5634`; `B` Skin 3 Shade `633A20`; `F` Cheek `E58A72`; `G` Face Back `22342D`; `H` Hair Black `141016`; `K` Eye `141016`; `M` Mouth `7A2E26`; `P` Kit Hoop `24272E`; `W` Eye White `F6F2EA`.
 
 ```
 GGGGGGGGGGGGGGGGGGGGGGGG
@@ -1816,7 +1806,7 @@ GG244444444444444444442G
 
 grey and thinning, a grin: the veteran
 
-Legend: `234` tones 2, 3, 4 of the Home row (`E9766E`, `E2493E`, `99352D`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Eye White `F6F2EA`; `F` Cheek `E58A72`; `G` Face Back `22342D`; `H` Hair Grey `B4B4B0`; `K` Eye `141016`; `M` Mouth `7A2E26`; `P` Home Stripe `F4EEDC`; `W` Eye White `F6F2EA`.
+Legend: `234` tones 2, 3, 4 of the White row (`F6F7F9`, `E2E5EA`, `AEB4BF`); `A` Skin 1 `F2C6A0`; `B` Skin 1 Shade `C99474`; `C` Eye White `F6F2EA`; `F` Cheek `E58A72`; `G` Face Back `22342D`; `H` Hair Grey `B4B4B0`; `K` Eye `141016`; `M` Mouth `7A2E26`; `P` Kit Hoop `24272E`; `W` Eye White `F6F2EA`.
 
 ```
 GGGGGGGGGGGGGGGGGGGGGGGG
@@ -1843,6 +1833,74 @@ GGGGG22233P33P333222GGGG
 GGGG2333333PP33333332GGG
 GGG2333333333333333332GG
 GG244444444444444444442G
+```
+
+The kit screen's two big shirts (24 x 24, top left origin):
+
+#### shirt_white (24 x 24, origin (0, 0))
+
+the white kit, big, for the kit screen
+
+Legend: `2345` tones 2, 3, 4, 5 of the White row (`F6F7F9`, `E2E5EA`, `AEB4BF`, `545A68`); `P` Kit Hoop `24272E`; `V` Kit Hoop `24272E`.
+
+```
+........55555555........
+.....55522V222V2555.....
+....5222333V3V332225....
+...523333333V33333325...
+..52333333333333333325..
+..53333333333333333345..
+.5233333333333333333325.
+.5333333333333333333345.
+523333333333333333333325
+.5443433333333333343445.
+..55453333333333345455..
+....55PPPPPPPPPPPP55....
+.....5PPPPPPPPPPPP5.....
+.....5PPPPPPPPPPPP5.....
+.....5PPPPPPPPPPPP5.....
+.....53333333333345.....
+.....53333333333345.....
+.....53333333333345.....
+.....53333333333345.....
+.....53333333333345.....
+.....53333333333345.....
+.....54444444444445.....
+......555555555555......
+........................
+```
+
+#### shirt_black (24 x 24, origin (0, 0))
+
+the black kit, big, for the kit screen
+
+Legend: `2345` tones 2, 3, 4, 5 of the Black row (`62687A`, `33373F`, `24272E`, `0E1013`); `P` Kit Pinstripe `C8CCD4`; `V` Kit Pinstripe `C8CCD4`.
+
+```
+........55555555........
+.....55522V222V2555.....
+....5222333V3V332225....
+...523333333V33333325...
+..5233333P333P333P3325..
+..5333333P333P333P3345..
+.52333333P333P333P33325.
+.53333333P333P333P33345.
+523333333P333P333P333325
+.54434333P333P333P43445.
+..5545333P333P333P5455..
+....55333P333P333P55....
+.....5333P333P333P5.....
+.....5333P333P333P5.....
+.....5333P333P333P5.....
+.....5333P333P333P5.....
+.....5333P333P333P5.....
+.....5333P333P333P5.....
+.....5333P333P333P5.....
+.....5333P333P333P5.....
+.....5333P333P333P5.....
+.....5444P444P444P5.....
+......555555555555......
+........................
 ```
 
 ### 4.8 Icons (8 x 8)
@@ -1934,23 +1992,6 @@ EWRRRRWE
 ...EE...
 ```
 
-#### state_card (8 x 8, origin (0, 0))
-
-suspended (not used by the rules, kept for later): a red card
-
-Legend: `E` Icon Edge `0A0D0C`; `R` Card Red `E4302C`.
-
-```
-..EEEE..
-.ERRRRE.
-.ERRRRE.
-.ERRRRE.
-.ERRRRE.
-.ERRRRE.
-.ERRRRE.
-..EEEE..
-```
-
 #### state_tired (8 x 8, origin (0, 0))
 
 tired (energy 6 or less): two Zs
@@ -2002,57 +2043,6 @@ ENENWWE.
 .E.EEE..
 ```
 
-#### ev_yellow (8 x 8, origin (0, 0))
-
-a yellow card
-
-Legend: `E` Icon Edge `0A0D0C`; `Y` Card Yellow `FFD23A`.
-
-```
-..EEEE..
-.EYYYYE.
-.EYYYYE.
-.EYYYYE.
-.EYYYYE.
-.EYYYYE.
-.EYYYYE.
-..EEEE..
-```
-
-#### ev_red (8 x 8, origin (0, 0))
-
-a red card
-
-Legend: `E` Icon Edge `0A0D0C`; `R` Card Red `E4302C`.
-
-```
-..EEEE..
-.ERRRRE.
-.ERRRRE.
-.ERRRRE.
-.ERRRRE.
-.ERRRRE.
-.ERRRRE.
-..EEEE..
-```
-
-#### ev_sub (8 x 8, origin (0, 0))
-
-substitution: on (green, up) and off (red, down)
-
-Legend: `E` Icon Edge `0A0D0C`; `G` Chalk Green `7FE39A`; `R` Chalk Red `FF6F61`.
-
-```
-........
-.E...E..
-EGE.ERE.
-GGGERRRE
-EGE.ERE.
-EGE.ERE.
-.E...E..
-........
-```
-
 #### ev_injury (8 x 8, origin (0, 0))
 
 injury: a red cross
@@ -2072,7 +2062,7 @@ ERRRRRRE
 
 #### ev_whistle (8 x 8, origin (0, 0))
 
-whistle: kick off, half time, full time
+whistle: kick off and full time
 
 Legend: `E` Icon Edge `0A0D0C`; `K` Silver 5 `3E4656`; `S` Silver 3 `B4BECC`.
 
@@ -2257,28 +2247,11 @@ ECCKKCCE
 ..EEEE..
 ```
 
-#### kit_home (8 x 8, origin (0, 0))
+#### kit_white (8 x 8, origin (0, 0))
 
-the home kit, for the score bar
+the white kit (a black hoop), for the score bar
 
-Legend: `3` Home 3 `E2493E`; `E` Icon Edge `0A0D0C`; `P` Home Stripe `F4EEDC`.
-
-```
-.EE..EE.
-EPPEEPPE
-EP3P3P3E
-.E3P3PE.
-.E3P3PE.
-.E3P3PE.
-..EEEE..
-........
-```
-
-#### kit_away (8 x 8, origin (0, 0))
-
-the away kit, for the score bar
-
-Legend: `3` Away 3 `3FA6E8`; `E` Icon Edge `0A0D0C`; `P` Away Hoop `16305E`.
+Legend: `3` White 3 `E2E5EA`; `E` Icon Edge `0A0D0C`; `P` Kit Hoop `24272E`.
 
 ```
 .EE..EE.
@@ -2287,6 +2260,23 @@ E333333E
 .E3333E.
 .EPPPPE.
 .E3333E.
+..EEEE..
+........
+```
+
+#### kit_black (8 x 8, origin (0, 0))
+
+the black kit (pale pinstripes), for the score bar
+
+Legend: `3` Black 3 `33373F`; `E` Icon Edge `0A0D0C`; `P` Kit Pinstripe `C8CCD4`.
+
+```
+.EE..EE.
+E33EE33E
+E3P3P33E
+.EP3P3E.
+.EP3P3E.
+.EP3P3E.
 ..EEEE..
 ........
 ```
@@ -2346,7 +2336,7 @@ YYYYYYY.
 
 picked to start: a red tactics magnet
 
-Legend: `E` Icon Edge `0A0D0C`; `H` Home 1 `F2ADA8`; `R` Home 3 `E2493E`; `S` Home 4 `99352D`.
+Legend: `E` Icon Edge `0A0D0C`; `H` Magnet Red 1 `F2ADA8`; `R` Magnet Red 3 `E2493E`; `S` Magnet Red 4 `99352D`.
 
 ```
 ..EEEE..
@@ -2363,7 +2353,7 @@ ERRRRRSE
 
 the reserve: a blue ring magnet
 
-Legend: `E` Icon Edge `0A0D0C`; `H` Away 1 `A9D7F5`; `R` Away 3 `3FA6E8`; `S` Away 4 `2D729D`.
+Legend: `E` Icon Edge `0A0D0C`; `H` Magnet Blue 1 `A9D7F5`; `R` Magnet Blue 3 `3FA6E8`; `S` Magnet Blue 4 `2D729D`.
 
 ```
 ..EEEE..
@@ -2676,7 +2666,7 @@ Each screen is a list of "this, in this colour, at this x and y" (the top left o
 | money_coin, or money_owed when the cash is below 0 | sprite |  | 162 | 3 |
 | the cash: sign and digits, group gaps (section 5.2), ends by x 222 | 5 x 7, 1x | Chalk Green or Chalk Red | 172 | 4 |
 | money_loan | sprite |  | 228 | 3 |
-| the loan: digits with group gaps, no sign, ends by x 284 | 5 x 7, 1x | Chalk, or Chalk Red above 80% of the limit | 238 | 4 |
+| the loan: digits with group gaps, no sign, ends by x 284 | 5 x 7, 1x | Chalk | 238 | 4 |
 | morale icon | sprite |  | 288 | 3 |
 | the morale, 2 digits, right aligned | 5 x 7, 1x | Chalk Blue | 298 | 4 |
 
@@ -2694,7 +2684,7 @@ The board is section 3.5. The key bar is Tunnel over rows 228 to 239 with a Tunn
 | Morale (1 to 20) | 10 pips of 3 x 5, every 4 pixels; a pip is 2 points, an odd point lights its first 2 columns; the same three levels and colours as energy; the top left pixel of a full pip is Chalk. Used on the week menu and the end of season where a bar would be too wide |
 | Skill (1 to 5) | 5 squares (3 x 3 every 4 pixels; 5 x 5 every 6 on the transfer card), Chalk Yellow lit, Bar Empty unlit |
 | Your number against theirs | two bars of 20 units at 5 pixels a unit, 4 rows each with 1 row between: yours Chalk Yellow, theirs Chalk Blue, over Bar Empty; after them the two numbers in the 3 x 5 font, and after yours a **+** (Chalk Green) when you are level or ahead, a **-** (Chalk Red) when behind |
-| Loan meter | 124 x 6, filled loan / limit: Chalk Green solid under 40%, Chalk Amber dashed to 80%, Chalk Red checked above; a Chalk Red tick 10 rows tall at 80% and 12 rows tall at the limit |
+| Loan meter | 124 x 6 over Bar Empty, filled loan / limit in Bar Plain with the last column Chalk; a Chalk Dim tick 12 rows tall at the limit. No warning colours (the original gives none) |
 
 ### 6.4 Plates
 
@@ -2721,14 +2711,15 @@ Drawn on the Night ground with no status bar. The goal mouth picture of section 
 | the goal: goal mouth rows 14 to 46 only (the frame and the net), skipping its Stand pixels, with the picture's row 0 at y 96 | goal mouth |  | 112 | 96 |
 | the goal line, the full width | fill | Line | 0 | 145 |
 | the keeper (bobbing 1 pixel every 400 ms) (origin on this point) | sprite gm_keeper_ready |  | 160 | 152 |
-| the name's drop (2 pixels down and right) | 5 x 7, 5x | Title Shadow | 74 | 16 |
-| the name | 5 x 7, 5x, outline, gradient to Title Bottom | Title Top | 72 | 14 |
+| the box the name fills (x 40 to 279, y 8 to 49): see the name rule under this table | dashed box (preview only) | Chalk Dim | 40 | 8 |
 | the line under the name (centred on x 160) | 5 x 7, 1x | Chalk | 83 | 54 |
 | the ball flying at the goal (intro, section 7.1) (origin on this point) | sprite gm_ball_near |  | 136 | 186 |
 | a banner plate 128 x 19 (section 6.4) | plate | Tunnel | 96 | 204 |
 | PRESS SPACE, on 500 ms, off 300 ms (centred on x 160) | 5 x 7, 1x | Chalk Yellow | 128 | 210 |
 | the key bar (320 x 12) | fill | Tunnel | 0 | 228 |
 | the hint line (centred on x 160) | 5 x 7, 1x | Chalk Dim | 29 | 231 |
+
+**The name rule.** The game's name is a text constant, drawn in the 5 x 7 font with a vertical gradient from Title Top to Title Bottom, an Outline and a 2 pixel Title Shadow drop down and right, centred on x 160. Up to 8 characters: one line at 5x, top at y 14. 9 to 16 characters: split at the space nearest the middle into two lines, each at 3x (a line of up to 16 characters is at most 285 pixels), tops at y 8 and y 31. Then the line under the name at y 54. The dashed box in the preview marks the area the name fills.
 
 ### 6.6 New game 1: the manager and the level
 
@@ -2767,22 +2758,30 @@ Four pages, one a division, 16 clubs a page in two columns of 8, with their 16 x
 | club name at badge x + 22, y + 5 | 5 x 7, 1x | Chalk | 36 | 43 |
 | the cursor band (148 x 20) | fill | Cursor Row | 10 | 82 |
 
-### 6.8 New game 3: pick 12 players
+### 6.8 New game 3: your colours
 
-A grid of the 24: defenders, midfielders, forwards. Picks 1 to 11 get the red magnet, the 12th the blue ring (the reserve).
+Replaces the pick 12 screen (the squad is dealt at random). Your side wears the colour picked, the other side the other one.
 
 | What | Font or kind | Colour | x | y |
 |---|---|---|---|---|
-| the board with the title "PICK 12 PLAYERS" (section 6.2) | board | Chalk Yellow | 10 | 21 |
-| the right hand of the title band: "PICKED 9 OF 12" | 5 x 7, 1x | Chalk Dim | 227 | 21 |
-| the key bar: ARROWS MOVE  ENTER PICK  SPACE DONE | key bar | Chalk Yellow and Chalk Dim | 6 | 231 |
+| the board with the title "YOUR COLOURS" (section 6.2) | board | Chalk Yellow | 10 | 21 |
+| the right hand of the title band: "STEP 3 OF 3" | 5 x 7, 1x | Chalk Dim | 245 | 21 |
+| the key bar: LEFT RIGHT CHOOSE  ENTER START | key bar | Chalk Yellow and Chalk Dim | 6 | 231 |
 | no status bar yet: the strip is plain Tunnel (320 x 14) | fill | Tunnel | 0 | 0 |
-| column head icon, column c at x = 12 + 102 c | sprite pos_df |  | 12 | 37 |
-| column head | 5 x 7, 1x | Chalk Dim | 23 | 38 |
-| a picked player's magnet; the 12th pick gets magnet_res | sprite magnet_on |  | 12 | 54 |
-| player name, row k at y = 54 + 20 k (Chalk if picked, Chalk Dim if not) | 5 x 7, 1x | Chalk | 23 | 54 |
-| an empty slot: a 6 x 6 square at magnet x + 1, y + 1 | fill | Board Rule | 13 | 95 |
-| the cursor band (100 x 16) | fill | Cursor Row | 110 | 90 |
+| line (centred on x 160) | 5 x 7, 1x | Chalk Dim | 107 | 42 |
+| card 1 (88 x 104), Cursor Row when chosen, else Board Stripe (88 x 104) | fill | Cursor Row | 52 | 60 |
+| the chosen card's 1 pixel Chalk Yellow ring | lines | Chalk Yellow | 52 | 60 |
+| the big shirt | sprite shirt_white |  | 84 | 70 |
+| the kit on two figures (fig_stand and fig_run_1, pattern applied), top left | sprites |  | 78 | 104 |
+| the colour, 2x (centred on x 96) | 5 x 7, 2x | Chalk Yellow | 67 | 124 |
+| the pattern (centred on x 96) | 5 x 7, 1x | Chalk Dim | 85 | 146 |
+| card 2 (88 x 104), Cursor Row when chosen, else Board Stripe (88 x 104) | fill | Board Stripe | 180 | 60 |
+| the big shirt | sprite shirt_black |  | 212 | 70 |
+| the kit on two figures (fig_stand and fig_run_1, pattern applied), top left | sprites |  | 206 | 104 |
+| the colour, 2x (centred on x 224) | 5 x 7, 2x | Chalk | 195 | 124 |
+| the pattern (centred on x 224) | 5 x 7, 1x | Chalk Dim | 204 | 146 |
+| the cursor beside the chosen card | sprite cursor_1 |  | 40 | 108 |
+| line: BLACK or WHITE, the colour not chosen (centred on x 160) | 5 x 7, 1x | Chalk | 83 | 182 |
 
 ### 6.9 The week menu
 
@@ -2801,12 +2800,12 @@ The first screen of every week: the choices of the original menu, and the next m
 | the cursor | sprite cursor_1 |  | 8 | 150 |
 | the rule between the halves (1 x 170) | fill | Board Rule | 166 | 40 |
 | label (centred on x 242) | 5 x 7, 1x | Chalk Dim | 213 | 42 |
-| LEAGUE, or THE CUP and the round name (centred on x 242) | 5 x 7, 1x | Chalk Blue | 225 | 54 |
+| LEAGUE, or F.A. CUP and the round name (centred on x 242) | 5 x 7, 1x | Chalk Blue | 225 | 54 |
 | your badge | sprite badge_tower |  | 196 | 70 |
 | their badge | sprite badge_kettle |  | 272 | 70 |
 | V (centred on x 242) | 5 x 7, 2x | Chalk Dim | 237 | 75 |
-| your club (centred on x 242) | 5 x 7, 1x | Chalk Yellow | 207 | 94 |
-| their club (centred on x 242) | 5 x 7, 1x | Chalk | 210 | 104 |
+| your club (centred on x 242) | 5 x 7, 1x | Chalk Yellow | 222 | 94 |
+| their club (centred on x 242) | 5 x 7, 1x | Chalk | 216 | 104 |
 | HOME or AWAY (Chalk Blue) (centred on x 242) | 5 x 7, 1x | Chalk Green | 231 | 116 |
 | their place (centred on x 242) | 5 x 7, 1x | Chalk Dim | 207 | 132 |
 | your place (centred on x 242) | 5 x 7, 1x | Chalk Dim | 210 | 142 |
@@ -2829,7 +2828,7 @@ The STATUS choice. 16 rows; the right hand panel shows the player under the curs
 | head (right edge x 250) | 3 x 5 | Chalk Dim | 232 | 36 |
 | rule under the heads (254 x 1) | fill | Board Rule | 4 | 44 |
 | picked mark (magnet_on to start, magnet_res the reserve) | sprite magnet_on |  | 4 | 46 |
-| position icon, row i at y = 47 + 11 i | sprite pos_gk |  | 16 | 46 |
+| position icon, row i at y = 47 + 11 i | sprite pos_df |  | 16 | 46 |
 | name (Chalk Dim if injured) | 5 x 7, 1x | Chalk | 30 | 47 |
 | skill: 5 pips 3 x 3 every 4 pixels (section 6.3) | pips | Chalk Yellow / Bar Empty | 108 | 49 |
 | energy bar 40 x 5 (section 6.3) | bar | by level | 134 | 48 |
@@ -2858,7 +2857,7 @@ Left: the squad with the picks. Right: the five numbers, yours over theirs, and 
 |---|---|---|---|---|
 | the status bar (section 6.1) | status bar |  | 0 | 0 |
 | the board with the title "PICK THE TEAM" (section 6.2) | board | Chalk Yellow | 10 | 21 |
-| the right hand of the title band: "V MIZZLE CITY" | 5 x 7, 1x | Chalk Dim | 233 | 21 |
+| the right hand of the title band: "V MIZZLE C." | 5 x 7, 1x | Chalk Dim | 245 | 21 |
 | the key bar: ENTER PICK  R RESERVE  SPACE KICK OFF | key bar | Chalk Yellow and Chalk Dim | 6 | 231 |
 | pick mark, row i at y = 38 + 13 i | sprite magnet_on |  | 6 | 37 |
 | name | 5 x 7, 1x | Chalk | 30 | 38 |
@@ -2876,24 +2875,24 @@ Left: the squad with the picks. Right: the five numbers, yours over theirs, and 
 
 ### 6.12 The match
 
-The pitch is 32 x 20 cells of 8 x 8 pixels from (32, 34). The goal mouth close up is drawn over the middle of the pitch for each shot.
+One attack at a time on the pitch of the rules (3.2): seven figures, the ball two columns a step. The view is of the goal being attacked; the left goal's view is the mirror. The close up opens over the far corner for the shot.
 
 | What | Font or kind | Colour | x | y |
 |---|---|---|---|---|
-| the match background (section 3.1 and 3.2) | background |  | 0 | 0 |
+| the match background, right goal view (3.1, 3.2); for the left goal the rows 34 to 193 mirrored | background |  | 0 | 0 |
 | the score bar (320 x 18) | fill | Tunnel | 0 | 0 |
 | its rule (320 x 1) | fill | Tunnel Rule | 0 | 17 |
 | home mini badge | sprite mini_tower |  | 4 | 5 |
-| home kit icon | sprite kit_home |  | 14 | 5 |
-| home club (your club in Chalk Yellow) | 5 x 7, 1x | Chalk | 24 | 6 |
+| home side's kit icon (kit_white or kit_black) | sprite kit_white |  | 14 | 5 |
+| home club (your club in Chalk Yellow, the other in Chalk) | 5 x 7, 1x | Chalk Yellow | 24 | 6 |
 | home goals, 2x (right edge x 152) | 5 x 7, 2x | Chalk Yellow | 143 | 2 |
 | the dash, 2x (centred on x 160) | 5 x 7, 2x | Chalk Dim | 155 | 2 |
 | away goals, 2x | 5 x 7, 2x | Chalk Yellow | 168 | 2 |
-| away club (right edge x 295) | 5 x 7, 1x | Chalk | 231 | 6 |
-| away kit icon | sprite kit_away |  | 298 | 5 |
+| away club (right edge x 295) | 5 x 7, 1x | Chalk | 243 | 6 |
+| away side's kit icon | sprite kit_black |  | 298 | 5 |
 | away mini badge | sprite mini_kettle |  | 308 | 5 |
-| the 22 figures and the referee: feet on cell_xy(c, r) (3.2; the kick off shape is under this table) | sprites |  | 32 | 34 |
-| the ball on its cell, with its shadow 1 right and 3 down and the trail of 8.3 | sprite ball_roll_1 |  | 252 | 118 |
+| the seven figures: feet on cell_xy(c, r) (the attack layout is under this table) | sprites |  | 0 | 0 |
+| the ball on cell (18, 12): ball_xy, its shadow 1 right and 3 down, the trail of 8.3 | sprite ball_roll_1 |  | 203 | 123 |
 | the ticker (320 x 22) | fill | Tunnel | 0 | 206 |
 | its rule (320 x 1) | fill | Tunnel Rule | 0 | 206 |
 | the event icon | sprite ev_save |  | 6 | 213 |
@@ -2901,32 +2900,41 @@ The pitch is 32 x 20 cells of 8 x 8 pixels from (32, 34). The goal mouth close u
 | the running attack count (right edge x 313) | 5 x 7, 1x | Chalk Dim | 267 | 214 |
 | the key bar (320 x 12) | fill | Tunnel | 0 | 228 |
 | keys | 5 x 7, 1x | Chalk Yellow | 6 | 231 |
-| the close up frame: Outline ring (102 x 70) | fill | Outline | 109 | 79 |
-| then a Chalk Yellow ring (100 x 68) | fill | Chalk Yellow | 110 | 80 |
-| then Outline again (98 x 66) | fill | Outline | 111 | 81 |
-| the goal mouth picture (section 3.4) | goal mouth |  | 112 | 82 |
-| the keeper, high dive to the right (the goal mouth table, 6.24) (origin on this point) | sprite gm_keeper_high_right |  | 176 | 108 |
-| the ball at the top right target, in the gloves: SAVED (origin on this point) | sprite gm_ball_mid |  | 184 | 104 |
+| the close up frame: Outline ring (right goal view; at x 212 for the left goal) (102 x 70) | fill | Outline | 6 | 84 |
+| then a Chalk Yellow ring (100 x 68) | fill | Chalk Yellow | 7 | 85 |
+| then Outline again (98 x 66) | fill | Outline | 8 | 86 |
+| the goal mouth picture (section 3.4) | goal mouth |  | 9 | 87 |
+| the keeper, high dive to the right (the goal mouth table, 6.24) (origin on this point) | sprite gm_keeper_high_right |  | 70 | 122 |
+| the ball at the top right target, in the gloves: SAVED (origin on this point) | sprite gm_ball_mid |  | 81 | 109 |
 
-**The kick off shape** (home attacks right; the away side is at `(31 - column, 19 - row)`, mirrored):
+**The attack in the preview** (right goal view; for the left goal use `cell_xy_left` and mirror each figure):
 
-| Who | Cells (column, row) |
+| Figure | Cell (c, r) | Kit | Frame | Faces |
+|---|---|---|---|---|
+| keeper | (19, 11) | keeper | gk_ready_1 | left |
+| attacker | (17, 12) | white | fig_kick_1 | right |
+| attacker | (13, 8) | white | fig_run_2 | right |
+| attacker | (14, 17) | white | fig_run_4 | right |
+| defender | (17, 9) | black | fig_run_1 | left |
+| defender | (20, 14) | black | fig_stand | left |
+| defender | (15, 16) | black | fig_run_3 | left |
+
+| Who | Where |
 |---|---|
-| keeper | (1, 9) |
-| defenders | (6, 3), (6, 7), (6, 12), (6, 16) |
-| midfielders | (11, 3), (11, 7), (11, 12), (11, 16) |
-| forwards | (15, 8), (14, 12) |
-| referee | (16, 4) |
+| the keeper | on c = 8 + r (right goal) or c + r = 23 (left goal), rows 8 to 13, faces the play |
+| the dribbler | one cell behind the ball, faces the goal |
+| two more attackers | on the cells the game gives, face the goal |
+| three defenders | on the cells the game gives, face the ball |
 
-The figures then move as the game says; the art only needs their cells. A figure with the ball, or running to it, uses the run frames (100 ms each); the others stand. The figure that shoots plays kick 1, kick 2.
+The ball is on (18, 12), struck from (16, 12) and (14, 12) before it: two columns a step.
 
 ### 6.13 Full time
 
-A plate over the last frame of the pitch. The rules have no halves and no named scorers, so the panel lists the attacks.
+A plate over the last frame of the pitch: the score and the counts of the attacks. No half time and no scorers, as the original.
 
 | What | Font or kind | Colour | x | y |
 |---|---|---|---|---|
-| the match background (section 3.1 and 3.2) | background |  | 0 | 0 |
+| the match background, right goal view (3.1, 3.2); for the left goal the rows 34 to 193 mirrored | background |  | 0 | 0 |
 | the score bar (320 x 18) | fill | Tunnel | 0 | 0 |
 | a plate 192 x 120 (section 6.4) | plate | Tunnel | 64 | 50 |
 | title (centred on x 160) | 5 x 7, 1x | Chalk Yellow | 134 | 57 |
@@ -2939,8 +2947,6 @@ A plate over the last frame of the pitch. The rules have no halves and no named 
 | your count, row i at y = 112 + 11 i (right edge x 110) | 5 x 7, 1x | Chalk | 106 | 112 |
 | label (centred on x 160) | 5 x 7, 1x | Chalk Dim | 140 | 112 |
 | their count | 5 x 7, 1x | Chalk | 210 | 112 |
-| label | 3 x 5 | Chalk Dim | 72 | 158 |
-| a goal: ev_goal, then the attack number, every 30 pixels | sprite ev_goal |  | 100 | 156 |
 
 ### 6.14 Results
 
@@ -2955,7 +2961,7 @@ This week's result and the other matches of the division (the original's random 
 | your match: home badge | sprite badge_tower |  | 30 | 38 |
 | home | 5 x 7, 1x | Chalk Yellow | 50 | 43 |
 | score 2x (centred on x 160) | 5 x 7, 2x | Chalk Yellow | 143 | 39 |
-| away (right edge x 270) | 5 x 7, 1x | Chalk | 206 | 43 |
+| away (right edge x 270) | 5 x 7, 1x | Chalk | 218 | 43 |
 | away badge | sprite badge_kettle |  | 274 | 38 |
 | rule (292 x 1) | fill | Board Rule | 14 | 60 |
 | label (centred on x 160) | 5 x 7, 1x | Chalk Dim | 95 | 66 |
@@ -2993,9 +2999,8 @@ The week's money, then a 10 week chart of the cash and the loan against its limi
 | label | 5 x 7, 1x | Chalk Dim | 26 | 160 |
 | the limit (250 000 times the division multiplier) (right edge x 150) | 5 x 7, 1x, money, no sign | Chalk Dim | 114 | 160 |
 | the loan meter: 124 x 6, filled loan / limit (124 x 6) | fill | Bar Empty | 26 | 176 |
-| fill: Chalk Green (solid) under 40%, Chalk Amber (dashed) to 80%, Chalk Red (checked) above, like the energy bar | bar | by level | 26 | 176 |
-| the 80% tick (1 x 10) | fill | Chalk Red | 125 | 174 |
-| the limit tick (1 x 12) | fill | Chalk Red | 149 | 173 |
+| fill Bar Plain, the last column Chalk; the same at every level | bar | Bar Plain | 26 | 176 |
+| the limit tick (1 x 12) | fill | Chalk Dim | 149 | 173 |
 | percent of the limit | 3 x 5 | Chalk Dim | 26 | 186 |
 | the panel rule (1 x 190) | fill | Board Rule | 168 | 34 |
 | chart title | 3 x 5 | Chalk Dim | 176 | 36 |
@@ -3040,7 +3045,7 @@ The house table: 16 rows of 11, zones marked at the left, your club on a band wi
 | a dashed rule (2 on, 2 off) under place 3, Chalk Green | dashes | Chalk Green | 4 | 78 |
 | a dashed rule over place 14, Chalk Red (not in division 4) | dashes | Chalk Red | 4 | 188 |
 
-**Column positions** (5 x 7 at 1x, numbers right aligned on these right edges): zone marker x 6; POS right edge 22; mini badge x 26; CLUB x 38 (12 characters, to x 108); P 140; W 160; D 180; L 200; F 226; A 250; GD 276 (sign always drawn); PTS 306. Rows from y 48, every 11 (the 16th at y 213).
+**Column positions** (5 x 7 at 1x, numbers right aligned on these right edges): zone marker x 6; POS right edge 22; mini badge x 26; CLUB x 38 (10 characters, to x 96); P 140; W 160; D 180; L 200; F 226; A 250; GD 276 (sign always drawn); PTS 306. Rows from y 48, every 11 (the 16th at y 213).
 
 ### 6.17 The transfer offer
 
@@ -3087,7 +3092,7 @@ Pick one of yours; the club's offer appears on the right.
 | the status bar (section 6.1) | status bar |  | 0 | 0 |
 | the board with the title "SELL A PLAYER" (section 6.2) | board | Chalk Yellow | 10 | 21 |
 | the key bar: UP DOWN MOVE  Y ACCEPT  N REFUSE | key bar | Chalk Yellow and Chalk Dim | 6 | 231 |
-| position, row i at y = 38 + 13 i | sprite pos_gk |  | 8 | 37 |
+| position, row i at y = 38 + 13 i | sprite pos_df |  | 8 | 37 |
 | name (Chalk Dim and not pickable if injured) | 5 x 7, 1x | Chalk | 20 | 38 |
 | skill pips | pips |  | 96 | 40 |
 | value, no sign | 5 x 7, 1x, money | Chalk Dim | 130 | 38 |
@@ -3095,7 +3100,7 @@ Pick one of yours; the club's offer appears on the right.
 | the panel rule (1 x 190) | fill | Board Rule | 168 | 34 |
 | the face frame (30 x 30) | fill | Wood 3 | 208 | 44 |
 | the face | sprite face_6 |  | 211 | 47 |
-| name (centred on x 243) | 5 x 7, 1x | Chalk Yellow | 217 | 82 |
+| name (centred on x 243) | 5 x 7, 1x | Chalk Yellow | 220 | 82 |
 | label (centred on x 243) | 5 x 7, 1x | Chalk Dim | 211 | 104 |
 | the offer, 2x, no sign (0.8 to 1.3 times the value) | 5 x 7, 2x, money | Chalk Green | 239 | 116 |
 | label (centred on x 243) | 5 x 7, 1x | Chalk Dim | 229 | 140 |
@@ -3103,27 +3108,26 @@ Pick one of yours; the club's offer appears on the right.
 | Y | 5 x 7, 1x | Chalk Green | 184 | 176 |
 | N | 5 x 7, 1x | Chalk Red | 250 | 176 |
 
-### 6.19 The cup round
+### 6.19 The F.A. Cup round
 
 Shown before a cup match. The round names: ROUND 1 to ROUND 6, SEMI-FINAL, FINAL; a replay adds REPLAY.
 
 | What | Font or kind | Colour | x | y |
 |---|---|---|---|---|
 | the status bar (section 6.1) | status bar |  | 0 | 0 |
-| the board with the title "THE CUP" (section 6.2) | board | Chalk Yellow | 10 | 21 |
+| the board with the title "F.A. CUP" (section 6.2) | board | Chalk Yellow | 10 | 21 |
 | the right hand of the title band: "WEEK 11" | 5 x 7, 1x | Chalk Dim | 269 | 21 |
 | the key bar: ENTER PICK THE TEAM | key bar | Chalk Yellow and Chalk Dim | 6 | 231 |
 | the cup trophy (origin bottom middle) (origin on this point) | sprite trophy_cup |  | 160 | 78 |
 | the round, 3x (centred on x 160) | 5 x 7, 3x, outline | Chalk Blue | 99 | 86 |
 | REPLAY, only for a replay (centred on x 160) | 5 x 7, 1x | Chalk Amber | 143 | 112 |
-| the home club's badge | sprite badge_tower |  | 52 | 132 |
-| the home club (yours in Chalk Yellow) (right edge x 146) | 5 x 7, 1x | Chalk Yellow | 76 | 137 |
+| the home club's badge | sprite badge_tower |  | 72 | 132 |
+| the home club (yours in Chalk Yellow) (right edge x 146) | 5 x 7, 1x | Chalk Yellow | 106 | 137 |
 | V (centred on x 160) | 5 x 7, 1x | Chalk Dim | 158 | 137 |
 | the away club | 5 x 7, 1x | Chalk | 174 | 137 |
 | the away club's badge | sprite badge_star |  | 252 | 132 |
 | their division (centred on x 214) | 5 x 7, 1x | Chalk Dim | 185 | 150 |
 | AT HOME (Chalk Green) or AWAY (Chalk Blue) (centred on x 160) | 5 x 7, 1x | Chalk Green | 140 | 168 |
-| what the gate will be, when it is known (cup away, semi-final, final) (centred on x 160) | 5 x 7, 1x | Chalk Dim | 80 | 190 |
 
 ### 6.20 End of season
 
@@ -3173,7 +3177,7 @@ A plate over whatever screen is up (here the match).
 
 | What | Font or kind | Colour | x | y |
 |---|---|---|---|---|
-| the match background (section 3.1 and 3.2) | background |  | 0 | 0 |
+| the match background, right goal view (3.1, 3.2); for the left goal the rows 34 to 193 mirrored | background |  | 0 | 0 |
 | a plate 120 x 40 | plate | Tunnel | 100 | 96 |
 | PAUSED, 2x (centred on x 160) | 5 x 7, 2x | Chalk Yellow | 125 | 104 |
 | line (centred on x 160) | 5 x 7, 1x | Chalk Dim | 125 | 123 |
@@ -3198,7 +3202,7 @@ Glass shelves in a wood case: one trophy per title, in the order won, the season
 | shelf label: the full size trophies of the last titles | 5 x 7, 1x | Chalk Dim | 36 | 156 |
 | the latest league title, full size (origin on this point) | sprite trophy_league |  | 120 | 199 |
 | the latest cup, full size (origin on this point) | sprite trophy_cup |  | 200 | 199 |
-| the tally (centred on x 160) | 5 x 7, 1x | Chalk | 53 | 214 |
+| the tally (centred on x 160) | 5 x 7, 1x | Chalk | 59 | 214 |
 
 ### 6.24 The goal mouth: who goes where
 
@@ -3240,10 +3244,10 @@ Stars at (14, 6), (40, 30), (66, 12), (250, 8), (284, 34), (300, 14), (120, 4), 
 
 | Step | Timing | What changes |
 |---|---|---|
-| Dribble | 160 ms a step (2 columns), the ball tweens 1 pixel every 10 ms | the ball rolls (ball_roll_1, 2 every 60 ms), the carrier runs beside it, the nearest 3 players of each side run 1 pixel every 20 ms toward it; the trail (8.3) |
+| Dribble | 160 ms a step (2 columns), the ball tweens along the step | the ball rolls (ball_roll_1, 2 every 60 ms), the dribbler runs behind it on the run frames, the other six move to the cells the game gives (run frames while they move); the keeper steps along his diagonal; the trail (8.3) |
 | A defender wins it | 300 ms | the defender plays kick 1 and 2 (80 ms, 120 ms), the ball goes back; ticker BLOCKED (`ev_block`) |
 | The shot | 80 + 120 ms | the shooter plays kick 1, kick 2; the ball changes to ball_air |
-| The close up opens | 0 ms (one draw of the frame and the picture) | the frame (102 x 70) and the goal mouth over the pitch at (112, 82) |
+| The close up opens | 0 ms (one draw of the frame and the picture) | the frame (102 x 70) and the goal mouth over the far corner of the view: picture at (9, 87) on the right goal view, (215, 87) on the left |
 | Ready | 300 ms | the keeper in ready |
 | The flight | 3 x 80 ms | gm_ball_near, gm_ball_mid, gm_ball_far (7.4); the keeper changes to his pose on the last frame |
 | The result | 900 ms | saved: hold; goal: the ripple (3 x 80 ms), the shake (8.2), the crowd cheer (8.4); wide or over: hold |
@@ -3254,7 +3258,7 @@ An attack takes about 2.5 to 3.5 seconds, so 12 attacks are 30 to 40 seconds. SP
 
 ### 7.3 Figures
 
-Run 1, 2, 3, 4 at 100 ms; the referee's two run frames at 140 ms; the keeper's ready bob at 400 ms; a keeper's dive on the pitch: dive 1 for 100 ms, dive 2 for 500 ms, then ready; got it for 600 ms after a save; celebrate 1, 2 at 150 ms.
+Run 1, 2, 3, 4 at 100 ms; the keeper's ready bob at 400 ms; a keeper's dive on the pitch: dive 1 for 100 ms, dive 2 for 500 ms, then ready; got it for 600 ms after a save; celebrate 1, 2 at 150 ms.
 
 ### 7.4 The close up shot
 
@@ -3273,7 +3277,7 @@ The cursor alternates cursor_1 and cursor_2 every 400 ms. The text cursor (a blo
 | 8.3 Ball trail | **keep** | while the ball moves, the 3 pixels behind it along its path, 2, 4 and 6 pixels back: Trail 1, Trail 2, Trail 3; none when still |
 | 8.4 The crowd jumps | **keep** | both stands swap crowd_1 and crowd_2 every 150 ms for 1200 ms on a goal (yours or theirs); the close up's crowd strip too |
 | 8.5 Money counting up | **keep** | on the money report the cash rolls from last week's to this week's in 8 steps of 50 ms (the digits drawn at each step's value) |
-| 8.6 Ticker flash | **keep, for goals** | GOAL in the ticker alternates Chalk Yellow and Chalk every 200 ms for 1200 ms (the red card flash is dropped: the rules have no cards) |
+| 8.6 Ticker flash | **keep, for goals** | GOAL in the ticker alternates Chalk Yellow and Chalk every 200 ms for 1200 ms (the red card flash is dropped: the original has no cards) |
 | 8.7 Low energy pulse | **keep** | spent bars: the fill turns Spent Dark for 200 ms every 600 ms |
 | 8.8 Coin shower | **keep** | when the cash goes from below 0 to 0 or more: 12 particles of 2 x 2 (Gold 2 over Gold 4) fall from the status bar coin, 1 pixel every 20 ms, for 600 ms, over the board only |
 | 8.9 Lit star for promotion | **keep** | at the season end the promoted clubs' rows show mark_star in place of mark_up, swapping with Chalk Amber for one frame every 800 ms |
@@ -3323,10 +3327,11 @@ The cursor alternates cursor_1 and cursor_2 every 400 ms. The text cursor (a blo
 
 | A | B | Why | Normal | Deuter. | Protan. | Tritan. |
 |---|---|---|---|---|---|---|
-| Home 3 | Away 3 | the two kits (they also differ by stripes and a hoop) | 416 | 283 | 304 | 535 |
-| Home 3 | Keeper 3 | home and the keepers | 244 | 180 | 252 | 331 |
-| Away 3 | Keeper 3 | away and the keepers | 409 | 345 | 376 | 405 |
-| Referee 3 | Grass A | the referee on the grass | 181 | 196 | 215 | 200 |
+| White 3 | Black 3 | the two kits (they also differ by a hoop and pinstripes, and by the shorts) | 520 | 521 | 520 | 521 |
+| White 3 | Keeper 3 | the white kit and the keeper | 279 | 261 | 341 | 151 |
+| Black 3 | Keeper 3 | the black kit and the keeper | 414 | 415 | 389 | 443 |
+| Black 3 | Grass A | the black kit on the grass | 187 | 202 | 221 | 211 |
+| White 3 | Grass A | the white kit on the grass | 407 | 349 | 351 | 367 |
 | Chalk Green | Chalk Red | credit and debt, good and bad (they also differ by a sign or an icon) | 326 | 127 | 216 | 401 |
 | Chalk Green | Chalk Amber | fresh and weary (they also differ by the fill pattern) | 286 | 153 | 198 | 299 |
 | Chalk Amber | Chalk Red | weary and spent (pattern too) | 135 | 100 | 153 | 143 |
@@ -3335,7 +3340,9 @@ The cursor alternates cursor_1 and cursor_2 every 400 ms. The text cursor (a blo
 | Ball 3 | Net | the ball against the net (pitch view) | 149 | 144 | 143 | 148 |
 | Ball 4 | Night Haze | the close up ball against the back of the net | 536 | 538 | 536 | 542 |
 
-- **Kits** differ by stripes (home), a hoop (away), plain with white hands (keepers) and a collar (referee), and by the shorts (cream, navy, black, charcoal), so the kits are told apart in grey scale (`footballmanager-colour-check.png`).
+- **Kits** differ by value (white against black against marigold) and by pattern (a black hoop on white, pale pinstripes on black, plain keepers with white gloves) and by the shorts (black under white, white under black), so they are told apart in grey scale and under every colour blindness filter (`footballmanager-colour-check.png`).
+- **At 2x** (640 x 480, the small screen scale) every screen was checked: the smallest text is the 3 x 5 font at 2x (6 x 10 pixels on screen), figures are 16 x 24, the ball 6 x 6 with its dark edge and shadow, so the white ball still reads beside a white shirt.
+- **No full screen change every frame.** Each view of the pitch and every board is drawn once; a frame redraws only the sprites that move (their old rectangles from the stored background, then the new ones), the ticker line and the score bar's clock. The close up redraws only its own 96 x 64 picture. Switching between the right and the left goal view, or opening a menu, is a single full draw on a change of screen, not on every frame.
 - **Energy and morale** differ by fill (solid, dashed, checked), length and the ticks at 6 and 12; **money** by the sign and the coin or cracked coin; **zones** by up and down arrows; **your bars** by the + or -.
 - **The ball** is white with a dark edge (Ball 5) and a shadow on the grass; on the close up the back net is dark (Night Haze and Net Dark), so the white ball is the brightest thing in the goal.
 - **Your club** stands out in every table: the Your Row band, two Chalk Yellow rules and yellow text (a shape and a value cue, not only a hue).
@@ -3344,19 +3351,17 @@ The cursor alternates cursor_1 and cursor_2 every 400 ms. The text cursor (a blo
 
 ### 11.1 Decided
 
-- The look (Chalk and Floodlights), the name proposal (Gaffer), the canvas (320 x 240 as briefed), the pitch (32 x 20 cells of 8 as briefed, from above), the goal mouth view (face on, our own), the kits (home stripes, away hoop, both fixed by side), the cell to pixel mapping and every position in section 6.
+- The look (Chalk and Floodlights), the canvas (320 x 240), the pitch as the rules' 32 x 22 grid in the attacked end view with its mirror (3.2), the cell to pixel mapping and the feet and ball positions, the face on goal mouth close up, the kits (white with a hoop, black with pinstripes, picked on the kit screen), and every position in section 6.
+- Removed in revision 2: the pick 12 screen (replaced by the kit screen), the referee (`ref_stand`, `ref_run_1`, `ref_run_2`), the icons `state_card`, `ev_yellow`, `ev_red`, `ev_sub`, the scorers strip on full time, the loan warning colours and the Referee, Ref Collar, Card and Pick Row colours. Renamed: `kit_home` and `kit_away` are now `kit_white` and `kit_black`; the Home and Away tone rows are now White and Black. New: `shirt_white`, `shirt_black`, the kit screen. Every other sprite name is as in revision 1.
+- The game's name and the club and player names are not in the art: the title draws a text constant by the rule of 6.5 and every list comes from the game's data. I have not put the 1982 game's name or its name lists into this file or the previews; the placeholders show the format and the column widths are sized for it.
 - The art needs **no rule change**.
 
 ### 11.2 Open calls for James
 
-1. **The name and the names.** Is **Gaffer** right? And all club and player names must be invented (not the 1982 lists, which are that game's content and include real clubs); I can write a list of 64 clubs and 24 players in the same spirit as the previews' if you want it.
-2. **Where the goals are.** The rules file says a goal passes through "columns 7 to 14 or 17 to 24, rows 5 to 13", which reads as if the original's pitch lay the other way (goals at the top and bottom). The art puts the goals at the left and right ends on cell rows 8 to 11, as the brief's "goals at the ends" says. Which should the port follow? If the rule's numbers stay, the pitch would need to be turned (20 x 32) and the stands moved to the sides.
-3. **Blocked shots** get no close up (the block is on the pitch, with the ticker). Or would you like a close up with the ball bouncing back off a defender's legs at the edge of the picture?
-4. **No halves, no scorers.** The rules have no half time and no named scorers, so there is a full time panel only, and it marks the goals by attack number. OK, or should the port add a half time break after the fifth round?
-5. **The cup's name**: the rules call it the FA Cup; the screens say THE CUP, since the real competition's name is not ours to use. OK?
-6. **Unused icons**: the suspended card, the yellow and red cards and the substitution icon are drawn (the brief lists them) but the rules have no cards or substitutes. Keep them for later, or drop them?
-7. **The loan in the status bar** goes Chalk Red above 80% of the limit (a warning before the sack). The original gave no warning; this is presentation only. Keep?
-8. **Class names** for the generated code (suggested `FootballLook`, `FootballArt`, `FootballTint` as the other games do), and the ABL art generator, are not written: this is art only.
+1. **The goal rows.** The columns given (17 to 24 and 7 to 14) sit on the goal lines at rows 8 to 15, but the rules file says rows 5 to 13. The art uses 8 to 15 (3.2). If the port uses 5 to 13, the goal moves 3 rows up the line and its columns become 14 to 22 and 9 to 17; tell me and I will move it (one constant in the generator).
+2. **The left edge of the grid.** Column 0 has no line (the grass runs to the edge of the screen). Would you rather a halfway line there, which would make the view read as half a pitch?
+3. **The in form and tired icons** on the squad screen are kept from revision 1 (the original shows energy only as a number). Keep them, or drop them as extras?
+4. **Class names** for the generated code (suggested `FootballLook`, `FootballArt`, `FootballTint` as the other games do), and the ABL art generator, are not written: this is art only.
 
 ## 12. The generator
 

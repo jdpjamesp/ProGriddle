@@ -90,8 +90,8 @@ def goalmouth_sheet():
 
 
 def screens_sheet():
-    keys = [('setup1', {}), ('setup2', {}), ('setup3', {}), ('menu', {}), ('pick', {}), ('results', {}), ('money', {}),
-            ('offer', {}), ('offer', {'result': 'no'}), ('sell', {}), ('cup', {}), ('fulltime', {}), ('season', {}),
+    keys = [('setup1', {}), ('setup2', {}), ('kit', {}), ('menu', {}), ('pick', {}), ('results', {}), ('money', {}),
+            ('offer', {}), ('offer', {'result': 'no'}), ('sell', {}), ('cup', {}), ('match', {'side': 'left', 'inset': False}), ('fulltime', {}), ('season', {}),
             ('sacked', {}), ('paused', {}), ('cabinet', {})]
     cols = 4
     rows = (len(keys) + cols - 1) // cols
@@ -160,6 +160,7 @@ def main(out):
     def save(cv, name, k=3):
         cv.image(k).save(os.path.join(out, '%s-%s.png' % (PREFIX, name)) if name else os.path.join(out, PREFIX + '.png'))
     SC.render('match').cv.image(3).save(os.path.join(out, PREFIX + '-preview.png'))
+    SC.render('match', side='left').cv.image(3).save(os.path.join(out, PREFIX + '-preview-left.png'))
     SC.render('table').cv.image(3).save(os.path.join(out, PREFIX + '-preview-table.png'))
     SC.render('squad').cv.image(3).save(os.path.join(out, PREFIX + '-preview-squad.png'))
     SC.render('title').cv.image(3).save(os.path.join(out, PREFIX + '-preview-title.png'))

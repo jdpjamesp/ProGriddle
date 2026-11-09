@@ -82,10 +82,11 @@ def dist(a, b):
 
 
 PAIRS = [  # things that must never be confused, and why
-    ('Home 3', 'Away 3', 'the two kits (they also differ by stripes and a hoop)'),
-    ('Home 3', 'Keeper 3', 'home and the keepers'),
-    ('Away 3', 'Keeper 3', 'away and the keepers'),
-    ('Referee 3', 'Grass A', 'the referee on the grass'),
+    ('White 3', 'Black 3', 'the two kits (they also differ by a hoop and pinstripes, and by the shorts)'),
+    ('White 3', 'Keeper 3', 'the white kit and the keeper'),
+    ('Black 3', 'Keeper 3', 'the black kit and the keeper'),
+    ('Black 3', 'Grass A', 'the black kit on the grass'),
+    ('White 3', 'Grass A', 'the white kit on the grass'),
     ('Chalk Green', 'Chalk Red', 'credit and debt, good and bad (they also differ by a sign or an icon)'),
     ('Chalk Green', 'Chalk Amber', 'fresh and weary (they also differ by the fill pattern)'),
     ('Chalk Amber', 'Chalk Red', 'weary and spent (pattern too)'),
@@ -126,7 +127,7 @@ def grey(im):
 
 
 def colour_check(path):
-    ims = [SC.render('match').cv.image(1), SC.render('squad').cv.image(1), SC.render('money').cv.image(1)]
+    ims = [SC.render('match').cv.image(1), SC.render('squad').cv.image(1), SC.render('kit').cv.image(1)]
     rows = []
     for im in ims:
         w = im.size[0] * 5 + 32

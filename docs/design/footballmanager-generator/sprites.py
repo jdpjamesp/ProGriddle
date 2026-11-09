@@ -5,12 +5,11 @@ import figures as F
 ALL = {}
 
 KIT_LEGEND = {
-    'home': {'S': 'Home Shorts', 'T': 'Home Shorts Dark', 'C': 'Skin 1', 'P': 'Home Stripe'},
-    'away': {'S': 'Away Shorts', 'T': 'Away Shorts Dark', 'C': 'Skin 1', 'P': 'Away Hoop'},
+    'white': {'S': 'Kit Dark Shorts', 'T': 'Kit Dark Shorts Shade', 'C': 'Skin 1', 'P': 'Kit Hoop'},
+    'black': {'S': 'Kit Light Shorts', 'T': 'Kit Light Shorts Shade', 'C': 'Skin 1', 'P': 'Kit Pinstripe'},
     'keeper': {'S': 'Keeper Shorts', 'T': 'Keeper Shorts Dark', 'C': 'Glove', 'P': 'Keeper 3'},
-    'referee': {'S': 'Referee 4', 'T': 'Referee 5', 'C': 'Skin 1', 'P': 'Ref Collar'},
 }
-KIT_ROW = {'home': 'Home', 'away': 'Away', 'keeper': 'Keeper', 'referee': 'Referee'}
+KIT_ROW = {'white': 'White', 'black': 'Black', 'keeper': 'Keeper'}
 FIXED = {'A': 'Skin 1', 'B': 'Skin 1 Shade', 'H': 'Hair Dark', 'O': 'Boot', 'W': 'Ball 3'}
 SKINS = [('Skin 1', 'Skin 1 Shade'), ('Skin 2', 'Skin 2 Shade'), ('Skin 3', 'Skin 3 Shade')]
 HAIRS = ['Hair Dark', 'Hair Black', 'Hair Fair', 'Hair Ginger']
@@ -25,7 +24,7 @@ def shirt_rows(rows):
 
 def pattern(rows, kit):
     """The kit pattern, applied before mirroring: home stripes on the torso columns 3 and 5, the away hoop on the torso's
-    middle row, the referee's collar on the torso's top row. Only tone pixels 2, 3, 4 of the torso change."""
+    middle row. Only tone pixels of the torso change."""
     if kit in ('keeper',):
         return rows
     top, bottom = shirt_rows(rows)
@@ -34,11 +33,9 @@ def pattern(rows, kit):
         for i, ch in enumerate(out[j]):
             if ch not in '1234':
                 continue
-            if kit == 'home' and i in (3, 5) and j > top:
+            if kit == 'black' and i in (3, 5) and j > top:
                 out[j][i] = 'P'
-            if kit == 'away' and j == top + 2:
-                out[j][i] = 'P'
-            if kit == 'referee' and j == top:
+            if kit == 'white' and j == top + 2:
                 out[j][i] = 'P'
     return [''.join(r) for r in out]
 
@@ -58,14 +55,14 @@ def fig_sprite(name, kit, rows=None):
 
 
 FIGS = {}
-for kit in ('home', 'away', 'keeper', 'referee'):
+for kit in ('white', 'black', 'keeper'):
     for n in F.FIG:
         if n.startswith('gk_') and kit != 'keeper':
             continue
         FIGS[(n, kit)] = fig_sprite(n, kit)
 
 for n in F.FIG:
-    kit = 'keeper' if n.startswith('gk_') else 'home'
+    kit = 'keeper' if n.startswith('gk_') else 'white'
     s = FIGS[(n, kit)]
     ALL[n] = s
 
@@ -74,14 +71,6 @@ for n, g in F.BALL.items():
     s = Sprite(n, grid(g), leg, group='ball', origin=(2, 2))
     s.row = None if n == 'ball_shadow' else 'Ball'
     ALL[n] = s
-
-# ---- the referee (the figure shapes in the Referee kit) ------------------------------------------------------------
-for n in ('fig_stand', 'fig_run_1', 'fig_run_3'):
-    s = FIGS[(n, 'referee')]
-    ref_name = {'fig_stand': 'ref_stand', 'fig_run_1': 'ref_run_1', 'fig_run_3': 'ref_run_2'}[n]
-    r = Sprite(ref_name, s.rows, s.legend, group='fig', origin=s.origin)
-    r.row = 'Referee'
-    ALL[ref_name] = r
 
 # ---- the close up keeper, ball and ripple --------------------------------------------------------------------------
 import keeper as K
@@ -129,7 +118,7 @@ for b in I.BADGES:
 for f in I.FACES:
     rows, leg = I.face(*f[1:6])
     s = Sprite(f[0], rows, leg, group='face', origin=(0, 0))
-    s.row = 'Home'
+    s.row = 'White'
     s.note = f[6]
     ALL[f[0]] = s
 
@@ -140,6 +129,14 @@ for n, (shape, leg, note) in I.ICONS.items():
     s.row = None
     s.note = note
     ALL[n] = s
+
+# ---- the kit screen's shirts (24 x 24) -------------------------------------------------------------------------------
+for kit in ('white', 'black'):
+    rows, leg = I.shirt(kit)
+    s = Sprite('shirt_' + kit, rows, leg, group='face', origin=(0, 0))
+    s.row = KIT_ROW[kit]
+    s.note = 'the %s kit, big, for the kit screen' % kit
+    ALL[s.name] = s
 
 # ---- trophies -----------------------------------------------------------------------------------------------------
 for n, w, h, metal, big, note in (('trophy_league', 32, 32, 'Gold', True, 'the league trophy: a gold cup on a wooden plinth'),

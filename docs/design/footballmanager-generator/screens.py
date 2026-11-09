@@ -142,11 +142,17 @@ def title(r, frame=0):
         cv.put(x, 145, C('Line'))
     r.log('the goal line, the full width', 'fill', 'Line', 0, 145)
     r.sprite_c('gm_keeper_ready', 160, 152, 'the keeper (bobbing 1 pixel every 400 ms)')
-    # the name
-    for dx, dy in ((2, 2),):
-        cv.text('GAFFER', 72 + dx, 14 + dy, C('Title Shadow'), 5)
-    r.log('the name\'s drop (2 pixels down and right)', '5 x 7, 5x', 'Title Shadow', 74, 16)
-    r.text('GAFFER', 72, 14, 'Title Top', 5, 'the name', outline='Outline', bottom='Title Bottom')
+    # the name: drawn from the game's name text by the rule of section 6.5; the preview shows the box it fills
+    for x in range(40, 280):
+        if x % 4 < 2:
+            cv.put(x, 8, C('Chalk Dim'))
+            cv.put(x, 49, C('Chalk Dim'))
+    for y in range(8, 50):
+        if y % 4 < 2:
+            cv.put(40, y, C('Chalk Dim'))
+            cv.put(279, y, C('Chalk Dim'))
+    r.log('the box the name fills (x 40 to 279, y 8 to 49): see the name rule under this table', 'dashed box (preview only)', 'Chalk Dim', 40, 8)
+    r.text(D.TITLE, 0, 25, 'Chalk Dim', 1, '', center=160)
     r.text('A FOOTBALL MANAGEMENT GAME', 0, 54, 'Chalk', 1, 'the line under the name', center=160)
     r.sprite_c('gm_ball_near', 136, 186, 'the ball flying at the goal (intro, section 7.1)')
     S.plate(cv, 96, 204, 128, 19, 'Chalk Yellow')
@@ -189,10 +195,10 @@ def setup1(r):
 def setup2(r):
     menu_frame(r, 'PICK A CLUB', 'DIVISION 4, PAGE 4 OF 4', keys=(('ARROWS', 'MOVE'), ('ENTER', 'PICK'), ('PAGE', 'DIVISION')), status=False)
     r.rect(0, 0, 320, 14, 'Tunnel', 'no status bar yet: the strip is plain Tunnel')
-    for i, (n, mini) in enumerate(D.CLUBS):
+    for i, n in enumerate(D.CLUBS):
         col, row = i // 8, i % 8
         x, y = 14 + col * 152, 38 + row * 23
-        badge = mini.replace('mini_', 'badge_')
+        badge = D.badge_of(n, 'badge')
         if i == 2:
             r.rect(x - 4, y - 2, 148, 20, 'Cursor Row', 'the cursor band')
             r.sprite('cursor_1', x - 2 + 0, y + 5) if False else None
@@ -200,30 +206,27 @@ def setup2(r):
         r.text(n, x + 22, y + 5, 'Chalk Yellow' if i == 2 else 'Chalk', 1, 'club name at badge x + 22, y + 5' if i == 0 else '')
 
 
-@screen('setup3', 'New game 3: pick 12 players', 'A grid of the 24: defenders, midfielders, forwards. Picks 1 to 11 get the red magnet, the 12th the blue ring (the reserve).')
-def setup3(r):
-    menu_frame(r, 'PICK 12 PLAYERS', 'PICKED 9 OF 12', keys=(('ARROWS', 'MOVE'), ('ENTER', 'PICK'), ('SPACE', 'DONE')), status=False)
+@screen('kit', 'New game 3: your colours', 'Replaces the pick 12 screen (the squad is dealt at random). Your side wears the colour picked, the other side the other one.')
+def kit(r):
+    menu_frame(r, 'YOUR COLOURS', 'STEP 3 OF 3', keys=(('LEFT RIGHT', 'CHOOSE'), ('ENTER', 'START')), status=False)
     r.rect(0, 0, 320, 14, 'Tunnel', 'no status bar yet: the strip is plain Tunnel')
-    heads = [('DEFENDERS', 'pos_df'), ('MIDFIELDERS', 'pos_mf'), ('FORWARDS', 'pos_fw')]
-    picked = {0, 1, 3, 9, 10, 12, 16, 17, 18}
-    for c, (h, ic) in enumerate(heads):
-        x = 12 + c * 102
-        r.sprite(ic, x, 37, 'column head icon, column c at x = 12 + 102 c' if c == 0 else '')
-        r.text(h, x + 11, 38, 'Chalk Dim', 1, 'column head' if c == 0 else '')
-        for k in range(8):
-            i = c * 8 + k
-            y = 54 + k * 20
-            if i == 10:
-                r.rect(x - 4, y - 4, 100, 16, 'Cursor Row', 'the cursor band')
-            mark = 'magnet_on' if i in picked else None
-            if mark:
-                r.sprite(mark, x, y, 'a picked player\'s magnet; the 12th pick gets magnet_res' if i == 0 else '')
-            else:
-                r.cv.rect(x + 1, y + 1, 6, 6, C('Board Rule'))
-                if i == 2:
-                    r.log('an empty slot: a 6 x 6 square at magnet x + 1, y + 1', 'fill', 'Board Rule', x + 1, y + 1)
-            r.text(D.POOL[i], x + 11, y, 'Chalk Yellow' if i == 10 else ('Chalk' if i in picked else 'Chalk Dim'), 1,
-                   'player name, row k at y = 54 + 20 k (Chalk if picked, Chalk Dim if not)' if i == 0 else '')
+    r.text('YOUR SIDE PLAYS IN', 0, 42, 'Chalk Dim', 1, 'line', center=160)
+    for k, (kit, name, x) in enumerate((('white', 'WHITE', 52), ('black', 'BLACK', 180))):
+        chosen = k == 0
+        r.rect(x, 60, 88, 104, 'Cursor Row' if chosen else 'Board Stripe', 'card %d (88 x 104), Cursor Row when chosen, else Board Stripe' % (k + 1))
+        if chosen:
+            for (x0, y0, w, h) in ((x, 60, 88, 1), (x, 163, 88, 1), (x, 60, 1, 104), (x + 87, 60, 1, 104)):
+                r.cv.rect(x0, y0, w, h, C('Chalk Yellow'))
+            r.log('the chosen card\'s 1 pixel Chalk Yellow ring', 'lines', 'Chalk Yellow', x, 60)
+        r.sprite('shirt_' + kit, x + 32, 70, 'the big shirt' if k == 0 else 'the big shirt')
+        r.sprite_c('fig_stand', x + 30, 128, 'a figure in the kit', legend=None) if False else None
+        put(r.cv, SP.FIGS[('fig_stand', kit)], x + 26, 104)
+        put(r.cv, SP.FIGS[('fig_run_1', kit)], x + 54, 104)
+        r.log('the kit on two figures (fig_stand and fig_run_1, pattern applied), top left', 'sprites', '', x + 26, 104)
+        r.text(name, 0, 124, 'Chalk Yellow' if chosen else 'Chalk', 2, 'the colour, 2x', center=x + 44)
+        r.text('HOOP' if kit == 'white' else 'STRIPES', 0, 146, 'Chalk Dim', 1, 'the pattern', center=x + 44)
+    r.sprite('cursor_1', 40, 108, 'the cursor beside the chosen card')
+    r.text('THE OTHER SIDE WEARS BLACK', 0, 182, 'Chalk', 1, 'line: BLACK or WHITE, the colour not chosen', center=160)
 
 
 @screen('menu', 'The week menu', 'The first screen of every week: the choices of the original menu, and the next match.')
@@ -243,12 +246,12 @@ def menu(r):
     # the next match card
     r.rect(166, 40, 1, 170, 'Board Rule', 'the rule between the halves')
     r.text('NEXT MATCH', 0, 42, 'Chalk Dim', 1, 'label', center=242)
-    r.text('LEAGUE', 0, 54, 'Chalk Blue', 1, 'LEAGUE, or THE CUP and the round name', center=242)
+    r.text('LEAGUE', 0, 54, 'Chalk Blue', 1, 'LEAGUE, or F.A. CUP and the round name', center=242)
     r.sprite('badge_tower', 196, 70, 'your badge')
     r.sprite('badge_kettle', 272, 70, 'their badge')
     r.text('V', 0, 75, 'Chalk Dim', 2, 'V', center=242)
-    r.text('MUDBURY TOWN', 0, 94, 'Chalk Yellow', 1, 'your club', center=242)
-    r.text('MIZZLE CITY', 0, 104, 'Chalk', 1, 'their club', center=242)
+    r.text('MUDBURY', 0, 94, 'Chalk Yellow', 1, 'your club', center=242)
+    r.text('MIZZLE C.', 0, 104, 'Chalk', 1, 'their club', center=242)
     r.text('HOME', 0, 116, 'Chalk Green', 1, 'HOME or AWAY (Chalk Blue)', center=242)
     r.text('THEY ARE 8TH', 0, 132, 'Chalk Dim', 1, 'their place', center=242)
     r.text('YOU ARE 3RD', 0, 142, 'Chalk Dim', 1, 'your place', center=242)
@@ -300,8 +303,8 @@ def squad(r):
     r.rect(262, 33, 1, 190, 'Board Rule', 'the panel rule')
     r.rect(272, 40, 30, 30, 'Wood 3', 'a wood frame round the face')
     r.sprite('face_4', 275, 43, 'the face (the game picks one of 8 by the player\'s number)')
-    r.small(p[0].split('. ')[1], 0, 76, 'Chalk Yellow', 'surname') if False else None
-    r.cv.small(p[0].split('. ')[1], 287 - small_width(p[0].split('. ')[1]) // 2, 76, C('Chalk Yellow'))
+    r.small(p[0].split('.')[1], 0, 76, 'Chalk Yellow', 'surname') if False else None
+    r.cv.small(p[0].split('.')[1], 287 - small_width(p[0].split('.')[1]) // 2, 76, C('Chalk Yellow'))
     r.log('the surname, centred on x 287', '3 x 5', 'Chalk Yellow', 287 - small_width('CRUMPET') // 2, 76)
     r.sprite('pos_mf', 283, 86, 'position')
     r.small('SKILL', 268, 100, 'Chalk Dim', 'label')
@@ -317,7 +320,7 @@ def squad(r):
 
 @screen('pick', 'Pick the team', 'Left: the squad with the picks. Right: the five numbers, yours over theirs, and the shape of the team on a chalk pitch.')
 def pick(r):
-    menu_frame(r, 'PICK THE TEAM', 'V MIZZLE CITY', keys=(('ENTER', 'PICK'), ('R', 'RESERVE'), ('SPACE', 'KICK OFF')))
+    menu_frame(r, 'PICK THE TEAM', 'V MIZZLE C.', keys=(('ENTER', 'PICK'), ('R', 'RESERVE'), ('SPACE', 'KICK OFF')))
     for i, p in enumerate(D.SQUAD):
         y = 38 + i * 13
         name, pos, skill, energy, st, value, mark = p
@@ -362,43 +365,45 @@ def pick(r):
     r.text('4-4-2', 0, py + ph // 2 - 3, 'Chalk Dim', 1, 'the shape, from the picks', center=px + 99)
 
 
-def score_bar(r, hs, as_, attack, home='MUDBURY TOWN', away='MIZZLE CITY'):
+def score_bar(r, hs, as_, attack, home='MUDBURY', away='MIZZLE C.'):
     cv = r.cv
     r.rect(0, 0, 320, 18, 'Tunnel', 'the score bar')
     r.rect(0, 17, 320, 1, 'Tunnel Rule', 'its rule')
     r.sprite('mini_tower', 4, 5, 'home mini badge')
-    r.sprite('kit_home', 14, 5, 'home kit icon')
-    r.text(home, 24, 6, 'Chalk', 1, 'home club (your club in Chalk Yellow)')
+    r.sprite('kit_white', 14, 5, 'home side\'s kit icon (kit_white or kit_black)')
+    r.text(home, 24, 6, 'Chalk Yellow', 1, 'home club (your club in Chalk Yellow, the other in Chalk)')
     r.text(str(hs), 0, 2, 'Chalk Yellow', 2, 'home goals, 2x', right=152)
     r.text('-', 0, 2, 'Chalk Dim', 2, 'the dash, 2x', center=160)
     r.text(str(as_), 168, 2, 'Chalk Yellow', 2, 'away goals, 2x')
     r.text(away, 0, 6, 'Chalk', 1, 'away club', right=295)
-    r.sprite('kit_away', 298, 5, 'away kit icon')
+    r.sprite('kit_black', 298, 5, 'away side\'s kit icon')
     r.sprite('mini_kettle', 308, 5, 'away mini badge')
 
 
-@screen('match', 'The match', 'The pitch is 32 x 20 cells of 8 x 8 pixels from (32, 34). The goal mouth close up is drawn over the middle of the pitch for each shot.')
-def match(r, inset=True, frame=0):
-    S.match_background(r.cv, frame)
-    r.log('the match background (section 3.1 and 3.2)', 'background', '', 0, 0)
+@screen('match', 'The match', 'One attack at a time on the pitch of the rules (3.2): seven figures, the ball two columns a step. The view is of the goal being attacked; the left goal\'s view is the mirror. The close up opens over the far corner for the shot.')
+def match(r, inset=True, frame=0, side='right'):
+    S.match_background(r.cv, frame, side)
+    r.log('the match background, right goal view (3.1, 3.2); for the left goal the rows 34 to 193 mirrored', 'background', '', 0, 0)
     score_bar(r, 2, 1, 7)
-    # the 22 and the referee, as the kick off shape of section 6.6, with the play moved on for the preview
-    for (c, rr, kit, n, flip) in FIGURES_PREVIEW:
+    for (c, rr, kit, n, flip) in ATTACK_PREVIEW:
         s = SP.FIGS[(n, kit)]
-        fx, fy = S.cell_xy(c, rr)
+        fx, fy = S.cell_xy(c, rr, side)
         ox, oy = s.origin
+        if side == 'left':
+            flip = not flip
         if flip:
             ox = s.width - 1 - ox
-        r.cv.tint = None
         put(r.cv, s, fx - ox, fy - oy, rows=mirror(s.rows) if flip else None)
-    r.log('the 22 figures and the referee: feet on cell_xy(c, r) (3.2; the kick off shape is under this table)', 'sprites', '', 32, 34)
-    bx, by = S.ball_xy(27, 10)
-    for k, (dx, dy) in enumerate(((-2, 1), (-4, 2), (-6, 3))):
-        r.cv.put(bx + dx - 1, by + dy, C('Trail %d' % (k + 1)))
+    r.log('the seven figures: feet on cell_xy(c, r) (the attack layout is under this table)', 'sprites', '', 0, 0)
+    path = [(14, 12), (16, 12)]
+    bc, br = 18, 12
+    bx, by = S.ball_xy(bc, br, side)
+    d = -1 if side == 'right' else 1
+    for k in range(3):
+        r.cv.put(bx + d * (2 + 2 * k), by + (k + 1) // 2, C('Trail %d' % (k + 1)))
     put(r.cv, SP.ALL['ball_shadow'], bx - 2 + 1, by - 2 + 3)
     put(r.cv, SP.ALL['ball_roll_1'], bx - 2, by - 2)
-    r.log('the ball on its cell, with its shadow 1 right and 3 down and the trail of 8.3', 'sprite ball_roll_1', '', bx, by)
-    # the ticker
+    r.log('the ball on cell (18, 12): ball_xy, its shadow 1 right and 3 down, the trail of 8.3', 'sprite ball_roll_1', '', bx, by)
     r.rect(0, 206, 320, 22, 'Tunnel', 'the ticker')
     r.rect(0, 206, 320, 1, 'Tunnel Rule', 'its rule')
     r.sprite('ev_save', 6, 213, 'the event icon')
@@ -410,40 +415,29 @@ def match(r, inset=True, frame=0):
     r.text('P', 74, 231, 'Chalk Yellow', 1, '')
     r.text('PAUSE', 84, 231, 'Chalk Dim', 1, '')
     if inset:
-        x, y = 112, 82
-        r.rect(x - 3, y - 3, 102, 70, 'Outline', 'the close up frame: Outline ring')
+        x, y = (9, 87) if side == 'right' else (215, 87)
+        r.rect(x - 3, y - 3, 102, 70, 'Outline', 'the close up frame: Outline ring (right goal view; at x 212 for the left goal)')
         r.rect(x - 2, y - 2, 100, 68, 'Chalk Yellow', 'then a Chalk Yellow ring')
         r.rect(x - 1, y - 1, 98, 66, 'Outline', 'then Outline again')
         S.goal_mouth(r.cv, x, y)
         r.log('the goal mouth picture (section 3.4)', 'goal mouth', '', x, y)
-        r.sprite_c('gm_keeper_high_right', x + 64, y + 26, 'the keeper, high dive to the right (the goal mouth table, 6.24)')
+        r.sprite_c('gm_keeper_high_right', x + 61, y + 35, 'the keeper, high dive to the right (the goal mouth table, 6.24)')
         r.sprite_c('gm_ball_mid', x + 72, y + 22, 'the ball at the top right target, in the gloves: SAVED')
 
 
-# the preview's figures: (cell column, cell row, kit, frame, mirrored)
-FIGURES_PREVIEW = [
-    (1, 9, 'keeper', 'gk_ready_1', False),
-    (8, 3, 'home', 'fig_run_2', False), (9, 7, 'home', 'fig_stand', False), (8, 12, 'home', 'fig_run_4', False), (9, 16, 'home', 'fig_stand', False),
-    (14, 3, 'home', 'fig_run_1', False), (15, 8, 'home', 'fig_run_3', False), (16, 13, 'home', 'fig_run_2', False), (14, 17, 'home', 'fig_stand', False),
-    (26, 10, 'home', 'fig_kick_2', False), (22, 13, 'home', 'fig_run_1', False),
-    (30, 10, 'keeper', 'gk_ready_2', True),
-    (25, 5, 'away', 'fig_run_1', True), (26, 9, 'away', 'fig_run_3', True), (25, 13, 'away', 'fig_stand', True), (26, 16, 'away', 'fig_stand', True),
-    (19, 3, 'away', 'fig_run_2', True), (20, 6, 'away', 'fig_run_4', True), (19, 12, 'away', 'fig_stand', True), (20, 16, 'away', 'fig_run_1', True),
-    (12, 6, 'away', 'fig_stand', True), (13, 11, 'away', 'fig_run_3', True),
-    (18, 1, 'referee', 'fig_run_1', False),
+# the preview's attack, right goal view: (column, row, kit, frame, mirrored). The home side (white) attacks right.
+ATTACK_PREVIEW = [
+    (19, 11, 'keeper', 'gk_ready_1', True),
+    (17, 12, 'white', 'fig_kick_1', False), (13, 8, 'white', 'fig_run_2', False), (14, 17, 'white', 'fig_run_4', False),
+    (17, 9, 'black', 'fig_run_1', True), (20, 14, 'black', 'fig_stand', True), (15, 16, 'black', 'fig_run_3', True),
 ]
-
-# the kick off shape: (column, row) for home; the away side is (31 - column, 19 - row)
-KICKOFF = {
-    'keeper': [(1, 9)],
-    'defenders': [(6, 3), (6, 7), (6, 12), (6, 16)],
-    'midfielders': [(11, 3), (11, 7), (11, 12), (11, 16)],
-    'forwards': [(15, 8), (14, 12)],
-    'referee': [(16, 4)],
-}
+ATTACK_ROLES = [('the keeper', 'on c = 8 + r (right goal) or c + r = 23 (left goal), rows 8 to 13, faces the play'),
+                ('the dribbler', 'one cell behind the ball, faces the goal'),
+                ('two more attackers', 'on the cells the game gives, face the goal'),
+                ('three defenders', 'on the cells the game gives, face the ball')]
 
 
-@screen('fulltime', 'Full time', 'A plate over the last frame of the pitch. The rules have no halves and no named scorers, so the panel lists the attacks.')
+@screen('fulltime', 'Full time', 'A plate over the last frame of the pitch: the score and the counts of the attacks. No half time and no scorers, as the original.')
 def fulltime(r):
     match(r, inset=False)
     r.rows = [row for row in r.rows if row[0].startswith('the match background') or row[0].startswith('the score bar')]
@@ -462,27 +456,21 @@ def fulltime(r):
         r.text(str(a), 0, y, 'Chalk', 1, 'your count, row i at y = 112 + 11 i' if i == 0 else '', right=110)
         r.text(n, 0, y, 'Chalk Dim', 1, 'label' if i == 0 else '', center=160)
         r.text(str(b), 210, y, 'Chalk', 1, 'their count' if i == 0 else '')
-    # goals on a strip of attack numbers
-    r.small('GOALS', 72, 158, 'Chalk Dim', 'label')
-    for k, (n, who) in enumerate(((3, 'home'), (6, 'away'), (9, 'home'))):
-        x = 100 + k * 30
-        r.sprite('ev_goal', x, 156, 'a goal: ev_goal, then the attack number, every 30 pixels' if k == 0 else '')
-        r.cv.small('%d' % n, x + 10, 158, C('Chalk Yellow' if who == 'home' else 'Chalk Blue'))
 
 
 @screen('results', 'Results', 'This week\'s result and the other matches of the division (the original\'s random pairings), then the next match.')
 def results(r):
     menu_frame(r, 'RESULTS', 'WEEK 10', keys=(('ENTER', 'MONEY'),))
     r.sprite('badge_tower', 30, 38, 'your match: home badge')
-    r.text('MUDBURY TOWN', 50, 43, 'Chalk Yellow', 1, 'home')
+    r.text('MUDBURY', 50, 43, 'Chalk Yellow', 1, 'home')
     r.text('2-1', 0, 39, 'Chalk Yellow', 2, 'score 2x', center=160)
-    r.text('MIZZLE CITY', 0, 43, 'Chalk', 1, 'away', right=270)
+    r.text('MIZZLE C.', 0, 43, 'Chalk', 1, 'away', right=270)
     r.sprite('badge_kettle', 274, 38, 'away badge')
     r.rect(14, 60, 292, 1, 'Board Rule', 'rule')
     r.text('THE REST OF DIVISION 3', 0, 66, 'Chalk Dim', 1, 'label', center=160)
     others = [('GRUBSWORTH', 3, 0, 'SNOOZEHAM'), ('WOBBLEFORD', 1, 1, 'PIEMOUTH'), ('TOFFEETON', 2, 2, 'DRIZZLEBY'),
-              ('SLOWCOMBE', 0, 1, 'BRAMBLE UTD'), ('KETTLEWHIP', 4, 2, 'PUDDLEMOOR'), ('CRUMBLETON', 1, 0, 'BOGWATER'),
-              ('NETTLE ROV', 0, 0, 'HOPSWICH')]
+              ('SLOWCOMBE', 0, 1, 'BRAMBLE U.'), ('KETTLEWHIP', 4, 2, 'PUDDLEMOOR'), ('CRUMBLETON', 1, 0, 'BOGWATER'),
+              ('NETTLE R.', 0, 0, 'HOPSWICH')]
     for i, (a, x, y_, b) in enumerate(others):
         y = 80 + i * 12
         if i % 2:
@@ -494,7 +482,7 @@ def results(r):
     r.text('NEXT', 20, 180, 'Chalk Dim', 1, 'label')
     r.text('AWAY V GRUBSWORTH', 50, 180, 'Chalk', 1, 'the next match')
     r.sprite('ev_whistle', 20, 196, 'a cup week adds this line')
-    r.text('THEN THE CUP: ROUND 4', 32, 197, 'Chalk Blue', 1, 'the cup line')
+    r.text('THEN THE F.A. CUP ROUND 4', 32, 197, 'Chalk Blue', 1, 'the cup line')
 
 
 @screen('money', 'The money report', 'The week\'s money, then a 10 week chart of the cash and the loan against its limit. L and R open the loan and repay boxes.')
@@ -519,16 +507,13 @@ def money(r):
     r.log('the loan, 2x, no sign', '5 x 7, 2x, money', 'Chalk', 150 - amount_width(212300, 2, False) + 1, 136)
     r.text('LIMIT', 26, 160, 'Chalk Dim', 1, 'label')
     r.amount(500000, 0, 160, 'Chalk Dim', 1, 'the limit (250 000 times the division multiplier)', right=150, sign=False)
-    # the loan meter
+    # the loan meter: plain, no warning colours (the original gives none)
     r.rect(26, 176, 124, 6, 'Bar Empty', 'the loan meter: 124 x 6, filled loan / limit')
     fill = 124 * 212300 // 500000
-    r.cv.rect(26, 176, fill, 6, C('Chalk Amber'))
-    for i in range(fill):
-        if i % 4 == 3:
-            r.cv.rect(26 + i, 176, 1, 6, C('Weary Dark'))
-    r.log('fill: Chalk Green (solid) under 40%, Chalk Amber (dashed) to 80%, Chalk Red (checked) above, like the energy bar', 'bar', 'by level', 26, 176)
-    r.rect(26 + 99, 174, 1, 10, 'Chalk Red', 'the 80% tick')
-    r.rect(26 + 123, 173, 1, 12, 'Chalk Red', 'the limit tick')
+    r.cv.rect(26, 176, fill, 6, C('Bar Plain'))
+    r.cv.rect(26 + fill - 1, 176, 1, 6, C('Chalk'))
+    r.log('fill Bar Plain, the last column Chalk; the same at every level', 'bar', 'Bar Plain', 26, 176)
+    r.rect(26 + 123, 173, 1, 12, 'Chalk Dim', 'the limit tick')
     r.small('42%', 26, 186, 'Chalk Dim', 'percent of the limit')
     # the chart
     cx, cy0, cy1 = 176, 44, 150
@@ -572,7 +557,8 @@ def table(r, div=3):
     rows = sorted(enumerate(D.TABLE), key=lambda t: -(t[1][1] * 3 + t[1][2]))
     for i, (ci, (p, w, d, l, f, a)) in enumerate(rows):
         y = 48 + i * 11
-        name, mini = D.CLUBS[ci]
+        name = D.CLUBS[ci]
+        mini = D.badge_of(name)
         you = name == D.CLUB
         if i % 2 == 1:
             r.cv.rect(4, y - 2, 312, 11, C('Board Stripe'))
@@ -617,7 +603,7 @@ def offer(r, result=None):
     r.rect(30, 50, 54, 54, 'Wood 3', 'the face frame') if False else None
     r.rect(32, 50, 30, 30, 'Wood 3', 'the face frame')
     r.sprite('face_2', 35, 53, 'the face')
-    r.text('U. PARSNIP', 74, 50, 'Chalk Yellow', 2, 'name, 2x')
+    r.text('U.PARSNIP', 74, 50, 'Chalk Yellow', 2, 'name, 2x')
     r.sprite('pos_fw', 74, 70, 'position')
     r.text('FORWARD', 86, 71, 'Chalk', 1, 'position name')
     r.text('SKILL', 74, 86, 'Chalk Dim', 1, 'label')
@@ -671,7 +657,7 @@ def sell(r):
     r.rect(168, 34, 1, 190, 'Board Rule', 'the panel rule')
     r.rect(208, 44, 30, 30, 'Wood 3', 'the face frame')
     r.sprite('face_6', 211, 47, 'the face')
-    r.text('F. WIMBLE', 0, 82, 'Chalk Yellow', 1, 'name', center=243)
+    r.text('F.WIMBLE', 0, 82, 'Chalk Yellow', 1, 'name', center=243)
     r.text('AN OFFER OF', 0, 104, 'Chalk Dim', 1, 'label', center=243)
     r.cv.amount(34500, 0, 116, C('Chalk Green'), 2, right=300, sign=False)
     r.log('the offer, 2x, no sign (0.8 to 1.3 times the value)', '5 x 7, 2x, money', 'Chalk Green', 300 - amount_width(34500, 2, False) + 1, 116)
@@ -681,21 +667,21 @@ def sell(r):
     r.text('N REFUSE', 250, 176, 'Chalk Red', 1, 'N')
 
 
-@screen('cup', 'The cup round', 'Shown before a cup match. The round names: ROUND 1 to ROUND 6, SEMI-FINAL, FINAL; a replay adds REPLAY.')
+@screen('cup', 'The F.A. Cup round', 'Shown before a cup match. The round names: ROUND 1 to ROUND 6, SEMI-FINAL, FINAL; a replay adds REPLAY.')
 def cup(r):
-    menu_frame(r, 'THE CUP', 'WEEK 11', keys=(('ENTER', 'PICK THE TEAM'),))
+    menu_frame(r, 'F.A. CUP', 'WEEK 11', keys=(('ENTER', 'PICK THE TEAM'),))
     r.sprite_c('trophy_cup', 160, 78, 'the cup trophy (origin bottom middle)')
     r.text('ROUND 4', 0, 86, 'Chalk Blue', 3, 'the round, 3x', center=160, outline='Outline')
     r.text('REPLAY', 0, 112, 'Chalk Amber', 1, 'REPLAY, only for a replay', center=160)
-    r.sprite('badge_tower', 52, 132, 'the home club\'s badge')
-    r.text('MUDBURY TOWN', 0, 137, 'Chalk Yellow', 1, 'the home club (yours in Chalk Yellow)', right=146)
+    r.sprite('badge_tower', 72, 132, 'the home club\'s badge')
+    r.text('MUDBURY', 0, 137, 'Chalk Yellow', 1, 'the home club (yours in Chalk Yellow)', right=146)
     r.text('V', 0, 137, 'Chalk Dim', 1, 'V', center=160)
     r.text('GRUBSWORTH', 174, 137, 'Chalk', 1, 'the away club')
     r.sprite('badge_star', 234 + 20, 132, 'their badge') if False else None
     r.sprite('badge_star', 252, 132, 'the away club\'s badge')
     r.text('DIVISION 1', 0, 150, 'Chalk Dim', 1, 'their division', center=214)
     r.text('AT HOME', 0, 168, 'Chalk Green', 1, 'AT HOME (Chalk Green) or AWAY (Chalk Blue)', center=160)
-    r.text('GATE AWAY FROM HOME: 40 000', 0, 190, 'Chalk Dim', 1, 'what the gate will be, when it is known (cup away, semi-final, final)', center=160)
+    
 
 
 @screen('season', 'End of season', 'Your place, the prize money and one of PROMOTED, RELEGATED or STAYING UP.')
@@ -757,13 +743,13 @@ def cabinet(r):
     for i, s in enumerate((3, 5)):
         r.sprite_c('cab_league', 50 + i * 22, 91, 'a league title, every 22 pixels from x 50' if i == 0 else '')
         r.cv.small('S%d' % s, 45 + i * 22, 82 + 16, C('Chalk Dim')) if False else None
-    r.text('CUP', 36, 102, 'Chalk Dim', 1, 'shelf label')
+    r.text('F.A. CUP', 36, 102, 'Chalk Dim', 1, 'shelf label')
     for i, s in enumerate((2, 4, 5)):
         r.sprite_c('cab_cup', 50 + i * 22, 145, 'a cup, every 22 pixels' if i == 0 else '')
     r.text('BIG ONES', 36, 156, 'Chalk Dim', 1, 'shelf label: the full size trophies of the last titles')
     r.sprite_c('trophy_league', 120, 199, 'the latest league title, full size')
     r.sprite_c('trophy_cup', 200, 199, 'the latest cup, full size')
-    r.text('2 LEAGUE TITLES   3 CUPS   6 SEASONS', 0, 214, 'Chalk', 1, 'the tally', center=160)
+    r.text('2 TITLES   3 F.A. CUPS   6 SEASONS', 0, 214, 'Chalk', 1, 'the tally', center=160)
 
 
 # ======================================================================================================================

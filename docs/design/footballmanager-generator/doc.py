@@ -59,32 +59,36 @@ def table(head, rows):
 
 
 # ======================================================================================================================
-P('# FootballManager: art and screen design, "Chalk and Floodlights"')
+P('# FootballManager: art and screen design, "Chalk and Floodlights" (revision 2)')
 P('')
-P('Designer\'s answer to `footballmanager-art-brief.md` (the revised brief of 9 November 2026) and `footballmanager-rules.md`. Everything here is meant to be pasted into code with no further decisions. Section 11 lists what I decided and the calls still open for James.')
+P('Designer\'s answer to `footballmanager-art-brief.md`, its revision `footballmanager-art-brief-2.md` and `footballmanager-rules.md`. Everything here is meant to be pasted into code with no further decisions. Section 11 lists what I decided and the calls still open for James.')
 P('')
-P('**The idea in one line.** Every menu is the **chalkboard in the dressing room**: chalk lettering on a bottle green slate in a wooden frame, red and blue tactics magnets for the picks. Every match is a **floodlit night game** seen from the gantry: a bright mown pitch, a dark stand of dots that jumps when a goal goes in, and a close up of the goal mouth for every shot. The working title stays in the file names; the name I propose for the game is **Gaffer** (section 1.2).')
+P('**The idea in one line.** Every menu is the **chalkboard in the dressing room**: chalk lettering on a bottle green slate in a wooden frame, red and blue tactics magnets for the picks. Every match is a **floodlit night game**: the attacked end of the pitch in perspective with its goal line on the diagonal, seven figures, and a close up of the goal mouth for every shot.')
 P('')
-P('**What is kept and what is ours.** The rules, the numbers, the weekly order (menu, pick the team, the match, the result and the money, the table, one transfer offer), the five team numbers, the four divisions of 16 and every screen in the brief\'s list are kept as the brief and the rules file give them. The name, the look, the goal mouth view (face on from the penalty spot, not isometric), the badges, the faces and **all club and player names** are original. The design does not use the 1982 game\'s name, screens, lettering, colours or its lists of clubs and players: the names in the previews are invented placeholders, and the art does not depend on any name, since every screen draws whatever text the game holds.')
+P('**What changed in revision 2.** The pitch follows the rules\' 32 x 22 grid with diagonal goal lines (3.2), with seven figures in an attack and the keeper on his diagonal. The kits are **white** and **black** (your side wears the colour picked on the new kit screen, the other side the other), told apart by a hoop and pinstripes as well as by colour. The pick 12 screen and the referee are gone, as are the card and substitute icons, the scorers strip and the loan warning colours. The cup is the **F.A. Cup**. Badges go by slot. Sprite names are unchanged where the sprite is unchanged; the renamed and removed ones are listed in 11.1.')
+P('')
+P('**Names.** The game\'s name is drawn from a text constant by the rule of 6.5, and every club and player name comes from the game\'s data. This file and its previews do not carry the 1982 game\'s name or its lists of clubs and players: the previews show placeholder names in the data\'s format (a club of at most 10 characters, a player of at most 9 as `K.PUDDLE`), and every column is sized for those lengths.')
 P('')
 P('Previews (made by the generator from the data in this file, so the pictures and the text cannot disagree):')
 P('')
-P('- `footballmanager-preview.png` (3x): the match part way through, attack 7, the close up showing a high save.')
+P('- `footballmanager-preview.png` (3x): an attack on the right goal part way through, attack 7, the close up showing a high save.')
+P('- `footballmanager-preview-left.png` (3x): the same attack on the left goal (the mirrored view).')
 P('- `footballmanager-preview-table.png` (3x): the division 3 table, your club 3rd, both zones marked.')
 P('- `footballmanager-preview-squad.png` (3x): the squad, the cursor on a midfielder, all three energy levels.')
 P('- `footballmanager-preview-title.png` (3x): the title, part way through the intro (the shot on its way).')
-P('- `footballmanager-screens.png` (2x): every other screen: the three set up screens, the week menu, pick the team, results, the money report, the transfer offer (bid, and refused), sell a player, the cup round, full time, end of season, sacked, paused, the trophy cabinet.')
+P('- `footballmanager-screens.png` (2x): every other screen: the three set up screens (name and level, club, colours), the week menu, pick the team, results, the money report, the transfer offer (bid, and refused), sell a player, the F.A. Cup round, an attack on the left goal without the close up, full time, end of season, sacked, paused, the trophy cabinet.')
 P('- `footballmanager-goalmouth.png` (3x): the nine saves, goals, wide, over, off the post, the shot\'s three frames and the ripple.')
 P('- `footballmanager-later.png` (2x): the four division looks and the stand at four sizes (section 9).')
 P('- `footballmanager-sprites.png` (4x): every sprite, alternate rows on the board and on the grass.')
-P('- `footballmanager-colour-check.png` (1x): the match, the squad and the money report as drawn, through deuteranopia, protanopia and tritanopia, and in grey scale.')
+P('- `footballmanager-colour-check.png` (1x): the match, the squad and the kit screen as drawn, through deuteranopia, protanopia and tritanopia, and in grey scale.')
 P('')
 P('## 0. Read this first')
 P('')
 P('- The canvas is **320 x 240**, as the brief proposes, shown at 3x (2x on small screens), nearest neighbour. It is a **direct colour PixelCanvas** like Space Invaders, Centipede, Xevious and Cuber. 320 is wide enough: the table\'s last column ends at x 306 in the 5 x 7 font at 1x, so no size change is asked for.')
+P('- The **pitch** is the rules\' 32 x 22 grid, drawn as the attacked end in perspective (3.2).')
 P('- Every menu screen has the same frame: the **status bar** (rows 0 to 13), the **board** in its wooden frame (rows 14 to 227), the **key bar** (rows 228 to 239). The match replaces the status bar with a **score bar** and the board with the pitch (section 3.1).')
 P('- **Sprite format**: the tone format of `snake-art.md`. `.` is transparent, `1` to `5` are the tones of the sprite\'s colour row (1 highlight, 2 light, 3 base, 4 shade, 5 edge), letters are fixed colours given in each legend. No legend has more than 16 colours (the largest has %d).' % max(len(s.legend) for s in A.values()))
-P('- **Origin**: every sprite gives its origin. For a figure it is **the middle of its feet** and goes on `cell_xy(column, row)` (section 3.2). Badges, faces and icons are placed by their top left (origin (0, 0)).')
+P('- **Origin**: every sprite gives its origin. For a figure it is **the middle of its feet** and goes on `cell_xy(column, row, side)` (section 3.2). Badges, faces and icons are placed by their top left (origin (0, 0)).')
 P('- **Facing**: figures are drawn facing right; the game mirrors the columns for left (the origin column becomes `width - 1 - x`). Every figure is lit from the top, so a mirrored figure is right. The kit pattern is applied **before** mirroring (section 4.1).')
 P('- **Text**: the house 5 x 7 font, plus six new glyphs and a 3 x 5 font for the dense places (section 5). Everything is in capitals.')
 P('- **Draw order** on the match: the baked background (stands, pitch, goals), the figures sorted by feet y (then x), the ball\'s shadow, the trail, the ball, the score bar and ticker, then the close up and any plate on top.')
@@ -101,11 +105,11 @@ P('It is a sibling of the others (dark ground, chunky pixels, the 5 x 7 font, ba
 P('')
 P('### 1.2 The names')
 P('')
-table(['Thing', 'Name', 'Why'], [
-    ['The game', '**Gaffer** (working title FootballManager, kept in the file names)', 'What the players call the manager. Short, warm, a little funny, and not the original\'s name'],
+table(['Thing', 'Name', 'Note'], [
+    ['The game', 'a text constant', 'drawn on the title by the rule of 6.5; the file names keep the working title footballmanager'],
     ['The look', 'Chalk and Floodlights', 'The board for the week, the lights for the match'],
-    ['The week menu', 'the Manager\'s Office (the board\'s title)', 'The menu of the original\'s choices, under a friendlier heading'],
-    ['The cup', 'THE CUP', 'A knockout cup with no real competition\'s name (see 11.2)'],
+    ['The week menu', 'the Manager\'s Office (the board\'s title)', 'The original\'s choices, under a friendlier heading'],
+    ['The cup', 'F.A. CUP', 'as the brief writes it; rounds ROUND 1 to ROUND 6, SEMI-FINAL, FINAL'],
     ['A pick', 'a magnet', 'Red disc to start, blue ring for the reserve'],
 ])
 P('### 1.3 What is the same on purpose')
@@ -113,6 +117,7 @@ P('')
 P('- **Everything that costs you is Chalk Red** (`%s`): debt, wages, rent and interest in the money report, relegation, a spent bar, an injury, a defeat, SACKED. Everything that pays is **Chalk Green** (`%s`). A minus sign, the cracked coin or a down arrow always comes with the red; a plus sign, the coin or an up arrow with the green.' % (NAMED['Chalk Red'], NAMED['Chalk Green']))
 P('- **Yellow chalk is you**: your club\'s name and row, your bars on the pick screen, the cursor, the selected item. **Blue chalk is them** (their bars) and information (week, division, morale, the cup).')
 P('- **Gold is money and glory**: the coin, the league trophy and the title lettering share the Gold row.')
+P('- **The kits are white and black**, and the keeper marigold, so the three never share a value; the white has a black hoop and black shorts, the black has pale pinstripes and white shorts.')
 P('- **The keeper is marigold everywhere**: the Keeper row on the pitch and in the close up, and the goalkeeper position icon (`Pos GK` = `Keeper 3`).')
 P('- **The board\'s rows** mean the same on every screen: Board Stripe on every second row, Cursor Row under the cursor, Your Row (with two Chalk Yellow rules) under your club.')
 P('')
@@ -141,7 +146,7 @@ P('')
 table(['Rows', 'What'], [
     ['0 to 17', 'the score bar (Tunnel, a Tunnel Rule on row 17), section 6.12'],
     ['18 to 33', 'the top stand: Roof rows 18 and 19, Roof Edge row 20, one row of crowd tiles rows 21 to 28, Wall row 29, the hoardings rows 30 to 33'],
-    ['34 to 193', 'the pitch: 32 x 20 cells of 8 x 8 from x 32 (x 32 to 287); Run Off to the sides (x 0 to 31 and 288 to 319)'],
+    ['34 to 193', 'the pitch and the run off; the grid\'s 22 rows are y 36 to 189 (3.2)'],
     ['194 to 205', 'the bottom stand: the hoardings rows 194 to 197, a row of crowd tiles rows 198 to 205'],
     ['206 to 227', 'the ticker (Tunnel, a Tunnel Rule on row 206)'],
     ['228 to 239', 'the key bar'],
@@ -150,27 +155,35 @@ P('Two floodlight heads (3.3) sit on the top stand at (3, 19) and (305, 19).')
 P('')
 P('### 3.2 The pitch and its cells')
 P('')
-P('The pitch is seen **from above**, the figures from the side (the classic way, and it keeps a cell square). The ball runs on **32 columns by 20 rows of cells of 8 x 8 pixels**, the size the brief proposes; it suits the look.')
+P('**The geometry of the rules, and why there are two views.** The ball runs on 32 columns by 22 rows. It leaves through the right goal where column - row > 9 and through the left goal where column + row < 22. Those two diagonals cross (at column 15.5, row 6.5), so they cannot both be the ends of one drawn pitch; but each attack only ever goes toward one of them, and the two are mirror images: cell (c, r) on the left goal\'s side matches cell (31 - c, r) on the right goal\'s side (c + r < 22 becomes (31 - c) - r > 9). So the match shows **the attacked end**: the right goal view is drawn below, and the left goal view is the same picture with x mirrored (x becomes 319 - x) over rows 34 to 193. The home side attacks the right goal, the away side the left, as the rules say.')
 P('')
-P('- `cell_xy(c, r) = (32 + 8c + 4, 34 + 8r + 7)`: the middle of the bottom row of the cell. A figure\'s feet (its origin) go here, so its 12 rows rise 4 rows into the cell above.')
-P('- `ball_xy(c, r) = (32 + 8c + 4, 34 + 8r + 4)`: the middle of the cell, the ball\'s origin. Its shadow is drawn 1 right and 3 down.')
-P('- **The goals** are at both ends on **cell rows 8 to 11** (y 98 to 129), the left goal outside column 0, the right outside column 31 (see 11.2 about the rules file\'s goal numbers).')
+P('**The goal mouth rows.** The goal posts sit where the brief\'s columns put them: columns 17 to 24 lie on the right goal line (column = 9 + row) at **rows 8 to 15**, and columns 7 to 14 on the left goal line (column = 22 - row) at the same rows. The rules file also says "rows 5 to 13", which does not fit those columns on those lines (at rows 5 to 13 the right line runs through columns 14 to 22). The art draws rows 8 to 15 (GOAL_ROWS in the generator) until James says otherwise (11.2).')
 P('')
-P('The background, drawn once:')
+P('**Cell to pixel**, right goal view. A cell is 8 pixels wide and 7 tall; each row starts 3 pixels further left than the row above, so the pitch leans like a pitch seen from the side stand:')
+P('')
+P('- the cell\'s top left: `(91 + 8c - 3r, 36 + 7r)`, for c 0 to 31, r 0 to 21;')
+P('- **a figure\'s feet** (its origin): `cell_xy(c, r) = (95 + 8c - 3r, 42 + 7r)`, the middle of the cell\'s bottom row;')
+P('- **the ball** (its origin): `ball_xy(c, r) = (95 + 8c - 3r, 39 + 7r)`, the middle of the cell; its shadow 1 right and 3 down;')
+P('- **left goal view**: `cell_xy_left(c, r) = (319 - x, y)` where (x, y) = `cell_xy(31 - c, r)`; the same for the ball; every figure is also mirrored (a figure facing the right goal on the right view faces the left goal on the left view).')
+P('')
+P('The cells right of the goal line (column > 9 + row) are off the pitch: the ball only enters them as it leaves.')
+P('')
+P('The background (right goal view), drawn once per view:')
 P('')
 table(['Part', 'Recipe'], [
     ['Run off', 'Run Off over rows 34 to 193, the full width'],
-    ['Mown stripes', '16 stripes 16 pixels wide from x 32: Grass A on even stripes, Grass B on odd'],
-    ['Touch and goal lines', 'Line on x 32 to 287 at y 34 and y 193; on y 34 to 193 at x 32 and x 287'],
-    ['Halfway line', 'Line, 2 wide, x 159 and 160'],
-    ['Centre circle', 'Line on the points of a circle radius 22 round (159.5, 113.5) (every 0.5 degree, rounded); a 2 x 2 spot at (159, 113)'],
-    ['Penalty areas', '5 cells deep, cell rows 4 to 15 (y 66 to 161): the box lines at x 72 (left) and x 247 (right)'],
-    ['Goal areas', '2 cells deep, cell rows 7 to 12 (y 90 to 137): lines at x 48 and x 271'],
-    ['Spots', '2 x 2 at (60, 113) and (258, 113)'],
-    ['Arcs', 'the points of a circle radius 18 round each spot that lie outside the box'],
-    ['Goals', 'from above: 8 x 32 of Net Dark at x 24 to 31 and x 288 to 295, y 98 to 129, with Net on every pixel where (x + y) mod 3 = 0; Post on the goal line side (x 31 and x 288, y 97 to 130) and along the top and bottom (y 97 and 130); Net on the back line'],
-    ['Corner flags', 'a 1 x 3 Post above each corner and a 2 pixel Chalk Yellow flag pointing in'],
+    ['The goal line', 'on each pixel row y from 36 to 189, Line at `gx(y) = 91 + 80 + 5 (y - 36) div 7` (the edge after column 9 + row); it runs from (171, 36) to (280, 189)'],
+    ['Lines parallel to it', '`line_x(y, k) = 91 + 8k + 5 (y - 36) div 7`; the goal line is k = 10'],
+    ['Mown stripes', 'every pixel left of the goal line on rows 36 to 189: Grass A when ((gx(y) - 1 - x) div 16) is even, else Grass B (stripes 16 wide, parallel to the goal line)'],
+    ['Touch lines', 'Line on row 36 from x 0 to gx(36), and on row 189 from x 0 to gx(189) (rows 0 and 21 of the grid)'],
+    ['Penalty area', 'k = 5 (5 cells in front of the line), rows 4 to 19: Line at line_x(y, 5) for y 64 to 175, and across from it to the goal line on y 64 and y 175'],
+    ['Goal area', 'k = 8, rows 7 to 16: Line at line_x(y, 8) for y 85 to 154, and across on y 85 and y 154'],
+    ['Penalty spot', '2 x 1 Line at y 116, x midway between line_x(116, 6) and line_x(116, 7)'],
+    ['The goal', 'the foot of the far post at (gx(92), 92), the top of row 8; the near post at (gx(147), 147), the bottom of row 15. Posts 14 pixels tall, Post with a Silver 3 column on their right; the crossbar along the line 14 pixels up, Post with Silver 3 beside it; the net behind, 10 pixels to the right of the line from the ground to the bar, Net where (x + y) mod 3 = 0 else Net Dark; the back posts and the roof edge of the net in Net'],
+    ['Left edge', 'the grid\'s column 0 is not a line: the grass runs on to x 0'],
 ])
+P('**The attack layout.** Seven figures: the keeper, the dribbler (one cell behind the ball, on the ball\'s row), two more attackers and three defenders, on the cells the game gives. The keeper stands on **c = 8 + r** (right goal; c + r = 23 at the left goal), rows 8 to 13, and steps along that diagonal toward the ball\'s row one cell at a time (a step is 120 ms of run frames). Attackers face the goal; defenders and the keeper face the ball. The ball moves **two columns a step**, toward the goal (8.3 gives its trail), and drifts a row when the game says.')
+P('')
 P('### 3.3 Stands, crowd, hoardings and floodlights')
 P('')
 P('- **Crowd**: the tiles `crowd_1` (sitting) and `crowd_2` (cheering) of 32 x 8, repeated every 32 pixels from x 0. On a goal the two tiles swap every 150 ms for 1200 ms (section 7).')
@@ -212,25 +225,24 @@ P('')
 P('The figures (8 x 12, origin (4, 11), facing right) are given once with the shirt in tones 1 to 4; a kit is a tone row plus fixed letters plus a **pattern**, applied before mirroring, to the torso\'s tone pixels only (the torso is the rows from the first row holding a `1` down to the row above the first `S`):')
 P('')
 table(['Kit', 'Tone row', '`S` shorts', '`T` shorts shade', '`C` hands', 'Pattern (becomes `P`)', '`P` colour'], [
-    ['home', 'Home', 'Home Shorts', 'Home Shorts Dark', 'Skin', '**vertical stripes**: torso columns 3 and 5, below the torso\'s top row', 'Home Stripe'],
-    ['away', 'Away', 'Away Shorts', 'Away Shorts Dark', 'Skin', '**a hoop**: the torso\'s third row (top + 2), all of it', 'Away Hoop'],
+    ['white', 'White', 'Kit Dark Shorts', 'Kit Dark Shorts Shade', 'Skin', '**a hoop**: the torso\'s third row (top + 2), all of it', 'Kit Hoop'],
+    ['black', 'Black', 'Kit Light Shorts', 'Kit Light Shorts Shade', 'Skin', '**pinstripes**: torso columns 3 and 5, below the torso\'s top row', 'Kit Pinstripe'],
     ['keeper', 'Keeper', 'Keeper Shorts', 'Keeper Shorts Dark', 'Glove', 'none (plain shirt, white gloves)', ''],
-    ['referee', 'Referee', 'Referee 4', 'Referee 5', 'Skin', '**a collar**: the torso\'s top row', 'Ref Collar'],
 ])
-P('Fixed letters in every figure: `A` skin, `B` skin shade, `H` hair, `O` Boot, `C` hands. **Skin and hair vary** by the player\'s number n (1 to 24): skin pair `n mod 3` (Skin 1, Skin 2, Skin 3, each with its Shade), hair `n mod 4` (Hair Dark, Hair Black, Hair Fair, Hair Ginger). The keepers and the referee use pair 1 and Hair Dark. The home side (left, attacking right) always wears home and the away side away, whichever is your club.')
+P('Your side wears the colour picked on the kit screen (6.8), the other side the other one, home or away. Fixed letters in every figure: `A` skin, `B` skin shade, `H` hair, `O` Boot, `C` hands. **Skin and hair vary** by the player\'s number n (1 to 24): skin pair `n mod 3` (Skin 1, Skin 2, Skin 3, each with its Shade), hair `n mod 4` (Hair Dark, Hair Black, Hair Fair, Hair Ginger). The opposition\'s figures use their place on the pitch as n. The keeper uses pair 2 and Hair Black on the pitch, as in the close up.')
 P('')
-P('The four kits standing, as the brief asks (pattern applied):')
+P('The three kits standing (pattern applied):')
 P('')
-for kit in ('home', 'away', 'keeper', 'referee'):
+for kit in ('white', 'black', 'keeper'):
     s = SP.FIGS[('fig_stand', kit)]
     block('fig_stand_%s' % kit, s.rows, s.legend, s.origin, '', s.row)
-P('The frames, before the pattern (shown with the Home row and the home legend):')
+P('The frames, before the pattern (shown with the White row and the white legend):')
 P('')
 FRAME_NOTES = {
-    'fig_stand': 'Standing (also the referee standing).',
-    'fig_run_1': 'Running 1 of 4: contact, right leg forward (also referee run 1).',
+    'fig_stand': 'Standing.',
+    'fig_run_1': 'Running 1 of 4: contact, right leg forward.',
     'fig_run_2': 'Running 2: passing, the body 1 pixel up.',
-    'fig_run_3': 'Running 3: contact, the other leg (also referee run 2).',
+    'fig_run_3': 'Running 3: contact, the other leg.',
     'fig_run_4': 'Running 4: passing.',
     'fig_kick_1': 'Kicking 1: the wind up (the anticipation frame, shown 80 ms before the ball moves).',
     'fig_kick_2': 'Kicking 2: the strike, the leg through; the ball leaves on this frame.',
@@ -238,8 +250,8 @@ FRAME_NOTES = {
     'fig_cheer_2': 'Celebrating 2: a jump, arms wide.',
 }
 for n in FRAME_NOTES:
-    s = SP.FIGS[(n, 'home')]
-    block(n, grid(F.FIG[n]), s.legend if n != 'fig_stand' else s.legend, s.origin, FRAME_NOTES[n], 'Home')
+    s = SP.FIGS[(n, 'white')]
+    block(n, grid(F.FIG[n]), s.legend, s.origin, FRAME_NOTES[n], 'White')
 P('### 4.2 The keeper on the pitch')
 P('')
 P('Keeper kit (marigold, white gloves). Ready and got it are 8 x 12 with origin (4, 11); the dives are 12 x 12 with origin (6, 11), the middle of the bottom row, which goes on the keeper\'s cell. **Dive up** is toward the top of the screen (the keeper of the left goal reaching to his left), **dive down** the other way; mirror both for the right goal.')
@@ -250,9 +262,9 @@ GK_NOTES = {'gk_ready_1': 'Ready 1: the crouch.', 'gk_ready_2': 'Ready 2: the bo
             'gk_dive_down_1': 'Dive down 1: going down.', 'gk_dive_down_2': 'Dive down 2: on the ground, full stretch.'}
 for n, note in GK_NOTES.items():
     sblock(SP.FIGS[(n, 'keeper')], note)
-P('### 4.3 The referee and the ball')
+P('### 4.3 The ball')
 P('')
-P('The referee is the figure in the Referee kit: `ref_stand` = fig_stand, `ref_run_1` = fig_run_1, `ref_run_2` = fig_run_3 (two frames at 140 ms). He never touches the ball.')
+P('There is no referee on the pitch in revision 2 (seven figures only), so `ref_stand`, `ref_run_1` and `ref_run_2` are gone.')
 P('')
 for n in ('ball_roll_1', 'ball_roll_2', 'ball_air', 'ball_shadow'):
     note = {'ball_roll_1': 'Rolling 1 (origin the middle).', 'ball_roll_2': 'Rolling 2: the patch moved round (60 ms each while it moves).',
@@ -279,7 +291,7 @@ for n in ('gm_ball_near', 'gm_ball_mid', 'gm_ball_far', 'gm_ripple_1', 'gm_rippl
                   'gm_ripple_1': 'Ripple 1: the first ring.', 'gm_ripple_2': 'Ripple 2: the ring spreads, an inner ring of Net.', 'gm_ripple_3': 'Ripple 3: fading (Net only).'}[n])
 P('### 4.6 Club badges (16 x 16) and mini badges (8 x 8)')
 P('')
-P('Eight badges, assigned to the 64 clubs as `badge = club number mod 8`. The mini badge for the status bar and the tables is the badge sampled at every odd pixel (x and y 1, 3, 5, ... 15), given below so no code has to do it.')
+P('Eight badges, assigned **by slot**: the club in slot s (1 to 16) of its division gets badge `(s - 1) mod 8` in the order below (star, hoops, tower, anchor, tree, chevron, fish, kettle), so every division shows each badge twice, slots s and s + 8. The mini badge for the status bar and the tables is the badge sampled at every odd pixel (x and y 1, 3, 5, ... 15), given below so no code has to do it.')
 P('')
 for b in I.BADGES:
     sblock(A[b[0]])
@@ -287,10 +299,14 @@ for b in I.BADGES:
     sblock(A[b[0].replace('badge_', 'mini_')])
 P('### 4.7 Faces (24 x 24)')
 P('')
-P('Eight faces, reused as `face = player number mod 8` (the manager uses face_8 on the set up screen). The shirt at the bottom is the Home row; the game may swap it for any kit row. `P` is the collar.')
+P('Eight faces, reused as `face = player number mod 8` (the manager uses face_8 on the set up screen). The shirt at the bottom is the White row with a Kit Hoop collar; for a side in black the game swaps the White row for the Black row. `P` is the collar.')
 P('')
 for f in I.FACES:
     sblock(A[f[0]])
+P('The kit screen\'s two big shirts (24 x 24, top left origin):')
+P('')
+for n in ('shirt_white', 'shirt_black'):
+    sblock(A[n])
 P('### 4.8 Icons (8 x 8)')
 P('')
 P('Every icon is a shape first and a colour second. Most have a 1 pixel `E` Icon Edge so they read on any ground. Placed by the top left.')
@@ -356,7 +372,7 @@ table(['Bar', 'Recipe'], [
     ['Morale (1 to 20)', '10 pips of 3 x 5, every 4 pixels; a pip is 2 points, an odd point lights its first 2 columns; the same three levels and colours as energy; the top left pixel of a full pip is Chalk. Used on the week menu and the end of season where a bar would be too wide'],
     ['Skill (1 to 5)', '5 squares (3 x 3 every 4 pixels; 5 x 5 every 6 on the transfer card), Chalk Yellow lit, Bar Empty unlit'],
     ['Your number against theirs', 'two bars of 20 units at 5 pixels a unit, 4 rows each with 1 row between: yours Chalk Yellow, theirs Chalk Blue, over Bar Empty; after them the two numbers in the 3 x 5 font, and after yours a **+** (Chalk Green) when you are level or ahead, a **-** (Chalk Red) when behind'],
-    ['Loan meter', '124 x 6, filled loan / limit: Chalk Green solid under 40%, Chalk Amber dashed to 80%, Chalk Red checked above; a Chalk Red tick 10 rows tall at 80% and 12 rows tall at the limit'],
+    ['Loan meter', '124 x 6 over Bar Empty, filled loan / limit in Bar Plain with the last column Chalk; a Chalk Dim tick 12 rows tall at the limit. No warning colours (the original gives none)'],
 ])
 P('### 6.4 Plates')
 P('')
@@ -372,13 +388,17 @@ for key, title, f, note in SC.SCREENS:
         P('')
     table(['What', 'Font or kind', 'Colour', 'x', 'y'], [[w, fo, c, x, y] for (w, fo, c, x, y) in rec.rows])
     if key == 'table':
-        P('**Column positions** (5 x 7 at 1x, numbers right aligned on these right edges): zone marker x 6; POS right edge 22; mini badge x 26; CLUB x 38 (12 characters, to x 108); P 140; W 160; D 180; L 200; F 226; A 250; GD 276 (sign always drawn); PTS 306. Rows from y 48, every 11 (the 16th at y 213).')
+        P('**Column positions** (5 x 7 at 1x, numbers right aligned on these right edges): zone marker x 6; POS right edge 22; mini badge x 26; CLUB x 38 (10 characters, to x 96); P 140; W 160; D 180; L 200; F 226; A 250; GD 276 (sign always drawn); PTS 306. Rows from y 48, every 11 (the 16th at y 213).')
+        P('')
+    if key == 'title':
+        P('**The name rule.** The game\'s name is a text constant, drawn in the 5 x 7 font with a vertical gradient from Title Top to Title Bottom, an Outline and a 2 pixel Title Shadow drop down and right, centred on x 160. Up to 8 characters: one line at 5x, top at y 14. 9 to 16 characters: split at the space nearest the middle into two lines, each at 3x (a line of up to 16 characters is at most 285 pixels), tops at y 8 and y 31. Then the line under the name at y 54. The dashed box in the preview marks the area the name fills.')
         P('')
     if key == 'match':
-        P('**The kick off shape** (home attacks right; the away side is at `(31 - column, 19 - row)`, mirrored):')
+        P('**The attack in the preview** (right goal view; for the left goal use `cell_xy_left` and mirror each figure):')
         P('')
-        table(['Who', 'Cells (column, row)'], [[k, ', '.join('(%d, %d)' % p for p in v)] for k, v in SC.KICKOFF.items()])
-        P('The figures then move as the game says; the art only needs their cells. A figure with the ball, or running to it, uses the run frames (100 ms each); the others stand. The figure that shoots plays kick 1, kick 2.')
+        table(['Figure', 'Cell (c, r)', 'Kit', 'Frame', 'Faces'], [[('keeper' if k == 'keeper' else ('attacker' if k == 'white' else 'defender')), '(%d, %d)' % (c, rr), k, n, 'left' if fl else 'right'] for (c, rr, k, n, fl) in SC.ATTACK_PREVIEW])
+        table(['Who', 'Where'], SC.ATTACK_ROLES)
+        P('The ball is on (18, 12), struck from (16, 12) and (14, 12) before it: two columns a step.')
         P('')
     if key == 'offer':
         P('After the bid, a plate replaces the bid box (see `footballmanager-screens.png`): rules Chalk Green with ACCEPTED and "HE JOINS AS YOUR RESERVE", or Chalk Red with REFUSED, "THE PRICE GOES UP TO" and the new value in Chalk Yellow.')
@@ -416,10 +436,10 @@ table(['ms', 'What changes', 'Pixels'], [
 P('### 7.2 The match, one attack')
 P('')
 table(['Step', 'Timing', 'What changes'], [
-    ['Dribble', '160 ms a step (2 columns), the ball tweens 1 pixel every 10 ms', 'the ball rolls (ball_roll_1, 2 every 60 ms), the carrier runs beside it, the nearest 3 players of each side run 1 pixel every 20 ms toward it; the trail (8.3)'],
+    ['Dribble', '160 ms a step (2 columns), the ball tweens along the step', 'the ball rolls (ball_roll_1, 2 every 60 ms), the dribbler runs behind it on the run frames, the other six move to the cells the game gives (run frames while they move); the keeper steps along his diagonal; the trail (8.3)'],
     ['A defender wins it', '300 ms', 'the defender plays kick 1 and 2 (80 ms, 120 ms), the ball goes back; ticker BLOCKED (`ev_block`)'],
     ['The shot', '80 + 120 ms', 'the shooter plays kick 1, kick 2; the ball changes to ball_air'],
-    ['The close up opens', '0 ms (one draw of the frame and the picture)', 'the frame (102 x 70) and the goal mouth over the pitch at (112, 82)'],
+    ['The close up opens', '0 ms (one draw of the frame and the picture)', 'the frame (102 x 70) and the goal mouth over the far corner of the view: picture at (9, 87) on the right goal view, (215, 87) on the left'],
     ['Ready', '300 ms', 'the keeper in ready'],
     ['The flight', '3 x 80 ms', 'gm_ball_near, gm_ball_mid, gm_ball_far (7.4); the keeper changes to his pose on the last frame'],
     ['The result', '900 ms', 'saved: hold; goal: the ripple (3 x 80 ms), the shake (8.2), the crowd cheer (8.4); wide or over: hold'],
@@ -430,7 +450,7 @@ P('An attack takes about 2.5 to 3.5 seconds, so 12 attacks are 30 to 40 seconds.
 P('')
 P('### 7.3 Figures')
 P('')
-P('Run 1, 2, 3, 4 at 100 ms; the referee\'s two run frames at 140 ms; the keeper\'s ready bob at 400 ms; a keeper\'s dive on the pitch: dive 1 for 100 ms, dive 2 for 500 ms, then ready; got it for 600 ms after a save; celebrate 1, 2 at 150 ms.')
+P('Run 1, 2, 3, 4 at 100 ms; the keeper\'s ready bob at 400 ms; a keeper\'s dive on the pitch: dive 1 for 100 ms, dive 2 for 500 ms, then ready; got it for 600 ms after a save; celebrate 1, 2 at 150 ms.')
 P('')
 P('### 7.4 The close up shot')
 P('')
@@ -449,7 +469,7 @@ table(['Effect', 'Verdict', 'Recipe'], [
     ['8.3 Ball trail', '**keep**', 'while the ball moves, the 3 pixels behind it along its path, 2, 4 and 6 pixels back: Trail 1, Trail 2, Trail 3; none when still'],
     ['8.4 The crowd jumps', '**keep**', 'both stands swap crowd_1 and crowd_2 every 150 ms for 1200 ms on a goal (yours or theirs); the close up\'s crowd strip too'],
     ['8.5 Money counting up', '**keep**', 'on the money report the cash rolls from last week\'s to this week\'s in 8 steps of 50 ms (the digits drawn at each step\'s value)'],
-    ['8.6 Ticker flash', '**keep, for goals**', 'GOAL in the ticker alternates Chalk Yellow and Chalk every 200 ms for 1200 ms (the red card flash is dropped: the rules have no cards)'],
+    ['8.6 Ticker flash', '**keep, for goals**', 'GOAL in the ticker alternates Chalk Yellow and Chalk every 200 ms for 1200 ms (the red card flash is dropped: the original has no cards)'],
     ['8.7 Low energy pulse', '**keep**', 'spent bars: the fill turns Spent Dark for 200 ms every 600 ms'],
     ['8.8 Coin shower', '**keep**', 'when the cash goes from below 0 to 0 or more: 12 particles of 2 x 2 (Gold 2 over Gold 4) fall from the status bar coin, 1 pixel every 20 ms, for 600 ms, over the board only'],
     ['8.9 Lit star for promotion', '**keep**', 'at the season end the promoted clubs\' rows show mark_star in place of mark_up, swapping with Chalk Amber for one frame every 800 ms'],
@@ -476,7 +496,9 @@ table(['Text', 'On', 'Ratio'], [[a, b, '%.1f' % c] for a, b, c in check.text_con
 P('- **Things that must not be confused**, as a colour distance (redmean, 0 to about 765) for normal vision, deuteranopia, protanopia and tritanopia. The low ones are why a second cue is there:')
 P('')
 table(['A', 'B', 'Why', 'Normal', 'Deuter.', 'Protan.', 'Tritan.'], [[a, b, why] + ['%.0f' % v for v in vals] for a, b, why, *vals in check.separation()])
-P('- **Kits** differ by stripes (home), a hoop (away), plain with white hands (keepers) and a collar (referee), and by the shorts (cream, navy, black, charcoal), so the kits are told apart in grey scale (`footballmanager-colour-check.png`).')
+P('- **Kits** differ by value (white against black against marigold) and by pattern (a black hoop on white, pale pinstripes on black, plain keepers with white gloves) and by the shorts (black under white, white under black), so they are told apart in grey scale and under every colour blindness filter (`footballmanager-colour-check.png`).')
+P('- **At 2x** (640 x 480, the small screen scale) every screen was checked: the smallest text is the 3 x 5 font at 2x (6 x 10 pixels on screen), figures are 16 x 24, the ball 6 x 6 with its dark edge and shadow, so the white ball still reads beside a white shirt.')
+P('- **No full screen change every frame.** Each view of the pitch and every board is drawn once; a frame redraws only the sprites that move (their old rectangles from the stored background, then the new ones), the ticker line and the score bar\'s clock. The close up redraws only its own 96 x 64 picture. Switching between the right and the left goal view, or opening a menu, is a single full draw on a change of screen, not on every frame.')
 P('- **Energy and morale** differ by fill (solid, dashed, checked), length and the ticks at 6 and 12; **money** by the sign and the coin or cracked coin; **zones** by up and down arrows; **your bars** by the + or -.')
 P('- **The ball** is white with a dark edge (Ball 5) and a shadow on the grass; on the close up the back net is dark (Night Haze and Net Dark), so the white ball is the brightest thing in the goal.')
 P('- **Your club** stands out in every table: the Your Row band, two Chalk Yellow rules and yellow text (a shape and a value cue, not only a hue).')
@@ -486,19 +508,17 @@ P('## 11. What I decided, and what is open')
 P('')
 P('### 11.1 Decided')
 P('')
-P('- The look (Chalk and Floodlights), the name proposal (Gaffer), the canvas (320 x 240 as briefed), the pitch (32 x 20 cells of 8 as briefed, from above), the goal mouth view (face on, our own), the kits (home stripes, away hoop, both fixed by side), the cell to pixel mapping and every position in section 6.')
+P('- The look (Chalk and Floodlights), the canvas (320 x 240), the pitch as the rules\' 32 x 22 grid in the attacked end view with its mirror (3.2), the cell to pixel mapping and the feet and ball positions, the face on goal mouth close up, the kits (white with a hoop, black with pinstripes, picked on the kit screen), and every position in section 6.')
+P('- Removed in revision 2: the pick 12 screen (replaced by the kit screen), the referee (`ref_stand`, `ref_run_1`, `ref_run_2`), the icons `state_card`, `ev_yellow`, `ev_red`, `ev_sub`, the scorers strip on full time, the loan warning colours and the Referee, Ref Collar, Card and Pick Row colours. Renamed: `kit_home` and `kit_away` are now `kit_white` and `kit_black`; the Home and Away tone rows are now White and Black. New: `shirt_white`, `shirt_black`, the kit screen. Every other sprite name is as in revision 1.')
+P('- The game\'s name and the club and player names are not in the art: the title draws a text constant by the rule of 6.5 and every list comes from the game\'s data. I have not put the 1982 game\'s name or its name lists into this file or the previews; the placeholders show the format and the column widths are sized for it.')
 P('- The art needs **no rule change**.')
 P('')
 P('### 11.2 Open calls for James')
 P('')
-P('1. **The name and the names.** Is **Gaffer** right? And all club and player names must be invented (not the 1982 lists, which are that game\'s content and include real clubs); I can write a list of 64 clubs and 24 players in the same spirit as the previews\' if you want it.')
-P('2. **Where the goals are.** The rules file says a goal passes through "columns 7 to 14 or 17 to 24, rows 5 to 13", which reads as if the original\'s pitch lay the other way (goals at the top and bottom). The art puts the goals at the left and right ends on cell rows 8 to 11, as the brief\'s "goals at the ends" says. Which should the port follow? If the rule\'s numbers stay, the pitch would need to be turned (20 x 32) and the stands moved to the sides.')
-P('3. **Blocked shots** get no close up (the block is on the pitch, with the ticker). Or would you like a close up with the ball bouncing back off a defender\'s legs at the edge of the picture?')
-P('4. **No halves, no scorers.** The rules have no half time and no named scorers, so there is a full time panel only, and it marks the goals by attack number. OK, or should the port add a half time break after the fifth round?')
-P('5. **The cup\'s name**: the rules call it the FA Cup; the screens say THE CUP, since the real competition\'s name is not ours to use. OK?')
-P('6. **Unused icons**: the suspended card, the yellow and red cards and the substitution icon are drawn (the brief lists them) but the rules have no cards or substitutes. Keep them for later, or drop them?')
-P('7. **The loan in the status bar** goes Chalk Red above 80% of the limit (a warning before the sack). The original gave no warning; this is presentation only. Keep?')
-P('8. **Class names** for the generated code (suggested `FootballLook`, `FootballArt`, `FootballTint` as the other games do), and the ABL art generator, are not written: this is art only.')
+P('1. **The goal rows.** The columns given (17 to 24 and 7 to 14) sit on the goal lines at rows 8 to 15, but the rules file says rows 5 to 13. The art uses 8 to 15 (3.2). If the port uses 5 to 13, the goal moves 3 rows up the line and its columns become 14 to 22 and 9 to 17; tell me and I will move it (one constant in the generator).')
+P('2. **The left edge of the grid.** Column 0 has no line (the grass runs to the edge of the screen). Would you rather a halfway line there, which would make the view read as half a pitch?')
+P('3. **The in form and tired icons** on the squad screen are kept from revision 1 (the original shows energy only as a number). Keep them, or drop them as extras?')
+P('4. **Class names** for the generated code (suggested `FootballLook`, `FootballArt`, `FootballTint` as the other games do), and the ABL art generator, are not written: this is art only.')
 P('')
 # ---------------------------------------------------------------------------------------------------------------- generator
 P('## 12. The generator')
