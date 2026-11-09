@@ -171,7 +171,7 @@ PX, PY = 91, 36        # the top left pixel of cell (0, 0)
 CW, RH = 8, 7          # a cell is 8 pixels wide and 7 tall
 SHEAR = 3              # each row starts 3 pixels further left than the one above it
 COLS, ROWS = 32, 22
-GOAL_ROWS = (8, 15)    # the rows of the goal mouth on the goal line (columns 17 to 24 at the right, 7 to 14 at the left)
+GOAL_ROWS = (7, 13)    # the rows where a goal can be scored (the ball leaves at columns row + 10 to 24 at the right, 7 to 21 - row at the left)
 SCORE = (0, 17)
 TOP_STAND = (18, 33)
 BOTTOM_STAND = (194, 205)
@@ -274,23 +274,24 @@ def pitch(cv):
         cv.put(x, Y_TOP, L)                                # the far touch line
     for x in range(0, line_x(Y_BOTTOM, 10) + 1):
         cv.put(x, Y_BOTTOM, L)                             # the near touch line
-    # the penalty area (5 cells in front of the line, rows 4 to 19) and the goal area (2 cells, rows 7 to 16)
-    for k, r0, r1 in ((5, 4, 19), (8, 7, 16)):
+    # the penalty area (5 cells in front of the line, 4 rows either side of the goal) and the goal area (2 cells, 1 row either side)
+    g0, g1 = GOAL_ROWS
+    for k, r0, r1 in ((5, g0 - 4, g1 + 4), (8, g0 - 1, g1 + 1)):
         ya, yb = PY + RH * r0, PY + RH * (r1 + 1) - 1
         for y in range(ya, yb + 1):
             cv.put(line_x(y, k), y, L)
         for y in (ya, yb):
             for x in range(line_x(y, k), line_x(y, 10)):
                 cv.put(x, y, L)
-    # the penalty spot: 2 x 1, on the line 3.5 cells out, at the middle of the goal (row 11.5)
-    sy = PY + RH * 12 - 4
+    # the penalty spot: 2 x 1, 3.5 cells out, level with the middle of the goal
+    sy = PY + RH * (g0 + g1 + 1) // 2
     sx = (line_x(sy, 6) + line_x(sy, 7)) // 2
     cv.rect(sx, sy, 2, 1, L)
     goal(cv)
 
 
 def goal_points():
-    """The goal's foot points on the goal line: the far post at the top of row 8, the near post at the bottom of row 15."""
+    """The goal's foot points on the goal line: the far post at the top of the first goal row, the near post at the bottom of the last."""
     ya, yb = PY + RH * GOAL_ROWS[0], PY + RH * (GOAL_ROWS[1] + 1) - 1
     return (line_x(ya, 10), ya), (line_x(yb, 10), yb)
 
@@ -384,7 +385,7 @@ def goal_mouth_rows():
     # the side nets: a lighter strip 2 pixels inside each post, mesh every 2 rows
     for y in range(GM_BAR_Y + 3, GM_LINE_Y):
         for x in (13, 14, 81, 82):
-            g[y][x] = 'N' if y % 2 == 0 else 'n'
+            g[y][x] = 't' if y % 2 == 0 else 'n'
     # the frame: posts 3 wide, crossbar 3 tall, white with a grey right and bottom side
     for y in range(GM_BAR_Y, GM_LINE_Y + 1):
         for x in (10, 11, 12, 83, 84, 85):
@@ -394,13 +395,13 @@ def goal_mouth_rows():
             g[y][x] = 'P' if y < GM_BAR_Y + 2 else 'Q'
     # the goal line and the six yard box: a line across, a line 8 rows nearer, slanting sides
     for x in range(GM_W):
-        g[GM_LINE_Y][x] = 'L' if not (10 <= x <= 85 and g[GM_LINE_Y][x] in 'PQ') else g[GM_LINE_Y][x]
-        g[56][x] = 'L'
+        g[GM_LINE_Y][x] = 'e' if not (10 <= x <= 85 and g[GM_LINE_Y][x] in 'PQ') else g[GM_LINE_Y][x]
+        g[56][x] = 'e'
     for k in range(9):
         y = GM_LINE_Y + k
         for x in (2 - k // 2 * 1 - 0, 93 + k // 2):
             if 0 <= x < GM_W:
-                g[y][x] = 'L'
+                g[y][x] = 'e'
     # the frame's shadow on the grass, 1 row under the line inside the posts
     for x in range(13, 83):
         if g[GM_LINE_Y + 1][x] in 'ab':
@@ -410,8 +411,8 @@ def goal_mouth_rows():
 
 GM_LEGEND = {
     'k': 'Crowd Shadow', 'f': 'Crowd Face', 'd': 'Crowd Face Dark', 'c': 'Crowd Red', 'w': 'Wall', 'h': 'Hoarding',
-    'l': 'Hoarding Lit', 's': 'Stand', 'n': 'Night Haze', 'N': 'Net', 'm': 'Net Dark', 'P': 'Post', 'Q': 'Silver 3',
-    'L': 'Line', 'a': 'Grass A', 'b': 'Grass B', 'g': 'Ball Shadow',
+    'l': 'Hoarding Lit', 's': 'Stand', 'n': 'Night Haze', 't': 'Net', 'm': 'Net Dark', 'P': 'Post', 'Q': 'Silver 3',
+    'e': 'Line', 'a': 'Grass A', 'b': 'Grass B', 'g': 'Ball Shadow',
 }
 
 

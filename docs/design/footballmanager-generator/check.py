@@ -47,8 +47,18 @@ def simulate(im, m):
     return out
 
 
+def case_clash(name, legend):
+    """Letters that differ only by case in one legend (the game reads letters without regard to case)."""
+    seen = {}
+    for k in legend:
+        seen.setdefault(k.lower(), []).append(k)
+    return ['%s: legend letters %s differ only by case' % (name, ' and '.join(v)) for v in seen.values() if len(v) > 1]
+
+
 def validate():
-    bad = []
+    bad = case_clash('goal_mouth', S.GM_LEGEND)
+    for s in SP.FIGS.values():
+        bad += case_clash(s.name, s.legend)
     for s in SP.ALL.values():
         for ch in s.used():
             if ch not in s.legend:
@@ -56,6 +66,7 @@ def validate():
         for k, v in s.legend.items():
             if v not in NAMED:
                 bad.append('%s: %s is not a palette name' % (s.name, v))
+        bad += case_clash(s.name, s.legend)
         if len(s.legend) > 16:
             bad.append('%s: %d legend entries' % (s.name, len(s.legend)))
         mw, mh = SIZES[s.group]
