@@ -61,6 +61,7 @@ CLASS ProGriddle.Games.SpaceInvaders.SpaceInvadersInput FINAL IMPLEMENTS IGameIn
             RETURN "".
         END GET.
 
+    {&_proparse_ prolint-nowarn(varusage)}
     DEFINE PUBLIC PROPERTY Choice AS CHARACTER NO-UNDO
         GET():
             RETURN "".

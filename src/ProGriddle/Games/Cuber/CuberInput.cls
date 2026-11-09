@@ -56,6 +56,7 @@ CLASS ProGriddle.Games.Cuber.CuberInput FINAL IMPLEMENTS IGameInput:
             RETURN "".
         END GET.
 
+    {&_proparse_ prolint-nowarn(varusage)}
     DEFINE PUBLIC PROPERTY Choice AS CHARACTER NO-UNDO
         GET():
             RETURN "".
