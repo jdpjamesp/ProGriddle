@@ -99,6 +99,11 @@ CLASS ProGriddle.Games.FootballManager.FootballGame FINAL INHERITS AbstractGame 
         GET.
         PRIVATE SET.
 
+    /* How far through the highlights of the match the picture is, in milliseconds (see Highlights). */
+    DEFINE PUBLIC PROPERTY MatchMs AS INTEGER NO-UNDO
+        GET.
+        PRIVATE SET.
+
     /* The fixtures played so far. */
     DEFINE PUBLIC PROPERTY Turn AS INTEGER NO-UNDO
         GET():
@@ -207,7 +212,27 @@ CLASS ProGriddle.Games.FootballManager.FootballGame FINAL INHERITS AbstractGame 
     METHOD PUBLIC VOID KickOff():
         Need(FootballPhase:PickTeam).
         Played = MatchDay:Play(mWorld, ThisFixture, mRandom).
+        MatchMs = 0.
         Phase = FootballPhase:Match.
+    END METHOD.
+
+    /* Moves the highlights on by piMs milliseconds (only while the phase is Match; they stop at the end). */
+    METHOD PUBLIC VOID Tick(INPUT piMs AS INTEGER):
+        Need(FootballPhase:Match).
+        IF piMs = ? OR piMs < 0 THEN UNDO, THROW NEW GridException("A tick cannot be " + STRING(piMs) + " milliseconds").
+        MatchMs = MINIMUM(MatchMs + piMs, Highlights:TotalMs(Played)).
+    END METHOD.
+
+    /* Jumps to the end of the highlights (the full time score). */
+    METHOD PUBLIC VOID SkipHighlights():
+        Need(FootballPhase:Match).
+        MatchMs = Highlights:TotalMs(Played).
+    END METHOD.
+
+    /* True when all the highlights have been shown. */
+    METHOD PUBLIC LOGICAL HighlightsOver():
+        Need(FootballPhase:Match).
+        RETURN MatchMs >= Highlights:TotalMs(Played).
     END METHOD.
 
     /* Pays the week's bills: the phase is Accounts and the bills can be read. */

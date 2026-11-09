@@ -72,6 +72,9 @@ CLASS ProGriddle.Games.FootballManager.FootballGameTests:
                     mGame:Continue().
                     mGame:Continue().
                 END.
+                WHEN "ticknotinmatch" THEN mGame:Tick(10).
+                WHEN "skipnotinmatch" THEN mGame:SkipHighlights().
+                WHEN "overnotinmatch" THEN mGame:HighlightsOver().
                 WHEN "norandom" THEN NEW FootballGame(NEW Grid(NEW ArrayStore(1, 1, "state")), ?).
                 WHEN "setupborrow" THEN
                 DO:
@@ -182,6 +185,34 @@ CLASS ProGriddle.Games.FootballManager.FootballGameTests:
         Assert:Equals(INTEGER(FootballPhase:Match), INTEGER(mGame:Phase)).
         Assert:Equals(before + mGame:ThisFixture:Gate, mGame:World:Cash).
         Assert:IsTrue(mGame:Played:AttackCount >= 2).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID TheHighlightsRunOnATickAndStopAtTheEndOrWhenSkipped():
+        VAR INTEGER total.
+        StartedGame(1).
+        mGame:Continue().
+        mGame:KickOff().
+        total = Highlights:TotalMs(mGame:Played).
+        Assert:Equals(0, mGame:MatchMs).
+        Assert:IsFalse(mGame:HighlightsOver()).
+        mGame:Tick(500).
+        Assert:Equals(500, mGame:MatchMs).
+        mGame:Tick(total * 2).
+        Assert:Equals(total, mGame:MatchMs).
+        Assert:IsTrue(mGame:HighlightsOver()).
+        mGame:Proceed().
+        Assert:IsTrue(Refused("ticknotinmatch")).
+    END METHOD.
+
+    @Test.
+    METHOD PUBLIC VOID SkippingJumpsToTheEndOfTheHighlights():
+        StartedGame(1).
+        mGame:Continue().
+        mGame:KickOff().
+        mGame:SkipHighlights().
+        Assert:IsTrue(mGame:HighlightsOver()).
+        Assert:Equals(Highlights:TotalMs(mGame:Played), mGame:MatchMs).
     END METHOD.
 
     @Test.
@@ -356,6 +387,8 @@ CLASS ProGriddle.Games.FootballManager.FootballGameTests:
         Assert:IsTrue(Refused("sellinjured")).
         Assert:IsTrue(Refused("borrowinmatch")).
         Assert:IsTrue(Refused("continuetwice")).
+        Assert:IsTrue(Refused("skipnotinmatch")).
+        Assert:IsTrue(Refused("overnotinmatch")).
         Assert:IsTrue(Refused("norandom")).
         Assert:IsTrue(Refused("setupborrow")).
     END METHOD.
