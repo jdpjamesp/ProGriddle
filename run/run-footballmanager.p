@@ -9,6 +9,9 @@
    Optional entries after the program name: the settings file ("default" for %APPDATA%\ProGriddle\settings.json), a number of seconds after
    which the window closes by itself (for scripted checks), and a seed for the game (for scripted checks).
 
+   Settings keys: footballmanager.save.* (the saved game, see FootballSave: written whenever the game waits in the manager's office, loaded
+   at the start straight into the office, forgotten when the manager is sacked) and footballmanager.window.* (the window's size and place).
+
    The picture is drawn by FootballPainter on a pixel canvas of 320 x 240, and the window is made the shape of it, up to 3 pixels to a pixel
    where the screen is big enough. The clock ticks only to run the match highlights; everything else waits for a key (see FootballInput
    for the keys of each screen). The window saves its own position. */
@@ -48,6 +51,9 @@ DO ON ERROR UNDO, THROW:
     oClock = NEW WinFormsClock().
     oClock:Interval = 30.
     oGame = NEW FootballGame(NEW Grid(NEW ArrayStore(1, 1, "state")), NEW SeededRandom(iSeed)).
+    /* a game that was left in the manager's office comes back there; with no good save the game starts at the set up screens */
+    oGame:Autosave = NEW FootballSave(oSettings).
+    oGame:LoadSaved().
     oUi = NEW FootballUi().
 
     /* the picture is drawn by the painter on a canvas of its own, and the view shows that canvas in direct colour, with no grid lines */

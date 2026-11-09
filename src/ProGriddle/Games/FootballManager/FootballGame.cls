@@ -104,6 +104,11 @@ CLASS ProGriddle.Games.FootballManager.FootballGame FINAL INHERITS AbstractGame 
         GET.
         PRIVATE SET.
 
+    /* Where the game is kept between runs, or unknown for a game that is not kept. The game saves itself every time it is waiting in the manager's office (a game started, a loan, a sale, the end of a week or of a season) and forgets the save when the manager is sacked. */
+    DEFINE PUBLIC PROPERTY Autosave AS FootballSave NO-UNDO
+        GET.
+        SET.
+
     /* The fixtures played so far. */
     DEFINE PUBLIC PROPERTY Turn AS INTEGER NO-UNDO
         GET():
@@ -130,6 +135,22 @@ CLASS ProGriddle.Games.FootballManager.FootballGame FINAL INHERITS AbstractGame 
         TransferBlocked = FALSE.
     END METHOD.
 
+    /* Keeps the game while it waits in the office. */
+    METHOD PRIVATE VOID KeepSave():
+        IF VALID-OBJECT(Autosave) THEN Autosave:Keep(mWorld, Generation).
+    END METHOD.
+
+    /* Goes back to the manager's own saved game, at the Menu, if there is a good one and the game is still at the set up screens: TRUE when it did. A missing, damaged or out of date save leaves the game as it was (FALSE). Throws GridException when the game is past Setup. */
+    METHOD PUBLIC LOGICAL LoadSaved():
+        VAR INTEGER turnLoaded.
+        Need(FootballPhase:Setup).
+        IF NOT VALID-OBJECT(Autosave) THEN RETURN FALSE.
+        IF NOT Autosave:Restore(mWorld, OUTPUT turnLoaded) THEN RETURN FALSE.
+        Generation = turnLoaded.
+        Phase = FootballPhase:Menu.
+        RETURN TRUE.
+    END METHOD.
+
     METHOD PRIVATE VOID Need(INPUT poPhase AS FootballPhase):
         IF Phase <> poPhase THEN
             UNDO, THROW NEW GridException("That cannot be done now: the game is at " + STRING(Phase:ToString()) + ", not " + STRING(poPhase:ToString())).
@@ -140,18 +161,25 @@ CLASS ProGriddle.Games.FootballManager.FootballGame FINAL INHERITS AbstractGame 
         Need(FootballPhase:Setup).
         mWorld:NewGame(pcManager, piClub, piLevel, piKit, mRandom).
         Phase = FootballPhase:Menu.
+        KeepSave().
     END METHOD.
 
     /* Takes a loan, which the bank refuses (false) if it would go over the limit. */
     METHOD PUBLIC LOGICAL Borrow(INPUT piAmount AS INTEGER):
+        VAR LOGICAL granted.
         Need(FootballPhase:Menu).
-        RETURN Bank:Borrow(mWorld, piAmount).
+        granted = Bank:Borrow(mWorld, piAmount).
+        KeepSave().
+        RETURN granted.
     END METHOD.
 
     /* Pays some of the loan back, refused (false) if it is more than the loan or the cash. */
     METHOD PUBLIC LOGICAL Repay(INPUT piAmount AS INTEGER):
+        VAR LOGICAL repaid.
         Need(FootballPhase:Menu).
-        RETURN Bank:Repay(mWorld, piAmount).
+        repaid = Bank:Repay(mWorld, piAmount).
+        KeepSave().
+        RETURN repaid.
     END METHOD.
 
     /* Changes the skill level, 1 to 7. */
@@ -160,6 +188,7 @@ CLASS ProGriddle.Games.FootballManager.FootballGame FINAL INHERITS AbstractGame 
         IF piLevel = ? OR piLevel < 1 OR piLevel > FootballRules:LevelCount() THEN
             UNDO, THROW NEW GridException("The level runs from 1 to 7, not " + STRING(piLevel)).
         mWorld:Level = piLevel.
+        KeepSave().
     END METHOD.
 
     /* Another club offers for a player in the squad (not an injured one): the phase becomes Selling and OfferedPlayer, SaleBuyer and SaleAmount say what is on offer. */
@@ -176,6 +205,7 @@ CLASS ProGriddle.Games.FootballManager.FootballGame FINAL INHERITS AbstractGame 
         Need(FootballPhase:Selling).
         Market:Sell(mWorld, OfferedPlayer, SaleAmount).
         Phase = FootballPhase:Menu.
+        KeepSave().
     END METHOD.
 
     /* Turns the offer down and goes back to the Menu. Returns true when the player was injured by it. */
@@ -184,6 +214,7 @@ CLASS ProGriddle.Games.FootballManager.FootballGame FINAL INHERITS AbstractGame 
         Need(FootballPhase:Selling).
         injured = Market:TurnDown(mWorld, OfferedPlayer, mRandom).
         Phase = FootballPhase:Menu.
+        KeepSave().
         RETURN injured.
     END METHOD.
 
@@ -287,6 +318,7 @@ CLASS ProGriddle.Games.FootballManager.FootballGame FINAL INHERITS AbstractGame 
                 DO:
                     Phase = FootballPhase:Sacked.
                     IsOver = TRUE.
+                    IF VALID-OBJECT(Autosave) THEN Autosave:Erase().
                 END.
                 ELSE IF LeagueTable:SeasonOver(mWorld) THEN
                 DO:
@@ -298,7 +330,11 @@ CLASS ProGriddle.Games.FootballManager.FootballGame FINAL INHERITS AbstractGame 
                 END.
                 ELSE EnterTransfer().
             END.
-            WHEN FootballPhase:SeasonEnd THEN Phase = FootballPhase:Menu.
+            WHEN FootballPhase:SeasonEnd THEN
+            DO:
+                Phase = FootballPhase:Menu.
+                KeepSave().
+            END.
             OTHERWISE UNDO, THROW NEW GridException("There is nothing to proceed to from " + Phase:ToString()).
         END CASE.
     END METHOD.
@@ -317,10 +353,15 @@ CLASS ProGriddle.Games.FootballManager.FootballGame FINAL INHERITS AbstractGame 
         IF TransferBlocked THEN
         DO:
             Phase = FootballPhase:Menu.
+            KeepSave().
             RETURN BidResult:SquadFull.
         END.
         answer = Market:Bid(mWorld, OfferedPlayer, piAmount, mRandom).
-        IF answer = BidResult:Accepted THEN Phase = FootballPhase:Menu.
+        IF answer = BidResult:Accepted THEN
+        DO:
+            Phase = FootballPhase:Menu.
+            KeepSave().
+        END.
         RETURN answer.
     END METHOD.
 
@@ -328,6 +369,7 @@ CLASS ProGriddle.Games.FootballManager.FootballGame FINAL INHERITS AbstractGame 
     METHOD PUBLIC VOID Pass():
         Need(FootballPhase:Transfer).
         Phase = FootballPhase:Menu.
+        KeepSave().
     END METHOD.
 
 END CLASS.

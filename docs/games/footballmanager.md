@@ -45,6 +45,14 @@ What the keys do depends on the screen.
 
 The window's own keys work too (P pauses the highlights, R or F2 starts a new game).
 
+## Keeping the game
+
+The game remembers itself, like the original's "keep" option. There is one saved game. It is written to the settings file (`%APPDATA%\ProGriddle\settings.json`, keys `footballmanager.save.*`) every time the game is waiting in the manager's office: when a game is started, after a loan, a repayment, a change of level or a sale, when a week ends (after the transfer offer) and when a season ends. It is never saved in the middle of a week, because a fixture only means something inside one, so closing the window mid-week brings you back to the office as it was before that fixture.
+
+Next time the game opens, a saved game goes straight to the office (nothing to choose). R or F2 starts a new game from the set up screens, and the old save stays until the new game's first save replaces it. Being sacked deletes the save. What is kept: the manager, the 64 clubs in their slots (with promotions and relegations), the 24 players (role, skill, energy, value), the division table and its sorted order, cash, loan, gate, rent, morale, level, kit, the cup run, the season counts and the week number. The random numbers are not kept: a loaded game gets a fresh seeded source.
+
+A save that is missing, damaged or from another shape of the game (`FootballSave:Version`) is ignored and the game starts at the set up screens; it never crashes. The class is `FootballSave`, and `FootballGame:Autosave` and `LoadSaved` are what the run file uses.
+
 ## How it is built
 
 | Part | Where |
@@ -54,6 +62,7 @@ The window's own keys work too (P pauses the highlights, R or F2 starts a new ga
 | The rules, as helpers that work on a world | `TeamStrength`, `Opposition`, `Squad`, `Bank`, `Market`, `LeagueTable`, `MatchDay` |
 | The match: five rounds of rolls, then each attack worked out cell by cell on the original's 32 x 22 pitch with its diagonal goal lines | `MatchEngine`, `PitchAttack`, `MatchResult` |
 | The week from screen to screen, and the highlights clock | `FootballGame`, `Highlights` |
+| Remembering the game between runs | `FootballSave` |
 | The keyboard and the screen state | `FootballInput`, `FootballUi` |
 | The picture | `FootballPainter` (the pitch and the match) and `FootballScreens` (every menu screen), on a 320 x 240 pixel canvas |
 | The designer's art, generated from the design file | `FootballTint`, `FootballRow`, `FootballLook`, `FootballSprite`, `FootballArt` (`python tools/gen-footballmanager-art.py`; change the design, never these files) |
