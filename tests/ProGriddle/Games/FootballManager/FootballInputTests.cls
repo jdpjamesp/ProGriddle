@@ -342,4 +342,19 @@ CLASS ProGriddle.Games.FootballManager.FootballInputTests:
         Assert:IsTrue(Refused("perform")).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID PIsLeftAloneOutsideTheMatchSoTheWindowNeverPausesAClockThatHasNothingToRun():
+        AtTheMenu().
+        Press("C,K").
+        Assert:Equals(INTEGER(FootballMode:Match), INTEGER(mInput:Ui:Mode)).
+        /* in the match P is the window's pause key */
+        Assert:IsFalse(mInput:HandleKey("P")).
+        Press("Return,Return,Return").
+        Assert:Equals(INTEGER(FootballMode:Results), INTEGER(mInput:Ui:Mode)).
+        Assert:IsTrue(mInput:HandleKey("P")).
+        Press("Return").
+        Assert:Equals(INTEGER(FootballMode:Table), INTEGER(mInput:Ui:Mode)).
+        Assert:IsTrue(mInput:HandleKey("P")).
+    END METHOD.
+
 END CLASS.

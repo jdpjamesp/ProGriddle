@@ -183,4 +183,12 @@ CLASS ProGriddle.Games.FootballManager.FootballPainterTests:
         Assert:IsTrue(PromptPixels() > 40).
     END METHOD.
 
+    @Test.
+    METHOD PUBLIC VOID APausedMatchSaysSo():
+        Assert:IsTrue(MatchWithFirstAttackBy(1)).
+        mGame:Paused = TRUE.
+        mPainter:Render(mGame:Grid, mGame).
+        Assert:IsTrue(PromptPixels() > 40).
+    END METHOD.
+
 end CLASS.

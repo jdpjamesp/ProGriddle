@@ -193,6 +193,8 @@ CLASS ProGriddle.Games.FootballManager.FootballInput FINAL IMPLEMENTS IGameInput
                 IF used THEN mGame:Proceed().
             END.
         END CASE.
+        /* only the match has anything to pause: on any other screen a P that reached the window would stop the clock, and the next match would start frozen */
+        IF pcKey = "P" AND mUi:Mode <> FootballMode:Match THEN used = TRUE.
         Sync().
         RETURN used.
     END METHOD.

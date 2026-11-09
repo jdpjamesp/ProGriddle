@@ -749,6 +749,8 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
             END CASE.
             mCanvas:DrawText(words, 18, 214, Hue(FootballTint:Chalk)).
         END.
+        IF mGame:Phase = FootballPhase:Match AND mGame:Paused AND mGame:MatchMs < Highlights:TotalMs(mGame:Played) THEN
+            mCanvas:DrawText("PAUSED  P RESUMES  SPACE SKIPS", 160 - INTEGER(TRUNCATE(PixelCanvas:ScaledWidth("PAUSED  P RESUMES  SPACE SKIPS", 1) / 2, 0)), 227, Hue(FootballTint:ChalkYellow)).
         /* the highlights stop on their last frame and wait for the manager, so say so */
         IF mGame:Phase = FootballPhase:Match AND mGame:MatchMs >= Highlights:TotalMs(mGame:Played) THEN
             mCanvas:DrawText("PRESS SPACE TO CONTINUE", 160 - INTEGER(TRUNCATE(PixelCanvas:ScaledWidth("PRESS SPACE TO CONTINUE", 1) / 2, 0)), 227, Hue(FootballTint:ChalkYellow)).
