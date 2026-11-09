@@ -120,7 +120,8 @@ CLASS ProGriddle.Games.FootballManager.FootballPainterTests:
         /* the ring of a close up over the far corner: yellow at (7, 85) for the right goal, only once the shot has been taken */
         mPainter:Render(mGame:Grid, mGame).
         Assert:IsFalse(mPainter:Canvas:ColourAt(7, 85) = FootballLook:Colour(FootballTint:ChalkYellow)).
-        shotAt = attack:DribbleSteps * Highlights:DribbleMs() + Highlights:ShotMs().
+        /* the close up opens once the ball has crossed the pitch */
+        shotAt = attack:DribbleSteps * Highlights:DribbleMs() + Highlights:ShotMs() + Highlights:RunMs(attack).
         mGame:Tick(shotAt + 100).
         mPainter:Render(mGame:Grid, mGame).
         Assert:Equals(INTEGER(FootballLook:Colour(FootballTint:ChalkYellow)), mPainter:Canvas:ColourAt(7, 85)).

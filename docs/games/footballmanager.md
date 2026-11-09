@@ -62,4 +62,4 @@ Every random number comes from the source the game is given, so a seeded game pl
 
 `tools/preview-footballmanager.p` draws any screen into a BMP with no window, from a list of keys: `_progres -b -l 1024 -p tools/preview-footballmanager.p -param "keys:B,O,B,Return,Return,Return,C,K:1500|file.bmp"`. There is no window smoke test yet and the window has not been run by the author of this page, only the preview.
 
-Not drawn yet: the ball trail, the net ripple, the crowd cheer and the close up shake (the design's effects), the title screen and the trophy cabinet.
+Each attack shows the dribble, the ball crossing the pitch to the goal with its trail, the close up of the goal mouth (the net ripples and the crowd jumps for a goal). Not drawn yet: the close up shake, the title screen and the trophy cabinet.

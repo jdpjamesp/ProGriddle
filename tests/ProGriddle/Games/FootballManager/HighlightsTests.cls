@@ -42,11 +42,11 @@ CLASS ProGriddle.Games.FootballManager.HighlightsTests:
 
     @Test.
     METHOD PUBLIC VOID AGoalTakesTheCloseUpAndTheCheeringAndASaveDoesNot():
-        /* 160 dribble + 200 shot + 300 + 240 + 900 + 1200 + 200 pause */
-        Assert:Equals(3200, Highlights:AttackMs(mResult:AttackAt(1))).
-        /* the same without the cheering */
-        Assert:Equals(2000, Highlights:AttackMs(mResult:AttackAt(2))).
-        Assert:Equals(5200, Highlights:TotalMs(mResult)).
+        /* 160 dribble + 200 shot + 540 across the pitch (10 points) + 300 + 240 + 900 + 1200 + 200 pause */
+        Assert:Equals(3740, Highlights:AttackMs(mResult:AttackAt(1))).
+        /* the same without the cheering, and a flight that ends at the keeper (9 points, 480) */
+        Assert:Equals(2480, Highlights:AttackMs(mResult:AttackAt(2))).
+        Assert:Equals(6220, Highlights:TotalMs(mResult)).
     END METHOD.
 
     @Test.
@@ -59,7 +59,7 @@ CLASS ProGriddle.Games.FootballManager.HighlightsTests:
             IF attack:Outcome = AttackOutcome:Blocked THEN
             DO:
                 found = TRUE.
-                Assert:Equals(attack:DribbleSteps * 160 + 200 + (attack:PathLength - 1) * 60 + 300 + 200, Highlights:AttackMs(attack)).
+                Assert:Equals(attack:DribbleSteps * 160 + 200 + (attack:FlightPoints - 1) * 60 + 300 + 200, Highlights:AttackMs(attack)).
                 LEAVE.
             END.
         END.
@@ -69,26 +69,28 @@ CLASS ProGriddle.Games.FootballManager.HighlightsTests:
     @Test.
     METHOD PUBLIC VOID ATimeFallsInTheAttackWhoseSpanItIsIn():
         Assert:Equals(1, Highlights:AttackAtMs(mResult, 0)).
-        Assert:Equals(1, Highlights:AttackAtMs(mResult, 3199)).
-        Assert:Equals(2, Highlights:AttackAtMs(mResult, 3200)).
-        Assert:Equals(2, Highlights:AttackAtMs(mResult, 5199)).
-        Assert:Equals(0, Highlights:AttackAtMs(mResult, 5200)).
+        Assert:Equals(1, Highlights:AttackAtMs(mResult, 3739)).
+        Assert:Equals(2, Highlights:AttackAtMs(mResult, 3740)).
+        Assert:Equals(2, Highlights:AttackAtMs(mResult, 6219)).
+        Assert:Equals(0, Highlights:AttackAtMs(mResult, 6220)).
         Assert:Equals(0, Highlights:AttackAtMs(mResult, 99999)).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID TheLocalTimeIsTheTimeSinceTheStartOfThatAttack():
         Assert:Equals(0, Highlights:LocalMs(mResult, 0)).
-        Assert:Equals(50, Highlights:LocalMs(mResult, 3250)).
-        Assert:Equals(1999, Highlights:LocalMs(mResult, 5199)).
-        Assert:Equals(0, Highlights:LocalMs(mResult, 5200)).
+        Assert:Equals(50, Highlights:LocalMs(mResult, 3790)).
+        Assert:Equals(2479, Highlights:LocalMs(mResult, 6219)).
+        Assert:Equals(0, Highlights:LocalMs(mResult, 6220)).
     END METHOD.
 
     @Test.
     METHOD PUBLIC VOID AGoalShowsInTheScoreOnceTheBallIsInTheNet():
-        /* 160 + 200 + 300 + 240: the ball arrives at 900 ms */
-        Assert:Equals(0, Highlights:GoalsAtMs(mResult, 899, 2)).
-        Assert:Equals(1, Highlights:GoalsAtMs(mResult, 900, 2)).
+        /* 160 + 200 + 540 + 300 + 240: the ball arrives at 1440 ms */
+        Assert:Equals(1440, Highlights:GoalAtMs(mResult:AttackAt(1))).
+        Assert:Equals(0, Highlights:GoalsAtMs(mResult, 1439, 2)).
+        Assert:Equals(1, Highlights:GoalsAtMs(mResult, 1440, 2)).
+        Assert:Equals(540, Highlights:RunMs(mResult:AttackAt(1))).
         Assert:Equals(1, Highlights:GoalsAtMs(mResult, 99999, 2)).
         Assert:Equals(0, Highlights:GoalsAtMs(mResult, 99999, 1)).
     END METHOD.

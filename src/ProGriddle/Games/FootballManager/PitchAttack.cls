@@ -31,6 +31,7 @@ CLASS ProGriddle.Games.FootballManager.PitchAttack FINAL:
     VAR PRIVATE INTEGER mBallStartCol.
     VAR PRIVATE LOGICAL mOut.
     VAR PRIVATE LOGICAL mKeeperHit.
+    VAR PRIVATE INTEGER mKeeperHitAt.
     VAR PRIVATE LOGICAL mDefenderHit.
     VAR PRIVATE IRandom mRandom.
 
@@ -50,6 +51,12 @@ CLASS ProGriddle.Games.FootballManager.PitchAttack FINAL:
 
     /* The points of the ball's flight after the dribble: point 1 is where the ball is struck, the last is where it left the pitch. */
     DEFINE PUBLIC PROPERTY PathLength AS INTEGER NO-UNDO
+        GET.
+        PRIVATE SET.
+
+    /* How many points of the ball's flight are shown on the pitch before the close up: all of them, except for a save, where the flight ends at the keeper
+       (the ball that bounces back off him is not shown). */
+    DEFINE PUBLIC PROPERTY FlightPoints AS INTEGER NO-UNDO
         GET.
         PRIVATE SET.
 
@@ -275,6 +282,7 @@ CLASS ProGriddle.Games.FootballManager.PitchAttack FINAL:
             mBy = py.
         END.
         Remember().
+        IF mKeeperHit AND mKeeperHitAt = 0 THEN mKeeperHitAt = PathLength.
     END METHOD.
 
     /* The shot: the ball drifts toward the middle rows (down from rows above 8, up from rows below 15, either way from 13 to 15) and runs until it leaves the pitch. */
@@ -293,6 +301,7 @@ CLASS ProGriddle.Games.FootballManager.PitchAttack FINAL:
         ELSE IF mKeeperHit THEN Outcome = AttackOutcome:Saved.
         ELSE IF mDefenderHit THEN Outcome = AttackOutcome:Blocked.
         ELSE Outcome = AttackOutcome:Wide.
+        FlightPoints = (IF Outcome = AttackOutcome:Saved AND mKeeperHitAt > 0 THEN mKeeperHitAt ELSE PathLength).
     END METHOD.
 
     /* Works out a new attack for piTeam (1 attacks the goal on the right, 2 the goal on the left), drawing every random number from poRandom. Any earlier attack held here is replaced. Throws GridException for another team or no random source. */
@@ -303,6 +312,7 @@ CLASS ProGriddle.Games.FootballManager.PitchAttack FINAL:
         Team = piTeam.
         mOut = FALSE.
         mKeeperHit = FALSE.
+        mKeeperHitAt = 0.
         mDefenderHit = FALSE.
         PathLength = 0.
         mDx = 0.

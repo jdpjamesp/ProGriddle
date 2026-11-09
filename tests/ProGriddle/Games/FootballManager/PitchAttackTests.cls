@@ -105,6 +105,8 @@ CLASS ProGriddle.Games.FootballManager.PitchAttackTests:
         Assert:Equals(10, mAttack:BallRow(10)).
         Assert:Equals(INTEGER(AttackOutcome:Goal), INTEGER(mAttack:Outcome)).
         Assert:IsTrue(mAttack:Scored).
+        /* a goal shows the whole flight */
+        Assert:Equals(10, mAttack:FlightPoints).
     END METHOD.
 
     @Test.
@@ -127,6 +129,9 @@ CLASS ProGriddle.Games.FootballManager.PitchAttackTests:
         Assert:Equals(29, mAttack:BallCol(1)).
         Assert:Equals(13, mAttack:BallCol(9)).
         Assert:Equals(10, mAttack:BallRow(9)).
+        /* a save shows the flight as far as the keeper, the ninth point, and not the ball coming back */
+        Assert:Equals(9, mAttack:FlightPoints).
+        Assert:IsTrue(mAttack:PathLength > 9).
     END METHOD.
 
     @Test.

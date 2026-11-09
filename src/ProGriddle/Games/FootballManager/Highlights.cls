@@ -2,7 +2,8 @@
 
      the dribble        160 ms for each cell the attacker carries the ball
      the shot           200 ms (two kick frames)
-     then, if a defender turned the ball back (Blocked): the ball runs on along its path, 60 ms a point, and the block is shown for 300 ms
+     then the ball runs along its path across the pitch, 60 ms a point (for a save only as far as the keeper)
+     then, if a defender turned the ball back (Blocked): the block is shown for 300 ms
      otherwise the close up of the goal mouth: 300 ms ready, 240 ms for the ball's flight, 900 ms for the result, and after a goal
      another 1200 ms of cheering
      a pause of 200 ms before the next attack
@@ -53,11 +54,21 @@ CLASS ProGriddle.Games.FootballManager.Highlights FINAL:
         RETURN 200.
     END METHOD.
 
+    /* How long the ball takes to cross the pitch after the shot: 60 ms for each point of its flight after the first. */
+    METHOD PUBLIC STATIC INTEGER RunMs(INPUT poAttack AS PitchAttack):
+        RETURN (poAttack:FlightPoints - 1) * RunOnMs().
+    END METHOD.
+
+    /* When the ball is in the net, in milliseconds from the start of the attack (for a goal). */
+    METHOD PUBLIC STATIC INTEGER GoalAtMs(INPUT poAttack AS PitchAttack):
+        RETURN poAttack:DribbleSteps * DribbleMs() + ShotMs() + RunMs(poAttack) + ReadyMs() + FlightMs().
+    END METHOD.
+
     /* How long an attack takes, with the pause after it. */
     METHOD PUBLIC STATIC INTEGER AttackMs(INPUT poAttack AS PitchAttack):
         VAR INTEGER ms.
-        ms = poAttack:DribbleSteps * DribbleMs() + ShotMs().
-        IF poAttack:Outcome = AttackOutcome:Blocked THEN ms = ms + (poAttack:PathLength - 1) * RunOnMs() + BlockMs().
+        ms = poAttack:DribbleSteps * DribbleMs() + ShotMs() + RunMs(poAttack).
+        IF poAttack:Outcome = AttackOutcome:Blocked THEN ms = ms + BlockMs().
         ELSE
         DO:
             ms = ms + ReadyMs() + FlightMs() + ResultMs().
@@ -106,12 +117,10 @@ CLASS ProGriddle.Games.FootballManager.Highlights FINAL:
         VAR INTEGER remaining.
         VAR INTEGER goals.
         VAR PitchAttack attack.
-        VAR INTEGER scoredAt.
         remaining = piMs.
         DO a = 1 TO poResult:AttackCount:
             attack = poResult:AttackAt(a).
-            scoredAt = attack:DribbleSteps * DribbleMs() + ShotMs() + ReadyMs() + FlightMs().
-            IF attack:Scored AND attack:Team = piTeam AND remaining >= scoredAt THEN goals = goals + 1.
+            IF attack:Scored AND attack:Team = piTeam AND remaining >= GoalAtMs(attack) THEN goals = goals + 1.
             IF remaining < AttackMs(attack) THEN RETURN goals.
             remaining = remaining - AttackMs(attack).
         END.

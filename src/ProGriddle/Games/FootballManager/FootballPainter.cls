@@ -536,6 +536,13 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
         VAR INTEGER ballY.
         VAR INTEGER point.
         VAR INTEGER afterShot.
+        VAR INTEGER runMs.
+        VAR INTEGER prevX.
+        VAR INTEGER prevY.
+        VAR INTEGER nextX.
+        VAR INTEGER nextY.
+        VAR INTEGER trailK.
+        VAR DECIMAL span.
         VAR LOGICAL moving.
         VAR LOGICAL ended.
         ScoreBarBack().
@@ -546,6 +553,7 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
         IF ended THEN t = Highlights:AttackMs(attack).
         dribbleMs = attack:DribbleSteps * Highlights:DribbleMs().
         afterShot = t - dribbleMs - Highlights:ShotMs().
+        runMs = Highlights:RunMs(attack).
         moving = t < dribbleMs.
         /* where each of the seven is, as a pitch cell: moving from the start to the shot positions during the dribble, then standing; the keeper follows the ball's path */
         DO i = 1 TO 7:
@@ -557,9 +565,16 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
             END.
         END.
         point = 1.
-        IF attack:Outcome = AttackOutcome:Blocked AND afterShot > 0 THEN point = MINIMUM(attack:PathLength, 1 + INTEGER(TRUNCATE(afterShot / Highlights:RunOnMs(), 0))).
+        IF afterShot > 0 THEN point = MINIMUM(attack:FlightPoints, 1 + INTEGER(TRUNCATE(afterShot / Highlights:RunOnMs(), 0))).
         fx[7] = CellX(team, attack:KeeperCol(point), attack:KeeperRow(point)).
         fy[7] = CellY(attack:KeeperRow(point)).
+        /* the crowd jumps for a goal: both stands swap to the cheering tile every 150 ms for 1200 ms from the moment the ball is in the net */
+        IF NOT ended AND attack:Outcome = AttackOutcome:Goal AND t >= Highlights:GoalAtMs(attack) AND t < Highlights:GoalAtMs(attack) + Highlights:CheerMs()
+           AND INTEGER(TRUNCATE((t - Highlights:GoalAtMs(attack)) / 150, 0)) MODULO 2 = 1 THEN
+        DO:
+            CrowdCheer(21).
+            CrowdCheer(198).
+        END.
         /* the figures, back to front by the y of their feet */
         DO i = 1 TO 6:
             DO j = i + 1 TO 7:
@@ -574,7 +589,7 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
         DO i = 1 TO 7:
             DrawFigure(rank[i], fx[rank[i]], fy[rank[i]], team, attack, moving, t, afterShot).
         END.
-        /* the ball: beside the attacker while he dribbles, then along its path */
+        /* the ball: beside the attacker while he dribbles, then along its path across the pitch, moving smoothly between the points of the path */
         IF t < dribbleMs THEN
         DO:
             ballX = CellX(team, Lerp(attack:BallStartCol(), attack:BallCol(1), t, dribbleMs), attack:BallRow(1)).
@@ -584,6 +599,25 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
         DO:
             ballX = CellX(team, attack:BallCol(point), attack:BallRow(point)).
             ballY = 39 + 7 * attack:BallRow(point).
+            IF afterShot > 0 AND point < attack:FlightPoints THEN
+            DO:
+                nextX = CellX(team, attack:BallCol(point + 1), attack:BallRow(point + 1)).
+                nextY = 39 + 7 * attack:BallRow(point + 1).
+                ballX = Lerp(ballX, nextX, afterShot MODULO Highlights:RunOnMs(), Highlights:RunOnMs()).
+                ballY = Lerp(ballY, nextY, afterShot MODULO Highlights:RunOnMs(), Highlights:RunOnMs()).
+            END.
+            /* the trail: three pixels behind the ball along its path, 2, 4 and 6 pixels back */
+            IF afterShot > 0 AND point > 1 THEN
+            DO:
+                prevX = CellX(team, attack:BallCol(point - 1), attack:BallRow(point - 1)).
+                prevY = 39 + 7 * attack:BallRow(point - 1).
+                span = SQRT((ballX - prevX) * (ballX - prevX) + (ballY - prevY) * (ballY - prevY)).
+                IF span >= 1 THEN
+                    DO trailK = 1 TO 3:
+                        mCanvas:Plot(ballX + INTEGER(ROUND((prevX - ballX) * 2 * trailK / span, 0)), ballY + INTEGER(ROUND((prevY - ballY) * 2 * trailK / span, 0)), 0,
+                                     (IF trailK = 1 THEN Hue(FootballTint:Trail1) ELSE IF trailK = 2 THEN Hue(FootballTint:Trail2) ELSE Hue(FootballTint:Trail3))).
+                    END.
+            END.
         END.
         Stamp(FootballSprite:BallShadow, ballX + 1, ballY + 3, FALSE).
         Stamp(FootballSprite:BallRoll1, ballX, ballY, FALSE).
@@ -592,7 +626,7 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
         mLocalMs = t.
         mEnded = ended.
         TickerBack().
-        IF NOT ended AND attack:Outcome <> AttackOutcome:Blocked AND afterShot >= 0 THEN DrawCloseUp(attack, afterShot).
+        IF NOT ended AND attack:Outcome <> AttackOutcome:Blocked AND afterShot >= runMs THEN DrawCloseUp(attack, afterShot - runMs).
     END METHOD.
 
     /* One of the seven: 1 the attacker with the ball, 2 and 3 his team mates, 4 to 6 the defenders and 7 the keeper. Attackers face the goal, defenders the play. */
@@ -669,9 +703,23 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
     /* When the result of an attack shows in the ticker, in milliseconds from the start of the attack. */
     METHOD PRIVATE INTEGER ResultAt(INPUT poAttack AS PitchAttack):
         VAR INTEGER ms.
-        ms = poAttack:DribbleSteps * Highlights:DribbleMs() + Highlights:ShotMs().
-        IF poAttack:Outcome = AttackOutcome:Blocked THEN RETURN ms + (poAttack:PathLength - 1) * Highlights:RunOnMs().
+        ms = poAttack:DribbleSteps * Highlights:DribbleMs() + Highlights:ShotMs() + Highlights:RunMs(poAttack).
+        IF poAttack:Outcome = AttackOutcome:Blocked THEN RETURN ms.
         RETURN ms + Highlights:ReadyMs() + Highlights:FlightMs().
+    END METHOD.
+
+    /* The cheering tile over a stand strip whose top row is piY (the picture pass). */
+    METHOD PRIVATE VOID CrowdCheer(INPUT piY AS INTEGER):
+        VAR CHARACTER cells.
+        VAR INTEGER x.
+        VAR INTEGER y.
+        SetLetters(FootballSprite:Crowd2).
+        cells = FootballArt:Cells(FootballSprite:Crowd2).
+        DO y = 0 TO 7:
+            DO x = 0 TO 319:
+                mCanvas:Plot(x, piY + y, 0, mPal[ASC(SUBSTRING(cells, y * 32 + (x MODULO 32) + 1, 1)) + 1]).
+            END.
+        END.
     END METHOD.
 
     /* The ticker's fill and the icon of the result once it is known (the picture pass). */
@@ -809,6 +857,13 @@ CLASS ProGriddle.Games.FootballManager.FootballPainter FINAL IMPLEMENTS IGridRen
                 /* the keeper goes the wrong way: a shot to the left meets the right hand pose, any other the left hand one */
                 KeeperPose((IF targetCol = 1 THEN 3 ELSE 1), (IF height = 1 THEN 2 ELSE height), OUTPUT pose, OUTPUT turned, OUTPUT kx, OUTPUT ky).
                 Stamp(pose, x0 + kx, 87 + ky, turned).
+                /* the net ripples round the ball for three frames of 80 ms */
+                IF piMs - Highlights:ReadyMs() - Highlights:FlightMs() < 240 THEN
+                    CASE INTEGER(TRUNCATE((piMs - Highlights:ReadyMs() - Highlights:FlightMs()) / 80, 0)):
+                        WHEN 0 THEN Stamp(FootballSprite:GmRipple1, x0 + tx, 87 + ty, FALSE).
+                        WHEN 1 THEN Stamp(FootballSprite:GmRipple2, x0 + tx, 87 + ty, FALSE).
+                        OTHERWISE Stamp(FootballSprite:GmRipple3, x0 + tx, 87 + ty, FALSE).
+                    END CASE.
                 Stamp(FootballSprite:GmBallFar, x0 + tx, 87 + ty, FALSE).
             END.
             OTHERWISE
